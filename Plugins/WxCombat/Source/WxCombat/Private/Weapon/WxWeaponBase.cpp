@@ -1,8 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Weapon/WxWeaponBase.h"
-#include "AbilitySystem/Effect/WxEffect_HitStop.h"
-#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Components/ChildActorComponent.h"
 #include "Components/ShapeComponent.h"
@@ -237,12 +235,6 @@ void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 	}
 
 	HitActorsThisSwing.Add(OtherActor);
-	if (UWxCombatLibrary::ApplyDamage(this, OtherActor, DamageInfo, HitResult))
-	{
-		// 대미지 GE 뒤라야 공격자 쪽은 동기로 도착한 반응(패리 등)에 몽타주를 양보하고, 피격자 쪽은 막 시작된 반응 몽타주를 얼린다.
-		UAbilitySystemComponent* OwnerASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(WeaponOwner);
-		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
-		UWxEffect_HitStop::Apply(InstigatorHitStop, OwnerASC, OwnerASC);
-		UWxEffect_HitStop::Apply(VictimHitStop, OwnerASC, TargetASC);
-	}
+	// 히트스톱은 피해 GE가 이 무기의 설정으로 건다.
+	UWxCombatLibrary::ApplyDamage(this, OtherActor, DamageInfo, HitResult);
 }

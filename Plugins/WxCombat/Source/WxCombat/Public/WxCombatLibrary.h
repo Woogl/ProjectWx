@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DataTable.h"
 #include "GameplayEffectTypes.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "WxCombatLibrary.generated.h"
@@ -11,7 +12,6 @@ class AActor;
 class UAbilitySystemComponent;
 class UGameplayAbility;
 class UGameplayEffect;
-struct FHitResult;
 
 UCLASS()
 class WXCOMBAT_API UWxCombatLibrary : public UBlueprintFunctionLibrary
@@ -23,12 +23,10 @@ public:
 	static bool IsHostile(const AActor* Source, const AActor* Target);
 
 	/**
-	 * Hit Wrapper GE가 아군·시체를 거르고, 무적이면 피해 대신 DodgeSuccess 이벤트를 낸다.
-	 * 서버에서만 적용하며 적중 연출과 추가 효과는 예측하지 않는다.
+	 * Causer 또는 그 Owner의 ASC로 피해를 적용한다. 투사체는 발사 레벨을, 나머지는 현재 Ability/레벨을 사용한다.
+	 * 방어 판정·회피·반응·히트스톱·퍼펙트 가드 되돌림·추가 효과는 피해 GE가 처리한다.
 	 *
-	 * @param Causer	히트를 낸 액터. ASC가 없으면 Owner가 공격자다.
-	 * 투사체는 저장된 발사 레벨로 독립 적중 처리한다. 그 외에는 공격자의 현재 어빌리티와 레벨(없으면 1)을 사용한다.
-	 * @return			대미지 GE가 적용됐으면 true. 비권위·회피(DodgeSuccess)·적용 실패는 false.
+	 * @return Damage GE 적용 여부. 양수 피해가 아니어도 true이며, 무적·사망·거부면 false다.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Wx|Combat")
 	static bool ApplyDamage(AActor* Causer, const AActor* Target, const FDataTableRowHandle& DamageTableRow, const FHitResult& HitResult);

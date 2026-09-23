@@ -13,7 +13,7 @@ UWxEffect_Invincible::UWxEffect_Invincible()
 {
 	DurationPolicy = EGameplayEffectDurationType::Infinite;
 
-	// Hit의 회피 판정을 거치지 않는 직접 피해 적용도 차단한다.
+	// ApplyDamage의 회피 판정을 거치지 않는 직접 피해 적용도 차단한다.
 	UImmunityGameplayEffectComponent* ImmunityComp = CreateDefaultSubobject<UImmunityGameplayEffectComponent>(TEXT("Immunity"));
 	FGameplayEffectQuery DamageQuery;
 	DamageQuery.EffectDefinition = UWxEffect_Damage::StaticClass();

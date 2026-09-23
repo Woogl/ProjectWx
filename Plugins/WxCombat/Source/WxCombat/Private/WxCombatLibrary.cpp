@@ -1,11 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxCombatLibrary.h"
-#include "Damage/WxHitEffectContext.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "Abilities/GameplayAbility.h"
 #include "GenericTeamAgentInterface.h"
+#include "Damage/WxDamageEffectContext.h"
 #include "Damage/WxDamageTableRow.h"
 #include "Weapon/WxProjectileBase.h"
 
@@ -33,39 +33,38 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		return false;
 	}
 
-	AActor* SourceActor = Causer;
-	UAbilitySystemComponent* Source = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Causer);
+	AActor* Instigator = Causer;
+	UAbilitySystemComponent* Source = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Instigator);
 	if (!Source)
 	{
-		SourceActor = Causer->GetOwner();
-		Source = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(SourceActor);
+		Instigator = Causer->GetOwner();
+		Source = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Instigator);
 	}
-
 	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
-	if (!Source || !TargetASC || !Source->IsOwnerActorAuthoritative())
+	if (!Source || !TargetASC)
+	{
+		return false;
+	}
+	// 적대는 GE 요건이 아니라 여기서 거른다. 무적 Immunity가 GE 요건보다 먼저 돌아 아군 공격에도 회피 통지가 나간다.
+	if (!Source->IsOwnerActorAuthoritative() || !IsHostile(Source->GetAvatarActor(), TargetASC->GetAvatarActor()))
 	{
 		return false;
 	}
 
-	const AWxProjectileBase* Projectile = Cast<AWxProjectileBase>(Causer);
-	// 비행 중 다른 발동으로 바뀌어도 투사체는 발사 레벨과 독립 지급 정책을 유지한다.
+	FGameplayEffectContextHandle Context(new FWxDamageEffectContext(*Source->MakeEffectContext().Get()));
+	Context.AddInstigator(Instigator, Causer);
 	const UGameplayAbility* SourceAbility = nullptr;
 	float DamageLevel = 1.f;
-	if (Projectile)
+	if (const AWxProjectileBase* Projectile = Cast<AWxProjectileBase>(Causer))
 	{
+		// 반사 후 출처는 현재 Owner를 따르되 발사 시 레벨은 유지한다.
 		DamageLevel = Projectile->GetProjectileLevel();
 	}
 	else
 	{
 		SourceAbility = Source->GetAnimatingAbility();
-		if (SourceAbility)
-		{
-			DamageLevel = SourceAbility->GetAbilityLevel();
-		}
+		DamageLevel = SourceAbility ? SourceAbility->GetAbilityLevel() : 1.f;
 	}
-
-	FGameplayEffectContextHandle Context(new FWxHitEffectContext(*Source->MakeEffectContext().Get(), DamageTableRow));
-	Context.AddInstigator(SourceActor, Causer);
 	Context.SetAbility(SourceAbility);
 	Context.AddHitResult(HitResult);
 
@@ -75,16 +74,14 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		return false;
 	}
 
-	const FGameplayEffectSpecHandle HitSpec = DamageRow->MakeHitSpec(Source, Context, DamageLevel);
-	if (!HitSpec.IsValid())
+	const FGameplayEffectSpecHandle DamageSpec = DamageRow->MakeDamageSpec(Source, Context, DamageLevel);
+	if (!DamageSpec.IsValid())
 	{
 		return false;
 	}
 
-	// 적중 GE와 Cue는 서버 판정을 따른다. 과거 활성화 키를 실으면 예측본 잔류나 소유 클라의 Cue 생략이 발생한다.
-	Source->ApplyGameplayEffectSpecToTarget(*HitSpec.Data.Get(), TargetASC, FPredictionKey());
-	// Wrapper 접수와 자식 피해 적용은 다르다. 회피와 자식 거부에서는 히트스톱을 켜지 않는다.
-	return FWxHitEffectContext::Get(Context)->bDamageApplied;
+	// 무적이면 Invincible의 Immunity가 여기서 막는다. 피해와 Cue는 서버 판정을 따르며, 과거 활성화 키를 실으면 예측본 잔류나 소유 클라의 Cue 생략이 발생한다.
+	return Source->ApplyGameplayEffectSpecToTarget(*DamageSpec.Data.Get(), TargetASC, FPredictionKey()).WasSuccessfullyApplied();
 }
 
 void UWxCombatLibrary::ApplyEffect(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass, const UGameplayAbility* SourceAbility)

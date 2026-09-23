@@ -36,7 +36,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_Parry, "Event.Hit.Parry");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit_GuardBreak, "Event.Hit.GuardBreak");
 	UE_DEFINE_GAMEPLAY_TAG(Event_DamageDealt, "Event.DamageDealt");
-	UE_DEFINE_GAMEPLAY_TAG(Event_DodgeSuccess, "Event.DodgeSuccess");
 	UE_DEFINE_GAMEPLAY_TAG(Event_PerfectGuard, "Event.PerfectGuard");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Interact, "Event.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Finisher, "Event.Finisher");
@@ -77,9 +76,10 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_AttackTelegraph_Blue, "GameplayCue.AttackTelegraph.Blue");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_AttackTelegraph_Purple, "GameplayCue.AttackTelegraph.Purple");
 
-	UE_DEFINE_GAMEPLAY_TAG(Damage_Attack, "Damage.Attack");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Critical, "Damage.Critical");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_GuardBreak, "Damage.GuardBreak");
+	UE_DEFINE_GAMEPLAY_TAG(Damage_Guarded, "Damage.Guarded");
+	UE_DEFINE_GAMEPLAY_TAG(Damage_PerfectGuarded, "Damage.PerfectGuarded");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_CanCritical, "Damage.CanCritical");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_CanGuard, "Damage.CanGuard");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_CanParry, "Damage.CanParry");

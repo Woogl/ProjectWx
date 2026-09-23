@@ -21,7 +21,7 @@ class UNiagaraSystem;
  * 되돌릴 수 있는 투사체를 퍼펙트 가드로 막은 히트만은 파괴 대신 쏜 쪽으로 돌아선다.
  *
  * 스폰과 파괴 모두 서버 권위이며, 대미지와 적중 연출도 서버 판정을 따른다.
- * 반면 ImpactFX는 권위 검사 앞에서 재생하므로, 충돌을 감지한 머신이 각자 즉시 재생한다.
+ * ImpactFX는 충돌을 감지한 머신마다 재생하며, Overlap에서는 무적 대상(회피)이면 생략한다.
  *
  * HitCollision의 "WxProjectile" 콜리전 프로파일은 DefaultEngine.ini에 정의돼 있다.
  */
@@ -35,14 +35,8 @@ public:
 
 	int32 GetProjectileLevel() const;
 
-	//~ Begin IGenericTeamAgentInterface
-	/** 팀을 따로 들지 않고 Instigator의 것을 그대로 쓴다 — 피격 판정도 같은 출처로 적대 여부를 가린다. */
-	virtual FGenericTeamId GetGenericTeamId() const override;
-	//~ End IGenericTeamAgentInterface
-
-protected:
-	UPROPERTY(EditAnywhere, Category = "Wx|Projectile|Damage", meta = (RowType = "/Script/WxCombat.WxDamageTableRow", WxPreviewRow = "true"))
-	FDataTableRowHandle DamageDataRow;
+	/** 퍼펙트 가드로 막힌 히트에서 쏜 쪽으로 되돌린다. bCanReflect가 false면 아무것도 하지 않는다. */
+	void Reflect(APawn& Parrier);
 
 	/** 적중 시 공격자에게 걸 역경직 지속 시간 (초). 0 이하이면 미적용 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile|Damage")
@@ -51,6 +45,15 @@ protected:
 	/** 적중 시 피격자에게 걸 역경직 지속 시간 (초). 0 이하이면 미적용 */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile|Damage")
 	float VictimHitStop = 0.1f;
+
+	//~ Begin IGenericTeamAgentInterface
+	/** 팀을 따로 들지 않고 Instigator의 것을 그대로 쓴다 — 피격 판정도 같은 출처로 적대 여부를 가린다. */
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	//~ End IGenericTeamAgentInterface
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Wx|Projectile|Damage", meta = (RowType = "/Script/WxCombat.WxDamageTableRow", WxPreviewRow = "true"))
+	FDataTableRowHandle DamageDataRow;
 
 	/** false이면 퍼펙트 가드로 막혀도 되돌아가지 않고 그대로 파괴된다. */
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile")
@@ -91,9 +94,6 @@ private:
 	/** 발사 시 확정한다. 반사는 소유자만 바꾸고 레벨은 유지한다. */
 	UPROPERTY(VisibleInstanceOnly, Category = "Wx|Projectile|Damage")
 	int32 ProjectileLevel = 1;
-
-	/** 되돌림이 성립한 히트에서만 부른다. 쏜 쪽은 오버랩 핸들러의 적대 판정이 보장한다. */
-	void Reflect(APawn& Parrier);
 
 	void PlayImpactFX();
 };

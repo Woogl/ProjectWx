@@ -8,7 +8,9 @@ Last updated: 2026-09-23
 
 | File | Summary | Tags | Updated |
 |------|---------|------|---------|
+| [명시적 DamageRequest와 기존 BP 호환 경계](2026-09-23-damage-request-contract.md) | 동기 C++ DamageRequest 입력, 네이티브 호출부의 출처 선택, 기존 Blueprint 호환 어댑터 분리를 확인했다. | wx, damage, static-review | 2026-09-23 |
 | [사망·대화 화면 주인을 컨트롤러 컴포넌트로 이동](2026-09-23-player-screen-owner.md) | 사망·대화 화면 클래스와 태그 관찰을 UIManager 서브시스템·전역 설정에서 UWxPlayerLayoutComponent로 옮긴 결정과 코드 근거. 사용자가 인게임 동작을 확인했다. | wx, ui, static-review | 2026-09-23 |
+| [피해 결과 반환과 투사체 소비 계약](2026-09-23-damage-result-contract.md) | DamageResult의 적용·방어·거부·계산량 계약과 투사체의 서버 재판정 제거를 코드에서 확인했다. | wx, damage, static-review | 2026-09-23 |
 | [어빌리티 비용·쿨다운 GE 정적 조사](2026-09-22-current-ability-cost-cooldown.md) | 어빌리티 비용·쿨다운 GameplayEffect의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, combat | 2026-09-22 |
 | [AI 인지·Blackboard·락온 수명 정적 조사](2026-09-22-current-ai.md) | AI 인지·Blackboard·락온 수명 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, ai | 2026-09-22 |
 | [GAS 부여·어빌리티 계약 정적 조사](2026-09-22-current-combat.md) | GAS 부여·어빌리티 계약 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, combat | 2026-09-22 |
@@ -34,8 +36,18 @@ Last updated: 2026-09-23
 | [Workflow 승인 버전·정리 완료·승인자 기록](2026-09-22-workflow-closure.md) | P1·P2 개선 요청에 따라 승인 버전 검증, 테스트 수용과 정리 완료 분리, 승인자 기록을 구현한 근거 | wx, workflow | 2026-09-22 |
 | [Workflow 단계별 일감 대시보드](2026-09-22-workflow-dashboard.md) | 사용자 요청과 단계별 대시보드 구현·검증 범위 | wx, workflow | 2026-09-22 |
 | [Workflow 기획서 검토 전환과 검색 제거](2026-09-22-workflow-review.md) | 사용자 요청: 개발자가 전달받은 기획서를 검토하고 Workflow 문서 검색을 제거한다. | wx, workflow | 2026-09-22 |
+
 | [Ability Resolver의 WxUI 소유와 이전 경로 호환](2026-09-23-ability-resolver-module.md) | Ability Resolver를 WxUI로 이동하고 기존 WxGame 클래스 경로를 ClassRedirect로 유지했다. | wx, ui, static-review | 2026-09-23 |
 | [Ability Resolver를 Ability VM 파일에 통합](2026-09-23-ability-resolver-colocation.md) | 사용자 추가 지시로 WxUI의 Ability VM 헤더와 cpp에 Resolver를 함께 배치했다. | wx, ui, static-review | 2026-09-23 |
 | [Dialogue VM 순수 표시 데이터 분리와 모듈 경계](2026-09-23-dialogue-presentation-vm.md) | Dialogue VM은 WxUI 표시 데이터로, 세션 연결과 진행 입력은 WxGame Resolver와 화면으로 분리했다. | wx, ui, dialogue, architecture | 2026-09-23 |
 | [Dialogue 화면 수명으로 연결 책임 통합](2026-09-23-dialogue-screen-lifecycle.md) | 사용자 승인으로 Dialogue Resolver를 제거하고 화면 활성화·비활성화가 세션 구독과 표시 갱신을 소유한다. | wx, ui, dialogue, lifecycle | 2026-09-23 |
+| [타격별 피해 실행 정의 스냅샷](2026-09-23-damage-definition-snapshot.md) | 한 번의 행 해석과 진행 중 타격 정의 유지 | wx, damage, static-review | 2026-09-23 |
+| [피해 입력 보관 구조 단순화](2026-09-23-damage-definition-simplification.md) | 별도 정의 타입과 유효 플래그 제거, 추가 효과만 Context에 복사 | wx, damage | 2026-09-23 |
+| [Hit 처리의 함수별 책임](2026-09-23-hit-processing-functions.md) | 새 타입 없이 방어 판정·Spec 준비·결과 반응을 기존 클래스에서 분리 | wx, damage | 2026-09-23 |
 | [Quest 표시 VM과 화면 연결의 분리](2026-09-23-quest-presentation-vm.md) | Quest·QuestObjective는 WxUI 표시 데이터, WxGame QuestTracker는 저널 구독을 소유 | wx, ui, quests, lifecycle | 2026-09-23 |
+| [Damage Context의 미사용 데이터와 중복 수치 제거](2026-09-23-damage-context-cleanup.md) | 테이블 참조 복제와 중간 수치 제거, Result로 통합 | wx, damage | 2026-09-23 |
+| [DamageResult를 직접 읽는 bool 필드로 평탄화](2026-09-23-damage-result-flat.md) | 방어/거부 enum을 적용·회피·가드 플래그로 대체 | wx, damage | 2026-09-23 |
+| [ApplyDamage 반환 API 통합](2026-09-23-apply-damage-unification.md) | 결과 구조체를 반환하는 ApplyDamage 하나로 통합 | wx, damage | 2026-09-23 |
+| [Damage의 단일 요청 진입점](2026-09-23-damage-single-entry.md) | C++/Blueprint 공통 ApplyDamage(Request), 추론 어댑터 제거 | wx, damage | 2026-09-23 |
+| [Damage 결과를 앞으로만 흘리는 구조](2026-09-23-damage-forward-flow.md) | Hit Wrapper GE·전용 Context 제거, ApplyDamage 판정 → DamageResponse 반응 | wx, damage | 2026-09-23 |
+| [ApplyDamage 네 인자 인터페이스 복원](2026-09-23-damage-four-arguments.md) | 요청 구조체 제거, 네 인자·Result 반환·단일 진입점 유지 | wx, damage | 2026-09-23 |

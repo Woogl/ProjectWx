@@ -1,10 +1,12 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
-#include "AbilitySystem/Effect/WxEffectComponent_DamageResponse.h"
+#include "AbilitySystem/Effect/WxEffectComponent_AdditionalEffects.h"
+#include "AbilitySystem/Effect/WxEffectComponent_DamageReaction.h"
+#include "AbilitySystem/Effect/WxEffectComponent_HitStop.h"
+#include "AbilitySystem/Effect/WxEffectComponent_PerfectGuard.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystemComponent.h"
-#include "Damage/WxHitEffectContext.h"
 #include "GameplayEffectComponents/TargetTagRequirementsGameplayEffectComponent.h"
 #include "System/WxCombatDeveloperSettings.h"
 #include "WxGameplayTags.h"
@@ -17,11 +19,15 @@ UWxEffect_Damage::UWxEffect_Damage()
 	ExecDef.CalculationClass = UWxExecCalc_Damage::StaticClass();
 	Executions.Add(ExecDef);
 
-	GEComponents.Add(CreateDefaultSubobject<UWxEffectComponent_DamageResponse>(TEXT("DamageResponse")));
-
 	UTargetTagRequirementsGameplayEffectComponent* TagReqComp = CreateDefaultSubobject<UTargetTagRequirementsGameplayEffectComponent>(TEXT("TargetTagReq"));
 	TagReqComp->ApplicationTagRequirements.IgnoreTags.AddTag(WxGameplayTags::Ability_Death);
 	GEComponents.Add(TagReqComp);
+
+	// 실행 후 반응은 추가한 순서대로 돈다: 피격 반응 → 퍼펙트 가드 → 히트스톱 → 추가 효과.
+	GEComponents.Add(CreateDefaultSubobject<UWxEffectComponent_DamageReaction>(TEXT("DamageReaction")));
+	GEComponents.Add(CreateDefaultSubobject<UWxEffectComponent_PerfectGuard>(TEXT("PerfectGuard")));
+	GEComponents.Add(CreateDefaultSubobject<UWxEffectComponent_HitStop>(TEXT("HitStop")));
+	GEComponents.Add(CreateDefaultSubobject<UWxEffectComponent_AdditionalEffects>(TEXT("AdditionalEffects")));
 }
 
 struct FWxDamageBaseStatics
@@ -126,10 +132,21 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	const FGameplayEffectSpec& OwningSpec = ExecutionParams.GetOwningSpec();
 
-	const FWxHitEffectContext* HitContext = FWxHitEffectContext::Get(OwningSpec.GetContext());
 	const bool bCanCritical = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanCritical);
 	const bool bIsGroggy = TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy);
-	const bool bPerfectGuardApplied = HitContext && HitContext->bPerfectGuard;
+
+	// 방어 판정은 여기서 한 번 내리고, 반응 컴포넌트가 읽도록 결과 태그로 남긴다.
+	const bool bCanGuard = OwningSpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanGuard);
+	const bool bPerfectGuardApplied = bCanGuard && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
+	const bool bGuardHit = bCanGuard && !bPerfectGuardApplied && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_GuardReduction);
+	if (bPerfectGuardApplied)
+	{
+		ExecutionParams.GetOwningSpecForPreExecuteMod()->AddDynamicAssetTag(WxGameplayTags::Damage_PerfectGuarded);
+	}
+	else if (bGuardHit)
+	{
+		ExecutionParams.GetOwningSpecForPreExecuteMod()->AddDynamicAssetTag(WxGameplayTags::Damage_Guarded);
+	}
 
 	FAggregatorEvaluateParameters EvalParams;
 	EvalParams.SourceTags = OwningSpec.CapturedSourceTags.GetAggregatedTags();
@@ -145,7 +162,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	const float ATKCoeff = OwningSpec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Coeff_ATK, false, 0.f);
 	const bool bCanApplyCritical = !bPerfectGuardApplied && bCanCritical;
-	const bool bGuardHit = HitContext && HitContext->bGuarded;
 
 	float SourceCritRate = 0.f;
 	float SourceCritDMG = 0.f;
@@ -173,7 +189,7 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 
 	if (bPerfectGuardApplied)
 	{
-		// 피해 대신 반사 메타 속성을 출력해 타격 Wrapper가 퍼펙트 가드 결과를 식별하게 한다.
+		// 피해 대신 반사량을 반사 메타 속성으로 출력한다.
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(ExecutionStatics.IncomingReflectProperty, EGameplayModOp::Additive, FinalDamage));
 		return;
 	}

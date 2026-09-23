@@ -1,10 +1,10 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Dodge.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
+#include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystemComponent.h"
 #include "WxCollisionChannels.h"
@@ -99,6 +99,12 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	// 무적 태그 자체는 구간을 소유한 ANS가 걷어낸다.
 	DeactivateJudgementCapsule();
 
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->OnImmunityBlockGameplayEffectDelegate.Remove(ImmunityBlockHandle);
+	}
+	ImmunityBlockHandle.Reset();
+
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -188,28 +194,37 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 
 void UWxAbility_Dodge::ListenForDodgeSuccess()
 {
-	// 무적 구간에 여러 공격이 들어오면 데미지 파이프라인이 매 피격마다 Event.DodgeSuccess를 발송한다.
-	// 보상은 회피 1회당 한 번이어야 하므로 OnlyTriggerOnce로 바인딩한다.
-	UAbilityTask_WaitGameplayEvent* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(
-		this, WxGameplayTags::Event_DodgeSuccess, nullptr, true);
-	EventTask->EventReceived.AddDynamic(this, &UWxAbility_Dodge::HandleDodgeSuccess);
-	EventTask->ReadyForActivation();
+	// 원격 회피의 방향 데이터가 먼저 와 있으면 시작 실패로 이미 끝났을 수 있다. 끝난 인스턴스가 구독을 남기면 다른 무적의 차단에도 반응한다.
+	if (!IsActive())
+	{
+		return;
+	}
+
+	// 무적의 Immunity가 공격 피해를 막은 순간이 회피 성공이다. 피해 적용은 서버에서만 일어나므로 이 통지도 서버에서만 온다.
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ImmunityBlockHandle = ASC->OnImmunityBlockGameplayEffectDelegate.AddUObject(this, &UWxAbility_Dodge::HandleImmunityBlock);
+	}
 
 	if (IsPredictingClient())
 	{
 		// 타인의 공격 예측 키 없이도, 내 회피 활성화에 대한 서버 확정 신호를 받는다.
 		UAbilityTask_NetworkSyncPoint* ConfirmationTask = UAbilityTask_NetworkSyncPoint::WaitNetSync(this, EAbilityTaskNetSyncType::OnlyClientWait);
-		ConfirmationTask->OnSync.AddDynamic(this, &UWxAbility_Dodge::HandleConfirmedDodgeSuccess);
+		ConfirmationTask->OnSync.AddDynamic(this, &UWxAbility_Dodge::HandleDodgeSuccess);
 		ConfirmationTask->ReadyForActivation();
 	}
 }
 
-void UWxAbility_Dodge::HandleConfirmedDodgeSuccess()
+void UWxAbility_Dodge::HandleImmunityBlock(const FGameplayEffectSpec& BlockedSpec, const FActiveGameplayEffect* ImmunityEffect)
 {
-	HandleDodgeSuccess(FGameplayEventData());
+	// 다른 Immunity(쿨다운 면제 등)의 차단 통지도 같은 델리게이트로 온다.
+	if (BlockedSpec.Def && BlockedSpec.Def->IsA<UWxEffect_Damage>())
+	{
+		HandleDodgeSuccess();
+	}
 }
 
-void UWxAbility_Dodge::HandleDodgeSuccess(FGameplayEventData Payload)
+void UWxAbility_Dodge::HandleDodgeSuccess()
 {
 	if (bDodgeSuccessHandled || !PerfectDodgeMontage)
 	{

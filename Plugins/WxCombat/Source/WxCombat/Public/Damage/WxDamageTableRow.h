@@ -39,6 +39,9 @@ public:
 	UPROPERTY(EditAnywhere, meta = (AllowAbstract = "false"))
 	TArray<TSubclassOf<UGameplayEffect>> AdditionalEffects;
 
-	/** Context에는 이 행을 가리키는 FWxHitEffectContext를 전달한다. 일반 진입점은 ApplyDamage다. */
-	FGameplayEffectSpecHandle MakeHitSpec(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context, float DamageLevel) const;
+	/**
+	 * 계수·공격 태그를 실은 Damage GE Spec을 만든다. 일반 진입점은 ApplyDamage다.
+	 * Context가 FWxDamageEffectContext면 추가 효과 목록을 싣는다.
+	 */
+	FGameplayEffectSpecHandle MakeDamageSpec(UAbilitySystemComponent* SourceASC, const FGameplayEffectContextHandle& Context, float DamageLevel) const;
 };

@@ -46,7 +46,7 @@ ASC의 `GiveAbilitySets`는 재빙의로 같은 AbilitySet이 중복 부여되�
 | 입력 전달·부여·공격 속도 | `UWxAbilitySystemComponent`, `UWxAbilitySet` |
 | HP/SP/GP/MP/UP 및 최대값 | `UWxCombatAttributeSet` |
 | 적대·권한·Hit 진입 | `UWxCombatLibrary::ApplyDamage` |
-| 피해·가드·반사 | `UWxEffectComponent_Hit`, `UWxExecCalc_Damage` |
+| 피해·가드·반사 | `UWxCombatLibrary::ApplyDamage`, `UWxExecCalc_Damage`, `UWxEffectComponent_DamageReaction`·`_PerfectGuard`·`_HitStop` |
 
 일반 어빌리티의 기본 정책은 LocalPredicted지만 피니시·그로기는 ServerInitiated이며 상호작용은 WxGame의 ServerOnly 어빌리티다. 전투 전체를 단일 네트워크 정책으로 설명하지 않는다. [전투 모듈 소스](../../../Plugins/WxCombat/Source/WxCombat)에서 담당 경로를 추적한다.
 

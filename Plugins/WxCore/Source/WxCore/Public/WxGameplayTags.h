@@ -103,9 +103,6 @@ namespace WxGameplayTags
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DamageDealt);
 
-	/** 무적 구간에서 대미지를 회피했을 때 발송 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_DodgeSuccess);
-
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_PerfectGuard);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Interact);
@@ -162,14 +159,17 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Blue);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_AttackTelegraph_Purple);
 	
-	/** 공격이 낸 피해. 이 표식이 없는 피해(치트·즉사 등)는 타격 반응도 플로터도 내지 않는다 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Attack);
-
 	/** 대미지 ExecCalc가 판정해 스펙에 붙이는 결과 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Critical);
 
 	/** 대미지 ExecCalc가 판정해 스펙에 붙이는 결과 — 가드 히트의 SP 차감이 이 히트로 0에 닿았다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_GuardBreak);
+
+	/** 대미지 ExecCalc가 판정해 스펙에 붙이는 결과 — 일반 가드로 받았다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Guarded);
+
+	/** 대미지 ExecCalc가 판정해 스펙에 붙이는 결과 — 퍼펙트 가드로 받았다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_PerfectGuarded);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_CanCritical);
 

@@ -16,7 +16,7 @@ public:
 	UWxEffect_Damage();
 };
 
-/** Wrapper의 방어 판정에 따라 계산하고 SP·IncomingDamage·GP 순으로 반영한다. 반응은 Wrapper가 후처리한다. */
+/** 방어를 판정해 계산하고 SP·IncomingDamage·GP 순으로 반영한다. 반응은 Damage GE의 컴포넌트들이 처리한다. */
 UCLASS()
 class WXCOMBAT_API UWxExecCalc_Damage : public UGameplayEffectExecutionCalculation
 {

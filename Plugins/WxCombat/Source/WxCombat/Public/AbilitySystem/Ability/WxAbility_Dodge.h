@@ -31,7 +31,7 @@ enum class EWxDodgeDirection : uint8
  * 진입 시점은 회피 몽타주의 StartRecovery가 차단을 푸는 때다.
  *
  * 극한 회피 판정은 몸통 캡슐을 그대로 둔 채 판정 캡슐이 "피하지 않았다면 맞았을 자리"를 추가로 덮는 방식이다.
- * 둘 중 어느 쪽이 잡히든 타겟은 플레이어 액터 하나이므로, 무적을 확인한 데미지 파이프라인이 Event.DodgeSuccess를 발송한다.
+ * 둘 중 어느 쪽이 잡히든 타겟은 플레이어 액터 하나이므로, 무적의 Immunity가 피해를 막은 통지(OnImmunityBlockGameplayEffectDelegate)로 성공을 판정한다.
  *
  * 8분면 결정은 소유 클라이언트에서 한 번만 하고, 캐릭터 로컬 공간으로 변환한 방향을 TargetData로 보낸다.
  * 서버는 자신의 facing과 무관하게 같은 8분면을 얻으므로 클라이언트/서버 몽타주가 항상 일치한다.
@@ -84,14 +84,15 @@ private:
 	
 	void HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);
 
-	UFUNCTION()
-	void HandleDodgeSuccess(FGameplayEventData Payload);
+	void HandleImmunityBlock(const FGameplayEffectSpec& BlockedSpec, const FActiveGameplayEffect* ImmunityEffect);
 
 	UFUNCTION()
-	void HandleConfirmedDodgeSuccess();
+	void HandleDodgeSuccess();
 
-	/** 로컬 성공 이벤트와 서버 확정 신호가 겹쳐도 몽타주는 한 번만 전환한다. */
+	/** 무적 구간에 여러 공격이 막혀도 극한 회피는 회피 1회당 한 번만 전환한다. */
 	bool bDodgeSuccessHandled = false;
+
+	FDelegateHandle ImmunityBlockHandle;
 
 	UFUNCTION()
 	void HandleInvincibleTagAdded();

@@ -93,3 +93,60 @@
 ## 2026-09-23 — 표시 VM 모듈 경계와 화면 수명
 
 Ability Resolver의 WxUI 통합과 Dialogue·Quest·QuestObjective의 순수 표시 VM 이전을 원자료 5개로 수집해 ui·dialogue·quests에 반영했다. 도메인 구독은 WxGame 화면 수명이 담당하며 새 Wx 기능 모듈 의존성이나 WxCore 로직은 추가하지 않는다. 빌드·에셋 컴파일·수명 테스트의 검증 범위는 각 작업 기록에 남겼다. 사용자 요청으로 검증용 C++ 테스트와 friend 선언을 제거했다.
+
+## [2026-09-23] ingest | 피해 결과 반환과 투사체 소비 계약 (raw/notes/2026-09-23-damage-result-contract.md)
+
+## [2026-09-23] compile | 1 source → 0 new articles, 1 updated (combat-damage). DamageResult/호환 API/서버 투사체 결과 소비를 반영했다. 내부 이벤트 순서는 유지하며 빌드·자동화 근거는 Workflow Task에서 별도 관리한다.
+
+## [2026-09-23] ingest | 명시적 DamageRequest와 기존 BP 호환 경계 (raw/notes/2026-09-23-damage-request-contract.md)
+
+## [2026-09-23] compile | 1 source → 0 new articles, 1 updated (combat-damage). 동기 요청 API와 호출자 출처 선택, 기존 BP 어댑터 경계를 반영했다. 실행 검증과 사용자의 이전 단계 테스트 수용은 Workflow Task에서 구분한다.
+- 추가 지시 반영: 별도 Resolver 파일 배치를 Ability VM 파일 통합으로 대체하고 새 원자료로 근거를 남겼다.
+
+## [2026-09-23] ingest / compile | 타격별 피해 실행 정의
+- 원자료 1개를 combat-damage에 통합했다. Hit의 행 재조회 제거와 로컬 정의의 복사·복제 계약을 기록했다. 실행 검증은 Workflow Task에서 구분한다.
+- 최종 검증: WBP 새 생성 설정 재로드·컴파일 및 실제 위젯 수명 자동화(Wx.UI.Dialogue.ScreenLifecycle) 통과. 게임 화면·클릭 진행은 별도 확인 대상으로 유지한다.
+
+## [2026-09-23] ingest / compile | 피해 입력 보관 구조 단순화
+- 사용자 검토를 반영한 원자료를 추가하고 combat-damage의 현재 구현을 갱신했다. DamageDefinition과 유효 상태를 제거하고 Spec 및 Context의 추가 효과 목록만 유지한다.
+
+## [2026-09-23] ingest / compile | Hit 처리 함수 분리
+- 새 원자료를 combat-damage에 통합했다. 기존 클래스 내부 함수 책임과 추가 효과의 캡처/적용 순서를 기록했다.
+
+## [2026-09-23] ingest / compile | Damage Context 정리
+- 미사용 테이블 참조와 중복 수치 제거를 원자료로 수집하고 combat-damage의 현재 저장·복제 계약을 갱신했다.
+
+## [2026-09-23] ingest / compile | DamageResult 평탄화
+- 사용자 승인에 따라 enum 제거와 직접 bool 필드 계약을 새 원자료 및 combat-damage에 반영했다.
+
+## [2026-09-23] ingest / compile | ApplyDamage API 통합
+- 두 반환 API를 하나로 합친 변경과 호출부 전환을 원자료 및 combat-damage에 반영했다.
+
+## [2026-09-23] ingest / compile | Damage 단일 진입점
+- 사용자 추가 지시에 따라 ApplyDamage(Request) 단일 함수와 Blueprint 요청 입력을 현재 계약으로 반영했다. 이전 API 통합 원자료는 경과로 보존한다.
+
+## [2026-09-23] ingest / compile | ApplyDamage 네 인자 복원
+- 사용자 선호에 따라 요청 구조체를 제거하고 출처/레벨 추론을 단일 함수에 복원한 현재 계약을 반영했다.
+
+## [2026-09-23] ingest | Damage 결과를 앞으로만 흘리는 구조 (raw/notes/2026-09-23-damage-forward-flow.md)
+
+## [2026-09-23] compile | 1 sources → 0 new articles, 2 updated (combat-damage, combat)
+- Hit Wrapper GE·FWxHitEffectContext 제거와 ApplyDamage 판정 → DamageResponse 반응 구조로 combat-damage의 처리 순서·판정·결과 해석 절을 다시 썼다. DamageRequest 제거로 바뀐 진입점 시그니처도 반영했다. combat 토픽의 핵심 클래스 표를 갱신했다.
+
+## [2026-09-23] compile | 1 sources → 0 new articles, 1 updated (combat-damage)
+- 회피를 Immunity 차단 델리게이트 구독(Dodge 어빌리티)으로 전환하고 Event.DodgeSuccess·bEvaded 제거를 반영했다.
+
+## [2026-09-23] compile | 1 sources → 0 new articles, 2 updated (combat-damage, combat)
+- FWxDamageResult 삭제와 Damage GE 컴포넌트 분할(DamageReaction·PerfectGuard·HitStop)을 반영했다.
+
+## [2026-09-23] compile | 1 sources → 0 new articles, 1 updated (combat-damage)
+- ApplyDamage의 적용 여부(bool) 반환을 결과 해석 절에 반영했다.
+
+## [2026-09-23] compile | 1 sources → 0 new articles, 1 updated (combat-damage)
+- 사망 요건 GE 일원화, 적대의 ApplyDamage 유지 사유, 방어 판정 ExecCalc 이관, 추가 효과 입력 Context·컴포넌트 이관을 처리 순서·판정 절에 반영했다.
+
+## [2026-09-23] compile | 1 sources → 0 new articles, 1 updated (combat-damage)
+- 추가 효과 Spec 생성 시점을 반응 뒤로 바꾼 결정을 판정 절에 반영했다.
+
+## [2026-09-23] compile | 1 sources → 0 new articles, 1 updated (combat-damage)
+- Damage.Attack 태그 제거에 맞춰 결과별 반응 표를 정정했다.

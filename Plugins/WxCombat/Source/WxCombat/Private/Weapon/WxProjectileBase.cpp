@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Weapon/WxProjectileBase.h"
-#include "AbilitySystem/Effect/WxEffect_HitStop.h"
 #include "Components/SphereComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Components/SceneComponent.h"
@@ -12,7 +11,6 @@
 #include "AbilitySystemComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
-#include "Damage/WxDamageTableRow.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "WxCombatLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -62,6 +60,10 @@ FGenericTeamId AWxProjectileBase::GetGenericTeamId() const
 void AWxProjectileBase::Reflect(APawn& Parrier)
 {
 	const APawn* Shooter = GetInstigator();
+	if (!bCanReflect || !Shooter)
+	{
+		return;
+	}
 
 	// 팀은 Instigator에서, 대미지 출처는 Owner에서 파생하므로 둘을 함께 옮겨야 되돌아간 히트가 패리한 쪽의 것이 된다.
 	SetOwner(&Parrier);
@@ -129,21 +131,20 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		return;
 	}
 
-	UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetInstigator());
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor);
 
-	// 충돌 연출·투사체 수명에만 쓰는 로컬 조회다. 피해와 회피 성공 이벤트는 Hit Wrapper가 처리한다.
-	const bool bEvaded = SourceASC && TargetASC
-		&& UWxCombatLibrary::IsHostile(SourceASC->GetAvatarActor(), TargetASC->GetAvatarActor())
+	// 무적 대상은 피해 없이 통과한다. 클라 충돌 연출과 서버 수명이 같은 조건을 쓴다.
+	const bool bEvaded = TargetASC
 		&& !TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death)
 		&& TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_Invincible);
-	if (!bEvaded)
-	{
-		PlayImpactFX();
-	}
 
 	if (!HasAuthority())
 	{
+		// 클라이언트는 충돌 연출만 낸다. 서버의 피해·수명·반사는 확정 결과를 따른다.
+		if (!bEvaded)
+		{
+			PlayImpactFX();
+		}
 		return;
 	}
 
@@ -167,27 +168,17 @@ void AWxProjectileBase::HandleHitCollisionOverlap(UPrimitiveComponent* Overlappe
 		}
 	}
 
-	// 되돌림이 출처를 갈아 끼우므로 대미지보다 먼저 읽는다.
-	// 흘려낸 히트는 대미지 GE가 걸리지 않고, 가드를 뚫는 공격에는 퍼펙트 가드가 서지 않는다.
-	// 되돌아간 투사체의 출처가 될 폰까지 여기서 함께 가른다 — 성립 판정이 둘로 갈라지면 되돌림도 파괴도 아닌 히트가 생긴다.
-	const FWxDamageTableRow* DamageRow = DamageDataRow.GetRow<FWxDamageTableRow>(ANSI_TO_TCHAR(__FUNCTION__));
-	APawn* Parrier = Cast<APawn>(OtherActor);
-	const bool bReflecting = bCanReflect && !bEvaded && Parrier && DamageRow && DamageRow->bCanGuard
-		&& TargetASC && TargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_PerfectGuard);
-
-	// 회피여도 호출은 그대로다 — 회피 성공 판정이 여기서 나가고, 대미지와 상태이상은 그쪽이 알아서 거른다.
-	const bool bDamageApplied = UWxCombatLibrary::ApplyDamage(this, OtherActor, DamageDataRow, HitResult);
-	if (bDamageApplied)
+	// 회피여도 호출은 그대로다 — 무적의 Immunity가 피해를 막으며 회피 성공을 통지한다. 히트스톱과 퍼펙트 가드 되돌림은 피해 GE가 처리한다.
+	const AActor* OwnerBeforeHit = GetOwner();
+	UWxCombatLibrary::ApplyDamage(this, OtherActor, DamageDataRow, HitResult);
+	if (bEvaded)
 	{
-		UWxEffect_HitStop::Apply(InstigatorHitStop, SourceASC, SourceASC);
-		UWxEffect_HitStop::Apply(VictimHitStop, SourceASC, TargetASC);
+		return;
 	}
 
-	if (bDamageApplied && bReflecting)
-	{
-		Reflect(*Parrier);
-	}
-	else if (!bEvaded)
+	PlayImpactFX();
+	// 되돌려졌으면 막은 쪽으로 Owner가 바뀌어 있다.
+	if (GetOwner() == OwnerBeforeHit)
 	{
 		Destroy();
 	}
