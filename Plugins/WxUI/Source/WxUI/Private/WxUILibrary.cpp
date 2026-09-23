@@ -9,22 +9,6 @@
 #include "Engine/GameInstance.h"
 #include "Kismet/GameplayStatics.h"
 
-namespace
-{
-	FWxPopupResultDelegate MakeNativeResultDelegate(const FWxPopupResultDynamicDelegate& OnResult)
-	{
-		if (!OnResult.IsBound())
-		{
-			return FWxPopupResultDelegate();
-		}
-
-		return FWxPopupResultDelegate::CreateWeakLambda(OnResult.GetUObject(), [OnResult](EWxPopupResult Result)
-		{
-			OnResult.ExecuteIfBound(Result);
-		});
-	}
-}
-
 UWxUIManagerSubsystem* UWxUILibrary::GetUIManagerSubsystem(const UObject* WorldContextObject)
 {
 	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(WorldContextObject);
@@ -80,5 +64,14 @@ void UWxUILibrary::ShowConfirmationPopup(const UObject* WorldContextObject, EWxP
 	case EWxPopupButtonLayout::YesNoCancel: Descriptor = UWxGamePopupDescriptor::CreateConfirmationYesNoCancel(Header, Body); break;
 	}
 
-	UIManager->ShowConfirmation(Descriptor, MakeNativeResultDelegate(OnResult));
+	FWxPopupResultDelegate ResultCallback;
+	if (OnResult.IsBound())
+	{
+		ResultCallback = FWxPopupResultDelegate::CreateWeakLambda(OnResult.GetUObject(), [OnResult](EWxPopupResult Result)
+		{
+			OnResult.ExecuteIfBound(Result);
+		});
+	}
+
+	UIManager->ShowConfirmation(Descriptor, ResultCallback);
 }
