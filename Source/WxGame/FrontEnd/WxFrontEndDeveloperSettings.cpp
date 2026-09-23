@@ -9,6 +9,28 @@ UWxFrontEndDeveloperSettings::UWxFrontEndDeveloperSettings()
 
 bool UWxFrontEndDeveloperSettings::HasSelectableOptions() const
 {
-	return CharacterOptions.ContainsByPredicate([](const TSoftClassPtr<APawn>& Option) { return !Option.IsNull(); })
-		&& LevelOptions.ContainsByPredicate([](const TSoftObjectPtr<UWorld>& Option) { return !Option.IsNull(); });
+	bool bHasCharacterOption = false;
+	for (const TSoftClassPtr<APawn>& Option : CharacterOptions)
+	{
+		if (!Option.IsNull())
+		{
+			bHasCharacterOption = true;
+			break;
+		}
+	}
+
+	if (!bHasCharacterOption)
+	{
+		return false;
+	}
+
+	for (const TSoftObjectPtr<UWorld>& Option : LevelOptions)
+	{
+		if (!Option.IsNull())
+		{
+			return true;
+		}
+	}
+
+	return false;
 }

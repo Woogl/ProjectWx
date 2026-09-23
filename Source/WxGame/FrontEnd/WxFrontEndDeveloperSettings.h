@@ -8,7 +8,7 @@
 
 class APawn;
 
-UCLASS(Config = Game, DefaultConfig, meta = (DisplayName = "Front End"))
+UCLASS(Config = Game, DefaultConfig)
 class WXGAME_API UWxFrontEndDeveloperSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()

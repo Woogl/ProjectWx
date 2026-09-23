@@ -1,6 +1,6 @@
 # DataTable 행 이름 변경 시 사용처 참조 갱신
 
-상태: 구현 완료 · 인간 코드 리뷰·에디터 확인 대기 · 2026-09-23
+상태: 완료 · 2026-09-23
 
 ## 확정 설계 · 2026-09-23 사용자 확정
 
@@ -70,3 +70,18 @@
 - 이름을 바꾸는 순간 참조 에셋을 동기로 로드한다. 몽타주라면 스켈레톤·메시까지 함께 로드된다.
 - 새 모듈이라 Visual Studio 솔루션에 보이게 하려면 프로젝트 파일을 다시 생성해야 한다(generate-project-files). 빌드에는 영향이 없다.
 - 완료 단계에서 할 일: Wiki `editor-tools.md` 모듈 표에 DataTableRowFixup을 추가하고, 감지·갱신 방식과 제약을 반영한다.
+
+## 완료 · 2026-09-23
+
+- 사용자 판단(2026-09-23): "네. 테스트도 완료했습니다. 잘 되네요". 에디터 동작 확인과 테스트 수용으로 기록한다. 확인한 구체 시나리오는 명시되지 않았으므로 위 "확인하지 못한 것"을 모두 확인한 것으로 넓히지 않는다.
+- 제출: 커밋 `e165d2988`(이번 작업만 선별)을 사용자 요청으로 `origin/main`에 푸시했다.
+- Wiki: 원자료 `raw/notes/2026-09-23-datatable-row-fixup.md`를 추가하고 `editor-tools.md`에 모듈 표·등록 수명·행 참조 갱신 계약·범위 밖 항목을 편찬했다.
+  - 제목에 DataTableRowFixup을 넣었고, 이 제목을 인용하는 링크 라벨(`wiki-operation`·`wiki-workflow`·`foundation`·`world`)과 색인(`references/_index.md`·`_index.md`·`raw/notes/_index.md`)을 맞췄다.
+  - `log.md`에 ingest·compile 항목을 추가했다. Wiki 변경은 커밋하지 않았다.
+- 검사 결과:
+  - `llm-wiki lint --local`: PASS(0 findings)
+  - `CheckWikiLinks.ps1`: 1 error, 45 documents. `combat-damage.md`가 다른 세션이 삭제한 `WxEffectComponent_Hit.cpp`를 가리키는 오류이며, 이번 작업과는 무관해 건드리지 않았다.
+  - 뷰어 재생성은 하지 않았다(PS 7 미설치).
+- 자료 정리:
+  - 임시 검증 테스트 소스, 빌드 중간 산출물, 작업용 임시 파일(패키지 헤더 파서·검증 로그)을 삭제했다.
+  - 이름 변경으로 남은 옛 `Plugins/WxDataTableRowRename` 폴더(다시 생긴 빈 모듈 목록 포함)도 삭제했다.

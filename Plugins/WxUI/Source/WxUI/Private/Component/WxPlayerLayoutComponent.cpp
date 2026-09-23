@@ -155,7 +155,7 @@ void UWxPlayerLayoutComponent::HandleDialogueTagChanged(const FGameplayTag Callb
 	}
 
 	// 대화 위젯은 Game 레이어 스택 top 에 얹혀 HUD 를 잠시 가리고, 닫히면 HUD 가 복귀한다.
-	// 위젯의 뷰모델이 생성 시점에 세션의 현재 대사를 pull 하므로, 세션이 다 채워진 뒤에 오는 이 신호로 띄운다.
+	// 대화 화면이 활성화될 때 현재 대사로 표시를 채우므로, 세션이 다 채워진 뒤에 오는 이 신호로 띄운다.
 	PendingDialogueScreenPush = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(
 		this, WxGameplayTags::UI_Layer_Game, DialogueScreenClass);
 	PendingDialogueScreenPush->SetCompletionCallback(
