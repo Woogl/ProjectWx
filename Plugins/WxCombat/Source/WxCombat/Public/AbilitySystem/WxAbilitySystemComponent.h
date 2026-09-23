@@ -46,8 +46,6 @@ public:
 	/** 이 액터의 ASPD가 반영된 몽타주 재생 속도. 어빌리티가 오버라이드하지 않으면 그 어빌리티의 몽타주 재생 속도가 된다. */
 	float GetMontagePlayRate() const;
 
-	virtual void NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) override;
-
 	/** 후딜에 들어 점유를 놓은 배타 어빌리티를 끊는다. */
 	void CancelRecoveringAbilities(UGameplayAbility* IgnoreAbility);
 

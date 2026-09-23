@@ -256,13 +256,6 @@ float UWxAbilitySystemComponent::GetMontagePlayRate() const
 	return FMath::Max(AttrSet->GetASPD(), 0.001f);
 }
 
-void UWxAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
-{
-	Super::NotifyAbilityFailed(Handle, Ability, FailureReason);
-
-	UE_LOG(LogWxCombat, Verbose, TEXT("Ability Failed: %s — 사유 %s"), *GetNameSafe(Ability), *FailureReason.ToStringSimple());
-}
-
 void UWxAbilitySystemComponent::CancelRecoveringAbilities(UGameplayAbility* IgnoreAbility)
 {
 	// 취소가 어빌리티 목록을 바꿀 수 있으므로 순회를 잠근다.
