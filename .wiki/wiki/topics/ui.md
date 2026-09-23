@@ -10,6 +10,7 @@ sources:
   - "raw/notes/2026-09-23-ability-resolver-colocation.md"
   - "raw/notes/2026-09-23-dialogue-presentation-vm.md"
   - "raw/notes/2026-09-23-dialogue-screen-lifecycle.md"
+  - "raw/notes/2026-09-23-boss-battle-three-layer.md"
 created: 2026-09-22
 updated: 2026-09-23
 tags: [wx, ui]
@@ -44,6 +45,19 @@ Dialogue VM 자체는 WxUI의 순수 표시 데이터다. Speaker·LineText·Has
 
 Quest·QuestObjective VM도 WxUI의 표시 데이터다. WxGame의 QuestTracker가 일반 위젯의 생성·해제 수명에 저널 구독을 연결한다. Quest는 Create Instance로 생성하며, 목표별 행 VM은 Quest VM이 소유한다. 자세한 계약은 [퀘스트](quests.md)의 조립과 범위를 참고한다.
 
+VM은 WxUI에 모은다(2026-09-23 사용자 결정). 도메인 데이터가 필요한 표시는 세 층으로 나눈다.
+- 모델(WxGame·도메인): 상태와 변경 델리게이트만 두고, VM·MVVM을 모른다.
+- 연결: WxGame 리졸버나 기존 화면 위젯이 맡는다.
+- VM: WxUI의 순수 표시 데이터다.
+
+리졸버는 위젯 클래스가 공유하는 const 객체라 상태를 들 수 없다. 그래서 구독은 VM을 소유자로 하는 약한 델리게이트(`FDelegate::CreateWeakLambda(VM, …)`)로 걸고, 해제는 `DestroyInstance`에서 `RemoveAll(VM)`으로 한다. 리졸버를 구독의 주인으로 두면 위젯 하나를 해제할 때 다른 위젯의 구독까지 끊긴다(08c73f513에서 고친 버그). 늦게 생긴 위젯을 위해 `CreateInstance`에서 현재 값을 한 번 반영한다.
+
+HUD 보스 바(`WBP_Nameplate_Boss`)가 이 규칙을 처음 적용한 사례다.
+- WxGame의 `UWxViewModelResolver_BossCharacter`가 위젯마다 WxUI `UWxViewModel_Character`를 만들고, [게임 조립](game.md)의 `UWxBattleSubsystem`이 정한 현재 보스를 싣는다.
+- 보스가 없으면 VM을 비우고, 그러면 가시성 바인딩이 바를 숨긴다.
+- UIManager와 머리 위 `UWxNameplateComponent`는 보스를 모른다.
+- WBP 로드·컴파일은 확인했지만 인게임 표시는 검증하지 않았다.
+
 ## 일시정지와 제약
 
 `UWxViewModelResolver_Ability`는 WxUI의 `WxViewModel_Ability.h/.cpp`에 함께 둔다. 위젯 소유 컨트롤러의 Pawn에서 ASC를 얻고, AbilityTags에 대응하는 공유 슬롯 VM을 AbilitySystem VM에서 가져온다. 이전 WxGame 클래스 경로는 CoreRedirect로 유지한다. 이는 모듈 이동의 정적 확인이며 기존 WBP 로드·표시 검증과는 별개다.
@@ -71,12 +85,13 @@ Quest·QuestObjective VM도 WxUI의 표시 데이터다. WxGame의 QuestTracker�
 - [근거 5](../../raw/notes/2026-09-23-ability-resolver-colocation.md)
 - [근거 6](../../raw/notes/2026-09-23-dialogue-presentation-vm.md)
 - [근거 7](../../raw/notes/2026-09-23-dialogue-screen-lifecycle.md)
+- [보스 표시 세 층 구조](../../raw/notes/2026-09-23-boss-battle-three-layer.md)
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
-빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 2026-09-23에 보스 표시 세 층 구조 원자료(커밋 `4352e9100`)를 편찬해 추가했다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 
 </details>

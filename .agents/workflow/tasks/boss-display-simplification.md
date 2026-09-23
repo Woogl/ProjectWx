@@ -92,6 +92,12 @@
   - `IdentityTags`는 베이스에 있지만 교전 알림은 적만 보낸다.
   - `WxMVVMToolset`: D→S 방향 미지원, 소스 이름을 잘못 쓰면 모호한 오류, 중복 코드.
 
+## Wiki 반영 (2026-09-23)
+
+- 사용자 요청으로 인게임 확인 전에 반영했다. 보스 표시 동작에는 "인게임 미검증"을 표기했다.
+- 원자료 `.wiki/raw/notes/2026-09-23-boss-battle-three-layer.md`를 수집하고, `wiki/topics/ui.md`(세 층 규칙·보스 바), `wiki/topics/game.md`(보스전 상태·식별 태그·재초기화 문제), `wiki/references/editor-tools.md`(MVVM 소스 경로 도구·전환 함정)에 편찬했다.
+- 수정한 4개 문서의 상대 링크 67개가 모두 존재함을 확인했다. PowerShell 7이 없어 뷰어(`Export-Wiki.ps1`)는 갱신하지 못했다.
+
 ## 인게임 확인 방법 (인간 확인 필요)
 
 1. 적 BP 하나의 `IdentityTags`에 `Character.Boss`를 지정한다. 확인 후 되돌린다.

@@ -5,6 +5,7 @@ sources:
   - "raw/notes/2026-09-22-current-editor.md"
   - "raw/notes/2026-09-22-current-foundation.md"
   - "raw/notes/2026-09-23-datatable-row-fixup.md"
+  - "raw/notes/2026-09-23-boss-battle-three-layer.md"
 created: 2026-09-22
 updated: 2026-09-23
 tags: [wx, editor, datatable]
@@ -24,7 +25,7 @@ summary: "네 편집기 모듈은 속성 편집·썸네일·시각화·에셋 �
 | 모듈 | 제공 기능 | 주요 연결점 |
 |---|---|---|
 | WxEditor | Actor Locator·DataTable Row Handle·StateTree 컴포넌트 이름 편집, Wx 속성 섹션, 아이템/UI 썸네일, 장치 연결 시각화 | PropertyEditor·ThumbnailManager·UnrealEd |
-| WxToolset | Blueprint 변수 메타, AnimMontage 구조/노티파이, StateTree 파라미터·바인딩·컴파일 도구 | ToolsetRegistry의 AICallable 함수 |
+| WxToolset | Blueprint 변수 메타, AnimMontage 구조/노티파이, StateTree 파라미터·바인딩·컴파일, MVVM 바인딩 경로·변환 함수·이벤트 목적지 도구 | ToolsetRegistry의 AICallable 함수 |
 | DataTableRowFixup | DataTable 행 이름 변경 시 그 행을 가리키던 `FDataTableRowHandle`을 새 이름으로 갱신 | DataTable 변경 리스너·Asset Registry·PropertyAccessUtil |
 | BoxComponentVisualizerEditor | BoxComponent와 파생 컴포넌트용 시각화 등록 | UnrealEd ComponentVisualizer |
 
@@ -44,6 +45,18 @@ DataTableRowFixup은 모듈 시작 시 DataTable 변경 리스너를 만들고 �
 - **대상:** `FDataTableRowHandle`이 저장 때 남기는 SearchableName 기록(엔진 "Find Row References"와 같은 기록)에서 참조 에셋을 찾는다. 기록이 디스크 기준이라 저장하지 않은 변경은 Dirty 패키지에서 찾는다. 열려 있지 않은 레벨·외부 액터는 엔진 에셋 이름 변경처럼 로드하지 않고 보고만 한다.
 - **갱신:** 값은 `PropertyAccessUtil::SetPropertyValue_Object`로 써서, 변경 통지와 값을 물려받은 로드된 인스턴스로의 전파를 엔진이 맡는다. 수정한 StateTree는 다시 컴파일한다. 에셋은 Dirty로만 두고 저장은 사용자가 하며, Ctrl+Z 한 번에 이름 변경과 함께 되돌아간다.
 - **범위 밖:** 대화·자막 `NextRow` 같은 FName 행 참조, BP 그래프에 직접 입력한 행 이름, CurveTable 행, 열려 있지 않은 레벨에서 값을 직접 지정한 배치 액터는 고치지 않는다.
+
+## MVVM 바인딩 편집
+
+`WxMVVMToolset`은 순정 MCP가 닿지 못하는 MVVM 편집을 제공한다.
+- `SetBindingConversionFunction`: 변환 함수와 인자 경로를 한 번에 지정한다.
+- `SetBindingSourcePath`(2026-09-23, 커밋 `ac723132d`): 바인딩 소스 경로나 Source→Destination 변환 함수 인자 하나의 경로만 바꾼다. 나머지 인자의 경로·기본값은 유지한다.
+  - 인자 이름을 비우면 바인딩 자체의 소스 경로를 바꾼다. 이때 엔진 에디터와 같이 기존 변환 함수는 제거된다.
+  - 경로는 "뷰모델이름.필드[.필드...]" 또는 "Self.필드"다.
+  - BlueprintCallable이라 에디터 Python(`unreal.WxMVVMToolset.set_binding_source_path`)에서도 쓸 수 있다.
+  - D→S 방향은 지원하지 않는다.
+
+VM 클래스를 바꾸는 WBP 전환은 `MVVMEditorSubsystem.ReparentViewModel` → 한 번 컴파일 → 경로 변경 순서로 하는 편이 깨끗하다. 기존 VM 클래스를 먼저 삭제한 채 로드하면 스켈레톤에 VM 프로퍼티가 없어, 변환 인자 경로를 설정할 때 `MVVMConversionFunctionHelper` ensure가 난다. 저장 데이터는 올바르게 남는다. 보스 네임플레이트 전환에서 확인했다.
 
 ## 확인 범위와 진입점
 
@@ -66,12 +79,13 @@ DataTableRowFixup은 모듈 시작 시 DataTable 변경 리스너를 만들고 �
 - [근거 1](../../raw/notes/2026-09-22-current-editor.md)
 - [근거 2](../../raw/notes/2026-09-22-current-foundation.md)
 - [근거 3](../../raw/notes/2026-09-23-datatable-row-fixup.md)
+- [보스 표시 세 층 구조](../../raw/notes/2026-09-23-boss-battle-three-layer.md)
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
-빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 2026-09-23에 DataTableRowFixup 원자료(커밋 `e165d2988`)를 편찬해 추가했다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 2026-09-23에 DataTableRowFixup 원자료(커밋 `e165d2988`)와 MVVM 소스 경로 도구(커밋 `ac723132d`)를 편찬해 추가했다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 
 </details>

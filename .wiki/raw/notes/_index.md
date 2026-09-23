@@ -8,6 +8,7 @@ Last updated: 2026-09-23
 
 | File | Summary | Tags | Updated |
 |------|---------|------|---------|
+| [보스 표시 세 층 구조와 전투 서브시스템](2026-09-23-boss-battle-three-layer.md) | 보스 표시를 모델(UWxBattleSubsystem)·연결(WxGame 리졸버)·VM(WxUI Character VM) 세 층으로 재구성한 결정과 코드 근거. 보스 식별은 IdentityTags 태그. 인게임 표시는 미검증. | wx, ui, combat, game, architecture | 2026-09-23 |
 | [DataTable 행 이름 변경 시 행 핸들 참조 갱신(DataTableRowFixup)](2026-09-23-datatable-row-fixup.md) | 행 이름을 바꾸면 그 행을 가리키던 FDataTableRowHandle을 새 이름으로 고치는 범용 에디터 플러그인의 결정·계약·검증 기록. 사용자가 에디터에서 동작을 확인했다. | wx, editor, datatable | 2026-09-23 |
 | [명시적 DamageRequest와 기존 BP 호환 경계](2026-09-23-damage-request-contract.md) | 동기 C++ DamageRequest 입력, 네이티브 호출부의 출처 선택, 기존 Blueprint 호환 어댑터 분리를 확인했다. | wx, damage, static-review | 2026-09-23 |
 | [사망·대화 화면 주인을 컨트롤러 컴포넌트로 이동](2026-09-23-player-screen-owner.md) | 사망·대화 화면 클래스와 태그 관찰을 UIManager 서브시스템·전역 설정에서 UWxPlayerLayoutComponent로 옮긴 결정과 코드 근거. 사용자가 인게임 동작을 확인했다. | wx, ui, static-review | 2026-09-23 |

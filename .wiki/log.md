@@ -171,3 +171,8 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 
 ## [2026-09-23] lint | combat-damage·combat 정합성 정리
 - combat 토픽의 핵심 클래스 표를 현재 대미지 구조(입력 조립·판정/계산·반응 컴포넌트·Immunity 회피)로 정정했다. combat-damage의 출처·검증 메모를 커밋 855ec2eb3 기준으로 정리하고 폐기된 단계 노트를 이력으로 명시했다.
+
+## [2026-09-23] ingest | 보스 표시 세 층 구조와 전투 서브시스템 (raw/notes/2026-09-23-boss-battle-three-layer.md)
+
+## [2026-09-23] compile | 1 sources → 0 new articles, 3 updated (ui, game, editor-tools)
+- 모델/WxGame 리졸버/WxUI VM 세 층 규칙과 보스 바 연결(ui), UWxBattleSubsystem·IdentityTags·PostInitializeComponents 재실행에 따른 사망 구독 중복 문제(game), WxMVVMToolset.SetBindingSourcePath와 WBP 전환 함정(editor-tools)을 반영했다. 보스 표시는 인게임 미검증.
