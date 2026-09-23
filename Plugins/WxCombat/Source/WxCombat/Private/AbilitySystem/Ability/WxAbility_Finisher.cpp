@@ -1,13 +1,14 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "AbilitySystem/Ability/WxAbility_PlayMontageOnce.h"
 #include "AbilitySystem/Effect/WxEffect_Invincible.h"
 #include "AbilitySystem/Effect/WxEffect_ResetGP.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
-#include "Finisher/WxFinisherDamageComponent.h"
 #include "MotionWarpingComponent.h"
+#include "WxCombatLibrary.h"
 #include "WxGameplayTags.h"
 
 namespace
@@ -56,13 +57,12 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
 	// 대상에 가하는 변경은 전부 대상 ASC 를 거치고 액터 자체는 위치만 읽으므로 const 로 다룬다.
 	const AActor* Target = TriggerEventData ? TriggerEventData->Target.Get() : nullptr;
-	const bool bBackstab = TriggerEventData && !TriggerEventData->TargetTags.HasTag(WxGameplayTags::Ability_Groggy);
+	bBackstab = TriggerEventData && !TriggerEventData->TargetTags.HasTag(WxGameplayTags::Ability_Groggy);
 	const FWxFinisherVariant& Variant = bBackstab ? BackstabVariant : FinisherVariant;
 	UAnimMontage* SelectedAttackerMontage = Variant.AttackerMontage;
 	UAnimMontage* SelectedVictimMontage = Variant.VictimMontage;
-	UWxFinisherDamageComponent* FinisherDamageComponent = AvatarActor ? AvatarActor->FindComponentByClass<UWxFinisherDamageComponent>() : nullptr;
 
-	if (!SelectedAttackerMontage || !AvatarActor || !Target || !FinisherDamageComponent || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!SelectedAttackerMontage || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -84,10 +84,14 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 			FGameplayAbilitySpec VictimSpec(UWxAbility_PlayMontageOnce::StaticClass(), 1);
 			TargetASC->GiveAbilityAndActivateOnce(VictimSpec, &VictimEvent);
 		}
+
+		// 피해는 권위만 적용하므로 노티파이 대기도 여기서만 건다. 종료하면 태스크와 함께 대기도 끝난다.
+		UAbilityTask_WaitGameplayEvent* DamageEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_ApplyFinisherDamage, nullptr, true);
+		DamageEventTask->EventReceived.AddDynamic(this, &UWxAbility_Finisher::HandleFinisherDamageEvent);
+		DamageEventTask->ReadyForActivation();
 	}
 
 	RegisterWarpTarget(AvatarActor, Target);
-	FinisherDamageComponent->BeginFinisherDamage(Target, Variant.DamageDataRow);
 
 	if (!PlayMontage(SelectedAttackerMontage))
 	{
@@ -97,12 +101,6 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	const AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (UWxFinisherDamageComponent* FinisherDamageComponent = AvatarActor ? AvatarActor->FindComponentByClass<UWxFinisherDamageComponent>() : nullptr)
-	{
-		FinisherDamageComponent->EndFinisherDamage(TargetActor.Get());
-	}
-
 	if (ActorInfo && ActorInfo->IsNetAuthority())
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetActor.Get()))
@@ -143,4 +141,19 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 
 	const FRotator WarpRotation = Direction.Rotation();
 	MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(FinisherWarpTargetName, TargetLocation, WarpRotation);
+}
+
+void UWxAbility_Finisher::HandleFinisherDamageEvent(FGameplayEventData Payload)
+{
+	const AActor* Target = TargetActor.Get();
+	if (!Target)
+	{
+		return;
+	}
+
+	const FWxFinisherVariant& Variant = bBackstab ? BackstabVariant : FinisherVariant;
+	FHitResult HitResult;
+	HitResult.ImpactPoint = Target->GetActorLocation();
+	HitResult.Location = Target->GetActorLocation();
+	UWxCombatLibrary::ApplyDamage(GetAvatarActorFromActorInfo(), Target, Variant.DamageDataRow, HitResult);
 }

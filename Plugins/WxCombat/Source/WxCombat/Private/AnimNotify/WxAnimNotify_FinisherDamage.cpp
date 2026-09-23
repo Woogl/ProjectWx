@@ -24,7 +24,5 @@ void UWxAnimNotify_FinisherDamage::Notify(USkeletalMeshComponent* MeshComp, UAni
 	FGameplayEventData Payload;
 	Payload.EventTag = WxGameplayTags::Event_ApplyFinisherDamage;
 	Payload.Instigator = Owner;
-	Payload.OptionalObject = this;
-	Payload.OptionalObject2 = MeshComp;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Owner, Payload.EventTag, Payload);
 }

@@ -15,7 +15,6 @@
 #include "GameFramework/PlayerController.h"
 #include "Input/WxInputConfig.h"
 #include "Inventory/WxItemUseComponent.h"
-#include "Finisher/WxFinisherDamageComponent.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -43,7 +42,6 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
-	FinisherDamageComponent = CreateDefaultSubobject<UWxFinisherDamageComponent>(TEXT("FinisherDamageComponent"));
 	ItemUseComponent = CreateDefaultSubobject<UWxItemUseComponent>(TEXT("ItemUseComponent"));
 	InputBufferComponent = CreateDefaultSubobject<UWxInputBufferComponent>(TEXT("InputBufferComponent"));
 

@@ -64,5 +64,11 @@ protected:
 private:
 	void RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const;
 
+	UFUNCTION()
+	void HandleFinisherDamageEvent(FGameplayEventData Payload);
+
 	TWeakObjectPtr<const AActor> TargetActor;
+
+	/** 발동 순간의 대상 태그로 고른 변형. 대상 상태는 이후 바뀌므로 피해 시점에 다시 고르지 않는다. */
+	bool bBackstab = false;
 };

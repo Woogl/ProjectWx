@@ -12,7 +12,6 @@ class UWidgetComponent;
 class UGameplayEffect;
 class UWxInputConfig;
 class UWxItemUseComponent;
-class UWxFinisherDamageComponent;
 class UWxInputBufferComponent;
 class UInputAction;
 struct FInputActionValue;
@@ -36,9 +35,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Camera")
 	TObjectPtr<UCameraComponent> FollowCamera;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Combat")
-	TObjectPtr<UWxFinisherDamageComponent> FinisherDamageComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wx|Inventory")
 	TObjectPtr<UWxItemUseComponent> ItemUseComponent;
