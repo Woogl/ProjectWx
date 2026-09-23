@@ -6,12 +6,12 @@ Last updated: 2026-09-23
 
 ## Statistics
 
-- Sources: 25 raw documents
+- Sources: 26 raw documents
 - Articles: 17 compiled wiki articles
 - Inventory records: 0 tracked items
 - Datasets: 0 manifests
 - Outputs: 0 generated artifacts
-- Last compiled: 2026-09-23 (world 기사에 엘리베이터 정차 지점 규칙과 FText 기본값 저장 함정 반영)
+- Last compiled: 2026-09-23 (world의 엘리베이터/FText 규칙, ui·dialogue의 사망·대화 화면 주인 변경 반영)
 - Last lint: 2026-09-22 (구조·출처·링크 검사; 게임 실행 검증과 별개)
 
 ## Quick Navigation

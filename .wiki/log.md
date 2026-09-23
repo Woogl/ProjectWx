@@ -86,3 +86,7 @@
 ## [2026-09-23] ingest | 인스턴스 구조체 FText 기본값과 에셋 저장 실패 조사 (raw/notes/2026-09-23-instanced-struct-ftext-default-save-fail.md)
 
 ## [2026-09-23] compile | 1 source → 0 new articles, 1 updated (world). 엘리베이터 정차 지점 규칙(bWakeOnCall·StopPrompt)과 인스턴스 구조체 FText C++ 기본값 저장 실패 함정(5212bbe3a) 반영. 저장 실패 재현은 에디터 MCP 결과이며 인게임 동작은 미검증.
+
+## [2026-09-23] ingest | 사망·대화 화면 주인을 컨트롤러 컴포넌트로 이동 (raw/notes/2026-09-23-player-screen-owner.md)
+
+## [2026-09-23] compile | 1 source → 0 new articles, 2 updated (ui, dialogue). 사망·대화 화면 클래스·태그 관찰의 주인이 UWxPlayerLayoutComponent로 바뀐 것과 설정/컨트롤러 BP 배치 기준을 반영했다. 인게임 동작은 사용자 확인.

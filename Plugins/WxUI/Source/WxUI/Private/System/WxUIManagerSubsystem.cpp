@@ -1,15 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "System/WxUIManagerSubsystem.h"
-#include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
 #include "CommonActivatableWidget.h"
-#include "GameFramework/Pawn.h"
 #include "System/WxPrimaryGameLayout.h"
 #include "System/WxUIDeveloperSettings.h"
 #include "Widget/WxGamePopup.h"
 #include "Widget/WxActivatableWidget.h"
-#include "Widget/WxAsyncAction_PushWidgetToLayer.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "WxGameplayTags.h"
 #include "Engine/LocalPlayer.h"
@@ -37,13 +33,7 @@ void UWxUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UWxUIManagerSubsystem::Deinitialize()
 {
-	// GameInstance 서브시스템이라 월드를 넘어 산다 — 붙잡아 둔 PC·ASC 구독을 여기서 끊는다.
-	if (APlayerController* TrackedPC = TrackedPlayerController.Get())
-	{
-		TrackedPC->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::HandlePossessedPawnChanged);
-	}
 	TrackedPlayerController.Reset();
-	WatchPawnTags(nullptr);
 
 	UGameInstance* GameInstance = GetGameInstance();
 	if (GameInstance)
@@ -221,12 +211,7 @@ void UWxUIManagerSubsystem::HandleLocalPlayerAdded(ULocalPlayer* LocalPlayer)
 
 void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 {
-	if (APlayerController* PreviousPC = TrackedPlayerController.Get())
-	{
-		PreviousPC->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::HandlePossessedPawnChanged);
-	}
 	TrackedPlayerController.Reset();
-	WatchPawnTags(nullptr);
 
 	// widget 의 GetOwningPlayer/GetWorld/GetOuter 가 유지되는 LocalPlayer/GameInstance 를 따라 새 값을 반환해 stale 여부를 알 수 없고, layout 은 빈 컨테이너라 매번 재생성해도 비용이 작다.
 	if (PrimaryGameLayout)
@@ -240,112 +225,9 @@ void UWxUIManagerSubsystem::HandlePlayerControllerSet(APlayerController* PC)
 		return;
 	}
 
+	// 빈 layout 을 채우는 화면(HUD·사망·대화)은 컨트롤러의 UWxPlayerLayoutComponent 가 띄운다.
 	CreateLayoutForPlayer(PC);
-
-	// 빈 layout 을 채우는 컨텐츠(HUD)는 컨트롤러의 UWxPlayerLayoutComponent 가 띄우고, 여기서는 폰 상태 태그 관찰만 빙의를 따라간다.
-	PC->OnPossessedPawnChanged.AddDynamic(this, &ThisClass::HandlePossessedPawnChanged);
 	TrackedPlayerController = PC;
-
-	// 이미 빙의를 마친 PC 일 수 있다(layout 재생성 경로). 그때는 신호가 다시 오지 않으므로 지금 폰으로 따라잡는다.
-	HandlePossessedPawnChanged(nullptr, PC->GetPawn());
-}
-
-void UWxUIManagerSubsystem::HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
-{
-	WatchPawnTags(NewPawn);
-}
-
-void UWxUIManagerSubsystem::WatchPawnTags(APawn* Pawn)
-{
-	if (UAbilitySystemComponent* PreviousASC = WatchedAbilitySystem.Get())
-	{
-		PreviousASC->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved).Remove(DeathTagHandle);
-		PreviousASC->RegisterGameplayTagEvent(WxGameplayTags::State_Dialogue, EGameplayTagEventType::NewOrRemoved).Remove(DialogueTagHandle);
-	}
-	WatchedAbilitySystem.Reset();
-	DeathTagHandle.Reset();
-	DialogueTagHandle.Reset();
-
-	// 관찰을 놓는 순간 대화 태그가 걷히는 것을 볼 수 없게 되므로, 열려 있던 대화 창은 여기서 닫는다.
-	CloseDialogueScreen();
-
-	// 캐릭터의 ASC 는 기본 서브오브젝트라 폰이 있으면 곧바로 잡힌다 — 늦은 도착을 기다릴 필요가 없다.
-	// 태그는 WxCore 라 WxUI 가 다른 플러그인 타입을 알지 않아도 되므로, 사망·대화를 도메인 델리게이트가 아니라 태그로 듣는다.
-	UAbilitySystemComponent* AbilitySystem = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
-	if (!AbilitySystem)
-	{
-		return;
-	}
-
-	DeathTagHandle = AbilitySystem->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
-		.AddUObject(this, &ThisClass::HandleDeathTagChanged);
-	DialogueTagHandle = AbilitySystem->RegisterGameplayTagEvent(WxGameplayTags::State_Dialogue, EGameplayTagEventType::NewOrRemoved)
-		.AddUObject(this, &ThisClass::HandleDialogueTagChanged);
-	WatchedAbilitySystem = AbilitySystem;
-}
-
-void UWxUIManagerSubsystem::HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
-{
-	if (NewCount <= 0)
-	{
-		return;
-	}
-
-	// 같은 월드의 부활 요청은 완료 시 호출한 사망 화면을 비활성화한다. PC 교체 시에는 layout과 함께 제거된다.
-	UWxAsyncAction_PushWidgetToLayer* PushAction = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(
-		this, WxGameplayTags::UI_Layer_Menu, GetDefault<UWxUIDeveloperSettings>()->DeathScreenClass);
-	PushAction->Activate();
-}
-
-void UWxUIManagerSubsystem::HandleDialogueTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
-{
-	if (NewCount <= 0)
-	{
-		CloseDialogueScreen();
-		return;
-	}
-
-	// 대화 위젯은 Game 레이어 스택 top 에 얹혀 HUD 를 잠시 가리고, 닫히면 HUD 가 복귀한다.
-	// 위젯의 뷰모델이 생성 시점에 세션의 현재 대사를 pull 하므로, 세션이 다 채워진 뒤에 오는 이 신호로 띄운다.
-	PendingDialogueScreenPush = UWxAsyncAction_PushWidgetToLayer::PushWidgetToLayer(
-		this, WxGameplayTags::UI_Layer_Game, GetDefault<UWxUIDeveloperSettings>()->DialogueScreenClass);
-	PendingDialogueScreenPush->SetCompletionCallback(
-		FWxPushWidgetToLayerNativeDelegate::CreateUObject(this, &ThisClass::HandleDialogueScreenPushCompleted));
-	PendingDialogueScreenPush->Activate();
-}
-
-void UWxUIManagerSubsystem::HandleDialogueScreenPushCompleted(UCommonActivatableWidget* Widget)
-{
-	PendingDialogueScreenPush = nullptr;
-	if (!Widget)
-	{
-		return;
-	}
-
-	UAbilitySystemComponent* AbilitySystem = WatchedAbilitySystem.Get();
-	if (!AbilitySystem || !AbilitySystem->HasMatchingGameplayTag(WxGameplayTags::State_Dialogue))
-	{
-		Widget->DeactivateWidget();
-		return;
-	}
-
-	DialogueScreen = Widget;
-}
-
-void UWxUIManagerSubsystem::CloseDialogueScreen()
-{
-	if (PendingDialogueScreenPush)
-	{
-		PendingDialogueScreenPush->Cancel();
-		PendingDialogueScreenPush = nullptr;
-	}
-
-	// 띄운 쪽에서 닫는다. 태그가 걷히는 어느 경로로 끝나든 창이 남지 않는다.
-	if (UCommonActivatableWidget* Screen = DialogueScreen.Get())
-	{
-		Screen->DeactivateWidget();
-	}
-	DialogueScreen.Reset();
 }
 
 void UWxUIManagerSubsystem::CreateLayoutForPlayer(APlayerController* PC)

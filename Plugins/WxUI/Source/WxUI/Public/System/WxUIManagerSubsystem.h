@@ -8,12 +8,9 @@
 #include "Widget/WxGamePopup.h"
 #include "WxUIManagerSubsystem.generated.h"
 
-class APawn;
-class UAbilitySystemComponent;
 class UWxPrimaryGameLayout;
 class UCommonActivatableWidget;
 class UWxGamePopupDescriptor;
-class UWxAsyncAction_PushWidgetToLayer;
 
 UCLASS()
 class WXUI_API UWxUIManagerSubsystem : public UGameInstanceSubsystem
@@ -44,22 +41,6 @@ private:
 
 	void CreateLayoutForPlayer(APlayerController* PC);
 
-	UFUNCTION()
-	void HandlePossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
-
-	/** 폰 ASC 의 상태 태그(사망·대화)를 관찰하기 시작한다. 이전 관찰은 먼저 끊는다 — 폰이 null 이면 끊기만 한다. */
-	void WatchPawnTags(APawn* Pawn);
-
-	/** 사망 태그가 부여되면 사망 화면을 띄운다. */
-	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
-
-	/** 대화 세션이 열리면 대화 창을 띄우고, 닫히면 걷는다. */
-	void HandleDialogueTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
-
-	void HandleDialogueScreenPushCompleted(UCommonActivatableWidget* Widget);
-
-	void CloseDialogueScreen();
-
 	/** 위젯은 서브시스템을 알지 못하므로, 활성/비활성 델리게이트를 이쪽에서 구독한다. */
 	void ObserveWidgetForGamePause(UCommonActivatableWidget* Widget);
 
@@ -82,20 +63,6 @@ private:
 	UPROPERTY(Transient)
 	TSubclassOf<UWxGamePopup> ConfirmationPopupClass;
 
-	/** 빙의를 구독해 둔 로컬 PC. 교체·종료 때 같은 PC 에서 끊기 위해 기억한다. */
+	/** 게임 일시정지를 거는 로컬 PC. */
 	TWeakObjectPtr<APlayerController> TrackedPlayerController;
-
-	/** 상태 태그를 구독해 둔 폰 ASC. 폰이 바뀌면 같은 ASC 에서 끊기 위해 기억한다. */
-	TWeakObjectPtr<UAbilitySystemComponent> WatchedAbilitySystem;
-
-	FDelegateHandle DeathTagHandle;
-
-	FDelegateHandle DialogueTagHandle;
-
-	/** 세션이 끝날 때 닫기 위해 기억해 두는, 대화 중 띄운 창. */
-	TWeakObjectPtr<UCommonActivatableWidget> DialogueScreen;
-
-	/** 대화 태그가 먼저 걷히면 화면이 뒤늦게 나타나지 않도록 취소할 진행 중인 요청. */
-	UPROPERTY()
-	TObjectPtr<UWxAsyncAction_PushWidgetToLayer> PendingDialogueScreenPush;
 };

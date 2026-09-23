@@ -8,6 +8,7 @@ Last updated: 2026-09-23
 
 | File | Summary | Tags | Updated |
 |------|---------|------|---------|
+| [사망·대화 화면 주인을 컨트롤러 컴포넌트로 이동](2026-09-23-player-screen-owner.md) | 사망·대화 화면 클래스와 태그 관찰을 UIManager 서브시스템·전역 설정에서 UWxPlayerLayoutComponent로 옮긴 결정과 코드 근거. 사용자가 인게임 동작을 확인했다. | wx, ui, static-review | 2026-09-23 |
 | [어빌리티 비용·쿨다운 GE 정적 조사](2026-09-22-current-ability-cost-cooldown.md) | 어빌리티 비용·쿨다운 GameplayEffect의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, combat | 2026-09-22 |
 | [AI 인지·Blackboard·락온 수명 정적 조사](2026-09-22-current-ai.md) | AI 인지·Blackboard·락온 수명 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, ai | 2026-09-22 |
 | [GAS 부여·어빌리티 계약 정적 조사](2026-09-22-current-combat.md) | GAS 부여·어빌리티 계약 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, combat | 2026-09-22 |

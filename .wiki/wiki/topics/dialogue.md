@@ -5,13 +5,14 @@ sources:
   - "raw/notes/2026-09-22-current-dialogue.md"
   - "raw/notes/2026-09-22-current-dialogue-definition.md"
   - "raw/notes/2026-09-22-current-ui.md"
+  - "raw/notes/2026-09-23-player-screen-owner.md"
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-09-23
 tags: [wx, dialogue]
 aliases: ["WxDialogue"]
 confidence: medium
 volatility: warm
-verified: 2026-09-22
+verified: 2026-09-23
 summary: "대화 정의는 액터에, 진행 세션은 PlayerController에 두고 행 데이터·ASC 태그·UI를 연결한다."
 ---
 
@@ -25,7 +26,7 @@ summary: "대화 정의는 액터에, 진행 세션은 PlayerController에 두�
 
 `UWxDialogueComponent`의 시작 행을 세션에 전달하면 `ClientStartDialogue`가 소유 클라이언트에서 대화를 연다. 세션은 현재 DataTable·행·대상을 보관하고 `Advance`로 NextRow를 따라간다. NextRow가 None이면 정상 완료이고, 누락된 행이나 빈 대사는 실패·중단 경로다. 대화 1편은 테이블 1개, 대사 한 줄은 행 하나이며 모든 행이 대사를 채워야 한다. 테이블을 수정할 때 종료 행과 오타를 혼동하지 않는다.
 
-진행 중인 세션에 새 대화가 들어오면 이전 세션을 먼저 중단한다. Pawn ASC가 없으면 새 세션을 열지 않는다. 유효한 행을 채운 뒤 `State.Dialogue` loose 태그를 1로 설정하므로 UI가 태그 변화를 받아 즉시 현재 대사를 읽을 수 있다. 세션은 UI를 모르고 대사 변경만 델리게이트로 발행하며, 대화 창을 여닫는 것은 `State.Dialogue` 태그를 구독하는 UI 매니저의 몫이다. 종료는 기억한 ASC의 카운트를 0으로 돌리고 카메라를 복구한다.
+진행 중인 세션에 새 대화가 들어오면 이전 세션을 먼저 중단한다. Pawn ASC가 없으면 새 세션을 열지 않는다. 유효한 행을 채운 뒤 `State.Dialogue` loose 태그를 1로 설정하므로 UI가 태그 변화를 받아 즉시 현재 대사를 읽을 수 있다. 세션은 UI를 모르고 대사 변경만 델리게이트로 발행하며, 대화 창을 여닫는 것은 `State.Dialogue` 태그를 구독하는 컨트롤러의 `UWxPlayerLayoutComponent`(WxUI) 몫이다. 종료는 기억한 ASC의 카운트를 0으로 돌리고 카메라를 복구한다.
 
 ## 수명과 연출
 
@@ -51,6 +52,7 @@ summary: "대화 정의는 액터에, 진행 세션은 PlayerController에 두�
 - [근거 1](../../raw/notes/2026-09-22-current-dialogue.md)
 - [대화 정의·호스트·행 데이터와 세션 계약 조사](../../raw/notes/2026-09-22-current-dialogue-definition.md) — 호스트 액터·행 규칙·세션 계약
 - [레이어·대화 화면·HUD·속성 표시 수명 조사](../../raw/notes/2026-09-22-current-ui.md) — 대화 창 열기·닫기
+- [사망·대화 화면 주인을 컨트롤러 컴포넌트로 이동](../../raw/notes/2026-09-23-player-screen-owner.md) — 대화 창 주인 변경
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
