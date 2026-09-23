@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxBTService_MirrorMovement.h"
+#include "WxBlackboardKeys.h"
 #include "AIController.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
@@ -20,7 +21,7 @@ UWxBTService_MirrorMovement::UWxBTService_MirrorMovement()
 	INIT_SERVICE_NODE_NOTIFY_FLAGS();
 	Interval = 0.f;
 	RandomDeviation = 0.f;
-	MirrorTarget.SelectedKeyName = TEXT("Master");
+	MirrorTarget.SelectedKeyName = WxBlackboardKeys::Master;
 	MirrorTarget.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, MirrorTarget), AActor::StaticClass());
 }
 
@@ -68,7 +69,7 @@ void UWxBTService_MirrorMovement::HandleAbilityActivated(UGameplayAbility* Abili
 {
 	ACharacter* Pawn = Follower.Get();
 	const ACharacter* Target = Master.Get();
-	if (!Pawn || !Pawn->HasAuthority() || !Target || !Ability || !Ability->GetAssetTags().HasAnyExact(FaceMasterAbilityTags))
+	if (!Pawn || !Target || !Ability || !Ability->GetAssetTags().HasAnyExact(FaceMasterAbilityTags))
 	{
 		return;
 	}
@@ -105,7 +106,7 @@ void UWxBTService_MirrorMovement::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	ACharacter* Pawn = Controller ? Cast<ACharacter>(Controller->GetPawn()) : nullptr;
 	ACharacter* Target = BB ? Cast<ACharacter>(BB->GetValueAsObject(MirrorTarget.SelectedKeyName)) : nullptr;
-	if (!Pawn || !Pawn->HasAuthority() || !Target || Pawn == Target)
+	if (!Pawn || !Target || Pawn == Target)
 	{
 		Release(OwnerComp);
 		return;

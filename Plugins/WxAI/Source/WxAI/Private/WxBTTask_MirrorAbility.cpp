@@ -2,6 +2,7 @@
 
 #include "WxBTTask_MirrorAbility.h"
 #include "WxAIModule.h"
+#include "WxBlackboardKeys.h"
 #include "AIController.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
@@ -17,7 +18,7 @@ UWxBTTask_MirrorAbility::UWxBTTask_MirrorAbility()
 	INIT_TASK_NODE_NOTIFY_FLAGS();
 	bNotifyTick = true;
 	bNotifyTaskFinished = true;
-	MirrorTarget.SelectedKeyName = TEXT("Master");
+	MirrorTarget.SelectedKeyName = WxBlackboardKeys::Master;
 	MirrorTarget.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, MirrorTarget), AActor::StaticClass());
 }
 
@@ -40,7 +41,7 @@ EBTNodeResult::Type UWxBTTask_MirrorAbility::ExecuteTask(UBehaviorTreeComponent&
 {
 	CleanUp();
 	AAIController* AI = OwnerComp.GetAIOwner();
-	if (!AI || !AI->HasAuthority())
+	if (!AI)
 	{
 		return EBTNodeResult::Failed;
 	}
@@ -81,19 +82,11 @@ void UWxBTTask_MirrorAbility::BindMaster(UAbilitySystemComponent* ASC)
 
 void UWxBTTask_MirrorAbility::HandleCommitted(UGameplayAbility* Ability)
 {
-	if (!Ability || IsExcluded(Ability))
+	if (!Ability || Ability->GetAssetTags().HasAnyExact(ExcludedAbilities))
 	{
 		return;
 	}
 	ReplayAutomatic(Ability);
-}
-
-bool UWxBTTask_MirrorAbility::IsExcluded(const UGameplayAbility* Ability) const
-{
-	return ExcludedAbilities.ContainsByPredicate([Ability](const FGameplayTagContainer& Tags)
-	{
-		return Ability->GetAssetTags().HasAnyExact(Tags);
-	});
 }
 
 void UWxBTTask_MirrorAbility::ReplayAutomatic(UGameplayAbility* Ability)
