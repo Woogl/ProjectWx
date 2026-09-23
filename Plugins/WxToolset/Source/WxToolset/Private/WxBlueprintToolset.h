@@ -9,7 +9,7 @@
 class UBlueprint;
 
 /**
- * 기존 MCP 표면(BlueprintTools 등)이 닿지 못하는 지점만 뚫는다 — 변수 메타.
+ * 기존 MCP 표면(BlueprintTools 등)이 닿지 못하는 지점만 뚫는다 — 변수 메타, enum 변수.
  */
 UCLASS(BlueprintType, Hidden)
 class UWxBlueprintToolset : public UToolsetDefinition
@@ -31,4 +31,11 @@ public:
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static FString GetVariableMeta(UBlueprint* Blueprint, FName VarName);
+
+	/**
+	 * BlueprintTools.add_variable 은 기본 타입만 받아 enum 멤버 변수를 만들 수 없다.
+	 * @param DefaultValue enum 항목 이름(예: "Equipment"). 비우면 첫 항목.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static bool AddEnumVariable(UBlueprint* Blueprint, FName VarName, UEnum* Enum, const FString& DefaultValue);
 };

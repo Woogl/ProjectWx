@@ -25,6 +25,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "ModelViewViewModel",
+			"Enabled": true
+		},
+		{
 			"Name": "ToolsetRegistry",
 			"Enabled": true
 		}

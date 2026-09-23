@@ -18,13 +18,18 @@ public class WxToolset : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"AssetTools",
+			"BlueprintGraph",
 			"GameplayStateTreeModule",
 			"Json",
 			"JsonUtilities",
+			"ModelViewViewModel",
+			"ModelViewViewModelBlueprint",
+			"ModelViewViewModelEditor",
 			"PropertyBindingUtils",
 			"StateTreeEditorModule",
 			"StateTreeModule",
 			"ToolsetRegistry",
+			"UMGEditor",
 			"UnrealEd",
 		});
 	}

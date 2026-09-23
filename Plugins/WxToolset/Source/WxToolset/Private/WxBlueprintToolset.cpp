@@ -3,6 +3,7 @@
 #include "WxBlueprintToolset.h"
 
 #include "Dom/JsonObject.h"
+#include "EdGraphSchema_K2.h"
 #include "Engine/Blueprint.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet2/BlueprintEditorUtils.h"
@@ -83,4 +84,27 @@ FString UWxBlueprintToolset::GetVariableMeta(UBlueprint* Blueprint, FName VarNam
 	const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Result);
 	FJsonSerializer::Serialize(Root, Writer);
 	return Result;
+}
+
+bool UWxBlueprintToolset::AddEnumVariable(UBlueprint* Blueprint, FName VarName, UEnum* Enum, const FString& DefaultValue)
+{
+	if (!Blueprint || !Enum)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("Blueprint 와 Enum 이 모두 필요하다."));
+		return false;
+	}
+
+	if (!DefaultValue.IsEmpty() && Enum->GetIndexByNameString(DefaultValue) == INDEX_NONE)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("'%s' 에 '%s' 항목이 없다."), *Enum->GetPathName(), *DefaultValue));
+		return false;
+	}
+
+	const FEdGraphPinType PinType(UEdGraphSchema_K2::PC_Byte, NAME_None, Enum, EPinContainerType::None, false, FEdGraphTerminalType());
+	if (!FBlueprintEditorUtils::AddMemberVariable(Blueprint, VarName, PinType, DefaultValue))
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("'%s' 에 '%s' 변수를 추가하지 못했다. 이름이 이미 쓰이고 있을 수 있다."), *Blueprint->GetPathName(), *VarName.ToString()));
+		return false;
+	}
+	return true;
 }
