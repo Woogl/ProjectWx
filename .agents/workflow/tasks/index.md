@@ -21,3 +21,7 @@
 - [상호작용 목록 VM 단순화](interaction-list-vm-simplification.md)
 - [사망·대화 화면 클래스를 컨트롤러 컴포넌트로 이동](player-screen-classes-to-layout-component.md)
 - [아이템 VM 단일화](item-viewmodel-unification.md)
+
+## 모듈 리뷰
+
+- [WxWorld 코드 리뷰](module_review_WxWorld.md)
