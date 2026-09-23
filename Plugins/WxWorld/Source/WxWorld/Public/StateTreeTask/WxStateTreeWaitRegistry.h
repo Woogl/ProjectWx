@@ -16,7 +16,7 @@
 template<typename PayloadType>
 struct TWxStateTreeWaitRegistry
 {
-	struct FWait
+	struct FWxWait
 	{
 		int32 Handle = INDEX_NONE;
 		PayloadType Payload;
@@ -26,7 +26,7 @@ struct TWxStateTreeWaitRegistry
 	/** 해제에 쓸 핸들을 돌려준다. 태스크는 이것을 인스턴스 데이터에 담아 두었다가 ExitState 에서 되돌린다. */
 	int32 Add(FStateTreeExecutionContext& Context, const PayloadType& Payload)
 	{
-		FWait& Wait = Waits.AddDefaulted_GetRef();
+		FWxWait& Wait = Waits.AddDefaulted_GetRef();
 
 		// 재사용하지 않으므로 뒤늦은 해제 요청이 엉뚱한 등록을 걷어가지 않는다.
 		Wait.Handle = NextHandle++;
@@ -60,7 +60,7 @@ struct TWxStateTreeWaitRegistry
 		for (int32 Index = Waits.Num() - 1; Index >= 0; --Index)
 		{
 			// 술어나 완료가 등록부를 건드려도 이 항목이 매달리지 않도록 복사해 둔다.
-			const FWait Wait = Waits[Index];
+			const FWxWait Wait = Waits[Index];
 
 			TStrongObjectPtr<UObject> Owner = Wait.Context.GetOwner();
 			if (!Owner)
@@ -89,7 +89,7 @@ struct TWxStateTreeWaitRegistry
 	template<typename SubjectType, typename PredicateType>
 	bool AnyMatching(const UWorld* NotifyWorld, SubjectType Subject, PredicateType&& Predicate) const
 	{
-		for (const FWait& Wait : Waits)
+		for (const FWxWait& Wait : Waits)
 		{
 			TStrongObjectPtr<UObject> Owner = Wait.Context.GetOwner();
 			if (!Owner || Owner->GetWorld() != NotifyWorld)
@@ -107,7 +107,7 @@ struct TWxStateTreeWaitRegistry
 	}
 
 private:
-	TArray<FWait> Waits;
+	TArray<FWxWait> Waits;
 
 	int32 NextHandle = 0;
 };
