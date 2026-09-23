@@ -13,7 +13,7 @@ tags: [wx, foundation]
 aliases: ["WxCore"]
 confidence: medium
 volatility: warm
-verified: 2026-09-22
+verified: 2026-09-24
 summary: "WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰·표시 계약을 제공한다."
 ---
 
@@ -73,7 +73,7 @@ WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
-2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 태그 정의부·로케이터·픽업 설명은 HEAD `60c324c714b1dab10cd48d36cabad63ace232716` 기준으로 보강했다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
+2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 태그 정의부·로케이터·픽업 설명은 HEAD `60c324c714b1dab10cd48d36cabad63ace232716` 기준으로 보강했다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다. 2026-09-24 refresh에서 충돌 채널·프리셋·`DefaultGame.ini` 등록·공용 계약 헤더를 HEAD `d76e48717`의 설정·코드와 다시 대조했다.
 
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 

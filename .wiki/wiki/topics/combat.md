@@ -9,6 +9,7 @@ sources:
   - "raw/notes/2026-09-24-nameplate-manager.md"
   - "raw/notes/2026-09-24-nameplate-manager-wxgame.md"
   - "raw/notes/2026-09-24-wxcombat-machinery-cleanup.md"
+  - "raw/notes/2026-09-24-master-tag-rename.md"
 created: 2026-09-22
 updated: 2026-09-24
 tags: [wx, combat]
@@ -57,6 +58,7 @@ ASC의 `GiveAbilitySets`는 재빙의로 같은 AbilitySet이 중복 부여되�
 | 몽타주 구간 상태 GE(무적·퍼펙트 가드) | `UWxAnimNotifyState_ApplyGameplayEffect`, `UWxCombatLibrary::ApplyEffect` |
 | 처형 피해 | `UWxAbility_Finisher`(서버에서 `Event.ApplyFinisherDamage` 대기), `UWxAnimNotify_FinisherDamage` |
 | 락온 대상·카메라 | `UWxLockOnComponent`, `UWxAbility_LockOn`, `UWxAbilityTask_LockOnCamera` |
+| 소환 상한·주인 태그(`Master.*`) | `UWxMinionComponent::MasterStateTag`, `UWxMinionSubsystem`(권위 머신에서 주인 ASC에 TagOnly 복제 loose 태그) |
 
 일반 어빌리티의 기본 정책은 LocalPredicted지만 피니시·그로기는 ServerInitiated이며 상호작용은 WxGame의 ServerOnly 어빌리티다. 전투 전체를 단일 네트워크 정책으로 설명하지 않는다. [전투 모듈 소스](../../../Plugins/WxCombat/Source/WxCombat)에서 담당 경로를 추적한다.
 
@@ -80,6 +82,7 @@ ASC의 `GiveAbilitySets`는 재빙의로 같은 AbilitySet이 중복 부여되�
 - [Nameplate·Reticle을 로컬 NameplateManager로](../../raw/notes/2026-09-24-nameplate-manager.md)
 - [NameplateManager를 WxGame으로](../../raw/notes/2026-09-24-nameplate-manager-wxgame.md)
 - [WxCombat 불필요한 장치 정리](../../raw/notes/2026-09-24-wxcombat-machinery-cleanup.md)
+- [소환물 주인 태그 이름 변경](../../raw/notes/2026-09-24-master-tag-rename.md) — `State.MinionMaster.*` → `Master.*`
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -90,6 +93,6 @@ ASC의 `GiveAbilitySets`는 재빙의로 같은 AbilitySet이 중복 부여되�
 
 2026-09-23: 시스템 경계와 핵심 흐름의 피해 경로 표현(삭제된 Hit GE)만 현재 코드(`ApplyDamage` → `UWxEffect_Damage`)와 대조해 정정했다. 나머지 본문은 재확인하지 않았다.
 
-2026-09-24: 락온 표시 경계와 수정 위치 표의 구간 GE·처형 피해·락온 행을 HEAD `ca84c9aac` 코드와 대조해 추가했다. 같은 날 락온 대상 소유와 사망 시 BT 정지 주체를 미커밋 작업 트리 코드와 대조해 추가했다(빌드 통과, 인게임 미검증).
+2026-09-24: 락온 표시 경계와 수정 위치 표의 구간 GE·처형 피해·락온 행을 HEAD `ca84c9aac` 코드와 대조해 추가했다. 같은 날 락온 대상 소유와 사망 시 BT 정지 주체를 미커밋 작업 트리 코드와 대조해 추가했다(빌드 통과, 인게임 미검증). 두 번째 refresh에서 소환 상한·주인 태그 행을 HEAD `d76e48717` 코드와 대조해 추가했다(커밋 `c4dee8382`의 태그 이름 변경, 인게임 미검증).
 
 </details>

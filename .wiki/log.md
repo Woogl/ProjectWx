@@ -276,3 +276,19 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 
 ## [2026-09-24] compile | 1 source → 0 new articles, 1 updated (game)
 - game: 마네킹 메시 네 개가 NiagaraExamples PA를 쓰고 /Game/Mannequins PA는 겹치는 바디 쌍의 충돌 때문에 쓰지 않는다는 점, 정본 PA가 예제 폴더에 있다는 제약을 추가했다. 인게임 미검증.
+
+## [2026-09-24] ingest | WxUI 리뷰 후속: 일시정지 해제 규칙 정정·Effect VM 월드 타이머·인디케이터 여백 상수 (raw/notes/2026-09-24-wxui-review-followups.md)
+
+## [2026-09-24] ingest | 소환물 주인 태그를 State.MinionMaster.*에서 Master.*로 변경 (raw/notes/2026-09-24-master-tag-rename.md)
+
+## [2026-09-24] compile | 2 sources → 0 new articles, 2 updated (ui, combat)
+- ui: 정지를 `FCanUnpause` 대리자와 함께 걸고, 게임모드는 대리자 없는 정지를 해제 때 그냥 지운다는 제약을 일시정지 절에 추가했다(UE 5.8 `AGameModeBase::ClearPause` 대조, C++·에셋에 다른 정지 주체 없음). Effect VM이 남은 시간을 월드 타이머로 갱신해 정지 중에는 멈춘다는 점을 추가했다.
+- combat: 수정 위치 표에 소환 상한·주인 태그(`Master.*`) 행을 추가했다.
+- 인디케이터 여백 상수화(`08a1ef928`)와 확인 팝업 헬퍼 인라인(`a4c28a949`)은 기사가 다루지 않는 세부라 원자료에만 기록했다. 인게임 동작은 미검증이다.
+
+## [2026-09-24] refresh | 17 articles checked, 3 updated, 0 flagged, 0 retracted
+- 원자료에 기록된 파일별 SHA-256 113건을 현재 파일과 대조했다(72건 동일, 32건 변경, 9건은 삭제된 파일 또는 경로가 아닌 제목). 변경 파일마다 이전 refresh 기준(ca84c9aac) 이후 커밋을 추적했다.
+- 미반영은 c4dee8382(소환물 주인 태그)와 WxUI 리뷰 후속 eb92e99a7·08a1ef928·1b15a61ff·a4c28a949였다. 나머지 커밋은 wxcore-cleanup·nameplate-manager-wxgame·wxcombat-machinery-cleanup·ragdoll-physics-asset·module-principles 원자료가 이미 반영했다. WxUI 모듈 리뷰 문서(bf9c872ca)는 Workflow 작업 자료라 Wiki로 옮기지 않았다.
+- foundation은 같은 날 편찬됐지만 `verified`가 2026-09-22로 남아 있어, 본문(충돌 채널·프리셋·DefaultGame 등록·공용 계약)을 HEAD d76e48717과 다시 대조하고 `verified`를 맞췄다.
+
+## [2026-09-24] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
