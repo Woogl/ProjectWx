@@ -291,3 +291,11 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - Private/Tests/WxDamageResultTest.cpp(Wx.Combat.Damage.Result) 삭제 → 이후 자동 회귀 없음, 검증은 빌드와 플레이로.
 - 전체 WxEditor 빌드 성공 [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_161254_241_18748.log).
 - 남은 과제: 플레이 검증, 상태 전이 순서(AttributeSet 모디파이어별 사망·그로기) 정리.
+
+## 타 GAS 프로젝트 비교 후속: 0 피해 히트스톱·낡은 주석 (2026-09-23)
+
+- 사용자 지시: “1, 2 적용해주세요” (Lyra·Action RPG·GASDocumentation·Aura·Ninja Combat 등과 비교한 개선 제안 중 1 주석 정정, 2 0 피해 히트스톱).
+- `_HitStop`: 실행 기록 피해 > 0 또는 `Damage.PerfectGuarded`일 때만 건다(Hit Cue와 같은 조건). 이전에는 반올림 0·완전 경감 가드처럼 ExecCalc가 출력 없이 끝난 타격에도 연출 없이 히트스톱만 걸렸다. `_AdditionalEffects`는 피해 없는 디버프 행을 위해 0 피해에도 적용을 유지한다.
+- 주석 정정: `WxCueNotify_Hit.h`·`WxCueNotify_DamageFloater.h`의 Hit Cue 예측 서술(실제는 `_DamageReaction`이 서버에서 빈 예측 키로 발행), `WxEffect_Invincible.cpp`의 ApplyDamage 회피 판정 전제(Damage GE만 막고 Dodge가 차단 통지를 받음), `WxWeaponBase.cpp` 적대 사전 검사의 낡은 이유 삭제(검사 자체는 ApplyDamage와 중복이며 유지).
+- 전체 WxEditor 빌드 성공(경고 0) [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_204153_209_33376.log). 플레이 미검증.
+- 대기(기획 확인): 가드 방향(도입 시 `_DamageReaction`의 가드 취소 조건 `!CanGuard`도 함께 수정 — 반응 라우팅이 `Ability.Guard` 기준이라 등 뒤 피격에 흡수 몽타주가 나감), 공격별 그로기 파워, 그로기 중 피해 증가, 플로터 표시 대상·위치, 일반 가드의 추가 효과 통과, 커스텀 Context 할당 경로(`AllocGameplayEffectContext` 순정 경로 여부).
