@@ -39,6 +39,7 @@ Last updated: 2026-09-23
 
 | [Ability Resolver의 WxUI 소유와 이전 경로 호환](2026-09-23-ability-resolver-module.md) | Ability Resolver를 WxUI로 이동하고 기존 WxGame 클래스 경로를 ClassRedirect로 유지했다. | wx, ui, static-review | 2026-09-23 |
 | [Ability Resolver를 Ability VM 파일에 통합](2026-09-23-ability-resolver-colocation.md) | 사용자 추가 지시로 WxUI의 Ability VM 헤더와 cpp에 Resolver를 함께 배치했다. | wx, ui, static-review | 2026-09-23 |
+| [피니셔 피해 행 참조 복구](2026-09-23-finisher-damage-row.md) | 일반 피니셔와 뒤잡의 실제 피해 행 연결과 재로딩 검증 | wx, finisher, damage | 2026-09-23 |
 | [Dialogue VM 순수 표시 데이터 분리와 모듈 경계](2026-09-23-dialogue-presentation-vm.md) | Dialogue VM은 WxUI 표시 데이터로, 세션 연결과 진행 입력은 WxGame Resolver와 화면으로 분리했다. | wx, ui, dialogue, architecture | 2026-09-23 |
 | [Dialogue 화면 수명으로 연결 책임 통합](2026-09-23-dialogue-screen-lifecycle.md) | 사용자 승인으로 Dialogue Resolver를 제거하고 화면 활성화·비활성화가 세션 구독과 표시 갱신을 소유한다. | wx, ui, dialogue, lifecycle | 2026-09-23 |
 | [타격별 피해 실행 정의 스냅샷](2026-09-23-damage-definition-snapshot.md) | 한 번의 행 해석과 진행 중 타격 정의 유지 | wx, damage, static-review | 2026-09-23 |

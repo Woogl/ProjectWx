@@ -4,13 +4,14 @@ category: concept
 sources:
   - "raw/notes/2026-09-22-current-finisher.md"
   - "raw/notes/2026-09-22-current-groggy.md"
+  - "raw/notes/2026-09-23-finisher-damage-row.md"
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-09-23
 tags: [wx, finisher]
 aliases: []
 confidence: medium
 volatility: warm
-verified: 2026-09-22
+verified: 2026-09-23
 summary: "피니시는 서버 상호작용에서 발동하며, 현재 구현과 원 기획서의 미결정 규칙을 구분해 관리한다."
 ---
 
@@ -39,6 +40,10 @@ flowchart LR
 
 공격자 몽타주의 Motion Warping 설정이 실제 위치 조정을 결정한다. C++은 대상 위치·회전의 워프 타겟을 제공하므로 에셋 내부를 확인하지 않고 최종 이동 궤적을 단정하지 않는다.
 
+## 피해 데이터 연결
+
+현재 `GA_Shared_Finisher`의 일반 피니셔·뒤잡은 모두 `DT_Damage.AM_Shared_Finisher`를 참조한다. 몽타주가 재생되어도 피해 행이 없으면 HP 피해 요청은 거부된다. 행 이름 변경 시 두 Variant의 `DamageDataRow`를 함께 확인해야 한다. 2026-09-23에 존재하지 않는 `AM_Finisher` 참조를 복구하고 Blueprint 컴파일·저장·별도 프로세스 재로딩을 확인했다. 실제 플레이 HP 감소 재확인은 별도다.
+
 ## 유지되는 기획 미결정
 
 | 항목 | 원자료의 충돌 | 현재 코드에서 확인한 범위 |
@@ -61,12 +66,13 @@ flowchart LR
 
 - [근거 1](../../raw/notes/2026-09-22-current-finisher.md)
 - [근거 2](../../raw/notes/2026-09-22-current-groggy.md)
+- [피해 행 참조 복구](../../raw/notes/2026-09-23-finisher-damage-row.md)
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
-빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+초기 정적 조사에서는 빌드·게임 실행·바이너리 내부를 검증하지 않았다. 2026-09-23 추가 확인은 위 피니셔 BP의 피해 행과 DT_Damage에 한정된다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 
 </details>

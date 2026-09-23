@@ -103,6 +103,9 @@
 ## [2026-09-23] compile | 1 source → 0 new articles, 1 updated (combat-damage). 동기 요청 API와 호출자 출처 선택, 기존 BP 어댑터 경계를 반영했다. 실행 검증과 사용자의 이전 단계 테스트 수용은 Workflow Task에서 구분한다.
 - 추가 지시 반영: 별도 Resolver 파일 배치를 Ability VM 파일 통합으로 대체하고 새 원자료로 근거를 남겼다.
 
+## [2026-09-23] ingest / compile | 피니셔 피해 행 참조 복구
+- 새 원자료 1개를 combat-finisher에 통합했다. 두 Variant의 DT_Damage 행 연결을 복구하고 Blueprint 저장·재로딩을 확인했다. 실제 플레이 검증은 대기다.
+
 ## 2026-09-23 — Dialogue 표시 VM 분리
 - 사용자 모듈 의존성 원칙과 Dialogue VM 분리를 원자료로 수집하고 ui·dialogue에 통합했다. C++ 빌드·WBP 재로드/컴파일·델리게이트 전달 검증과 인게임 미검증 범위를 구분했다.
 
