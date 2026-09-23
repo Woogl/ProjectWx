@@ -141,6 +141,11 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 ## [2026-09-23] ingest / compile | ApplyDamage 네 인자 복원
 - 사용자 선호에 따라 요청 구조체를 제거하고 출처/레벨 추론을 단일 함수에 복원한 현재 계약을 반영했다.
 
+## [2026-09-23] ingest | DataTable 행 이름 변경 시 행 핸들 참조 갱신(DataTableRowFixup) (raw/notes/2026-09-23-datatable-row-fixup.md)
+
+## [2026-09-23] compile | 1 sources → 0 new articles, 1 updated (editor-tools)
+- DataTableRowFixup 원자료를 editor-tools에 통합했다. 모듈 표·등록 수명·행 참조 갱신 계약과 범위 밖 항목을 추가하고, 제목에 플러그인을 넣어 이를 인용하는 링크·색인 라벨을 맞췄다. 사용자 에디터 확인은 원자료에 구분해 기록했다.
+
 ## [2026-09-23] ingest | Damage 결과를 앞으로만 흘리는 구조 (raw/notes/2026-09-23-damage-forward-flow.md)
 
 ## [2026-09-23] compile | 1 sources → 0 new articles, 2 updated (combat-damage, combat)
