@@ -26,4 +26,5 @@
 ## 모듈 리뷰
 
 - [WxAI 코드 리뷰](module_review_WxAI.md)
+- [WxCombat 코드 리뷰](module_review_WxCombat.md)
 - [WxWorld 코드 리뷰](module_review_WxWorld.md)
