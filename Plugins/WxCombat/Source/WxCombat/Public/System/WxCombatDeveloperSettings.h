@@ -24,8 +24,5 @@ public:
 	FLinearColor MovementAnimNotifyColor;
 
 	UPROPERTY(Config, EditAnywhere, Category = "Anim Notify", meta = (HideAlphaChannel))
-	FLinearColor PresentationAnimNotifyColor;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Anim Notify", meta = (HideAlphaChannel))
-	FLinearColor OtherAnimNotifyColor;
+	FLinearColor CosmeticAnimNotifyColor;
 };

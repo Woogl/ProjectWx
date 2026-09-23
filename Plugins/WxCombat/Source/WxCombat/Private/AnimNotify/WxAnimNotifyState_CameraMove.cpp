@@ -18,7 +18,7 @@
 
 FLinearColor UWxAnimNotifyState_CameraMove::GetEditorColor()
 {
-	return GetDefault<UWxCombatDeveloperSettings>()->PresentationAnimNotifyColor;
+	return GetDefault<UWxCombatDeveloperSettings>()->CosmeticAnimNotifyColor;
 }
 
 void UWxAnimNotifyState_CameraMove::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)

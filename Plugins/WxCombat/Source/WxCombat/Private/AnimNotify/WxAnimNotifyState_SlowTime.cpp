@@ -10,7 +10,7 @@
 
 FLinearColor UWxAnimNotifyState_SlowTime::GetEditorColor()
 {
-	return GetDefault<UWxCombatDeveloperSettings>()->PresentationAnimNotifyColor;
+	return GetDefault<UWxCombatDeveloperSettings>()->CosmeticAnimNotifyColor;
 }
 
 void UWxAnimNotifyState_SlowTime::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)

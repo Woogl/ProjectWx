@@ -8,6 +8,5 @@ UWxCombatDeveloperSettings::UWxCombatDeveloperSettings()
 	DefenseConstant = 100.f;
 	CombatAnimNotifyColor = FLinearColor::Red;
 	MovementAnimNotifyColor = FLinearColor::Blue;
-	PresentationAnimNotifyColor = FLinearColor::Green;
-	OtherAnimNotifyColor = FLinearColor::Yellow;
+	CosmeticAnimNotifyColor = FLinearColor::Green;
 }
