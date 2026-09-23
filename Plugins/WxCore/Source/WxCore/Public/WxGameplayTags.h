@@ -20,19 +20,17 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dialogue);
 
 	/**
-	 * 소환물을 보유한 주인에게 붙는다. 소환물 컴포넌트가 종류마다 하나를 선언하고 서브시스템이 로스터 변경마다 발행·복제한다.
-	 * 같은 입력을 쓰는 소환·명령 스킬의 발동 조건이며, 부모 State.MinionMaster 로 물으면 종류를 가리지 않는다.
-	 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_MinionMaster_Minion);
-
-	/** 소환물 컴포넌트가 선언하는 값이라 C++ 에서는 읽지 않는다. */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_MinionMaster_Doppelganger);
-
-	/**
 	 * UWxAbility_Death가 서버에서 loose 태그로 발행한다(TagOnly 복제).
 	 * AWxCharacterBase가 구독해 전 머신에서 래그돌로 전환한다.
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Ragdoll);
+
+	/**
+	 * 소환물을 보유한 주인에게 붙는다. 소환물 컴포넌트가 종류마다 하나를 선언하고 서브시스템이 로스터 변경마다 발행·복제한다.
+	 * 같은 입력을 쓰는 소환·명령 스킬의 발동 조건이며, 부모 Master 로 물으면 종류를 가리지 않는다.
+	 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Master_Minion);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Master_Doppelganger);
 
 	// GE가 부여하는 태그. 애셋 태그로도 사용한다.
 

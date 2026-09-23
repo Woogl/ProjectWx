@@ -13,7 +13,7 @@ UWxMinionComponent::UWxMinionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	MasterStateTag = WxGameplayTags::State_MinionMaster_Minion;
+	MasterStateTag = WxGameplayTags::Master_Minion;
 }
 
 APawn* UWxMinionComponent::GetMaster(const APawn& Minion)

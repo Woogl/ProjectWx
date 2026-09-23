@@ -8,9 +8,10 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(State_Engaged, "State.Engaged");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");
-	UE_DEFINE_GAMEPLAY_TAG(State_MinionMaster_Minion, "State.MinionMaster.Minion");
-	UE_DEFINE_GAMEPLAY_TAG(State_MinionMaster_Doppelganger, "State.MinionMaster.Doppelganger");
 	UE_DEFINE_GAMEPLAY_TAG(State_Ragdoll, "State.Ragdoll");
+
+	UE_DEFINE_GAMEPLAY_TAG(Master_Minion, "Master.Minion");
+	UE_DEFINE_GAMEPLAY_TAG(Master_Doppelganger, "Master.Doppelganger");
 
 	UE_DEFINE_GAMEPLAY_TAG(Effect_Invincible, "Effect.Invincible");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_GuardReduction, "Effect.GuardReduction");
