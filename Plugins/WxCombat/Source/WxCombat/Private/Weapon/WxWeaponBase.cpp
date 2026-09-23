@@ -228,7 +228,6 @@ void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 		return;
 	}
 
-	// 아군·중립에는 대미지도 대미지 행의 AdditionalEffects도 걸리면 안 되므로, 적용 앞에서 막는다.
 	if (!UWxCombatLibrary::IsHostile(WeaponOwner, OtherActor))
 	{
 		return;

@@ -13,7 +13,7 @@ UWxEffect_Invincible::UWxEffect_Invincible()
 {
 	DurationPolicy = EGameplayEffectDurationType::Infinite;
 
-	// ApplyDamage의 회피 판정을 거치지 않는 직접 피해 적용도 차단한다.
+	// Damage GE만 막는다. 이 차단 통지를 Dodge가 극한 회피로 받는다.
 	UImmunityGameplayEffectComponent* ImmunityComp = CreateDefaultSubobject<UImmunityGameplayEffectComponent>(TEXT("Immunity"));
 	FGameplayEffectQuery DamageQuery;
 	DamageQuery.EffectDefinition = UWxEffect_Damage::StaticClass();

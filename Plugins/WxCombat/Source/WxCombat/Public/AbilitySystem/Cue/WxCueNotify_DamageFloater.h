@@ -9,7 +9,7 @@
 
 class UWidgetComponent;
 
-/** 타격 임팩트 연출은 UWxCueNotify_Hit이 맡는다 — 그쪽은 예측되고 이쪽은 서버 권위다. */
+/** 타격 임팩트 연출은 UWxCueNotify_Hit이 맡는다. */
 UCLASS(Abstract, Blueprintable)
 class WXCOMBAT_API UWxCueNotify_DamageFloater : public UGameplayCueNotify_Static
 {
