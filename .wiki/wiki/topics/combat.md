@@ -45,8 +45,10 @@ ASC의 `GiveAbilitySets`는 재빙의로 같은 AbilitySet이 중복 부여되�
 | 어빌리티 배타·캔슬 창·코스트 | `UWxAbilityBase`, `FWxAbilityTableRow` |
 | 입력 전달·부여·공격 속도 | `UWxAbilitySystemComponent`, `UWxAbilitySet` |
 | HP/SP/GP/MP/UP 및 최대값 | `UWxCombatAttributeSet` |
-| 적대·권한·Hit 진입 | `UWxCombatLibrary::ApplyDamage` |
-| 피해·가드·반사 | `UWxCombatLibrary::ApplyDamage`, `UWxExecCalc_Damage`, `UWxEffectComponent_DamageReaction`·`_PerfectGuard`·`_HitStop` |
+| 피해 요청(입력 조립·권한·적대) | `UWxCombatLibrary::ApplyDamage`, `FWxDamageTableRow::MakeDamageSpec`, `FWxDamageEffectContext` |
+| 방어 판정·피해 계산 | `UWxEffect_Damage`, `UWxExecCalc_Damage` |
+| 피격 반응·퍼펙트 가드·히트스톱·추가 효과 | `UWxEffectComponent_DamageReaction`·`_PerfectGuard`·`_HitStop`·`_AdditionalEffects` |
+| 회피(극한 회피) | `UWxEffect_Invincible`의 Immunity 차단 통지를 구독하는 `UWxAbility_Dodge` |
 
 일반 어빌리티의 기본 정책은 LocalPredicted지만 피니시·그로기는 ServerInitiated이며 상호작용은 WxGame의 ServerOnly 어빌리티다. 전투 전체를 단일 네트워크 정책으로 설명하지 않는다. [전투 모듈 소스](../../../Plugins/WxCombat/Source/WxCombat)에서 담당 경로를 추적한다.
 

@@ -103,11 +103,9 @@ HP를 GP보다 먼저 반영해 사망 이벤트가 그로기 이벤트보다 �
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
-2026-09-23 정방향 흐름 재설계로 처리 순서·판정·결과 해석 절을 현재 작업 트리 기준으로 다시 썼다. 이전 원자료의 Hit Wrapper·전용 Context·DamageRequest 서술은 이력이며 현재 구조가 아니다. 빌드·자동화 근거는 [작업 자료](../../../.agents/workflow/tasks/damage-pipeline-structure-review.md)에 있다.
+2026-09-23 커밋 `855ec2eb3` 기준으로 본문 전체(처리 순서·출처·판정·계산·결과 해석)를 코드와 대조했다. 전체 WxEditor 빌드는 통과했고, 피해 파이프라인 자동화 테스트(`Wx.Combat.Damage.Result`)는 사용자 지시로 삭제되어 이후 회귀 검증은 빌드와 플레이로만 한다. 극한 회피·히트스톱·퍼펙트 가드 되돌림·추가 효과 시점·멀티플레이 연출은 플레이 미검증이다. 근거와 남은 과제는 [작업 자료](../../../.agents/workflow/tasks/damage-pipeline-structure-review.md)에 있다.
 
-2026-09-23 명시적 DamageRequest/호환 어댑터를 같은 HEAD 및 미커밋 작업 트리에서 추가 확인했다. 요청·출처 선택과 새 진입점에 한정한 반영이며, 사용자 1단계 플레이 확인과 2단계 자체 검증 범위는 아래 작업 자료에서 구분한다.
-
-2026-09-23 피해 결과 반환·투사체 소비 계약을 HEAD `47b7f8bd7` 및 미커밋 작업 트리에서 추가 확인했다. 이번 추가는 위 결과 해석 절에 한정하며 이전 계산 규칙 전체의 재검증을 의미하지 않는다. 빌드·자동화 실행 근거와 남은 플레이 검증은 [작업 자료](../../../.agents/workflow/tasks/damage-pipeline-structure-review.md)에서 관리한다.
+원자료 중 Hit Wrapper GE·`FWxHitEffectContext`·`FWxDamageRequest`·`FWxDamageResult`를 다루는 노트는 재설계 전 단계의 이력이며 현재 구조가 아니다.
 
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 

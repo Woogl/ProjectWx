@@ -150,3 +150,6 @@ Ability Resolver의 WxUI 통합과 Dialogue·Quest·QuestObjective의 순수 표
 
 ## [2026-09-23] compile | 1 sources → 0 new articles, 1 updated (combat-damage)
 - Damage.Attack 태그 제거에 맞춰 결과별 반응 표를 정정했다.
+
+## [2026-09-23] lint | combat-damage·combat 정합성 정리
+- combat 토픽의 핵심 클래스 표를 현재 대미지 구조(입력 조립·판정/계산·반응 컴포넌트·Immunity 회피)로 정정했다. combat-damage의 출처·검증 메모를 커밋 855ec2eb3 기준으로 정리하고 폐기된 단계 노트를 이력으로 명시했다.
