@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "GameplayTagContainer.h"
 #include "BehaviorTree/BTService.h"
 #include "BehaviorTree/BehaviorTreeTypes.h"
@@ -11,6 +12,7 @@
 class ACharacter;
 class UAbilitySystemComponent;
 class UGameplayAbility;
+class UGameplayEffect;
 struct FAbilityEndedData;
 
 /** Master 옆으로 이동하며, 어빌리티 종료 또는 도달 제한 시간 초과 시 위치를 보정한다. */
@@ -38,6 +40,12 @@ protected:
 	FGameplayTagContainer FaceMasterAbilityTags;
 	UPROPERTY(EditAnywhere, Category="Wx|AI", meta=(ClampMin="1.0", Units="cm"))
 	float AbilityTeleportDistance = 500.f;
+	/**
+	 * Master 속도를 따르도록 SPD 를 SetByCaller 로 덮어쓰고 서비스가 끝나면 제거한다.
+	 * WxAI 는 WxCombat 에 의존하지 않으므로 디자이너가 BT 에디터에서 지정한다(WxEffect_MoveSpeedOverride). 지정하지 않으면 자기 속도로 따라간다.
+	 */
+	UPROPERTY(EditAnywhere, Category="Wx|AI")
+	TSubclassOf<UGameplayEffect> MoveSpeedEffect;
 private:
 	friend class FWxMirrorMovementAbilityTeleportTest;
 	void Release(UBehaviorTreeComponent& OwnerComp);
@@ -46,6 +54,7 @@ private:
 	TWeakObjectPtr<ACharacter> Master;
 	TWeakObjectPtr<ACharacter> Follower;
 	TWeakObjectPtr<UAbilitySystemComponent> FollowerAbilitySystem;
+	FActiveGameplayEffectHandle MoveSpeedEffectHandle;
 	bool bPendingAbilityEndTeleport = false;
 	float TravelTime = 0.f;
 	int32 PreviousJumpCount = 0;

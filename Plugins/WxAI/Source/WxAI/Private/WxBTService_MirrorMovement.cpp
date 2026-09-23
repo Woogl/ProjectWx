@@ -10,6 +10,8 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameplayEffect.h"
+#include "WxGameplayTags.h"
 
 UWxBTService_MirrorMovement::UWxBTService_MirrorMovement()
 {
@@ -30,8 +32,9 @@ void UWxBTService_MirrorMovement::InitializeFromAsset(UBehaviorTree& Asset)
 
 FString UWxBTService_MirrorMovement::GetStaticServiceDescription() const
 {
-	return FString::Printf(TEXT("%s offset %s, arrival %.0f cm, teleport after %.2f s"),
-		*MirrorTarget.SelectedKeyName.ToString(), *LocalOffset.ToString(), ArrivalRadius, TeleportDelay);
+	return FString::Printf(TEXT("%s offset %s, arrival %.0f cm, teleport after %.2f s%s"),
+		*MirrorTarget.SelectedKeyName.ToString(), *LocalOffset.ToString(), ArrivalRadius, TeleportDelay,
+		MoveSpeedEffect ? TEXT("") : TEXT("\nMove speed GE unset: moves at own speed"));
 }
 
 void UWxBTService_MirrorMovement::Release(UBehaviorTreeComponent& OwnerComp)
@@ -40,12 +43,18 @@ void UWxBTService_MirrorMovement::Release(UBehaviorTreeComponent& OwnerComp)
 	{
 		FollowerAbilitySystem->AbilityActivatedCallbacks.RemoveAll(this);
 		FollowerAbilitySystem->OnAbilityEnded.RemoveAll(this);
+		// SPD 가 자기 값으로 다시 계산되면 캐릭터가 MaxWalkSpeed 를 되돌린다.
+		FollowerAbilitySystem->RemoveActiveGameplayEffect(MoveSpeedEffectHandle);
 	}
+	MoveSpeedEffectHandle.Invalidate();
 	FollowerAbilitySystem.Reset();
 	bPendingAbilityEndTeleport = false;
 	if (ACharacter* Pawn = Follower.Get())
 	{
+		// 앉은 속도는 SPD 가 다루지 않아 클래스 기본값이 주인이다.
+		Pawn->GetCharacterMovement()->MaxWalkSpeedCrouched = Pawn->GetClass()->GetDefaultObject<ACharacter>()->GetCharacterMovement()->MaxWalkSpeedCrouched;
 		Pawn->GetCharacterMovement()->RemoveTickPrerequisiteComponent(&OwnerComp);
+		Pawn->UnCrouch();
 		Pawn->StopJumping();
 		if (Master.IsValid()) { Pawn->GetCapsuleComponent()->IgnoreActorWhenMoving(Master.Get(), false); }
 	}
@@ -137,7 +146,26 @@ void UWxBTService_MirrorMovement::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 	}
 	Pawn->SetActorRotation(Target->GetActorRotation());
 	Controller->SetControlRotation(Target->GetControlRotation());
-	Movement->MaxWalkSpeed = SourceMovement->MaxWalkSpeed * 1.25f;
+	// MaxWalkSpeed 는 캐릭터가 클래스 기본값에 SPD 를 곱해 쓰므로, 직접 쓰지 않고 SPD 를 덮어써 Master 속도를 따른다.
+	// 덮어쓰기라 따라 쓴 질주 같은 자기 SPD 효과는 Master 속도에 이미 들어 있어 무시된다.
+	const float BaseWalkSpeed = Pawn->GetClass()->GetDefaultObject<ACharacter>()->GetCharacterMovement()->MaxWalkSpeed;
+	const float SpeedScale = SourceMovement->MaxWalkSpeed * 1.25f / FMath::Max(BaseWalkSpeed, 1.f);
+	if (const FActiveGameplayEffect* SpeedEffect = FollowerAbilitySystem.IsValid() ? FollowerAbilitySystem->GetActiveGameplayEffect(MoveSpeedEffectHandle) : nullptr)
+	{
+		if (!FMath::IsNearlyEqual(SpeedEffect->Spec.GetSetByCallerMagnitude(WxGameplayTags::SetByCaller_MoveSpeedScale, false), SpeedScale))
+		{
+			FollowerAbilitySystem->UpdateActiveGameplayEffectSetByCallerMagnitude(MoveSpeedEffectHandle, WxGameplayTags::SetByCaller_MoveSpeedScale, SpeedScale);
+		}
+	}
+	else if (FollowerAbilitySystem.IsValid() && MoveSpeedEffect)
+	{
+		const FGameplayEffectSpecHandle SpecHandle = FollowerAbilitySystem->MakeOutgoingSpec(MoveSpeedEffect, 1.f, FollowerAbilitySystem->MakeEffectContext());
+		if (SpecHandle.IsValid())
+		{
+			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_MoveSpeedScale, SpeedScale);
+			MoveSpeedEffectHandle = FollowerAbilitySystem->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+		}
+	}
 	Movement->MaxWalkSpeedCrouched = SourceMovement->MaxWalkSpeedCrouched * 1.25f;
 	if (Target->IsCrouched()) { Pawn->Crouch(); } else { Pawn->UnCrouch(); }
 	if (Target->JumpCurrentCount > PreviousJumpCount) { Pawn->StopJumping(); Pawn->Jump(); }

@@ -254,7 +254,7 @@ namespace WxGameplayTags
 	/** WxExecCalc_Damage가 ATK 어트리뷰트에 곱하는 배율 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Coeff_ATK);
 
-	/** WxEffect_MoveSpeedScale이 SPD 어트리뷰트에 곱하는 배율 */
+	/** SPD 어트리뷰트 배율. WxEffect_MoveSpeedScale은 곱하고 WxEffect_MoveSpeedOverride는 덮어쓴다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_MoveSpeedScale);
 	
 	/** HUD 레이어 (플레이어 체력 바 등) */
