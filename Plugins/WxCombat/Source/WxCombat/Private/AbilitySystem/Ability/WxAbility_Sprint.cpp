@@ -16,6 +16,9 @@ UWxAbility_Sprint::UWxAbility_Sprint()
 	AssetTags.AddTag(WxGameplayTags::Ability_Sprint);
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Sprint);
+
+	// 소모 GE는 Movement.Sprint가 없으면 억제된다. 활성 동안 걸어 두고 이동 여부로 태그만 여닫는다.
+	ActivationOwnedEffects.Add(UWxEffect_DrainSP::StaticClass());
 }
 
 bool UWxAbility_Sprint::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
@@ -70,13 +73,6 @@ void UWxAbility_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		SpeedEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 	}
 
-	// 소모 GE는 Movement.Sprint가 없으면 억제된다. 활성화 시 한 번 걸어 두고 이동 여부로 태그만 여닫는다.
-	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainSP::StaticClass(), GetAbilityLevel());
-	if (DrainSpecHandle.IsValid())
-	{
-		DrainEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, DrainSpecHandle);
-	}
-
 	UWxAbilityTask_WaitMoving* MovingTask = UWxAbilityTask_WaitMoving::CreateTask(this);
 	MovingTask->OnMovingChanged.AddDynamic(this, &UWxAbility_Sprint::HandleMovingChanged);
 	MovingTask->ReadyForActivation();
@@ -103,21 +99,12 @@ void UWxAbility_Sprint::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
 	// 예측으로 건 클라본은 예측 키 확인이, 서버본은 복제가 걷는다 — 제거 호출은 권위만 한다.
-	if (ASC && ASC->IsOwnerActorAuthoritative())
+	if (ASC && ASC->IsOwnerActorAuthoritative() && SpeedEffectHandle.IsValid())
 	{
-		if (SpeedEffectHandle.IsValid())
-		{
-			ASC->RemoveActiveGameplayEffect(SpeedEffectHandle);
-		}
-
-		if (DrainEffectHandle.IsValid())
-		{
-			ASC->RemoveActiveGameplayEffect(DrainEffectHandle);
-		}
+		ASC->RemoveActiveGameplayEffect(SpeedEffectHandle);
 	}
 
 	SpeedEffectHandle.Invalidate();
-	DrainEffectHandle.Invalidate();
 }
 
 void UWxAbility_Sprint::HandleMovingChanged(bool bIsMoving)

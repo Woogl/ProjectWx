@@ -46,7 +46,5 @@ private:
 
 	FActiveGameplayEffectHandle SpeedEffectHandle;
 
-	FActiveGameplayEffectHandle DrainEffectHandle;
-
 	FDelegateHandle SPChangedHandle;
 };
