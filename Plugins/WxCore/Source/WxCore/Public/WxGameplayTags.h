@@ -125,9 +125,6 @@ namespace WxGameplayTags
 
 	// 장치의 State Tree 상태값이다. C++ 에서는 읽거나 쓰지 않는다.
 
-	/** 스스로 잠기는 장치(일회용 레버 등)의 공용 상태. 상호작용 노드를 두지 않는 상태에 붙인다. */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Locked);
-
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Button_Idle);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Button_Pressed);
 
@@ -164,9 +161,6 @@ namespace WxGameplayTags
 
 	/** 대미지 ExecCalc가 판정해 스펙에 붙이는 결과 — 가드 히트의 SP 차감이 이 히트로 0에 닿았다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_GuardBreak);
-
-	/** 대미지 ExecCalc가 판정해 스펙에 붙이는 결과 — 일반 가드로 받았다 */
-	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Guarded);
 
 	/** 대미지 ExecCalc가 판정해 스펙에 붙이는 결과 — 퍼펙트 가드로 받았다 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_PerfectGuarded);

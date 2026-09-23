@@ -129,10 +129,6 @@ void UWxExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecu
 	{
 		ExecutionParams.GetOwningSpecForPreExecuteMod()->AddDynamicAssetTag(WxGameplayTags::Damage_PerfectGuarded);
 	}
-	else if (bGuardHit)
-	{
-		ExecutionParams.GetOwningSpecForPreExecuteMod()->AddDynamicAssetTag(WxGameplayTags::Damage_Guarded);
-	}
 
 	FAggregatorEvaluateParameters EvalParams;
 	EvalParams.SourceTags = OwningSpec.CapturedSourceTags.GetAggregatedTags();

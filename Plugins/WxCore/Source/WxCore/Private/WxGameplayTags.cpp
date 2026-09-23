@@ -45,8 +45,6 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_UseItem, "Event.UseItem");
 	UE_DEFINE_GAMEPLAY_TAG(Event_ApplyFinisherDamage, "Event.ApplyFinisherDamage");
 	
-	UE_DEFINE_GAMEPLAY_TAG(Device_Locked, "Device.Locked");
-
 	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Idle, "Device.Button.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Pressed, "Device.Button.Pressed");
 
@@ -79,7 +77,6 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Damage_Critical, "Damage.Critical");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_GuardBreak, "Damage.GuardBreak");
-	UE_DEFINE_GAMEPLAY_TAG(Damage_Guarded, "Damage.Guarded");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_PerfectGuarded, "Damage.PerfectGuarded");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_CanCritical, "Damage.CanCritical");
 	UE_DEFINE_GAMEPLAY_TAG(Damage_CanGuard, "Damage.CanGuard");
