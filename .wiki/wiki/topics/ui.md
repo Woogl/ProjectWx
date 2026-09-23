@@ -2,6 +2,7 @@
 title: "WxUI — 화면 레이어와 표시 수명"
 category: topic
 sources:
+  - "raw/notes/2026-09-23-screen-classes-to-resolvers.md"
   - "raw/notes/2026-09-23-quest-presentation-vm.md"
   - "raw/notes/2026-09-22-current-ui.md"
   - "raw/notes/2026-09-22-current-foundation.md"
@@ -47,10 +48,12 @@ Wx 기능 모듈 사이의 신규 의존성은 WxCore를 제외하면 추가하�
 
 VM은 WxUI에 모은다(2026-09-23 사용자 결정). 도메인 데이터가 필요한 표시는 세 층으로 나눈다.
 - 모델(WxGame·도메인): 상태와 변경 델리게이트만 두고, VM·MVVM을 모른다.
-- 연결: WxGame 리졸버나 기존 화면 위젯이 맡는다.
+- 연결: WxGame 리졸버가 맡는다. 도메인 연결용 C++ 위젯 부모 클래스는 두지 않는다. 사용자 이유: "MVVM을 쓰기 때문에 굳이 Widget 클래스를 늘릴 필요가 없다."
 - VM: WxUI의 순수 표시 데이터다.
 
 리졸버는 위젯 클래스가 공유하는 const 객체라 상태를 들 수 없다. 그래서 구독은 VM을 소유자로 하는 약한 델리게이트(`FDelegate::CreateWeakLambda(VM, …)`)로 걸고, 해제는 `DestroyInstance`에서 `RemoveAll(VM)`으로 한다. 리졸버를 구독의 주인으로 두면 위젯 하나를 해제할 때 다른 위젯의 구독까지 끊긴다(08c73f513에서 고친 버그). 늦게 생긴 위젯을 위해 `CreateInstance`에서 현재 값을 한 번 반영한다.
+
+도메인 델리게이트가 동적이고 인자가 VM의 Set 함수(UFUNCTION)와 맞으면 `AddUniqueDynamic(VM, &Set)`으로 직접 건다. 인자 없는 동적 델리게이트는 람다를 걸 수 없으므로 모델 쪽을 네이티브 멀티캐스트로 둔다. VM에서 도메인으로 가는 명령은 VM의 BlueprintCallable 함수와 네이티브 델리게이트로 전달한다. WBP의 MVVM 이벤트가 VM 함수를 부르고, 리졸버가 그 델리게이트를 도메인 함수에 약한 바인딩으로 잇는다. VM은 도메인을 모른다.
 
 HUD 보스 바(`WBP_Nameplate_Boss`)가 이 규칙을 처음 적용한 사례다.
 - WxGame의 `UWxViewModelResolver_BossCharacter`가 위젯마다 WxUI `UWxViewModel_Character`를 만들고, [게임 조립](game.md)의 `UWxBattleSubsystem`이 정한 현재 보스를 싣는다.
@@ -60,9 +63,9 @@ HUD 보스 바(`WBP_Nameplate_Boss`)가 이 규칙을 처음 적용한 사례다
 
 `UWxViewModelResolver_Ability`는 WxUI의 `WxViewModel_Ability.h/.cpp`에 함께 둔다. 위젯 소유 컨트롤러의 Pawn에서 ASC를 얻고, AbilityTags에 대응하는 공유 슬롯 VM을 AbilitySystem VM에서 가져온다. 이전 WxGame 클래스 경로는 CoreRedirect로 유지한다. 이는 모듈 이동의 정적 확인이며 기존 WBP 로드·표시 검증과는 별개다.
 
-Dialogue VM 자체는 WxUI의 순수 표시 데이터다. Speaker·LineText·HasSpeaker와 SetLine 변경 알림만 남기고, WBP는 MVVM의 Create Instance로 생성한다. WxGame의 WxDialogueScreen이 활성화 때 세션 구독·현재 대사 동기화를 수행하고 비활성화·파괴 때 해제한다. 다시 활성화하면 현재 대사로 표시를 복구한다. 클릭 이벤트는 Self.RequestAdvance로 연결해 화면이 처리한다. 별도 Resolver·자식 VM·연결 객체는 없다. 최종 검증 범위는 [작업 기록](../../../.agents/workflow/tasks/dialogue-presentation-vm.md)에 있으며 인게임 화면·클릭은 별도 확인 대상이다.
+대화 창(`WBP_DialogueScreen`, 부모 `UWxActivatableWidget`)은 WxGame `UWxViewModelResolver_Dialogue`가 만든 WxUI `UWxViewModel_Dialogue`로 구동된다. VM은 Speaker·LineText·HasSpeaker와 SetLine, 진행 명령 `RequestAdvance`만 가진다. 리졸버가 세션 대사를 VM에 걸고, VM의 `OnAdvanceRequested`를 세션 `Advance`에 잇는다. 진행 버튼의 MVVM 이벤트 목적지는 `WxViewModel_Dialogue.RequestAdvance`다. 2026-09-23 이전의 `UWxDialogueScreen`(활성화 수명으로 연결)은 제거했다. 구독 수명과 인게임 확인은 [대화](dialogue.md)의 수명과 연출에 있다.
 
-Quest·QuestObjective VM도 WxUI의 표시 데이터다. WxGame의 QuestTracker가 일반 위젯의 생성·해제 수명에 저널 구독을 연결한다. Quest는 Create Instance로 생성하며, 목표별 행 VM은 Quest VM이 소유한다. 자세한 계약은 [퀘스트](quests.md)의 조립과 범위를 참고한다.
+Quest·QuestObjective VM도 WxUI의 표시 데이터다. 퀘스트 추적기(`WBP_QuestTracker`, 부모 `UserWidget`)는 WxGame `UWxViewModelResolver_Quest`가 만든 Quest VM으로 구동되며, 2026-09-23 이전의 `UWxQuestTracker`는 제거했다. 목표별 행 VM은 Quest VM이 소유한다. 자세한 계약은 [퀘스트](quests.md)의 조립과 범위를 참고한다.
 
 아이템 표시는 WxUI `UWxViewModel_Item` 하나로 통일했다(2026-09-23 사용자 결정, 커밋 `ba396fc16`). 이 VM은 원본 타입을 해석하지 않고 setter로 값을 받기만 한다. 값은 WxGame `UWxViewModel_Inventory`가 공급한다.
 - 인벤토리 VM은 PC당 공유본이다(`GetOrCreate(PC)`, Outer = PC). `Resolver_Inventory`와 `Resolver_Item`이 같은 공유본을 쓰므로 리졸버가 `DestroyInstance`에서 정리하지 않는다.
@@ -75,7 +78,7 @@ Quest·QuestObjective VM도 WxUI의 표시 데이터다. WxGame의 QuestTracker�
 
 상호작용 목록은 WxGame `UWxViewModel_InteractionList`가 스캐너를 구독해 행 VM(WxUI `UWxViewModel_Interaction`)을 신호마다 다시 만든다. 계약과 주입 전환 시 주의점은 [월드](world.md)의 HUD 목록 연결에 있다.
 
-인벤토리 VM과 상호작용 목록 VM은 도메인 컴포넌트를 직접 구독하므로 아직 WxGame에 있다. 세 층 규칙으로 WxUI에 옮길 수 있지만 따로 설계가 필요하다(미결정). 상호작용 목록은 VM에서 도메인으로 가는 명령(`RequestInteract`·`RequestCycle`)의 전달 방식을, 인벤토리 VM은 공개 헤더의 `WxItemDefinition` 의존(`EWxItemCategory`)을 정해야 한다.
+인벤토리 VM과 상호작용 목록 VM은 도메인 컴포넌트를 직접 구독하므로 아직 WxGame에 있다. 세 층 규칙으로 WxUI에 옮길 수 있지만 따로 설계가 필요하다(미결정). 상호작용 목록은 VM에서 도메인으로 가는 명령(`RequestInteract`·`RequestCycle`)의 전달 방식을(대화 진행이 쓴 VM 명령 델리게이트가 후보), 인벤토리 VM은 공개 헤더의 `WxItemDefinition` 의존(`EWxItemCategory`)을 정해야 한다.
 
 MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거나 `UBlueprintFunctionLibrary`의 정적 Pure 함수여야 한다(UE 5.8 엔진 제약). VM 클래스의 정적 함수는 엔진이 거부한다. MVVM 암시적 변환기는 enum을 다루지 않으므로, enum을 숫자로 바꿔 넘기면 표시 VM에 의미 없는 숫자 필드가 생긴다. 바인딩을 도구로 편집하는 방법은 [편집기 도구](../references/editor-tools.md)의 MVVM 절에 있다.
 
@@ -97,6 +100,7 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 
 ## Sources
 
+- [대화·퀘스트 화면 클래스 제거와 리졸버 연결](../../raw/notes/2026-09-23-screen-classes-to-resolvers.md) — 화면 클래스 제거, VM 명령 델리게이트
 - [Quest 표시 VM 분리](../../raw/notes/2026-09-23-quest-presentation-vm.md)
 
 - [근거 1](../../raw/notes/2026-09-22-current-ui.md)
@@ -105,7 +109,7 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 - [근거 4](../../raw/notes/2026-09-23-ability-resolver-module.md)
 - [근거 5](../../raw/notes/2026-09-23-ability-resolver-colocation.md)
 - [근거 6](../../raw/notes/2026-09-23-dialogue-presentation-vm.md)
-- [근거 7](../../raw/notes/2026-09-23-dialogue-screen-lifecycle.md)
+- [근거 7](../../raw/notes/2026-09-23-dialogue-screen-lifecycle.md) — 이력: 제거된 대화 화면 클래스 방식
 - [보스 표시 세 층 구조](../../raw/notes/2026-09-23-boss-battle-three-layer.md)
 - [아이템 VM 단일화](../../raw/notes/2026-09-23-item-viewmodel-unification.md)
 - [상호작용 목록 VM](../../raw/notes/2026-09-23-interaction-list-vm.md)
@@ -115,6 +119,6 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
-빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 2026-09-23에 보스 표시 세 층 구조 원자료(커밋 `4352e9100`)를 편찬해 추가했다. 같은 날 refresh에서 원자료 해시 대조로 누락을 찾아 아이템 VM 단일화(`ba396fc16`)·상호작용 목록 VM(`f98eef471`)·MVVM 변환 함수 제약을 HEAD `7d2a20408` 기준으로 추가하고, 표시 VM 절을 규칙→사례→예외 순으로 재배치했다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 2026-09-23에 보스 표시 세 층 구조 원자료(커밋 `4352e9100`)를 편찬해 추가했다. 같은 날 refresh에서 원자료 해시 대조로 누락을 찾아 아이템 VM 단일화(`ba396fc16`)·상호작용 목록 VM(`f98eef471`)·MVVM 변환 함수 제약을 HEAD `7d2a20408` 기준으로 추가하고, 표시 VM 절을 규칙→사례→예외 순으로 재배치했다. 이어서 대화·퀘스트 화면 클래스 제거 원자료(커밋 `570e72562`·`6daf3f804`)를 편찬해 연결 주체를 리졸버로 바꾸고 VM 명령 전달 규칙을 추가했다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 
 </details>

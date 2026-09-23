@@ -8,6 +8,7 @@ Last updated: 2026-09-23
 
 | File | Summary | Tags | Updated |
 |------|---------|------|---------|
+| [대화·퀘스트 화면 클래스 제거와 리졸버 연결](2026-09-23-screen-classes-to-resolvers.md) | 사용자 요청으로 UWxDialogueScreen·UWxQuestTracker를 제거하고 WBP가 WxGame 리졸버가 연결한 WxUI 뷰모델로 구동되게 했다. 대화 진행은 VM 명령 델리게이트, 퀘스트 저널 델리게이트는 네이티브. 사용자가 인게임 동작을 확인했다. | wx, ui, dialogue, quests, architecture | 2026-09-23 |
 | [상호작용 목록 VM의 행 전체 재생성과 문구 출처 원칙](2026-09-23-interaction-list-vm.md) | 스캐너 신호를 OnRowsChanged 하나로 합치고 목록 VM이 신호마다 행 VM을 다시 만드는 구조, 리졸버의 스캐너 연결, 상호작용 문구 출처 원칙에 대한 사용자 결정과 코드 근거. 인게임 동작은 미검증. | wx, world, ui, static-review | 2026-09-23 |
 | [아이템 VM 단일화와 WxToolset의 enum 변수·MVVM 도구](2026-09-23-item-viewmodel-unification.md) | WxGame 인벤토리 아이템 VM을 WxUI 아이템 VM으로 단일화하고 PC당 공유 인벤토리 VM이 값을 공급하게 한 결정, MVVM 변환 함수 위치 제약, WxToolset의 AddEnumVariable·MVVM 편집 도구 근거. 런타임은 미검증. | wx, ui, inventory, editor, static-review | 2026-09-23 |
 | [보스 표시 세 층 구조와 전투 서브시스템](2026-09-23-boss-battle-three-layer.md) | 보스 표시를 모델(UWxBattleSubsystem)·연결(WxGame 리졸버)·VM(WxUI Character VM) 세 층으로 재구성한 결정과 코드 근거. 보스 식별은 IdentityTags 태그. 인게임 표시는 미검증. | wx, ui, combat, game, architecture | 2026-09-23 |

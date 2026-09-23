@@ -198,3 +198,11 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 - combat-damage: 히트스톱을 Hit Cue와 같은 조건(피해 > 0 또는 퍼펙트 가드)으로 맞춘 규칙, 0 피해 타격의 후속 범위, Hit Cue·플로터의 서버 발행, 무적 Immunity가 Damage GE만 막는 범위를 추가했다.
 - combat: 시스템 경계와 핵심 흐름의 삭제된 Hit GE 표현을 ApplyDamage → Damage GE로 정정했다.
 - 코드 대조와 전체 WxEditor 빌드까지 확인했고 플레이는 미검증이다.
+
+## [2026-09-23] ingest | 대화·퀘스트 화면 클래스 제거와 리졸버 연결 (raw/notes/2026-09-23-screen-classes-to-resolvers.md)
+
+## [2026-09-23] compile | 1 source → 0 new articles, 4 updated (dialogue, quests, ui, editor-tools)
+- dialogue·quests: 화면 연결 주체를 제거된 UWxDialogueScreen·UWxQuestTracker에서 WxGame 리졸버로 바꾸고, 대화 진행의 VM 명령 델리게이트와 네이티브 퀘스트 저널 델리게이트, 위젯 생성·파괴를 따르는 구독 수명을 반영했다.
+- ui: 세 층 규칙의 연결을 리졸버로 한정하고(연결용 위젯 클래스 금지), 동적·네이티브 델리게이트 구독과 VM→도메인 명령 전달 규칙을 추가했다.
+- editor-tools: SetEventDestinationWidgetFunction을 SetEventDestination(뷰모델 함수 지원)으로 정정하고 WBP 부모 교체 순서를 추가했다.
+- 커밋 570e72562·6daf3f804 기준이며, 사용자가 대화·퀘스트 추적기의 인게임 동작을 확인했다.

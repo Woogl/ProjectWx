@@ -2,6 +2,7 @@
 title: "WxDialogue — 대화 세션"
 category: topic
 sources:
+  - "raw/notes/2026-09-23-screen-classes-to-resolvers.md"
   - "raw/notes/2026-09-23-dialogue-screen-lifecycle.md"
   - "raw/notes/2026-09-23-dialogue-presentation-vm.md"
   - "raw/notes/2026-09-22-current-dialogue.md"
@@ -32,7 +33,9 @@ summary: "대화 정의는 액터에, 진행 세션은 PlayerController에 두�
 
 ## 수명과 연출
 
-화면 연결은 WxGame의 WxDialogueScreen이 담당한다. MVVM Create Instance로 생성된 WxUI의 순수 표시 VM에 활성화 때 세션 OnLineChanged를 연결하고 현재 대사를 채운다. 비활성화·파괴 때 구독을 해제하고, 다시 활성화하면 현재 상태로 복구한다. 진행 요청도 화면이 받아 관찰 세션의 Advance로 전달한다. Dialogue Resolver는 제거했으며 WxUI와 WxDialogue 간 의존성이나 WxCore 중계 로직은 추가하지 않는다. 최종 검증 범위는 [작업 기록](../../../.agents/workflow/tasks/dialogue-presentation-vm.md)에 있으며 인게임 동작과 정적·자동화 검증을 구분한다.
+화면 연결은 WxGame의 `UWxViewModelResolver_Dialogue`가 담당하고, 대화 창 전용 C++ 위젯 클래스는 두지 않는다. `WBP_DialogueScreen`의 부모는 `UWxActivatableWidget`이며 VM은 Resolver 방식으로 생성된다. 리졸버는 위젯마다 WxUI의 `UWxViewModel_Dialogue`를 만들어 소유 PC 세션의 `OnLineChanged`에 VM의 `SetLine`을 걸고 현재 대사를 한 번 채운다. 해제는 그 VM의 구독만 `RemoveAll(VM)`로 끊는다. 진행 버튼의 MVVM 이벤트는 VM의 `RequestAdvance`를 부르고, VM의 `OnAdvanceRequested`를 리졸버가 세션 `Advance`에 약한 바인딩으로 잇는다. VM은 세션을 모르고, WxUI와 WxDialogue 간 의존성이나 WxCore 중계 로직은 없다.
+
+구독 수명은 위젯의 생성·파괴를 따른다. CommonUI 스택이 창을 닫으면 Slate까지 해제해 리졸버 해제가 호출되고, 다시 띄우면 새 VM이 현재 대사로 채워진다. 이전 `UWxDialogueScreen`(2026-09-23 제거)은 활성화 여부로 구독과 진행을 제한했지만, 비활성 창은 보이지 않고 `Advance`는 활성 대화가 없으면 무시하므로 동작 차이는 없다. 사용자가 인게임 동작을 확인했다. 검증 범위는 [작업 기록](../../../.agents/workflow/tasks/dialogue-presentation-vm.md)에 있다.
 
 빙의가 바뀌면 대화는 미완료로 종료된다. 종료 통지는 델리게이트를 사본으로 옮기고 원본을 비운 뒤 발행한다. 종료 콜백에서 새 대화를 여는 경우 새 구독을 지우지 않기 위한 순서다.
 
@@ -53,7 +56,8 @@ summary: "대화 정의는 액터에, 진행 세션은 PlayerController에 두�
 
 ## Sources
 
-- [화면 수명으로 연결 책임 통합](../../raw/notes/2026-09-23-dialogue-screen-lifecycle.md)
+- [대화·퀘스트 화면 클래스 제거와 리졸버 연결](../../raw/notes/2026-09-23-screen-classes-to-resolvers.md) — 현재 화면 연결(리졸버·VM 명령)
+- [화면 수명으로 연결 책임 통합](../../raw/notes/2026-09-23-dialogue-screen-lifecycle.md) — 이력: 제거된 화면 클래스 방식
 
 - [Dialogue 표시 VM과 입력 분리](../../raw/notes/2026-09-23-dialogue-presentation-vm.md)
 
@@ -65,7 +69,7 @@ summary: "대화 정의는 액터에, 진행 세션은 PlayerController에 두�
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
-2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 대화 정의·세션 계약 설명은 HEAD `60c324c714b1dab10cd48d36cabad63ace232716` 기준으로 보강했다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
+2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 대화 정의·세션 계약 설명은 HEAD `60c324c714b1dab10cd48d36cabad63ace232716` 기준으로 보강했다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다. 화면 연결 설명은 2026-09-23 커밋 `6daf3f804` 기준으로 갱신했다.
 
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 

@@ -10,10 +10,10 @@ Last updated: 2026-09-23
 |------|---------|------|---------|
 | [WxAI — AI 인지와 행동](ai.md) | WxAI는 인지 결과를 Blackboard로 전달하고 Behavior Tree 노드로 이동·전투 행동을 구성한다. | wx, ai | 2026-09-22 |
 | [WxCombat — 전투 시스템](combat.md) | WxCombat은 GAS의 어빌리티·자원·피해 처리와 전투 연출을 제공하고, 캐릭터 조립은 WxGame이 맡는다. | wx, combat | 2026-09-23 |
-| [WxDialogue — 대화 세션](dialogue.md) | 대화 정의는 액터에, 진행 세션은 PlayerController에 두고 행 데이터·ASC 태그·UI를 연결한다. | wx, dialogue | 2026-09-22 |
+| [WxDialogue — 대화 세션](dialogue.md) | 대화 정의는 액터에, 진행 세션은 PlayerController에 두고 행 데이터·ASC 태그·UI를 연결한다. | wx, dialogue | 2026-09-23 |
 | [WxCore — 공용 계약과 설정](foundation.md) | WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰·표시 계약을 제공한다. | wx, foundation | 2026-09-22 |
 | [WxGame — 게임 조립과 실행 흐름](game.md) | WxGame은 캐릭터·컨트롤러·GameState에 도메인 기능을 배치하고 새 게임·부활·표시 연결을 조립한다. | wx, game | 2026-09-23 |
 | [WxInventory — 아이템 소유와 사용](inventory.md) | WxInventory는 서버에서 아이템 소유·소비·충전을 변경하고 인벤토리와 인스턴스를 복제한다. | wx, inventory | 2026-09-23 |
-| [WxQuest — 퀘스트 실행과 저널](quests.md) | WxQuest는 권위 측의 단일 StateTree 러너와 제목·목표 저널을 제공하며, 실제 진행 내용은 에셋이 구성한다. | wx, quests | 2026-09-22 |
+| [WxQuest — 퀘스트 실행과 저널](quests.md) | WxQuest는 권위 측의 단일 StateTree 러너와 제목·목표 저널을 제공하며, 실제 진행 내용은 에셋이 구성한다. | wx, quests | 2026-09-23 |
 | [WxUI — 화면 레이어와 표시 수명](ui.md) | WxUI는 CommonUI 레이어와 MVVM 표시를 관리하고, 도메인 상태는 공용 태그·표시 계약으로 관찰한다. | wx, ui | 2026-09-23 |
 | [WxWorld — 장치와 상호작용](world.md) | WxWorld는 장치 StateTree의 상태 동기화, 로컬 상호작용 탐색, 스포너와 체크포인트 기능을 제공한다. | wx, world | 2026-09-23 |
