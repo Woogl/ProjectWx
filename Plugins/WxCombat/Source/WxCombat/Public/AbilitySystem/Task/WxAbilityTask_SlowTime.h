@@ -23,7 +23,6 @@ class WXCOMBAT_API UWxAbilityTask_SlowTime : public UAbilityTask
 public:
 	static UWxAbilityTask_SlowTime* CreateTask(UGameplayAbility* OwningAbility, float InTimeDilation = 0.2f, float InDuration = 1.f);
 
-	virtual void TickTask(float DeltaTime) override;
 	virtual void OnDestroy(bool bInOwnerFinished) override;
 
 protected:
@@ -32,7 +31,6 @@ protected:
 private:
 	float TimeDilation = 0.2f;
 	float Duration = 1.f;
-	float StartTimeSeconds = 0.f;
 
 	/** 0이면 이 태스크가 아직 배율을 걸지 않았다는 뜻이다. */
 	float AppliedDilation = 0.f;

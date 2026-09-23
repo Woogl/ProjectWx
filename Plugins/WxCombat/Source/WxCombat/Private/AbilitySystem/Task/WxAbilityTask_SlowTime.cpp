@@ -5,31 +5,14 @@
 #include "AbilitySystemComponent.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
 
 UWxAbilityTask_SlowTime* UWxAbilityTask_SlowTime::CreateTask(UGameplayAbility* OwningAbility, float InTimeDilation, float InDuration)
 {
 	UWxAbilityTask_SlowTime* Task = NewAbilityTask<UWxAbilityTask_SlowTime>(OwningAbility);
 	Task->TimeDilation = InTimeDilation;
 	Task->Duration = InDuration;
-	Task->bTickingTask = true;
 	return Task;
-}
-
-void UWxAbilityTask_SlowTime::TickTask(float DeltaTime)
-{
-	Super::TickTask(DeltaTime);
-
-	const UWorld* World = GetWorld();
-	if (!World)
-	{
-		EndTask();
-		return;
-	}
-
-	if (World->GetTimeSeconds() - StartTimeSeconds >= Duration)
-	{
-		EndTask();
-	}
 }
 
 void UWxAbilityTask_SlowTime::OnDestroy(bool bInOwnerFinished)
@@ -47,7 +30,7 @@ void UWxAbilityTask_SlowTime::Activate()
 	Super::Activate();
 
 	// TasksComponent 약참조가 풀리면 World가 널이다. 경과 시간을 못 재면 딜레이션을 걷을 수도 없으므로 걸기 전에 접는다.
-	const UWorld* World = GetWorld();
+	UWorld* World = GetWorld();
 	if (!World)
 	{
 		EndTask();
@@ -62,5 +45,14 @@ void UWxAbilityTask_SlowTime::Activate()
 		AppliedDilation = UGameplayStatics::GetGlobalTimeDilation(this);
 	}
 
-	StartTimeSeconds = World->GetTimeSeconds();
+	// 순정 WaitDelay처럼 핸들을 들지 않는다 — 먼저 끝난 태스크에 도착한 EndTask는 무시된다.
+	FTimerHandle TimerHandle;
+	if (Duration > 0.f)
+	{
+		World->GetTimerManager().SetTimer(TimerHandle, this, &UWxAbilityTask_SlowTime::EndTask, Duration, false);
+	}
+	else
+	{
+		World->GetTimerManager().SetTimerForNextTick(this, &UWxAbilityTask_SlowTime::EndTask);
+	}
 }
