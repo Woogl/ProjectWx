@@ -1,6 +1,6 @@
 # Dialogue VM을 순수 표시 데이터로 분리
 
-상태: 구현·자체 검증 완료 · 인간 리뷰·인게임 확인 대기 · 2026-09-23
+상태: 화면 클래스 제거·리졸버 복귀 완료 · 인게임 확인 통과 · 2026-09-23
 
 ## 사용자 요구와 경계
 
@@ -47,3 +47,27 @@
 - 실제 게임에서 화면 외관·버튼 클릭에 따른 세션 진행·빙의 변경은 아직 인간 확인 대상이다. 자동화의 대사 신호는 테스트가 직접 발행하며 실제 대화 테이블 진행 검증은 아니다.
 
 - 2026-09-23 사용자 요청으로 검증 완료한 WxDialogueScreenTest.cpp와 화면의 테스트 전용 friend 선언을 제거했다. 위 테스트 결과는 제거 전 검증 기록이다.
+
+## 화면 클래스 제거 · 리졸버 복귀 · 2026-09-23
+
+- 사용자 요청: `UWxDialogueScreen`을 제거하고 WBP가 뷰모델로 구동되게 한다. 이유: "MVVM을 쓰기 때문에 굳이 Widget 클래스를 늘릴 필요가 없다."
+- 구조: 보스 바와 같은 세 층(모델 WxDialogue 세션 / 연결 WxGame 리졸버 / 표시 WxUI VM).
+- WxUI `UWxViewModel_Dialogue`: 진행 명령 `RequestAdvance()`(BlueprintCallable)와 네이티브 단일 델리게이트 `OnAdvanceRequested`를 추가했다. VM은 세션을 모른다.
+- WxGame `UWxViewModelResolver_Dialogue` 신규:
+  - CreateInstance: 위젯을 Outer로 VM을 만들고, 소유 PC의 세션 `OnLineChanged`에 VM의 `SetLine`을 건 뒤 현재 대사를 채운다. `OnAdvanceRequested`를 세션 `Advance`에 약한 바인딩(BindUObject)으로 잇는다. 세션이 없으면 빈 VM이다.
+  - DestroyInstance: 그 VM의 구독만 `RemoveAll(VM)`로 끊는다. 리졸버는 상태가 없다.
+- `WBP_DialogueScreen`: 부모 `WxDialogueScreen` → `WxActivatableWidget`, VM 생성 방식 Create Instance → Resolver, 진행 이벤트 `AdvanceButton.OnClicked`의 목적지 `Self.RequestAdvance` → `WxViewModel_Dialogue.RequestAdvance`.
+- `WxDialogueScreen.h/.cpp` 삭제. `WxPlayerLayoutComponent.cpp`의 주석 한 줄("활성화될 때" → "생성될 때")을 정정했다.
+- 수명 근거(엔진): CommonUI 스택은 창을 닫을 때 `GeneratedWidgetsPool.Release(Widget, true)`로 Slate까지 해제한다(`CommonActivatableWidgetContainer.cpp:244`). 따라서 `NativeDestruct` → MVVM `Destruct` → `DestroyInstance`가 호출되고, 다시 띄우면 `Construct` → `CreateInstance`로 새 VM이 현재 대사를 채운다(`MVVMView.cpp:93`, `:146`).
+- 동작 차이: 이전 화면 클래스는 활성화 여부로 구독과 진행 입력을 제한했다. 이제는 위젯이 생성되어 있는 동안 구독한다. 비활성 화면은 보이지 않아 클릭될 수 없고, `Advance`는 활성 대화가 없으면 무시한다.
+- WxToolset: `SetEventDestinationWidgetFunction`을 `SetEventDestination(WidgetBlueprint, EventIndex, "Self.함수" | "뷰모델이름.함수")`로 일반화했다. 경로는 기존 `ResolvePropertyPath`로 해석하고, 끝이 BlueprintCallable 함수인지 검사한다.
+
+### 검증
+
+- WxEditor Win64 Development 빌드 성공(클래스 삭제 후 최종): `Saved/Logs/BuildDoctor/build_2026-09-23_212120_128_3604.log`, 종료 코드 0.
+- 이관: `Saved/Logs/ScreensToResolver.log` (종료 코드 0). 두 WBP 모두 부모 변경·리졸버 전환 후 경고를 오류로 취급한 컴파일을 통과하고 저장했다. `WBP_GameLayout`·`WBP_QuestObjective`도 컴파일을 통과했다.
+- 클래스 삭제 후 새 프로세스 재검증: `Saved/Logs/ScreensResolverVerify.log` (종료 코드 0). 부모·리졸버 클래스·VM 클래스·이벤트 목적지를 확인했고, 4개 WBP가 경고를 오류로 취급한 컴파일을 통과했다. 삭제한 두 클래스는 로드되지 않았다.
+- Content에서 삭제한 클래스 이름의 바이너리 참조 0건.
+- 미실행(인간 확인 필요): PIE에서 대화 표시·클릭 진행·종료 후 재대화, 퀘스트 수주·목표 갱신·완료 시 추적기 표시. 런타임 구독·해제는 코드와 엔진 수명(아래)으로만 확인했다.
+- 인게임(사용자 확인, 2026-09-23): 통과. "테스트 문제 없습니다." 인간 코드 리뷰의 별도 승인 기록은 없다.
+- 사용자 요청으로 Wiki에 반영하고 푸시했다(2026-09-23).

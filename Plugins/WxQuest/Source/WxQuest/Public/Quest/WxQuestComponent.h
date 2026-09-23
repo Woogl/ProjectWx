@@ -10,7 +10,7 @@
 class UStateTree;
 class UStateTreeComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnQuestJournalChanged);
+DECLARE_MULTICAST_DELEGATE(FWxOnQuestJournalChanged);
 
 /**
  * 목표는 등록한 태스크가 자기 상태를 떠날 때 스스로 걷어가므로, 문구가 아니라 발급 핸들로 지목한다(같은 문구가 둘일 수 있다).
@@ -71,8 +71,7 @@ public:
 	/** 등록 순서대로 돌려준다. */
 	TArray<FText> GetObjectiveTexts() const;
 
-	/** 저널 등록·목표 갱신·정리 시 발화. HUD 화면이 구독해 현재 값을 표시 뷰모델에 전달한다. */
-	UPROPERTY(BlueprintAssignable, Category = "Wx|Quest")
+	/** 저널 등록·목표 갱신·정리 시 발화. 퀘스트 HUD 리졸버가 구독해 현재 값을 표시 뷰모델에 전달한다. */
 	FWxOnQuestJournalChanged OnJournalChanged;
 
 	virtual void BeginPlay() override;

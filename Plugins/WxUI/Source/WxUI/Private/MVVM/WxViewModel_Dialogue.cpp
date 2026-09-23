@@ -11,6 +11,11 @@ void UWxViewModel_Dialogue::SetLine(const FText& InSpeaker, const FText& InLine)
 	UE_MVVM_SET_PROPERTY_VALUE(LineText, InLine);
 }
 
+void UWxViewModel_Dialogue::RequestAdvance()
+{
+	OnAdvanceRequested.ExecuteIfBound();
+}
+
 bool UWxViewModel_Dialogue::HasSpeaker() const
 {
 	return !Speaker.IsEmpty();
