@@ -212,11 +212,13 @@ void UWxDeviceStateTreeComponent::EnterState(FGameplayTag Tag, bool bRestore)
 
 FGameplayTag UWxDeviceStateTreeComponent::FindActiveStateTag() const
 {
+	const UStateTree* Asset = StateTreeRef.GetStateTree();
 	const FStateTreeExecutionState* Execution = InstanceData.GetExecutionState();
 	for (int32 FrameIndex = Execution->ActiveFrames.Num() - 1; FrameIndex >= 0; --FrameIndex)
 	{
 		const FStateTreeExecutionFrame& Frame = Execution->ActiveFrames[FrameIndex];
-		if (!Frame.StateTree)
+		// 받는 쪽 EnterState 는 루트 에셋에서만 태그를 찾으므로 링크된 에셋의 태그는 건너뛴다.
+		if (!Frame.StateTree || Frame.StateTree != Asset)
 		{
 			continue;
 		}
