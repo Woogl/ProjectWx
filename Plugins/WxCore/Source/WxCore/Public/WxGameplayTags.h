@@ -58,6 +58,9 @@ namespace WxGameplayTags
 	 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_HitStop);
 
+	/** 스킬 컷신 세션 동안 WxEffect_SkillCutscene이 모든 플레이어에게 부여한다. 입력형 어빌리티 발동을 막는다 */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_SkillCutscene);
+
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_IgnoreAggro);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_IgnoreCosts);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_IgnoreAbilityTags);

@@ -81,6 +81,9 @@ struct FWxSkillCutsceneServerState
 	TWeakObjectPtr<UAbilitySystemComponent> InvincibleASC;
 	FActiveGameplayEffectHandle InvincibleHandle;
 
+	/** 모든 플레이어의 입력형 어빌리티를 막는 효과. */
+	TArray<TPair<TWeakObjectPtr<UAbilitySystemComponent>, FActiveGameplayEffectHandle>> InputBlocks;
+
 	/** 월드 오디오 시각. 로컬 재생과 무관하게 이 시각에 세션을 끝낸다. */
 	double EndTime = 0.0;
 
@@ -90,7 +93,7 @@ struct FWxSkillCutsceneServerState
 
 /**
  * GameState가 같은 장면을 전달하고, 각 머신은 받으면 처음부터 자기 끝까지 재생한다.
- * 세션 수명(월드 배율·무적·관련성)은 서버가 시퀀스 길이로만 정한다.
+ * 세션 수명(월드 배율·무적·플레이어 입력 차단·관련성)은 서버가 시퀀스 길이로만 정한다.
  *
  * 시퀀스 저작 규약 2가지:
  * - Binding Tag "Player"가 시전자 AvatarActor를 가리킨다. 그 바인딩의 레퍼런스 액터는 월드 원점에 두고 트랜스폼 트랙을 두지 않는다 — 원점이 아바타의 메시로 옮겨오므로, 트랙이 남아 있으면 아바타를 메시 자리까지 끌어내린다.

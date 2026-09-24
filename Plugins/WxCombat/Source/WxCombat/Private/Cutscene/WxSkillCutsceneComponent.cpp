@@ -3,12 +3,15 @@
 #include "Cutscene/WxSkillCutsceneComponent.h"
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "AbilitySystem/Effect/WxEffect_Invincible.h"
+#include "AbilitySystem/Effect/WxEffect_SkillCutscene.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "DefaultLevelSequenceInstanceData.h"
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/GameStateBase.h"
+#include "GameFramework/PlayerState.h"
 #include "GroomComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "LevelSequence.h"
@@ -149,6 +152,18 @@ bool UWxSkillCutsceneComponent::Start(UGameplayAbility* Requester, ULevelSequenc
 	{
 		ServerState.InvincibleASC = ASC;
 		ServerState.InvincibleHandle = ASC->ApplyGameplayEffectToSelf(GetDefault<UWxEffect_Invincible>(), Requester->GetAbilityLevel(), ASC->MakeEffectContext());
+	}
+
+	// 멈춘 월드에서 누른 입력이 비용을 치른 채 컷신 뒤에 이어 나가지 않게 한다.
+	if (const AGameStateBase* GameState = GetOwner<AGameStateBase>())
+	{
+		for (const APlayerState* PlayerState : GameState->PlayerArray)
+		{
+			if (UAbilitySystemComponent* PlayerASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(PlayerState ? PlayerState->GetPawn() : nullptr))
+			{
+				ServerState.InputBlocks.Emplace(PlayerASC, PlayerASC->ApplyGameplayEffectToSelf(GetDefault<UWxEffect_SkillCutscene>(), 1.f, PlayerASC->MakeEffectContext()));
+			}
+		}
 	}
 
 	UpdateSession();
@@ -397,6 +412,13 @@ void UWxSkillCutsceneComponent::Finish(bool bCancelled)
 	{
 		// 스택형 GE라면 다른 소유자의 적용과 한 핸들로 합쳐졌을 수 있으므로 컷신의 몫 하나만 뺀다.
 		ASC->RemoveActiveGameplayEffect(ServerState.InvincibleHandle, 1);
+	}
+	for (const TPair<TWeakObjectPtr<UAbilitySystemComponent>, FActiveGameplayEffectHandle>& InputBlock : ServerState.InputBlocks)
+	{
+		if (UAbilitySystemComponent* PlayerASC = InputBlock.Key.Get())
+		{
+			PlayerASC->RemoveActiveGameplayEffect(InputBlock.Value, 1);
+		}
 	}
 	if (IsValid(State.Session.Avatar))
 	{
