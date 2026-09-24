@@ -24,7 +24,7 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (!UseMontage || !ConsumableDef)
+	if (!UseMontage)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -32,7 +32,7 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 
 	APawn* Avatar = Cast<APawn>(ActorInfo->AvatarActor.Get());
 	UWxItemUseComponent* ItemUseComponent = Avatar ? Avatar->FindComponentByClass<UWxItemUseComponent>() : nullptr;
-	if (!ItemUseComponent || !ItemUseComponent->CanUseItem(ConsumableDef))
+	if (!ItemUseComponent || !ItemUseComponent->CanUseItem())
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -45,7 +45,7 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
-	ItemUseComponent->BeginUseItem(ConsumableDef);
+	ItemUseComponent->BeginUseItem();
 
 	if (!PlayMontage(UseMontage))
 	{
@@ -60,7 +60,7 @@ void UWxAbility_UseItem::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 	const AActor* Avatar = GetAvatarActorFromActorInfo();
 	if (UWxItemUseComponent* ItemUseComponent = Avatar ? Avatar->FindComponentByClass<UWxItemUseComponent>() : nullptr)
 	{
-		ItemUseComponent->EndUseItem(ConsumableDef);
+		ItemUseComponent->EndUseItem();
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

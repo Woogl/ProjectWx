@@ -41,7 +41,7 @@ public:
 };
 
 /**
- * UWxInventoryComponent::UseItemByDef 가 Effect 적용과 스택 1 차감(Charges Fragment 가 있으면 충전량 1 차감)을 함께 수행한다.
+ * UWxInventoryComponent::UseConsumable 이 Effect 적용과 스택 1 차감(Charges Fragment 가 있으면 충전량 1 차감)을 함께 수행한다.
  */
 UCLASS(DisplayName = "Usable")
 class WXINVENTORY_API UWxItemFragment_Usable : public UWxItemFragment

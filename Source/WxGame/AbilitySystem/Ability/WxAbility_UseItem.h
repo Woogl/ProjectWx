@@ -7,7 +7,6 @@
 #include "WxAbility_UseItem.generated.h"
 
 class UAnimMontage;
-class UWxItemDefinition;
 
 /**
  * 소비 아이템 사용 어빌리티(다크소울 에스트병 방식).
@@ -15,7 +14,7 @@ class UWxItemDefinition;
  * 발동은 입력(ActivationInputAction) 외에 인벤토리의 사용 요청으로도 일어난다.
  * 후자는 AssetTag(Ability.UseItem)로 이 어빌리티를 지목할 뿐 발동 자체는 입력과 같다.
  *
- * ConsumableDef 를 지금 쓸 수 있는지(보유 + 충전 잔량) 몽타주 전에 검사해 빈 병 모션을 막는다.
+ * 쓸 소비 아이템은 인벤토리가 고른다. 지금 쓸 수 있는지(보유 + 충전 잔량)를 몽타주 전에 검사해 빈 병 모션을 막는다.
  * 인벤토리와 인스턴스 충전량이 소유 클라에 복제되므로 이 판정은 클라에서도 성립한다.
  *
  * 충전 1 감소와 회복 GE 적용은 몽타주의 UseItem AnimNotify 시점에 ItemUseComponent가 처리한다.
@@ -36,8 +35,4 @@ protected:
 	/** 꿀꺽 지점에 UWxAnimNotify_UseItem을 배치한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TObjectPtr<UAnimMontage> UseMontage;
-
-	/** Usable Fragment(회복 GE)와 Charges Fragment(충전)를 갖는 아이템이어야 한다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UWxItemDefinition> ConsumableDef;
 };

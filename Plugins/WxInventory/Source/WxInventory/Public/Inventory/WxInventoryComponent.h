@@ -202,18 +202,15 @@ public:
 	 */
 	bool RequestUseConsumable();
 
-	/**
-	 * Usable Fragment 보유 + (충전형이면 충전이 남은 인스턴스 존재) 이면 true.
-	 */
-	bool CanUseItemByDef(const UWxItemDefinition* ItemDef) const;
+	/** 쓸 수 있는 소비 아이템(Usable Fragment, 충전형이면 충전이 남은 것)이 있으면 true. */
+	bool CanUseConsumable() const;
 
 	/**
-	 * 권한: Usable Fragment 를 가진 아이템을 1회 사용한다.
-	 * 비 사용 아이템이면 false.
-	 * 충전형(Charges Fragment)은 충전이 남은 첫 인스턴스의 충전량을 1 감소시키고(인벤토리 스택 유지), 그 외는 스택을 1 차감한다.
+	 * 권한: 소비 아이템을 1회 사용한다. 없으면 false.
+	 * 충전형(Charges Fragment)은 충전량을 1 감소시키고(인벤토리 스택 유지), 그 외는 스택을 1 차감한다.
 	 * 가용성·GE Spec 검증을 모두 통과한 뒤에만 차감하고, 차감 성공 후 GE를 소유 폰에 적용한다.
 	 */
-	bool UseItemByDef(const UWxItemDefinition* ItemDef);
+	bool UseConsumable();
 
 	/**
 	 * 권한: 충전형(Charges Fragment) 아이템 인스턴스의 충전량을 MaxCharges 로 회복한다(에스트병 체크포인트 리필).
@@ -244,10 +241,10 @@ public:
 private:
 
 	/**
-	 * ItemDef 의 사용 대상 인스턴스를 찾는다. 충전형(Charges)은 충전이 남은 첫 인스턴스, 그 외는 보유한 첫 인스턴스.
-	 * UseItemByDef 와 CanUseItemByDef 가 동일한 선택 기준을 공유하기 위한 헬퍼다. 없으면 nullptr.
+	 * 소비 아이템은 에스트병 하나뿐이라 Usable Fragment를 가진 첫 인스턴스를 고른다. 충전형이면 충전이 남은 것만 고른다.
+	 * UseConsumable 과 CanUseConsumable 이 동일한 선택 기준을 공유하기 위한 헬퍼다. 없으면 nullptr.
 	 */
-	UWxItemInstance* FindUsableInstance(const UWxItemDefinition* ItemDef) const;
+	UWxItemInstance* FindConsumableInstance() const;
 
 	void RegisterReplicatedInstance(UWxItemInstance* Instance);
 

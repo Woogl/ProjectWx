@@ -8,28 +8,24 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Inventory/WxInventoryComponent.h"
-#include "Items/WxItemDefinition.h"
 #include "WxGameplayTags.h"
 
-bool UWxItemUseComponent::CanUseItem(const UWxItemDefinition* ItemDefinition) const
+bool UWxItemUseComponent::CanUseItem() const
 {
 	const APawn* Pawn = Cast<APawn>(GetOwner());
 	const APlayerController* PlayerController = Pawn ? Cast<APlayerController>(Pawn->GetController()) : nullptr;
 	const UWxInventoryComponent* Inventory = PlayerController ? PlayerController->FindComponentByClass<UWxInventoryComponent>() : nullptr;
-	return Inventory && Inventory->CanUseItemByDef(ItemDefinition);
+	return Inventory && Inventory->CanUseConsumable();
 }
 
-void UWxItemUseComponent::BeginUseItem(UWxItemDefinition* ItemDefinition)
+void UWxItemUseComponent::BeginUseItem()
 {
-	PendingItemDefinition = ItemDefinition;
+	bUsePending = true;
 }
 
-void UWxItemUseComponent::EndUseItem(const UWxItemDefinition* ItemDefinition)
+void UWxItemUseComponent::EndUseItem()
 {
-	if (PendingItemDefinition == ItemDefinition)
-	{
-		PendingItemDefinition = nullptr;
-	}
+	bUsePending = false;
 }
 
 void UWxItemUseComponent::BeginPlay()
@@ -58,7 +54,7 @@ void UWxItemUseComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		}
 	}
 
-	PendingItemDefinition = nullptr;
+	bUsePending = false;
 	AbilitySystemComponent.Reset();
 	UseItemEventHandle.Reset();
 
@@ -68,7 +64,7 @@ void UWxItemUseComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void UWxItemUseComponent::HandleUseItemEvent(const FGameplayEventData* Payload)
 {
 	AActor* Owner = GetOwner();
-	if (!Owner || !Owner->HasAuthority() || !Payload || !PendingItemDefinition)
+	if (!Owner || !Owner->HasAuthority() || !Payload || !bUsePending)
 	{
 		return;
 	}
@@ -80,13 +76,12 @@ void UWxItemUseComponent::HandleUseItemEvent(const FGameplayEventData* Payload)
 		return;
 	}
 
-	UWxItemDefinition* ItemDefinition = PendingItemDefinition;
-	PendingItemDefinition = nullptr;
+	bUsePending = false;
 
 	const APawn* Pawn = Cast<APawn>(Owner);
 	const APlayerController* PlayerController = Pawn ? Cast<APlayerController>(Pawn->GetController()) : nullptr;
 	if (UWxInventoryComponent* Inventory = PlayerController ? PlayerController->FindComponentByClass<UWxInventoryComponent>() : nullptr)
 	{
-		Inventory->UseItemByDef(ItemDefinition);
+		Inventory->UseConsumable();
 	}
 }

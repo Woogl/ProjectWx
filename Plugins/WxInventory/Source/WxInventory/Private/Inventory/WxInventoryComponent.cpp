@@ -494,30 +494,19 @@ bool UWxInventoryComponent::RequestUseConsumable()
 	return ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(WxGameplayTags::Ability_UseItem));
 }
 
-bool UWxInventoryComponent::CanUseItemByDef(const UWxItemDefinition* ItemDef) const
+bool UWxInventoryComponent::CanUseConsumable() const
 {
-	return ItemDef
-		&& ItemDef->FindFragmentByClass<UWxItemFragment_Usable>()
-		&& FindUsableInstance(ItemDef) != nullptr;
+	return FindConsumableInstance() != nullptr;
 }
 
-bool UWxInventoryComponent::UseItemByDef(const UWxItemDefinition* ItemDef)
+bool UWxInventoryComponent::UseConsumable()
 {
-	if (!ItemDef)
-	{
-		return false;
-	}
-
 	check(GetOwner() && GetOwner()->HasAuthority());
 
-	const UWxItemFragment_Usable* Usable = ItemDef->FindFragmentByClass<UWxItemFragment_Usable>();
+	UWxItemInstance* SourceInstance = FindConsumableInstance();
+	const UWxItemDefinition* ItemDef = SourceInstance ? SourceInstance->GetItemDef() : nullptr;
+	const UWxItemFragment_Usable* Usable = ItemDef ? ItemDef->FindFragmentByClass<UWxItemFragment_Usable>() : nullptr;
 	if (!Usable)
-	{
-		return false;
-	}
-
-	UWxItemInstance* SourceInstance = FindUsableInstance(ItemDef);
-	if (!SourceInstance)
 	{
 		return false;
 	}
@@ -618,23 +607,17 @@ void UWxInventoryComponent::NotifyChargeChangedFromSource(UWxItemInstance* Insta
 	OnInventoryChargeChanged.Broadcast(Instance, NewCharges, Delta);
 }
 
-UWxItemInstance* UWxInventoryComponent::FindUsableInstance(const UWxItemDefinition* ItemDef) const
+UWxItemInstance* UWxInventoryComponent::FindConsumableInstance() const
 {
-	if (!ItemDef)
-	{
-		return nullptr;
-	}
-
-	const UWxItemFragment_Charges* Charges = ItemDef->FindFragmentByClass<UWxItemFragment_Charges>();
-
 	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
 	{
 		UWxItemInstance* SlotInstance = Entry.GetInstance();
-		if (!SlotInstance || SlotInstance->GetItemDef() != ItemDef)
+		const UWxItemDefinition* ItemDef = SlotInstance ? SlotInstance->GetItemDef() : nullptr;
+		if (!ItemDef || !ItemDef->FindFragmentByClass<UWxItemFragment_Usable>())
 		{
 			continue;
 		}
-		if (Charges && SlotInstance->GetCurrentCharges() <= 0)
+		if (ItemDef->FindFragmentByClass<UWxItemFragment_Charges>() && SlotInstance->GetCurrentCharges() <= 0)
 		{
 			continue;
 		}
