@@ -177,7 +177,6 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability);
 
-	/** 플레이어 캐릭터 전용 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Light);
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack_Heavy);
@@ -248,7 +247,7 @@ namespace WxGameplayTags
 	/** HUD 레이어 (플레이어 체력 바 등) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Game);
 
-	/** 게임 메뉴 레이어 (아이템 획득 알림 등, 메뉴 아래) */
+	/** 게임 메뉴 레이어 (메뉴 아래) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_GameMenu);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Menu);

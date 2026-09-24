@@ -93,7 +93,7 @@ UWxPrimaryGameLayout* UWxUIManagerSubsystem::GetPrimaryGameLayout() const
 
 bool UWxUIManagerSubsystem::IsMenuLayerActive() const
 {
-	// GameMenu 는 아이템 획득 알림처럼 화면을 덮지 않는 자리라 메뉴로 세지 않는다.
+	// GameMenu 는 화면을 덮지 않는 자리라 메뉴로 세지 않는다.
 	return HasActiveWidgetInLayer(WxGameplayTags::UI_Layer_Menu) || HasActiveWidgetInLayer(WxGameplayTags::UI_Layer_Modal);
 }
 
