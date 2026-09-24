@@ -33,19 +33,10 @@ protected:
 	/** 완주가 아니라 블렌드아웃에서 끝낸다 — 가드가 자세를 되찾는 구간이 연출 꼬리와 겹쳐야 끊겨 보이지 않는다. */
 	virtual void HandleMontageBlendOut() override;
 
+	/** 섹션 GuardHit, GuardKnockback(넉 계열 공격을 가드), GuardBreak, PerfectGuard를 둔다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> GuardHitReactMontage;
-
-	/** Knockback/Knockup/Knockdown 공격을 가드했을 때 재생하는 몽타주 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> GuardKnockbackMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> GuardBreakMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> PerfectGuardMontage;
+	TObjectPtr<UAnimMontage> GuardReactMontage;
 
 private:
-	UAnimMontage* SelectMontage(FGameplayTag TriggerTag, FGameplayTag ReactionTag) const;
+	static FName SelectSection(FGameplayTag TriggerTag, FGameplayTag ReactionTag);
 };

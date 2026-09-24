@@ -80,7 +80,7 @@ void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		}
 	}
 
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !PlayMontage(SelectMontage(TriggerTag, ReactionTag)))
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !PlayMontage(GuardReactMontage, SelectSection(TriggerTag, ReactionTag)))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -112,21 +112,21 @@ void UWxAbility_GuardReact::HandleMontageBlendOut()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-UAnimMontage* UWxAbility_GuardReact::SelectMontage(FGameplayTag TriggerTag, FGameplayTag ReactionTag) const
+FName UWxAbility_GuardReact::SelectSection(FGameplayTag TriggerTag, FGameplayTag ReactionTag)
 {
 	if (TriggerTag == WxGameplayTags::Event_Hit_GuardBreak)
 	{
-		return GuardBreakMontage;
+		return FName(TEXT("GuardBreak"));
 	}
 
 	if (TriggerTag == WxGameplayTags::Event_PerfectGuard)
 	{
-		return PerfectGuardMontage;
+		return FName(TEXT("PerfectGuard"));
 	}
 
 	const bool bIsKnockHit = ReactionTag == WxGameplayTags::HitReact_KnockBack
 		|| ReactionTag == WxGameplayTags::HitReact_KnockDown
 		|| ReactionTag == WxGameplayTags::HitReact_KnockUp;
 
-	return (bIsKnockHit && GuardKnockbackMontage) ? GuardKnockbackMontage.Get() : GuardHitReactMontage.Get();
+	return FName(bIsKnockHit ? TEXT("GuardKnockback") : TEXT("GuardHit"));
 }
