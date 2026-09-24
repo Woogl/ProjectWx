@@ -111,10 +111,12 @@ void UWxCharacterMovementComponent::JumpToLandingSection()
 		return;
 	}
 	
-	UAnimMontage* Montage = AnimInstance->GetCurrentActiveMontage();
-
-	if (Montage && Montage->GetSectionIndex(LandingSectionName) != INDEX_NONE)
+	// 가산 피격처럼 나중에 시작된 몽타주가 위에 겹쳐 있어도 착지 섹션을 가진 몽타주를 놓치지 않는다.
+	for (FAnimMontageInstance* MontageInstance : AnimInstance->MontageInstances)
 	{
-		AnimInstance->Montage_JumpToSection(LandingSectionName, Montage);
+		if (MontageInstance && MontageInstance->IsActive() && MontageInstance->Montage->GetSectionIndex(LandingSectionName) != INDEX_NONE)
+		{
+			MontageInstance->JumpToSectionName(LandingSectionName);
+		}
 	}
 }
