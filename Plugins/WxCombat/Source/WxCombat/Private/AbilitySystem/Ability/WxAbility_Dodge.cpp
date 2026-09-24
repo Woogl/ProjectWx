@@ -121,22 +121,22 @@ EWxDodgeDirection UWxAbility_Dodge::ResolveDodgeDirection(const FVector& LocalDi
 	return static_cast<EWxDodgeDirection>(Octant);
 }
 
-FName UWxAbility_Dodge::SelectDodgeSection(const UAnimMontage* Montage, const FVector& LocalDirection) const
+FName UWxAbility_Dodge::SelectDodgeSection(const FVector& LocalDirection, const FString& Prefix) const
 {
-	if (!Montage)
+	if (!DodgeMontage)
 	{
 		return NAME_None;
 	}
 
 	const EWxDodgeDirection DodgeDirection = ResolveDodgeDirection(LocalDirection);
-	const FName SectionName(StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(DodgeDirection)));
-	if (Montage->IsValidSectionName(SectionName))
+	const FName SectionName(Prefix + StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(DodgeDirection)));
+	if (DodgeMontage->IsValidSectionName(SectionName))
 	{
 		return SectionName;
 	}
 
-	const FName ForwardSection(StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(EWxDodgeDirection::Forward)));
-	if (Montage->IsValidSectionName(ForwardSection))
+	const FName ForwardSection(Prefix + StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(EWxDodgeDirection::Forward)));
+	if (DodgeMontage->IsValidSectionName(ForwardSection))
 	{
 		return ForwardSection;
 	}
@@ -148,9 +148,10 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 {
 	const FVector Local = LocalDirection.GetSafeNormal2D();
 
-	if (Local.IsNearlyZero() && BackstepMontage)
+	const FName BackstepSection(TEXT("Backstep"));
+	if (Local.IsNearlyZero() && DodgeMontage->IsValidSectionName(BackstepSection))
 	{
-		if (!PlayMontage(BackstepMontage))
+		if (!PlayMontage(DodgeMontage, BackstepSection))
 		{
 			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 			return false;
@@ -159,7 +160,7 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 		return true;
 	}
 
-	const FName SectionName = SelectDodgeSection(DodgeMontage, LocalDirection);
+	const FName SectionName = SelectDodgeSection(LocalDirection, FString());
 
 	// 락온 중에는 락온이 Ability.Dodge를 보고 회전 태스크를 멈춰 회피 내내 몸 방향을 고정하므로, 회피도 몸을 돌리지 않는다.
 	// 비락온은 섹션 루트모션이 몸 기준 고정 방향이라, 양자화 잔차(±22.5°, 폴백 시 그 이상)만큼 몸을 돌려 이동을 입력 방향에 맞춘다.
@@ -226,7 +227,21 @@ void UWxAbility_Dodge::HandleImmunityBlock(const FGameplayEffectSpec& BlockedSpe
 
 void UWxAbility_Dodge::HandleDodgeSuccess()
 {
-	if (bDodgeSuccessHandled || !PerfectDodgeMontage)
+	if (bDodgeSuccessHandled)
+	{
+		return;
+	}
+
+	// 회피 섹션은 몸을 돌리지 않고 몸 기준 루트모션으로만 흐르므로, 극한 회피도 같은 방향 섹션으로 이어야 이동이 꺾이지 않는다.
+	// 루트모션 중 속도가 곧 진행 방향이라, 8방향 양자화·잔차 보정·백스텝이 이 값 하나로 수렴한다.
+	FName SectionName = NAME_None;
+	if (const AActor* Avatar = GetAvatarActorFromActorInfo())
+	{
+		const FVector LocalDirection = Avatar->GetActorTransform().InverseTransformVectorNoScale(Avatar->GetVelocity());
+		SectionName = SelectDodgeSection(LocalDirection, TEXT("Success"));
+	}
+
+	if (SectionName.IsNone())
 	{
 		return;
 	}
@@ -238,17 +253,8 @@ void UWxAbility_Dodge::HandleDodgeSuccess()
 		UAbilityTask_NetworkSyncPoint* ConfirmationTask = UAbilityTask_NetworkSyncPoint::WaitNetSync(this, EAbilityTaskNetSyncType::OnlyClientWait);
 		ConfirmationTask->ReadyForActivation();
 	}
-	
-	// 회피 섹션은 몸을 돌리지 않고 몸 기준 루트모션으로만 흐르므로, 극한 회피도 같은 방향 섹션으로 이어야 이동이 꺾이지 않는다.
-	// 루트모션 중 속도가 곧 진행 방향이라, 8방향 양자화·잔차 보정·백스텝이 이 값 하나로 수렴한다.
-	FName SectionName = NAME_None;
-	if (const AActor* Avatar = GetAvatarActorFromActorInfo())
-	{
-		const FVector LocalDirection = Avatar->GetActorTransform().InverseTransformVectorNoScale(Avatar->GetVelocity());
-		SectionName = SelectDodgeSection(PerfectDodgeMontage, LocalDirection);
-	}
 
-	if (!PlayMontage(PerfectDodgeMontage, SectionName))
+	if (!PlayMontage(DodgeMontage, SectionName))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}
@@ -257,7 +263,7 @@ void UWxAbility_Dodge::HandleDodgeSuccess()
 void UWxAbility_Dodge::ListenForInvincibleWindow()
 {
 	// 무적 태그는 WxAnimNotifyState_ApplyGameplayEffect가 발행하고, 여기서는 관찰만 해 판정 캡슐의 수명을 태그에 맞춘다.
-	// 두 태스크 모두 재무장하므로 PerfectDodgeMontage에 무적 구간이 또 있어도 그대로 처리된다.
+	// 두 태스크 모두 재무장하므로 극한 회피 섹션에 무적 구간이 또 있어도 그대로 처리된다.
 	UAbilityTask_WaitGameplayTagAdded* AddedTask = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, WxGameplayTags::Effect_Invincible, nullptr, false);
 	AddedTask->Added.AddDynamic(this, &UWxAbility_Dodge::HandleInvincibleTagAdded);
 	AddedTask->ReadyForActivation();
