@@ -69,8 +69,6 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-
 	// 기본 반응은 없다 — 대미지 행이 HitReactTag 를 비운 것이 곧 "이 공격은 피격 반응을 일으키지 않는다"는 지정이다.
 	FGameplayTag ReactionTag;
 	if (TriggerEventData)
@@ -90,16 +88,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	const AActor* Instigator = TriggerEventData ? TriggerEventData->Instigator.Get() : nullptr;
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
 
-	// 그로기 중엔 날아가지 않는다 — 긴 넉 몽타주가 그로기 몽타주를 밀어내는 동안에도 GP 드레인은 돌아 그로기 창이 잘려나간다.
-	// GP 적용이 그로기를 먼저 띄우고 피격 이벤트가 그 뒤에 오므로 그로기를 유발한 히트도 여기 걸린다.
-	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy)
-		&& (ReactionTag == WxGameplayTags::HitReact_KnockBack
-			|| ReactionTag == WxGameplayTags::HitReact_KnockDown
-			|| ReactionTag == WxGameplayTags::HitReact_KnockUp))
-	{
-		ReactionTag = WxGameplayTags::HitReact_Normal;
-	}
-
+	// 그로기 중 넉 계열은 보내는 쪽(UWxEffectComponent_DamageReaction)이 일반 피격으로 낮춰 온다.
 	if (!PlayMontage(SelectMontage(ReactionTag)))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);

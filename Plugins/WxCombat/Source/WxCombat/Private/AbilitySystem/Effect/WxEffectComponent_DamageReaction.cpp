@@ -51,7 +51,17 @@ void UWxEffectComponent_DamageReaction::ProcessDamageTaken(UAbilitySystemCompone
 	AActor* TargetActor = ASC->GetOwnerActor();
 	UAbilitySystemComponent* SourceASC = ContextHandle.GetInstigatorAbilitySystemComponent();
 
-	const FGameplayTag ReactionTag = DamageTags.Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
+	FGameplayTag ReactionTag = DamageTags.Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
+
+	// 그로기 중엔 날아가지 않는다 — 긴 넉 몽타주가 그로기 몽타주를 밀어내는 동안에도 GP 드레인은 돌아 그로기 창이 잘려나간다.
+	// GP 적용이 이 컴포넌트보다 먼저라 그로기를 띄운 히트도 여기 걸린다.
+	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy)
+		&& (ReactionTag == WxGameplayTags::HitReact_KnockBack
+			|| ReactionTag == WxGameplayTags::HitReact_KnockDown
+			|| ReactionTag == WxGameplayTags::HitReact_KnockUp))
+	{
+		ReactionTag = WxGameplayTags::HitReact_Normal;
+	}
 
 	// GuardReact가 같은 피격 이벤트로 흡수 몽타주를 틀므로, 가드로 막히지 않는 히트는 이벤트보다 먼저 가드를 끊어야 한다.
 	// 반응 라우팅은 전부 Ability.Guard로 판정한다 — 여기만 Effect.GuardReduction을 보면 둘이 어긋난 상태에서 취소를 건너뛴 채 흡수 연출이 나간다.
