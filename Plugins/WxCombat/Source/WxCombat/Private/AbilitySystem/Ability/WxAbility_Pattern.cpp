@@ -26,10 +26,9 @@ void UWxAbility_Pattern::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
-	ComboIndex = ComboMontages.IsValidIndex(ComboIndex + 1) ? ComboIndex + 1 : 0;
+	ComboIndex = ComboIndex + 1 < GetComboStageCount(ComboMontage) ? ComboIndex + 1 : 0;
 
-	UAnimMontage* ComboMontage = ComboMontages.IsValidIndex(ComboIndex) ? ComboMontages[ComboIndex].Get() : nullptr;
-	if (!PlayMontage(ComboMontage))
+	if (!PlayMontage(ComboMontage, GetComboStageSection(ComboMontage, ComboIndex)))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
@@ -47,13 +46,14 @@ void UWxAbility_Pattern::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 
 void UWxAbility_Pattern::HandleMontageBlendOut()
 {
-	if (!ComboMontages.IsValidIndex(ComboIndex + 1))
+	if (ComboIndex + 1 >= GetComboStageCount(ComboMontage))
 	{
 		return;
 	}
 
+	// 섹션을 이어 재생하면 블렌드 없이 튀므로 다음 단은 새 인스턴스로 튼다.
 	ComboIndex = ComboIndex + 1;
-	if (!PlayMontage(ComboMontages[ComboIndex].Get()))
+	if (!PlayMontage(ComboMontage, GetComboStageSection(ComboMontage, ComboIndex)))
 	{
 		ComboIndex = INDEX_NONE;
 		EndAbility(CurrentSpecHandle, GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);

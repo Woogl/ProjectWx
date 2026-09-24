@@ -9,8 +9,8 @@
 class UAnimMontage;
 
 /**
- * BT/AI가 TryActivateAbility로 직접 발동해 ComboMontages를 순서대로 재생한다.
- * 콤보는 앞 단의 블렌드아웃에서 다음 단을 걸어, 한 번의 발동이 배열 전체를 재생한다.
+ * BT/AI가 TryActivateAbility로 직접 발동해 ComboMontage의 단계 섹션을 순서대로 재생한다.
+ * 앞 단의 블렌드아웃에서 다음 단을 걸어, 한 번의 발동이 모든 단계를 재생한다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Pattern : public UWxAbilityBase
@@ -27,7 +27,7 @@ protected:
 	virtual void HandleMontageBlendOut() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
-	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
+	TObjectPtr<UAnimMontage> ComboMontage;
 
 private:
 	int32 ComboIndex = INDEX_NONE;

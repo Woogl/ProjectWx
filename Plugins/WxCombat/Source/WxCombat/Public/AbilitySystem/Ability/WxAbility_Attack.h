@@ -9,7 +9,7 @@
 class UAnimMontage;
 
 /**
- * ComboMontages의 첫 몽타주를 재생하고, 콤보 창 구간의 재발동이 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
+ * ComboMontage의 첫 단계 섹션을 재생하고, 콤보 창 구간의 재발동이 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
  * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)이라 단계마다 CommitAbility가 새로 걸린다.
  */
 UCLASS(Abstract)
@@ -29,7 +29,7 @@ protected:
 	virtual void OnComboWindowClosed() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
-	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
+	TObjectPtr<UAnimMontage> ComboMontage;
 
 private:
 	/** 재발동 사이에 보존되며, INDEX_NONE이면 진행 중인 콤보가 없다. */

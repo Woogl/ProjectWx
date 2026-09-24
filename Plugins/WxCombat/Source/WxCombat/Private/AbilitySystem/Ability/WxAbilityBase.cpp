@@ -306,6 +306,12 @@ bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
 		return false;
 	}
 
+	if (!StartSection.IsNone() && !Montage->IsValidSectionName(StartSection))
+	{
+		UE_LOG(LogWxCombat, Warning, TEXT("%s: 몽타주 %s에 섹션 %s가 없다."), *GetName(), *Montage->GetName(), *StartSection.ToString());
+		return false;
+	}
+
 	// EndTask가 구 태스크를 가비지로 표시하므로, 바인딩은 남아도 약참조가 끊겨 후속 이벤트는 발송되지 않는다.
 	if (MontageTask)
 	{
@@ -323,6 +329,27 @@ bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
 	NewMontageTask->OnCancelled.AddDynamic(this, &UWxAbilityBase::HandleMontageCancelled);
 	NewMontageTask->ReadyForActivation();
 	return true;
+}
+
+int32 UWxAbilityBase::GetComboStageCount(const UAnimMontage* Montage)
+{
+	if (!Montage)
+	{
+		return 0;
+	}
+
+	int32 StageCount = 0;
+	while (Montage->IsValidSectionName(FName(*FString::FromInt(StageCount + 1))))
+	{
+		++StageCount;
+	}
+	return FMath::Max(StageCount, 1);
+}
+
+FName UWxAbilityBase::GetComboStageSection(const UAnimMontage* Montage, int32 StageIndex)
+{
+	const FName SectionName(*FString::FromInt(StageIndex + 1));
+	return Montage && Montage->IsValidSectionName(SectionName) ? SectionName : NAME_None;
 }
 
 void UWxAbilityBase::HandleMontageCompleted()

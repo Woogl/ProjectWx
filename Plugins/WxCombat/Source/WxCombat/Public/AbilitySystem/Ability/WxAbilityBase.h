@@ -137,7 +137,14 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	
+	/** 몽타주에 없는 시작 섹션이면 경고하고 실패한다. 엔진은 그런 섹션을 무시하고 처음부터 재생한다. */
 	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
+
+	/** 콤보·패턴의 단계는 번호 섹션(1, 2, …)이다. 번호 섹션이 없는 몽타주는 처음부터 한 단계로 본다. */
+	static int32 GetComboStageCount(const UAnimMontage* Montage);
+
+	/** 번호 섹션이 없는 몽타주면 처음부터 재생하도록 NAME_None을 돌려준다. */
+	static FName GetComboStageSection(const UAnimMontage* Montage, int32 StageIndex);
 
 	/** 창이 닫힌 뒤의 발동은 첫 단부터 시작해야 한다. */
 	virtual void OnComboWindowClosed();
