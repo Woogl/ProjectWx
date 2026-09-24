@@ -9,7 +9,7 @@ summary: "IWxInteractable의 CanInteract·GetInteractionPrompt를 없애고 순�
 
 # 상호작용 계약 통합
 
-2026-09-24, HEAD `36fbb4371` 위에서 작업했다. WxCore 모듈 리뷰([작업 자료](../../../.agents/workflow/tasks/module_review_WxCore.md))의 `GetInteractionPrompt` 지적에 대한 후속이다. WxEditor Win64 Development 빌드 성공(`Saved/Logs/BuildDoctor/build_2026-09-24_154842_086_18212.log`). 인게임 동작은 확인하지 않았다.
+2026-09-24, HEAD `36fbb4371` 위에서 작업했다. WxCore 모듈 리뷰(`378c0decf`에서 추가, 후속 조치 완료로 삭제)의 `GetInteractionPrompt` 지적에 대한 후속이다. WxEditor Win64 Development 빌드 성공(`Saved/Logs/BuildDoctor/build_2026-09-24_154842_086_18212.log`). 인게임 동작은 확인하지 않았다.
 
 ## 사용자 결정
 
