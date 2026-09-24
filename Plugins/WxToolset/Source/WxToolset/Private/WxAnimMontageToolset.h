@@ -32,6 +32,25 @@ public:
 	static bool MirrorMontageStructure(UAnimMontage* Source, UAnimMontage* Target);
 
 	/**
+	 * 원본의 슬롯 세그먼트·섹션·노티파이를 대상 끝에 이어 붙인다.
+	 * 원본 섹션은 순서대로 SectionNames의 이름을 받고, 원본 안의 섹션 링크는 새 이름으로 옮긴다. 대상의 기존 링크는 그대로 둔다.
+	 * 블렌드·재생 속도 같은 몽타주 설정은 대상 것을 쓴다.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static bool AppendMontage(UAnimMontage* Target, UAnimMontage* Source, const TArray<FName>& SectionNames);
+
+	/** 섹션 이름을 바꾸고, 그 섹션을 다음 섹션으로 가리키던 링크도 함께 바꾼다. */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static bool RenameSection(UAnimMontage* Montage, FName OldName, FName NewName);
+
+	/**
+	 * 섹션 경계(다음 섹션 시작·몽타주 끝)에서 Tolerance 안쪽으로 끝나는 노티파이 구간을 경계에 정확히 맞춰 경계 직전에 끝나게 하고, 맞춘 개수를 돌려준다.
+	 * 엔진은 경계에 정확히 맞은 끝만 경계 직전으로 잡는다. 오차로 경계를 넘은 구간은 다음 섹션부터 재생하는 인스턴스가 첫 틱에 이어받는다.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static int32 SnapNotifyEndsToSections(UAnimMontage* Montage, float Tolerance);
+
+	/**
 	 * 기준 섹션의 노티파이를 나머지 섹션에 같은 상대 위치로 복제하고 복제한 개수를 돌려준다.
 	 * 노티파이 오브젝트를 통째로 복제하므로 설정된 프로퍼티가 그대로 따라간다.
 	 * 이미 노티파이가 있는 섹션은 건너뛰므로 다시 돌려도 중복되지 않는다.
