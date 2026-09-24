@@ -45,6 +45,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_Groggy, "Event.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(Event_UseItem, "Event.UseItem");
 	UE_DEFINE_GAMEPLAY_TAG(Event_ApplyFinisherDamage, "Event.ApplyFinisherDamage");
+	UE_DEFINE_GAMEPLAY_TAG(Event_PlayFinisherVictimMontage, "Event.PlayFinisherVictimMontage");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Idle, "Device.Button.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(Device_Button_Pressed, "Device.Button.Pressed");

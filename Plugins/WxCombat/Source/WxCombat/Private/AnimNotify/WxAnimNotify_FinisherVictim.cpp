@@ -1,17 +1,18 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AnimNotify/WxAnimNotify_FinisherDamage.h"
+#include "AnimNotify/WxAnimNotify_FinisherVictim.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Animation/AnimMontage.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "System/WxCombatDeveloperSettings.h"
 #include "WxGameplayTags.h"
 
-FLinearColor UWxAnimNotify_FinisherDamage::GetEditorColor()
+FLinearColor UWxAnimNotify_FinisherVictim::GetEditorColor()
 {
 	return GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
 }
 
-void UWxAnimNotify_FinisherDamage::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+void UWxAnimNotify_FinisherVictim::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 
@@ -22,18 +23,18 @@ void UWxAnimNotify_FinisherDamage::Notify(USkeletalMeshComponent* MeshComp, UAni
 	}
 
 	FGameplayEventData Payload;
-	Payload.EventTag = WxGameplayTags::Event_ApplyFinisherDamage;
+	Payload.EventTag = WxGameplayTags::Event_PlayFinisherVictimMontage;
 	Payload.Instigator = Owner;
 	Payload.OptionalObject = this;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Owner, Payload.EventTag, Payload);
 }
 
-FString UWxAnimNotify_FinisherDamage::GetNotifyName_Implementation() const
+FString UWxAnimNotify_FinisherVictim::GetNotifyName_Implementation() const
 {
-	if (DamageDataRow.IsNull())
+	if (!VictimMontage)
 	{
 		return Super::GetNotifyName_Implementation();
 	}
 
-	return DamageDataRow.RowName.ToString();
+	return VictimMontage->GetName();
 }

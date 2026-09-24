@@ -118,7 +118,6 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor, int32 OptionValue)
 	EventData.Instigator = Interactor;
 	EventData.Target = this;
 	EventData.EventTag = WxGameplayTags::Event_Finisher;
-	GetAbilitySystemComponent()->GetOwnedGameplayTags(EventData.TargetTags);
 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Interactor, WxGameplayTags::Event_Finisher, EventData);
 }

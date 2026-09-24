@@ -3,6 +3,8 @@
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "AbilitySystem/Ability/WxAbility_PlayMontageOnce.h"
+#include "AnimNotify/WxAnimNotify_FinisherDamage.h"
+#include "AnimNotify/WxAnimNotify_FinisherVictim.h"
 #include "AbilitySystem/Effect/WxEffect_Invincible.h"
 #include "AbilitySystem/Effect/WxEffect_ResetGP.h"
 #include "AbilitySystemComponent.h"
@@ -57,12 +59,8 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	AActor* AvatarActor = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
 	// 대상에 가하는 변경은 전부 대상 ASC 를 거치고 액터 자체는 위치만 읽으므로 const 로 다룬다.
 	const AActor* Target = TriggerEventData ? TriggerEventData->Target.Get() : nullptr;
-	bBackstab = TriggerEventData && !TriggerEventData->TargetTags.HasTag(WxGameplayTags::Ability_Groggy);
-	const FWxFinisherVariant& Variant = bBackstab ? BackstabVariant : FinisherVariant;
-	UAnimMontage* SelectedAttackerMontage = Variant.AttackerMontage;
-	UAnimMontage* SelectedVictimMontage = Variant.VictimMontage;
 
-	if (!SelectedAttackerMontage || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!FinisherMontage || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -70,22 +68,13 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	TargetActor = Target;
 
-	// 어빌리티 부여는 권위에서만 — 클라에서 부르면 엔진이 거부하며 Error를 남긴다.
+	// 짝 몽타주 부여와 피해는 권위만 하므로 노티파이 대기도 여기서만 건다. 종료하면 태스크와 함께 대기도 끝난다.
 	if (ActorInfo->IsNetAuthority())
 	{
-		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target))
-		{
-			// 짝 피격은 부여와 동시에 시작하고, 몽타주가 끝나면 스펙까지 스스로 걷힌다. 대미지는 노티파이 몫이라 이벤트엔 몽타주만 싣는다.
-			FGameplayEventData VictimEvent;
-			VictimEvent.Instigator = AvatarActor;
-			VictimEvent.Target = Target;
-			VictimEvent.OptionalObject = SelectedVictimMontage;
+		UAbilityTask_WaitGameplayEvent* VictimEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_PlayFinisherVictimMontage, nullptr, true);
+		VictimEventTask->EventReceived.AddDynamic(this, &UWxAbility_Finisher::HandleVictimMontageEvent);
+		VictimEventTask->ReadyForActivation();
 
-			FGameplayAbilitySpec VictimSpec(UWxAbility_PlayMontageOnce::StaticClass(), 1);
-			TargetASC->GiveAbilityAndActivateOnce(VictimSpec, &VictimEvent);
-		}
-
-		// 피해는 권위만 적용하므로 노티파이 대기도 여기서만 건다. 종료하면 태스크와 함께 대기도 끝난다.
 		UAbilityTask_WaitGameplayEvent* DamageEventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, WxGameplayTags::Event_ApplyFinisherDamage, nullptr, true);
 		DamageEventTask->EventReceived.AddDynamic(this, &UWxAbility_Finisher::HandleFinisherDamageEvent);
 		DamageEventTask->ReadyForActivation();
@@ -93,7 +82,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	RegisterWarpTarget(AvatarActor, Target);
 
-	if (!PlayMontage(SelectedAttackerMontage))
+	if (!PlayMontage(FinisherMontage))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
@@ -143,17 +132,36 @@ void UWxAbility_Finisher::RegisterWarpTarget(AActor* AvatarActor, const AActor* 
 	MotionWarping->AddOrUpdateWarpTargetFromLocationAndRotation(FinisherWarpTargetName, TargetLocation, WarpRotation);
 }
 
-void UWxAbility_Finisher::HandleFinisherDamageEvent(FGameplayEventData Payload)
+void UWxAbility_Finisher::HandleVictimMontageEvent(FGameplayEventData Payload)
 {
-	const AActor* Target = TargetActor.Get();
-	if (!Target)
+	const UWxAnimNotify_FinisherVictim* VictimNotify = Cast<UWxAnimNotify_FinisherVictim>(Payload.OptionalObject.Get());
+	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetActor.Get());
+	if (!VictimNotify || !TargetASC)
 	{
 		return;
 	}
 
-	const FWxFinisherVariant& Variant = bBackstab ? BackstabVariant : FinisherVariant;
+	// 짝 피격은 부여와 동시에 시작하고, 몽타주가 끝나면 스펙까지 스스로 걷힌다.
+	FGameplayEventData VictimEvent;
+	VictimEvent.Instigator = GetAvatarActorFromActorInfo();
+	VictimEvent.Target = TargetActor.Get();
+	VictimEvent.OptionalObject = VictimNotify->VictimMontage;
+
+	FGameplayAbilitySpec VictimSpec(UWxAbility_PlayMontageOnce::StaticClass(), 1);
+	TargetASC->GiveAbilityAndActivateOnce(VictimSpec, &VictimEvent);
+}
+
+void UWxAbility_Finisher::HandleFinisherDamageEvent(FGameplayEventData Payload)
+{
+	const UWxAnimNotify_FinisherDamage* DamageNotify = Cast<UWxAnimNotify_FinisherDamage>(Payload.OptionalObject.Get());
+	const AActor* Target = TargetActor.Get();
+	if (!DamageNotify || !Target)
+	{
+		return;
+	}
+
 	FHitResult HitResult;
 	HitResult.ImpactPoint = Target->GetActorLocation();
 	HitResult.Location = Target->GetActorLocation();
-	UWxCombatLibrary::ApplyDamage(GetAvatarActorFromActorInfo(), Target, Variant.DamageDataRow, HitResult);
+	UWxCombatLibrary::ApplyDamage(GetAvatarActorFromActorInfo(), Target, DamageNotify->DamageDataRow, HitResult);
 }

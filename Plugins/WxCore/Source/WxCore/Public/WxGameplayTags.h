@@ -107,10 +107,7 @@ namespace WxGameplayTags
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Interact);
 
-	/**
-	 * 적 상호작용이 서버에서 플레이어 ASC에 보내는 처형 트리거.
-	 * 앞잡·뒤잡은 어빌리티 하나가 받아, 페이로드 TargetTags(대상 소유 태그)의 Ability.Groggy 유무로 연출을 가른다.
-	 */
+	/** 적 상호작용이 서버에서 플레이어 ASC에 보내는 처형 트리거. 앞잡·뒤잡 모두 같은 연출이다. */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Finisher);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Death);
@@ -121,6 +118,7 @@ namespace WxGameplayTags
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_UseItem);
 
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_ApplyFinisherDamage);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_PlayFinisherVictimMontage);
 
 
 	// 장치의 State Tree 상태값이다. C++ 에서는 읽거나 쓰지 않는다.
