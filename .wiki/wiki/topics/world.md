@@ -8,6 +8,7 @@ sources:
   - "raw/notes/2026-09-23-interaction-list-vm.md"
   - "raw/notes/2026-09-24-device-linked-state-tag.md"
   - "raw/notes/2026-09-24-interaction-contract-options-only.md"
+  - "raw/notes/2026-09-24-device-statetree-cleanup.md"
 created: 2026-09-22
 updated: 2026-09-24
 tags: [wx, world]
@@ -24,11 +25,41 @@ WxWorld는 장치 StateTree의 상태 동기화, 로컬 상호작용 탐색, 스
 
 ## 장치 상태의 복제
 
-`AWxDevice`와 `UWxDeviceStateTreeComponent`가 장치 실행의 중심이다. 서버는 상태 태그명·진입 일련번호·상호작용자·선택지 값을 스냅샷으로 발행한다. 발행할 태그는 루트 StateTree 에셋의 활성 상태 중 태그가 있는 가장 깊은 상태에서 고른다. 받는 쪽이 루트 에셋에서만 태그로 상태를 찾으므로, 링크된 에셋 안의 상태 태그는 발행하지 않는다(2026-09-23 수정). 활성 태그가 없거나 이전 태그와 같으면 `PublishState`는 새 스냅샷을 만들지 않는다. 같은 태그의 재진입까지 별도 이벤트로 보존하는 복제 로그는 아니다.
+`AWxDevice`와 `UWxDeviceStateTreeComponent`가 장치 실행의 중심이다. 서버는 상태 태그·진입 일련번호·상호작용자·선택지 값을 스냅샷으로 발행한다. 발행할 태그는 루트 StateTree 에셋의 활성 상태 중 태그가 있는 가장 깊은 상태에서 고른다. 받는 쪽이 루트 에셋에서만 태그로 상태를 찾으므로, 링크된 에셋 안의 상태 태그는 발행하지 않는다(2026-09-23 수정). 활성 태그가 없거나 이전 태그와 같으면 `PublishState`는 새 스냅샷을 만들지 않는다. 같은 태그의 재진입까지 별도 이벤트로 보존하는 복제 로그는 아니다.
 
-클라이언트는 일련번호가 바로 다음이면 실시간 전이로, 초기 수신·번호 건너뜀은 복원으로 처리한다. 상호작용자 참조가 늦게 해소되어 같은 번호가 다시 통지되면 참조를 갱신하지만 전이를 반복하지 않는다. 태그로 루트 에셋의 상태를 찾아 Critical 전이를 요청하며, 종료된 트리는 먼저 재시작한다.
+클라이언트는 일련번호가 바로 다음이면 실시간 전이로, 초기 수신·번호 건너뜀은 복원으로 처리한다. 상호작용자 참조가 늦게 해소되어 같은 번호가 다시 통지되면 참조를 갱신하지만 전이를 반복하지 않는다. 태그로 루트 에셋의 상태를 찾아 Critical 전이를 요청하며, 종료된 트리는 먼저 재시작한다. 종료 여부는 `GetStateTreeRunStatus()`로 직접 본다. 순정 `IsRunning`은 스스로 끝난 트리(Tree Succeeded 전이)에도 참이기 때문이다. 장치가 상호작용을 받는지는 대기 노드 등록(`WaitingTask`)만 본다. 트리가 끝나거나 멈추면 대기 노드의 이탈이 등록을 걷는다.
 
-`FWxDeviceExecutionPolicy`는 초기 진입 또는 복원 플래그를 판별한다. 장치 태스크를 추가할 때 일회성 보상·효과를 복원 중 다시 실행할지, 위치·표시만 맞출지를 구분해야 한다. 스냅샷 하나로 모든 커스텀 태스크의 재생 안전성을 보장하지 않는다.
+서버의 `InitialState`는 트리를 루트로 시작한 뒤 그 태그 상태로 복원 전이를 요청해 적용한다. 루트 에셋에 그 태그 상태가 없으면 에러 로그를 남기고 루트 상태를 발행한다.
+
+### 복원 판정
+
+`UWxDeviceStateTreeComponent::IsRestoring(Context, Transition)`이 판정한다. 트리 시작(재시작 포함, `SourceStateID` 무효)과 컴포넌트가 스냅샷을 따라 요청한 복원 전이가 복원이다. 장치가 아닌 트리는 트리 시작만 복원이다. 2026-09-24에 별도 구조체 `FWxDeviceExecutionPolicy`에서 옮겼다.
+
+| 태스크 성격 | 복원일 때 | WxWorld 태스크 |
+|---|---|---|
+| 상태 적용(위치·표시) | 실행한다. 이동은 목표 위치로 즉시 맞춘다. | `ComponentMove`·`SplineMove` |
+| 일회성 효과 | 건너뛰고 곧바로 완료한다. | `PlaySound`·`PlayLevelSequence`·`ApplyGameplayEffectToInteractor`·`RecordCheckpoint`·`RespawnSpawners`·`TriggerSpawners`·`TriggerLinkedDevices` |
+
+스냅샷 하나로 모든 커스텀 태스크의 재생 안전성을 보장하지는 않는다. 새 장치 태스크는 위 두 성격 중 하나로 정해 `IsRestoring`을 부른다.
+
+다른 도메인의 태스크는 WxWorld를 참조할 수 없어 트리 시작(`!SourceStateID.IsValid()`)만 복원으로 본다. WxInventory `보상 지급`·`RefillItemCharges`와 WxCombat `몽타주 1회 재생`이 해당한다. 그런데 서버의 `InitialState` 적용은 소스 상태가 있는 전이라서, 이 태스크들은 그것을 실제 진입으로 본다.
+- **저작 규칙:** `InitialState`로 지정하는 상태에는 다른 도메인의 일회성 효과를 두지 않는다. 예를 들어 보상 상자를 "열림"으로 배치하면 레벨 시작 때 서버가 보상을 준다.
+- 현재 `InitialState`를 쓰는 배치는 피스톤(`Device.Piston.Off`)뿐이라 문제가 드러나지 않는다.
+- 순정 해법은 `FStartParameters::SelectStateOverrideArgs`로 지정 상태에서 트리를 시작하는 것이다. 하지만 `UStateTreeComponent::StartTree`는 이 인자를 받지 않는다. 엔진이 이를 열 때까지 보류한다(2026-09-24 사용자 결정).
+
+### 장치 트리의 다른 도메인 태스크
+
+장치 트리에서 쓰더라도 효과가 다른 도메인에 속하면 태스크는 그 도메인에 둔다. 장치의 당사자는 `AWxDevice` 캐스트 대신 `Actor.InteractingCharacter` 바인딩으로 받는다. `InteractingCharacter`가 `VisibleInstanceOnly`인 이유는 바인딩 피커가 편집 가능 프로퍼티만 보여 주기 때문이다.
+
+WxCombat의 `몽타주 1회 재생`(`FWxStateTreeTask_PlayMontageOnce`)이 이 방식이다. 2026-09-24 사용자 제안으로 WxWorld `PlayInteractorMontage`를 대체했다.
+- 권위에서 `Target`에게 `UWxAbility_PlayMontageOnce`를 1회 부여·발동하고, 어빌리티가 끝나면 완료한다.
+- 권위가 아닌 피어는 서버가 발행하는 다음 상태까지 머문다. 그래서 이 태스크를 둔 상태와 다음 상태는 서로 다른 태그 상태여야 한다.
+
+### 연출 태스크의 피어별 동작
+
+연출 태스크는 모든 피어가 진입할 때 각자 로컬로 재생한다.
+- **레벨 시퀀스 재생:** 카메라 컷은 당사자를 조종하는 피어에서만 켠다. 카메라 컷은 그 월드의 첫 로컬 플레이어에게 걸리기 때문이다. 당사자가 없는 트리에서는 카메라를 전환하지 않는다. 재생 자체는 모든 피어가 하므로 상태가 끝나는 시점(서버의 재생 종료)은 달라지지 않는다.
+- **사운드 재생:** 라이브 발동에서만 1회 재생하는 원샷이다. 재생 핸들을 남기지 않아 상태를 떠나도 멈추지 않으므로 루프 사운드는 넣지 않는다. 복원 때도 재생하던 `bPlayOnRestore`는 멈출 수 없어서 지웠다.
 
 ## 엘리베이터 정차 지점 규칙
 
@@ -93,6 +124,7 @@ CheckpointSubsystem은 Standalone에서만 레벨 패키지와 위치·회전을
 ## 관련 문서
 
 - [[ai|WxAI — AI 인지와 행동]] ([WxAI — AI 인지와 행동](../topics/ai.md))
+- [[combat|WxCombat — 전투 시스템]] ([WxCombat — 전투 시스템](../topics/combat.md))
 - [[combat-finisher|그로기 피니시와 뒤잡]] ([그로기 피니시와 뒤잡](../concepts/combat-finisher.md))
 - [[editor-tools|편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer]] ([편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer](../references/editor-tools.md))
 - [[foundation|WxCore — 공용 계약과 설정]] ([WxCore — 공용 계약과 설정](../topics/foundation.md))
@@ -108,6 +140,7 @@ CheckpointSubsystem은 Standalone에서만 레벨 패키지와 위치·회전을
 - [근거 3](../../raw/notes/2026-09-23-instanced-struct-ftext-default-save-fail.md)
 - [상호작용 목록 VM과 문구 출처](../../raw/notes/2026-09-23-interaction-list-vm.md)
 - [장치 상태 태그는 루트 에셋에서만 발행](../../raw/notes/2026-09-24-device-linked-state-tag.md)
+- [장치 StateTree 정리](../../raw/notes/2026-09-24-device-statetree-cleanup.md) — 복원 판정 이동, InitialState 제약, 몽타주 태스크 WxCombat 이관, 연출 태스크
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -121,5 +154,7 @@ CheckpointSubsystem은 Standalone에서만 레벨 패키지와 위치·회전을
 2026-09-23 refresh: 원자료 해시 대조로 스캐너 변경(`f98eef471`)을 찾아 HUD 목록 연결과 문구 출처 원칙을 HEAD `7d2a20408` 기준으로 추가했다. 상호작용 목록의 인게임 동작은 확인하지 않았다.
 
 2026-09-24 refresh: 원자료 해시 대조로 장치 상태 태그 발행 범위 변경(`67d288fc5`)을 찾아 HEAD `ca84c9aac` 코드와 대조해 추가했다. 링크된 StateTree를 쓰는 장치 에셋이 있는지와 인게임 동작은 확인하지 않았다.
+
+2026-09-24 refresh(2차): 커밋 추적으로 장치 StateTree 정리 8건(`b32c1f622`~`70495c0e7`)을 찾아 HEAD `142fab5d6` 코드와 대조해 복원 판정·InitialState 제약·다른 도메인 태스크·연출 태스크를 반영했다. 빌드는 `36fbb4371`까지만 기록이 있고 인게임 동작은 확인하지 않았다.
 
 </details>

@@ -4,6 +4,7 @@ category: topic
 sources:
   - "raw/notes/2026-09-24-module-principles.md"
   - "raw/notes/2026-09-24-nameplate-manager-wxgame.md"
+  - "raw/notes/2026-09-24-device-statetree-cleanup.md"
 created: 2026-09-24
 updated: 2026-09-24
 tags: [wx, architecture, foundation]
@@ -68,6 +69,7 @@ Wx 플러그인은 다른 프로젝트 재사용이 아니라 이 게임 안의 
 | `UWxNameplateManagerComponent` | 전투 상태(교전·락온)로 적 위 표시를 정하는 판단. 여러 도메인이다. | WxGame(2026-09-24 이동). WxUI에 두느라 생겼던 질의 델리게이트·마커 컴포넌트·태그 비대칭 조건이 사라졌다. |
 | `AWxSpawner` | 스폰과 처치 추적. WxWorld 한 도메인이다. | WxWorld. 적의 처치 통지는 WxCore 계약 `IWxSpawnable`로 받는다. |
 | `AWxItemPickup` | 줍기. WxInventory 한 도메인이다. | WxInventory. 상호작용 대상 계약 `IWxInteractable`을 구현한다. |
+| `FWxStateTreeTask_PlayMontageOnce` | 장치 트리에서 쓰지만 효과는 캐릭터에게 전투 어빌리티를 발동하는 것이다. WxCombat 한 도메인이다. | WxCombat(2026-09-24 WxWorld `PlayInteractorMontage`를 대체). 장치 당사자는 `Actor.InteractingCharacter` 바인딩으로 받는다. 선례는 WxInventory `GiveRewards`다. |
 | 캐릭터 이동·MetaHuman·팀·입력 설정·PlayerState·치트 | 도메인 없음 | WxGame |
 
 ## 4. 경계를 넘는 통로: 성격으로 고른다
@@ -158,10 +160,13 @@ Wx 플러그인은 다른 프로젝트 재사용이 아니라 이 게임 안의 
 
 - [모듈화 목적 재정의와 배치 원칙 정립](../../raw/notes/2026-09-24-module-principles.md) — 사용자 발언, 초안 반증 검토와 확정, 의존 그래프·태그·콘텐츠 현황
 - [NameplateManager를 WxGame으로 옮기고 마커·락온 질의를 제거](../../raw/notes/2026-09-24-nameplate-manager-wxgame.md) — 배치와 WxCore 계약 기각 사례
+- [장치 StateTree 정리](../../raw/notes/2026-09-24-device-statetree-cleanup.md) — 장치 트리의 다른 도메인 효과 태스크를 효과 도메인에 두는 사례
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
 2026-09-24 HEAD `4c9ee67d3` 기준 정적 확인. 의존 관계는 `*.Build.cs`의 Wx 모듈 이름으로, WxGame 클래스별 참조는 include 헤더가 속한 플러그인으로 대조했다. 에이전트가 정리한 초안을 사용자와 두 차례 검토했다. 초안의 "참조 수 배치", "도메인 둘 이상 참여 조건", "통로 우선순위", "중간 통합 플러그인 전면 금지"는 기존 결정·코드와 어긋나 고쳤다. 사용자는 WxCore 헬퍼 문구를 반영하고 베이스 클래스 사례는 보류했다.
+
+2026-09-24 refresh: 배치 사례 표에 몽타주 1회 재생 태스크(커밋 `f6b4af9d4`, 사용자 제안)를 HEAD `142fab5d6` 코드와 대조해 추가했다. WxCombat이 StateTree를 새로 의존하지만 Wx 모듈 의존은 여전히 WxCore뿐이다.
 
 </details>

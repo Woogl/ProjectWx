@@ -310,3 +310,17 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 - combat-groggy: 수명 도식과 본문에서 어빌리티의 AI 일시정지·재개를 지우고 "AI 트리 잠금" 절을 추가했다. 작업 트리 코드 기준, 빌드 통과, 사용자 인게임 확인.
 
 ## [2026-09-24] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
+## [2026-09-24] ingest | 장치 StateTree 정리: 복원 판정 이동·중복 장치 제거·몽타주 태스크 WxCombat 이관·연출 태스크 수정 (raw/notes/2026-09-24-device-statetree-cleanup.md)
+
+## [2026-09-24] compile | 1 source → 0 new articles, 3 updated (world, combat, modules)
+- world: `FWxDeviceExecutionPolicy` 문단을 "복원 판정" 절로 바꿨다(`UWxDeviceStateTreeComponent::IsRestoring`, 상태 적용·일회성 효과 태스크 분류). 다른 도메인 태스크가 서버의 InitialState 적용을 실제 진입으로 보는 제약과 저작 규칙, 순정 해법 보류(사용자 결정)를 추가했다. 장치 트리의 다른 도메인 태스크(`Actor.InteractingCharacter` 바인딩, 몽타주 1회 재생)와 연출 태스크의 피어별 동작(레벨 시퀀스 카메라 컷은 당사자 피어만, 사운드 원샷)을 추가했다. 종료 판정이 순정 `IsRunning` 대신 실행 상태를 보는 이유와 상호작용 가능 여부가 대기 노드 등록만 본다는 점을 반영했다.
+- combat: 수정 위치 표에 `FWxStateTreeTask_PlayMontageOnce` 행을 추가하고 의존에 StateTree를 넣었다.
+- modules: 배치 사례 표에 몽타주 1회 재생 태스크(효과 도메인 배치)를 추가했다.
+- 대기 등록부 템플릿 인라인(`b32c1f622`)은 기사가 다루지 않는 세부라 원자료에만 기록했다. 빌드는 `36fbb4371`까지만 기록이 있고 인게임 동작은 확인하지 않았다.
+
+## [2026-09-24] refresh | 17 articles checked, 3 updated, 0 flagged, 0 retracted
+- 직전 refresh 커밋(`72c6cbe68`) 이후 커밋 17건을 추적했다. 상호작용 계약(`db3c57be4`)과 AI 트리 제어(`142fab5d6`)는 이미 반영돼 있었다. 주석 전용 4건(`f6f5fa1e1`·`440155e6f`·`edfab5951`·`50e433672`, 주석 외 줄 변경 없음 확인)과 Workflow 리뷰 문서 3건(`378c0decf`·`861a8b494`·`36e95ff5e`)은 반영 대상이 아니다.
+- 미반영은 장치 StateTree 정리 8건(`b32c1f622`·`844010a94`·`f6b4af9d4`·`9e922a15b`·`36fbb4371`·`80e3e370b`·`8f06b1ffc`·`70495c0e7`)이었다. 영향 기사는 world·combat·modules이고, 나머지 14개 기사는 이 변경과 겹치는 서술이 없다(Wiki 본문 검색으로 확인).
+
+## [2026-09-24] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed

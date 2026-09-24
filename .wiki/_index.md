@@ -6,12 +6,12 @@ Last updated: 2026-09-24
 
 ## Statistics
 
-- Sources: 62 raw documents
+- Sources: 63 raw documents
 - Articles: 17 compiled wiki articles
 - Inventory records: 0 tracked items
 - Datasets: 0 manifests
 - Outputs: 0 generated artifacts
-- Last compiled: 2026-09-24 (ai·combat·combat-groggy의 AI 트리 정지·잠금 주체를 AWxAIController 단독으로 반영; 이전: foundation·world·combat-finisher의 상호작용 계약을 선택지 하나로 통합 반영; 이전: refresh로 원자료 해시 대조 후 ui의 일시정지 해제 규칙·Effect VM 월드 타이머, combat의 소환 상한·Master.* 주인 태그 반영; 이전: game의 래그돌 PhysicsAsset 통일 반영; 이전: combat-abilities의 쿨다운·코스트 무시 구조·AbilitySet SetByCaller 제약·발동 실패 로그 범위, combat의 락온 대상 소유·사망 시 BT 정지 주체 반영; 이전: foundation의 순수 정의 원칙·FDefaultModuleImpl 등록, combat-damage의 Damage.Guarded 제거 반영; 이전: refresh로 원자료 해시 대조 후 ui·game·combat의 NameplateManager·LockOnTargetQuery·State.LockedOn 제거, combat-abilities의 몽타주 구간 상태 GE 자기 핸들 제거, combat-finisher의 처형 피해 어빌리티 직접 적용, combat-damage의 퍼펙트 가드 Cue 통합, world의 루트 에셋 상태 태그만 발행 반영; 이전: ai의 이동 속도 SPD 소유·도플갱어 미러링(Override GE 속도 추종)·미니언 반응 노드 삭제, dialogue·quests·ui·editor-tools의 대화·퀘스트 화면 클래스 제거와 리졸버 연결·VM 명령 델리게이트·이벤트 목적지 도구 일반화, combat-damage의 0 피해 히트스톱 조건·Hit Cue 서버 발행·무적 범위, combat의 삭제된 Hit GE 표현 정정, world의 엘리베이터/FText 규칙, ui·dialogue의 사망·대화 화면 주인 변경, combat-damage의 요청·결과 API 및 투사체 소비 계약 반영, editor-tools의 DataTableRowFixup 행 참조 갱신 반영, ui·game의 보스 표시 세 층 구조·UWxBattleSubsystem·재초기화 문제, editor-tools의 MVVM 소스 경로 도구 반영, refresh로 world·ui·inventory·editor-tools에 상호작용 목록 VM·아이템 VM 단일화·WxToolset 도구 반영)
+- Last compiled: 2026-09-24 (refresh로 커밋 추적 후 world의 복원 판정 이동·InitialState 제약·장치 트리의 다른 도메인 태스크·연출 태스크, combat·modules의 몽타주 1회 재생 태스크 WxCombat 이관 반영; 이전: ai·combat·combat-groggy의 AI 트리 정지·잠금 주체를 AWxAIController 단독으로 반영; 이전: foundation·world·combat-finisher의 상호작용 계약을 선택지 하나로 통합 반영; 이전: refresh로 원자료 해시 대조 후 ui의 일시정지 해제 규칙·Effect VM 월드 타이머, combat의 소환 상한·Master.* 주인 태그 반영; 이전: game의 래그돌 PhysicsAsset 통일 반영; 이전: combat-abilities의 쿨다운·코스트 무시 구조·AbilitySet SetByCaller 제약·발동 실패 로그 범위, combat의 락온 대상 소유·사망 시 BT 정지 주체 반영; 이전: foundation의 순수 정의 원칙·FDefaultModuleImpl 등록, combat-damage의 Damage.Guarded 제거 반영; 이전: refresh로 원자료 해시 대조 후 ui·game·combat의 NameplateManager·LockOnTargetQuery·State.LockedOn 제거, combat-abilities의 몽타주 구간 상태 GE 자기 핸들 제거, combat-finisher의 처형 피해 어빌리티 직접 적용, combat-damage의 퍼펙트 가드 Cue 통합, world의 루트 에셋 상태 태그만 발행 반영; 이전: ai의 이동 속도 SPD 소유·도플갱어 미러링(Override GE 속도 추종)·미니언 반응 노드 삭제, dialogue·quests·ui·editor-tools의 대화·퀘스트 화면 클래스 제거와 리졸버 연결·VM 명령 델리게이트·이벤트 목적지 도구 일반화, combat-damage의 0 피해 히트스톱 조건·Hit Cue 서버 발행·무적 범위, combat의 삭제된 Hit GE 표현 정정, world의 엘리베이터/FText 규칙, ui·dialogue의 사망·대화 화면 주인 변경, combat-damage의 요청·결과 API 및 투사체 소비 계약 반영, editor-tools의 DataTableRowFixup 행 참조 갱신 반영, ui·game의 보스 표시 세 층 구조·UWxBattleSubsystem·재초기화 문제, editor-tools의 MVVM 소스 경로 도구 반영, refresh로 world·ui·inventory·editor-tools에 상호작용 목록 VM·아이템 VM 단일화·WxToolset 도구 반영)
 - Last lint: 2026-09-24 (구조·출처·링크 검사; 게임 실행 검증과 별개)
 
 ## Quick Navigation
