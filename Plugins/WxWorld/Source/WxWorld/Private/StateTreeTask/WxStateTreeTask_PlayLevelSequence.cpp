@@ -2,7 +2,9 @@
 
 #include "StateTreeTask/WxStateTreeTask_PlayLevelSequence.h"
 
+#include "Device/WxDevice.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/Character.h"
 #include "LevelSequence.h"
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
@@ -32,7 +34,12 @@ EStateTreeRunStatus FWxStateTreeTask_PlayLevelSequence::EnterState(FStateTreeExe
 		return EStateTreeRunStatus::Succeeded;
 	}
 
+	// 카메라 컷은 그 월드의 첫 로컬 플레이어에게 걸리므로 당사자를 조종하는 피어에서만 켠다.
+	const AWxDevice* Device = Cast<AWxDevice>(Owner);
+	const ACharacter* Interactor = Device ? Device->GetInteractingCharacter() : nullptr;
 	FMovieSceneSequencePlaybackSettings PlaybackSettings;
+	PlaybackSettings.bDisableCameraCuts = !Interactor || !Interactor->IsLocallyControlled();
+
 	ALevelSequenceActor* NewSequenceActor = nullptr;
 	Instance.Player = ULevelSequencePlayer::CreateLevelSequencePlayer(World, Instance.LevelSequence, PlaybackSettings, NewSequenceActor);
 	Instance.SequenceActor = NewSequenceActor;

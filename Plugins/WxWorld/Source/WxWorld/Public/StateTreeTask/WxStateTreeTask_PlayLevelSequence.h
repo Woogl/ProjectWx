@@ -34,6 +34,7 @@ struct FWxStateTreeTask_PlayLevelSequenceInstanceData
  * 라이브 진입인데 재생할 게 없으면(시퀀스/월드 부재·플레이어 생성 실패) 상태가 갇히지 않게 곧장 완료한다.
  * OnFinished 콜백 중 시퀀스 액터 파괴를 피하려고 폴링→다음 틱 정리를 쓴다.
  * 모든 피어가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
+ * 카메라 컷은 장치 당사자를 조종하는 피어에서만 켠다 — 재생은 모든 피어가 하므로 상태가 끝나는 시점(서버의 재생 종료)은 그대로다. 당사자가 없는 트리에서는 카메라를 전환하지 않는다.
  */
 USTRUCT(meta = (DisplayName = "레벨 시퀀스 재생", Category = "Wx"))
 struct FWxStateTreeTask_PlayLevelSequence : public FStateTreeTaskCommonBase
