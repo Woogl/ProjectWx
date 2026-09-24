@@ -4,7 +4,7 @@
 
 #include "Components/SceneComponent.h"
 #include "Device/WxDevice.h"
-#include "Device/WxDeviceExecutionPolicy.h"
+#include "Device/WxDeviceStateTreeComponent.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/Character.h"
 #include "StateTreeExecutionContext.h"
@@ -22,7 +22,7 @@ FWxStateTreeTask_RecordCheckpoint::FWxStateTreeTask_RecordCheckpoint()
 
 EStateTreeRunStatus FWxStateTreeTask_RecordCheckpoint::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	if (FWxDeviceExecutionPolicy::IsRestoring(Context, Transition))
+	if (UWxDeviceStateTreeComponent::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

@@ -4,7 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
-#include "Device/WxDeviceExecutionPolicy.h"
+#include "Device/WxDeviceStateTreeComponent.h"
 #include "System/WxSpawnerLibrary.h"
 
 FWxStateTreeTask_RespawnSpawners::FWxStateTreeTask_RespawnSpawners()
@@ -19,7 +19,7 @@ FWxStateTreeTask_RespawnSpawners::FWxStateTreeTask_RespawnSpawners()
 
 EStateTreeRunStatus FWxStateTreeTask_RespawnSpawners::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	if (FWxDeviceExecutionPolicy::IsRestoring(Context, Transition))
+	if (UWxDeviceStateTreeComponent::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

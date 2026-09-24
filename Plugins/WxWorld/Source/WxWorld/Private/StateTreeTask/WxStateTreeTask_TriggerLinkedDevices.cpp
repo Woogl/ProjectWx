@@ -3,7 +3,7 @@
 #include "StateTreeTask/WxStateTreeTask_TriggerLinkedDevices.h"
 
 #include "Device/WxDevice.h"
-#include "Device/WxDeviceExecutionPolicy.h"
+#include "Device/WxDeviceStateTreeComponent.h"
 #include "GameFramework/Character.h"
 #include "StateTreeExecutionContext.h"
 #include "WxWorldModule.h"
@@ -20,7 +20,7 @@ FWxStateTreeTask_TriggerLinkedDevices::FWxStateTreeTask_TriggerLinkedDevices()
 
 EStateTreeRunStatus FWxStateTreeTask_TriggerLinkedDevices::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	if (FWxDeviceExecutionPolicy::IsRestoring(Context, Transition))
+	if (UWxDeviceStateTreeComponent::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

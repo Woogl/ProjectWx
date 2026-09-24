@@ -5,7 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
-#include "Device/WxDeviceExecutionPolicy.h"
+#include "Device/WxDeviceStateTreeComponent.h"
 
 FWxStateTreeTask_PlaySound::FWxStateTreeTask_PlaySound()
 {
@@ -21,7 +21,7 @@ EStateTreeRunStatus FWxStateTreeTask_PlaySound::EnterState(FStateTreeExecutionCo
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	const bool bInitialEntry = FWxDeviceExecutionPolicy::IsRestoring(Context, Transition);
+	const bool bInitialEntry = UWxDeviceStateTreeComponent::IsRestoring(Context, Transition);
 	if (bInitialEntry && !Instance.bPlayOnRestore)
 	{
 		return EStateTreeRunStatus::Succeeded;

@@ -27,9 +27,17 @@ void UWxDeviceStateTreeComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 	DOREPLIFETIME(UWxDeviceStateTreeComponent, StateSnapshot);
 }
 
-bool UWxDeviceStateTreeComponent::IsRestoringState() const
+bool UWxDeviceStateTreeComponent::IsRestoring(const FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition)
 {
-	return bRestoringState;
+	// 트리 시작(재시작 포함)은 엔진이 소스 상태를 비워 둔다.
+	if (!Transition.SourceStateID.IsValid())
+	{
+		return true;
+	}
+
+	const AActor* Owner = Cast<AActor>(Context.GetOwner());
+	const UWxDeviceStateTreeComponent* Component = Owner ? Owner->FindComponentByClass<UWxDeviceStateTreeComponent>() : nullptr;
+	return Component && Component->bRestoringState;
 }
 
 void UWxDeviceStateTreeComponent::StartLogic()

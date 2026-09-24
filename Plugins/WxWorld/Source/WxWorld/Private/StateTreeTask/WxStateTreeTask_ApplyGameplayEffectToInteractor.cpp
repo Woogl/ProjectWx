@@ -8,7 +8,7 @@
 #include "GameFramework/Actor.h"
 #include "GameFramework/Character.h"
 #include "StateTreeExecutionContext.h"
-#include "Device/WxDeviceExecutionPolicy.h"
+#include "Device/WxDeviceStateTreeComponent.h"
 
 FWxStateTreeTask_ApplyGameplayEffectToInteractor::FWxStateTreeTask_ApplyGameplayEffectToInteractor()
 {
@@ -24,7 +24,7 @@ EStateTreeRunStatus FWxStateTreeTask_ApplyGameplayEffectToInteractor::EnterState
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	if (FWxDeviceExecutionPolicy::IsRestoring(Context, Transition))
+	if (UWxDeviceStateTreeComponent::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

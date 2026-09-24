@@ -11,6 +11,8 @@
 #include "WxDeviceStateTreeComponent.generated.h"
 
 class ACharacter;
+struct FStateTreeExecutionContext;
+struct FStateTreeTransitionResult;
 
 /** 복제 사이의 여러 진입은 최신 진입으로 합쳐지며 과거 연출을 큐로 재생하지 않는다. */
 USTRUCT()
@@ -51,7 +53,12 @@ public:
 	virtual void RestartLogic() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	FString DescribeSynchronization() const;
-	bool IsRestoringState() const;
+
+	/**
+	 * 장치 태스크는 상태 적용(위치·표시)은 복원에서도 실행하고, 일회성 효과(사운드·보상·스폰)는 실제 진입에서만 실행한다.
+	 * 트리 시작(재시작 포함)과, 이 컴포넌트가 스냅샷을 따라 요청한 복원 전이가 복원이다. 장치가 아닌 트리는 트리 시작만 복원이다.
+	 */
+	static bool IsRestoring(const FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition);
 
 #if WITH_GAMEPLAY_DEBUGGER
 	virtual FString GetDebugInfoString() const override;
