@@ -6,7 +6,7 @@
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 2 |
+| 🟡 개선 | 3 |
 | 🟢 사소 | 0 |
 
 ## 결과
@@ -24,6 +24,13 @@
 - **문제**: `bIsKilled`는 스포너 액터의 런타임 멤버다(`WxSpawner.h:66`). 서버에서 스포너 셀이 언로드되면 `EndPlay`(`:92`)가 스폰한 액터를 치우고 처치 기록도 함께 사라진다. 셀이 다시 로드되면 `BeginPlay`의 Auto 스폰(`:84`)이 `bIsKilled=false` 상태에서 새 인스턴스를 만든다. 그래서 `bNeverRevive` 계약(`WxSpawner.h:61` "처치 후 부활 금지(보스 등)")은 `Respawn()` 경로(`:61`)에서만 지켜지고, 스트리밍으로 다시 들어올 때는 깨진다. 같은 이유로 `스포너 처치 대기`(`WxStateTreeTask_WaitSpawnersKilled.cpp:136`)도 재로드 뒤에는 처치 전으로 판정한다. 헤더 `:65` 주석이 런타임 상태라고 밝히고 있어 일반 적이 다시 나오는 것은 의도로 보인다. 다만 보스 영구 처치와의 충돌은 어디서도 다루지 않는다.
 - **제안**: 최소한 `bNeverRevive` 스포너의 처치 기록은 셀 수명 밖에 둔다. 가장 작은 변경은 에디터에서 해당 스포너를 공간 로딩에서 빼도록(`bIsSpatiallyLoaded=false`) 강제하는 것이다. 세이브 연동은 보류 중인 IWxSavable 작업에서 함께 다룬다.
 - **확신도**: 중간(보스 스포너를 스트리밍 셀에 배치하는지는 확인하지 않았다)
+
+### 3. 🟡 다른 도메인 태스크가 서버의 InitialState 적용을 실제 진입으로 본다
+- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp`(`SynchronizeAfterStart`)
+- **범주**: 설계/구조
+- **문제**: 서버는 트리를 루트로 시작한 뒤 `InitialState` 상태로 복원 전이를 요청한다. 이 전이는 `SourceStateID`가 있어서, 컴포넌트의 복원 표시(`UWxDeviceStateTreeComponent::IsRestoring`)를 모르는 다른 도메인 태스크는 실제 진입으로 판정한다. 예를 들어 `ST_TreasureChest`의 WxInventory `보상 지급`은 `!SourceStateID.IsValid()`만 보므로, 상자를 InitialState "열림"으로 배치하면 레벨 시작 때 서버가 보상을 지급한다. 현재 InitialState를 쓰는 배치는 `LV_DevCombat` 피스톤 하나라 발현되지 않는다. 2026-09-24 `InitialState` 필드 주석에 저작 규칙("그 상태에 일회성 효과를 두지 않는다")을 남겼다.
+- **제안**: 순정 해법은 트리를 `FStartParameters::SelectStateOverrideArgs`로 지정 상태에서 시작하는 것이다. 그러면 진입이 전부 `SourceStateID` 무효가 되어 모든 도메인이 같은 판정을 쓴다. 다만 `UStateTreeComponent::StartTree`가 이 인자를 넘길 길을 주지 않아 시작 루틴과 틱 깨우기 확장(`FStateTreeComponentExecutionExtension`, 모듈 밖 미공개)을 복제해야 한다. 그래서 엔진이 컴포넌트에 시작 상태 지정을 열 때까지 보류한다(2026-09-24 사용자 결정). 복원까지 재시작으로 바꾸면 공통 부모 상태가 다시 진입되어 `나이아가라 스폰` 중복(1번)이 복원마다 드러나고, 선택 실패 시 트리가 Failed로 멈춘다.
+- **확신도**: 높음(엔진 `Start`·`StartTree` 소스와 에셋 사용처를 확인했다. 열린 상자 배치 계획은 확인하지 않았다)
 
 ## 검토 범위
 - **깊게 본 파일**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Public/Device/WxDeviceStateTreeComponent.h`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp`, `Plugins/WxWorld/Source/WxWorld/Public/Device/WxDevice.h`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_WaitForTrigger.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceTriggerRule.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceExecutionPolicy.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_WaitForInteraction.cpp`, `Plugins/WxWorld/Source/WxWorld/Public/StateTreeTask/WxStateTreeWaitRegistry.h`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_WaitSpawnersKilled.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_TriggerLinkedDevices.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SplineMove.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_ComponentMove.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SpawnNiagara.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlayInteractorMontage.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_EnablePlayerInput.cpp`와 각 헤더. 호출 측으로 `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`와 `Source/WxGame/Character/WxNpc.cpp`를, 엔진 측으로 `UStateTreeComponent`·`FStateTreeExecutionContext`(인스턴스 데이터 재구성, 재선택 처리)·`UNiagaraFunctionLibrary`를 함께 읽었다.

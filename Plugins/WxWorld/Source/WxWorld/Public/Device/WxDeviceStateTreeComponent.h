@@ -71,6 +71,7 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, Transient, ReplicatedUsing = OnRep_StateSnapshot, Category = "Wx")
 	FWxDeviceStateSnapshot StateSnapshot;
 
+	/** 서버는 트리를 시작한 뒤 이 상태로 전이하므로, IsRestoring 을 모르는 다른 도메인 태스크(보상 지급 등)는 실제 진입으로 본다 — 이 상태에는 그런 일회성 효과를 두지 않는다. */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (GetOptions = "GetInitialStateOptions"))
 	FName InitialState;
 
