@@ -27,7 +27,7 @@ public:
 	AWxNpc();
 
 	//~ Begin IWxInteractable
-	virtual bool CanInteract(const AActor* Interactor) const override;
+	virtual void GetInteractionOptions(const AActor* Interactor, TArray<FWxInteractionOption>& OutOptions) const override;
 	//~ End IWxInteractable
 
 	//~ Begin AWxDialogueActor

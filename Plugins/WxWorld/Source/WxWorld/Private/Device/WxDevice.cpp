@@ -15,14 +15,6 @@ AWxDevice::AWxDevice()
 	StateTreeComponent = CreateDefaultSubobject<UWxDeviceStateTreeComponent>(TEXT("StateTree"));
 }
 
-bool AWxDevice::CanInteract(const AActor* Interactor) const
-{
-	TArray<FWxInteractionOption> Options;
-	GetInteractionOptions(Interactor, Options);
-
-	return !Options.IsEmpty();
-}
-
 void AWxDevice::GetInteractionOptions(const AActor* Interactor, TArray<FWxInteractionOption>& OutOptions) const
 {
 	if (!WaitingTask || !WaitingTask->bPlayerInteraction)
@@ -67,11 +59,6 @@ void AWxDevice::OnInteracted(AActor* Interactor, int32 OptionValue)
 {
 	// 선택지 값은 상호작용 어빌리티가 이미 지금의 선택지와 대조했다. 여기서는 자기 대기 노드가 받는지만 아래에서 본다.
 	NotifyDeviceInteracted(Interactor, nullptr, OptionValue);
-}
-
-FText AWxDevice::GetInteractionPrompt() const
-{
-	return WaitingTask && WaitingTask->bPlayerInteraction ? WaitingTask->Prompt : FText::GetEmpty();
 }
 
 void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, const AWxDevice* Sender, int32 Value)

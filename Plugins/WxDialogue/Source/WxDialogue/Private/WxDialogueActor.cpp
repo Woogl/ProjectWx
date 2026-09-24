@@ -9,14 +9,14 @@ AWxDialogueActor::AWxDialogueActor()
 	DialogueComponent = CreateDefaultSubobject<UWxDialogueComponent>(TEXT("DialogueComponent"));
 }
 
+void AWxDialogueActor::GetInteractionOptions(const AActor* Interactor, TArray<FWxInteractionOption>& OutOptions) const
+{
+	OutOptions.Add({DialogueComponent->GetTalkPrompt()});
+}
+
 void AWxDialogueActor::OnInteracted(AActor* Interactor, int32 OptionValue)
 {
 	DialogueComponent->StartDialogueWith(Interactor);
-}
-
-FText AWxDialogueActor::GetInteractionPrompt() const
-{
-	return DialogueComponent->GetTalkPrompt();
 }
 
 USkeletalMeshComponent* AWxDialogueActor::GetPoseMesh() const

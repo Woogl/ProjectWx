@@ -7,6 +7,7 @@ sources:
   - "raw/notes/2026-09-22-current-game.md"
   - "raw/notes/2026-09-22-current-ui.md"
   - "raw/notes/2026-09-24-wxcore-cleanup.md"
+  - "raw/notes/2026-09-24-interaction-contract-options-only.md"
 created: 2026-09-22
 updated: 2026-09-24
 tags: [wx, foundation]
@@ -30,7 +31,7 @@ WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에
 | 계약 | 의미와 주의점 |
 |---|---|
 | `WxGameplayTags` | 네이티브 태그의 단일 위치. 선언은 `WxGameplayTags.h`, 정의는 `WxGameplayTags.cpp`의 `UE_DEFINE_GAMEPLAY_TAG`에 둔다. 도메인 내부용 태그도 이곳에 둔다. |
-| `IWxInteractable` | 액터가 자격·문구·선택지를 제공하고 `OnInteracted`로 실행한다. 선택지의 `Value` 의미는 대상이 정한다. |
+| `IWxInteractable` | 액터가 선택지(문구·값)를 내고 `OnInteracted`로 실행한다. 선택지가 비면 지금은 상호작용할 수 없다는 뜻이며, 스캐너 표시와 서버 검증이 같은 답을 받는다. 선택지의 `Value` 의미는 대상이 정한다. |
 | `IWxSpawnable` | 스폰된 액터가 서버에서 처치를 통지한다. 네이티브 델리게이트 계약이므로 BP 단독 구현은 허용하지 않는다. |
 | `IWxUIData` | 게임 도메인의 제목·설명·아이콘 등 표시 정보를 UI가 읽는 접점. |
 | `FWxLocatorUtils` | 에디터에서 UniversalObjectLocator를 읽기 쉬운 이름으로 표시한다. 해석되면 액터 라벨, 미해석이면 경로 끝 이름, 비어 있으면 unset이다. 함수는 `WITH_EDITOR`에서만 존재하며 런타임 액터 수명을 보장하는 기능이 아니다. |

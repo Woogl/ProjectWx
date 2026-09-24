@@ -29,7 +29,7 @@ AWxItemPickup::AWxItemPickup()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
 
-	// 대상 자격 자체는 콜리전 응답과 무관하게 CanInteract 로 답하지만, 쿼리 콜리전이 꺼지면 스캐너에 잡히지 않는다.
+	// 대상 자격 자체는 콜리전 응답과 무관하게 선택지로 답하지만, 쿼리 콜리전이 꺼지면 스캐너에 잡히지 않는다.
 	// 오브젝트 타입과 채널 응답은 LaunchInDirection 의 물리 발사와 월드 충돌을 위한 것이다.
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	MeshComponent->SetCollisionObjectType(ECC_WorldDynamic);
@@ -71,6 +71,18 @@ void AWxItemPickup::LaunchInDirection(const FVector& Direction, float Speed)
 	MeshComponent->SetPhysicsLinearVelocity(Direction.GetSafeNormal() * Speed);
 }
 
+void AWxItemPickup::GetInteractionOptions(const AActor* Interactor, TArray<FWxInteractionOption>& OutOptions) const
+{
+	// 정의가 비어도 선택지는 낸다 — 누르면 OnInteracted 가 이 픽업을 치운다.
+	FWxInteractionOption& Option = OutOptions.AddDefaulted_GetRef();
+	if (ItemDef)
+	{
+		Option.Prompt = (Quantity > 1)
+			? FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormatQuantity", "{0} x{1}"), ItemDef->DisplayName, Quantity)
+			: ItemDef->DisplayName;
+	}
+}
+
 void AWxItemPickup::OnInteracted(AActor* Interactor, int32 OptionValue)
 {
 	if (!Interactor)
@@ -98,18 +110,6 @@ void AWxItemPickup::OnInteracted(AActor* Interactor, int32 OptionValue)
 	UE_LOG(LogWxItemPickup, Log, TEXT("Picked up %s x%d (instance=%s, total=%d)"), *ItemDef->GetName(), Quantity, *GetNameSafe(AddedInstance), TotalOwned);
 
 	Destroy();
-}
-
-FText AWxItemPickup::GetInteractionPrompt() const
-{
-	if (!ItemDef)
-	{
-		return FText::GetEmpty();
-	}
-
-	return (Quantity > 1)
-		? FText::Format(NSLOCTEXT("WxItemPickup", "InteractionFormatQuantity", "{0} x{1}"), ItemDef->DisplayName, Quantity)
-		: ItemDef->DisplayName;
 }
 
 void AWxItemPickup::OnRep_ItemDef()

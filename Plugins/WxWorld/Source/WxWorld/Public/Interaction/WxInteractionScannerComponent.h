@@ -17,7 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnInteractionRowsChanged);
  * AWxPlayerController 에 붙어, 소유 클라(리슨호스트 포함)에서 주변 상호작용 액터를 주기 스캔해 in-range 집합을 모은다.
  * HUD 리스트 뷰모델(UWxViewModel_InteractionList)이 이 목록과 선택 인덱스를 함께 표시한다.
  *
- * 후보는 액터 단위다 — 겹친 컴포넌트를 소유 액터로 모아 중복을 없앤 뒤, 대상이 IWxInteractable 로 지금 켜져 있는지 답하고 꺼지면 다음 스캔에서 탈락한다.
+ * 후보는 액터 단위다 — 겹친 컴포넌트를 소유 액터로 모아 중복을 없앤 뒤, 대상이 IWxInteractable 선택지로 지금 켜져 있는지 답하고 꺼지면 다음 스캔에서 탈락한다.
  * 주변 후보는 반경 구 오버랩으로 모으되 전 오브젝트 채널로 던지므로, 대상 자격은 콜리전 프리셋·응답과 무관하다(쿼리 콜리전만 켜져 있으면 된다). 응답·프롬프트도 같은 인터페이스가 제공한다.
  *
  * PlayerController 소유인 이유: 폰 리스폰에도 생존하고, 소유 클라 연결로 net-owned 라 ServerInteract RPC 를 직접 들 수 있으며, 타 클라에 복제되지 않아 로컬리티가 좋다.

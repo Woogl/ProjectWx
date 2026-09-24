@@ -6,6 +6,7 @@ sources:
   - "raw/notes/2026-09-22-current-groggy.md"
   - "raw/notes/2026-09-23-finisher-damage-row.md"
   - "raw/notes/2026-09-24-wxcombat-cleanup.md"
+  - "raw/notes/2026-09-24-interaction-contract-options-only.md"
 created: 2026-09-22
 updated: 2026-09-24
 tags: [wx, finisher]
@@ -24,7 +25,7 @@ summary: "피니시는 서버 상호작용에서 발동하며, 현재 구현과 
 
 ```mermaid
 flowchart LR
-  A["선택 액터·선택지"] --> B["서버 자격·거리·선택지 검증"]
+  A["선택 액터·선택지"] --> B["서버 거리·선택지 검증"]
   B --> C["적이 Event.Finisher 발행"]
   C --> D["그로기 태그로 Variant 선택"]
   D --> E["공격자 워프 타겟·짝 몽타주·서버 피해 이벤트 대기"]
@@ -34,8 +35,8 @@ flowchart LR
 
 활성화 검사 실패·몽타주 실패 등은 종료 경로로 빠질 수 있다. 이 그림은 현재 C++의 책임 순서이며 아래 기획 미결정의 확정 답을 나타내지 않는다.
 
-1. 적의 `CanInteract`는 적대·생존·짝 몽타주 비활성을 확인한다. 그로기라면 허용하고, 그 밖에는 비전투 상태와 후방 원뿔 조건으로 뒤잡을 허용한다.
-2. 스캐너가 선택 액터·선택지 값을 서버에 보낸다. `UWxAbility_Interact`는 대상의 현재 자격·쿼리 콜리전 거리·선택지 값을 다시 확인한다.
+1. 적의 `GetInteractionOptions`는 적대·생존·짝 몽타주 비활성을 확인한다. 그로기라면 허용하고, 그 밖에는 비전투 상태와 후방 원뿔 조건으로 뒤잡을 허용한다. 선택지 문구는 넘겨받은 상호작용자가 가진 Finisher 어빌리티의 `InteractionPrompt`이며, 그 어빌리티가 없으면 선택지를 내지 않는다.
+2. 스캐너가 선택 액터·선택지 값을 서버에 보낸다. `UWxAbility_Interact`는 쿼리 콜리전 거리와 대상이 지금 내는 선택지에 그 값이 있는지 다시 확인한다.
 3. 적이 `Event.Finisher`에 대상 태그를 실어 공격자에게 보낸다. Finisher 어빌리티는 그로기 태그 유무로 일반 피니시와 뒤잡 Variant를 구분한다.
 4. 공격자는 ServerInitiated/Override로 활성화되고 무적 효과를 소유한다. 서버는 피해자에게 짝 몽타주 어빌리티를 일회 부여하고, `Event.ApplyFinisherDamage`를 한 번 기다리는 태스크를 건다. 공격자에게 `Finisher` 워프 타겟을 등록한다.
 5. 공격자 몽타주의 `UWxAnimNotify_FinisherDamage`가 이벤트를 보내면, 서버의 Finisher 어빌리티가 발동 순간 고른 Variant의 `DamageDataRow`로 `ApplyDamage`를 부른다. 대상 상태는 이후 바뀌므로 피해 시점에 Variant를 다시 고르지 않는다. 노티파이는 이벤트만 보내고 대상·피해 행은 어빌리티가 쥔다.

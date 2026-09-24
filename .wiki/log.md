@@ -292,3 +292,12 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 - foundation은 같은 날 편찬됐지만 `verified`가 2026-09-22로 남아 있어, 본문(충돌 채널·프리셋·DefaultGame 등록·공용 계약)을 HEAD d76e48717과 다시 대조하고 `verified`를 맞췄다.
 
 ## [2026-09-24] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
+## [2026-09-24] ingest | 상호작용 계약을 선택지 하나로 통합 (raw/notes/2026-09-24-interaction-contract-options-only.md)
+
+## [2026-09-24] compile | 1 source → 0 new articles, 3 updated (foundation, world, combat-finisher)
+- foundation: `IWxInteractable`은 선택지를 내고 선택지가 비면 상호작용할 수 없다는 계약으로 고쳤다(`CanInteract`·`GetInteractionPrompt` 삭제).
+- world: 스캐너는 선택지가 빈 대상의 행을 만들지 않고, 서버는 거리와 선택지 유효성으로 자격까지 검증한다고 고쳤다.
+- combat-finisher: 적의 자격 판정 위치를 `GetInteractionOptions`로 고치고, 문구는 넘겨받은 상호작용자의 Finisher 어빌리티에서 찾으며 그 어빌리티가 없으면 선택지를 내지 않는다는 점을 추가했다. `36fbb4371` 위 작업, 빌드 통과, 인게임 미검증.
+
+## [2026-09-24] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed

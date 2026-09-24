@@ -37,16 +37,11 @@ class WXCORE_API IWxInteractable
 
 public:
 	/**
-	 * 켜짐은 구현체가 자기 상태에서 파생한다 — 밖에서 켜고 끄는 진입점은 두지 않는다.
+	 * 선택지가 비면 지금은 상호작용할 수 없다는 뜻이다. 켜짐은 구현체가 자기 상태에서 파생한다 — 밖에서 켜고 끄는 진입점은 두지 않는다.
 	 * 클라 표시 게이트와 서버 발동 검증이 같은 답을 받는다.
 	 */
-	virtual bool CanInteract(const AActor* Interactor) const;
-
-	/** 기본은 GetInteractionPrompt() 하나다. 선택지가 여럿인 대상만 재정의한다. */
-	virtual void GetInteractionOptions(const AActor* Interactor, TArray<FWxInteractionOption>& OutOptions) const;
+	virtual void GetInteractionOptions(const AActor* Interactor, TArray<FWxInteractionOption>& OutOptions) const = 0;
 
 	/** OptionValue 는 플레이어가 고른 선택지의 Value 다. 클라가 보낸 값이지만, 호출하는 상호작용 어빌리티가 서버에서 지금의 선택지와 대조한 뒤에만 부른다. */
 	virtual void OnInteracted(AActor* Interactor, int32 OptionValue) = 0;
-
-	virtual FText GetInteractionPrompt() const = 0;
 };

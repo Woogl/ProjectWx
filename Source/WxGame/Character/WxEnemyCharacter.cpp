@@ -5,6 +5,7 @@
 #include "AbilitySystem/Ability/WxAbility_Finisher.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "Battle/WxBattleSubsystem.h"
 #include "Controller/WxAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -70,25 +71,40 @@ FWxOnSpawnableKilled& AWxEnemyCharacter::GetOnKilledDelegate()
 	return OnSpawnableKilled;
 }
 
-bool AWxEnemyCharacter::CanInteract(const AActor* Interactor) const
+void AWxEnemyCharacter::GetInteractionOptions(const AActor* Interactor, TArray<FWxInteractionOption>& OutOptions) const
 {
 	if (!UWxCombatLibrary::IsHostile(Interactor, this) || !IsAlive())
 	{
-		return false;
+		return;
 	}
 
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
 	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_PlayMontageOnce))
 	{
-		return false;
+		return;
 	}
 
-	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
+	const bool bFinishable = ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy) || (!ASC->HasMatchingGameplayTag(WxGameplayTags::State_Engaged) && IsInRearCone(Interactor));
+	if (!bFinishable)
 	{
-		return true;
+		return;
 	}
 
-	return !ASC->HasMatchingGameplayTag(WxGameplayTags::State_Engaged) && IsInRearCone(Interactor);
+	// 문구의 주인은 실제로 나갈 처형 어빌리티다. 그 어빌리티가 없는 상호작용자에겐 눌러도 나갈 것이 없으니 선택지를 내지 않는다.
+	const UAbilitySystemComponent* InteractorASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Interactor);
+	if (!InteractorASC)
+	{
+		return;
+	}
+
+	for (const FGameplayAbilitySpec& Spec : InteractorASC->GetActivatableAbilities())
+	{
+		if (const UWxAbility_Finisher* Finisher = Cast<UWxAbility_Finisher>(Spec.Ability.Get()))
+		{
+			OutOptions.Add({Finisher->InteractionPrompt});
+			return;
+		}
+	}
 }
 
 void AWxEnemyCharacter::OnInteracted(AActor* Interactor, int32 OptionValue)
@@ -105,27 +121,6 @@ void AWxEnemyCharacter::OnInteracted(AActor* Interactor, int32 OptionValue)
 	GetAbilitySystemComponent()->GetOwnedGameplayTags(EventData.TargetTags);
 
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Interactor, WxGameplayTags::Event_Finisher, EventData);
-}
-
-FText AWxEnemyCharacter::GetInteractionPrompt() const
-{
-	// 문구의 주인은 실제로 나갈 처형 어빌리티다. 프롬프트는 로컬 표시라 그 어빌리티를 들고 있는 주체는 항상 로컬 플레이어다.
-	APawn* Interactor = UGameplayStatics::GetPlayerPawn(this, 0);
-	const UAbilitySystemComponent* InteractorASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Interactor);
-	if (!InteractorASC)
-	{
-		return FText::GetEmpty();
-	}
-
-	for (const FGameplayAbilitySpec& Spec : InteractorASC->GetActivatableAbilities())
-	{
-		if (const UWxAbility_Finisher* Finisher = Cast<UWxAbility_Finisher>(Spec.Ability.Get()))
-		{
-			return Finisher->InteractionPrompt;
-		}
-	}
-
-	return FText::GetEmpty();
 }
 
 void AWxEnemyCharacter::HandleAITargetChanged(USceneComponent* NewTarget)

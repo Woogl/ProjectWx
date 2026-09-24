@@ -25,8 +25,8 @@ public:
 	AWxDialogueActor();
 
 	//~ Begin IWxInteractable
+	virtual void GetInteractionOptions(const AActor* Interactor, TArray<FWxInteractionOption>& OutOptions) const override;
 	virtual void OnInteracted(AActor* Interactor, int32 OptionValue) override;
-	virtual FText GetInteractionPrompt() const override;
 	//~ End IWxInteractable
 
 	/** 대사 포즈를 얹을 메시. 스켈레탈 메시가 없는 대상은 비운다. */

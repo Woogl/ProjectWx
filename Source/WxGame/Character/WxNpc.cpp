@@ -37,10 +37,13 @@ AWxNpc::AWxNpc()
 	MetaHumanComponent->SetLeaderMesh(MeshComponent);
 }
 
-bool AWxNpc::CanInteract(const AActor* Interactor) const
+void AWxNpc::GetInteractionOptions(const AActor* Interactor, TArray<FWxInteractionOption>& OutOptions) const
 {
 	// 등록부는 권위 측에만 있다 — 서버가 곧 클라인 전제(다른 퀘스트·대화 노드와 동일).
-	return FWxStateTreeTask_WaitForInteraction::IsAwaited(this);
+	if (FWxStateTreeTask_WaitForInteraction::IsAwaited(this))
+	{
+		Super::GetInteractionOptions(Interactor, OutOptions);
+	}
 }
 
 USkeletalMeshComponent* AWxNpc::GetPoseMesh() const

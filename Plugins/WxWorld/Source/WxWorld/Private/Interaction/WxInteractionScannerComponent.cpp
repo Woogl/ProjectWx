@@ -146,30 +146,14 @@ void UWxInteractionScannerComponent::HandleScanTimer()
 	QueryParams.AddIgnoredActor(Pawn);
 	World->OverlapMultiByObjectType(Overlaps, ScanOrigin, FQuat::Identity, FCollisionObjectQueryParams(FCollisionObjectQueryParams::AllObjects), FCollisionShape::MakeSphere(ScanRadius), QueryParams);
 
-	// 한 액터의 컴포넌트·스켈레탈 바디마다 결과가 따로 오므로 액터 단위로 한 번만 검사한다.
-	// 채택 여부가 아니라 검사 여부로 걸어야, 자격 미달로 탈락하는 대상(정면을 본 적 등)의 판정이 결과 수만큼 반복되지 않는다.
-	TArray<const AActor*> Examined;
-	Examined.Reserve(Overlaps.Num());
-
+	// 한 액터의 컴포넌트·스켈레탈 바디마다 결과가 따로 오므로 액터 단위로 모은다. 지금 켜져 있는지는 선택지를 모을 때 대상이 답한다.
 	TArray<AActor*> Candidates;
 	for (const FOverlapResult& Overlap : Overlaps)
 	{
 		AActor* Actor = Overlap.GetActor();
-		if (!Actor || Examined.Contains(Actor))
+		if (Cast<IWxInteractable>(Actor))
 		{
-			continue;
-		}
-		Examined.Add(Actor);
-
-		const IWxInteractable* Target = Cast<IWxInteractable>(Actor);
-		if (!Target)
-		{
-			continue;
-		}
-		
-		if (Target->CanInteract(Pawn))
-		{
-			Candidates.Add(Actor);
+			Candidates.AddUnique(Actor);
 		}
 	}
 
