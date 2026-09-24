@@ -10,6 +10,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "GameplayEffect.h"
 #include "WxCombatModule.h"
@@ -84,10 +85,10 @@ void UWxAbilityBase::SetActionPhase(EWxAbilityActionPhase NewPhase)
 	}
 }
 
-void UWxAbilityBase::OpenComboWindow()
+void UWxAbilityBase::OpenComboWindow(int32 MontageInstanceID)
 {
 	// 배타 본동작에서만 연다 — 콤보가 없는 어빌리티의 몽타주에 노티파이가 섞여도 Independent를 점유자로 승격시키지 않는다.
-	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && ActionPhase == EWxAbilityActionPhase::Blocking)
+	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && ActionPhase == EWxAbilityActionPhase::Blocking && IsPlayingMontageInstance(MontageInstanceID))
 	{
 		SetActionPhase(EWxAbilityActionPhase::ComboWindow);
 
@@ -100,19 +101,31 @@ void UWxAbilityBase::OpenComboWindow()
 	}
 }
 
-void UWxAbilityBase::CloseComboWindow()
+void UWxAbilityBase::CloseComboWindow(int32 MontageInstanceID)
 {
+	if (!IsPlayingMontageInstance(MontageInstanceID))
+	{
+		return;
+	}
+
 	// 창이 아직 열려 있을 때만 되돌린다 — 창이 후딜보다 늦게 닫히는 배치가 정상이라 무조건 되돌리면 후딜을 도로 닫는다.
 	if (ActionPhase == EWxAbilityActionPhase::ComboWindow)
 	{
 		SetActionPhase(EWxAbilityActionPhase::Blocking);
 	}
+
+	// 후딜에 들어가 있어도 창은 닫혔으므로 다음 발동은 첫 단부터다.
+	OnComboWindowClosed();
 }
 
-void UWxAbilityBase::StartRecovery()
+void UWxAbilityBase::OnComboWindowClosed()
+{
+}
+
+void UWxAbilityBase::StartRecovery(int32 MontageInstanceID)
 {
 	// 배타 어빌리티만 후딜로 — 엉뚱한 노티파이가 Independent를 점유자로 승격시키거나 Override의 캔슬 면역을 벗기지 않게 한다.
-	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && ActionPhase != EWxAbilityActionPhase::Recovery)
+	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && ActionPhase != EWxAbilityActionPhase::Recovery && IsPlayingMontageInstance(MontageInstanceID))
 	{
 		SetActionPhase(EWxAbilityActionPhase::Recovery);
 
@@ -123,6 +136,15 @@ void UWxAbilityBase::StartRecovery()
 			InputBuffer->FlushBufferedInputs();
 		}
 	}
+}
+
+bool UWxAbilityBase::IsPlayingMontageInstance(int32 MontageInstanceID) const
+{
+	// 단계마다 같은 몽타주를 새로 트는 경우도 있어 에셋이 아니라 인스턴스로 가른다.
+	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	const UAnimInstance* AnimInstance = CurrentActorInfo ? CurrentActorInfo->GetAnimInstance() : nullptr;
+	const FAnimMontageInstance* MontageInstance = ASC && AnimInstance ? AnimInstance->GetActiveInstanceForMontage(ASC->GetCurrentMontage()) : nullptr;
+	return MontageInstance && MontageInstance->GetInstanceID() == MontageInstanceID;
 }
 
 const UWxAbilityBase* UWxAbilityBase::FindActivationGroupBlocker(const UAbilitySystemComponent& ASC, const UWxAbilityBase* Candidate)

@@ -51,3 +51,8 @@ void UWxAbility_Attack::HandleMontageCompleted()
 
 	Super::HandleMontageCompleted();
 }
+
+void UWxAbility_Attack::OnComboWindowClosed()
+{
+	ComboIndex = INDEX_NONE;
+}

@@ -4,6 +4,8 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Animation/ActiveMontageInstanceScope.h"
+#include "Animation/AnimNotifies/AnimNotify.h"
 #include "System/WxCombatDeveloperSettings.h"
 
 FLinearColor UWxAnimNotifyState_ComboWindow::GetEditorColor()
@@ -15,43 +17,42 @@ void UWxAnimNotifyState_ComboWindow::NotifyBegin(USkeletalMeshComponent* MeshCom
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 
-	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
-	if (!Owner)
-	{
-		return;
-	}
-
-	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner);
-	if (!ASC)
-	{
-		return;
-	}
-
-	if (UWxAbilityBase* Ability = Cast<UWxAbilityBase>(ASC->GetAnimatingAbility()))
-	{
-		Ability->OpenComboWindow();
-	}
+	const UE::Anim::FAnimNotifyMontageInstanceContext* MontageContext = EventReference.GetContextData<UE::Anim::FAnimNotifyMontageInstanceContext>();
+	OpenWindow(MeshComp, MontageContext ? MontageContext->MontageInstanceID : INDEX_NONE);
 }
 
 void UWxAnimNotifyState_ComboWindow::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
-	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
-	if (!Owner)
-	{
-		return;
-	}
+	const UE::Anim::FAnimNotifyMontageInstanceContext* MontageContext = EventReference.GetContextData<UE::Anim::FAnimNotifyMontageInstanceContext>();
+	CloseWindow(MeshComp, MontageContext ? MontageContext->MontageInstanceID : INDEX_NONE);
+}
 
-	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner);
-	if (!ASC)
-	{
-		return;
-	}
+void UWxAnimNotifyState_ComboWindow::BranchingPointNotifyBegin(FBranchingPointNotifyPayload& BranchingPointPayload)
+{
+	OpenWindow(BranchingPointPayload.SkelMeshComponent, BranchingPointPayload.MontageInstanceID);
+}
 
-	// 몽타주가 끊겨 다른 어빌리티가 재생 중이면 그쪽은 콤보 창이 아니라 닫힘이 no-op이 된다.
-	if (UWxAbilityBase* Ability = Cast<UWxAbilityBase>(ASC->GetAnimatingAbility()))
+void UWxAnimNotifyState_ComboWindow::BranchingPointNotifyEnd(FBranchingPointNotifyPayload& BranchingPointPayload)
+{
+	CloseWindow(BranchingPointPayload.SkelMeshComponent, BranchingPointPayload.MontageInstanceID);
+}
+
+void UWxAnimNotifyState_ComboWindow::OpenWindow(USkeletalMeshComponent* MeshComp, int32 MontageInstanceID)
+{
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(MeshComp ? MeshComp->GetOwner() : nullptr);
+	if (UWxAbilityBase* Ability = ASC ? Cast<UWxAbilityBase>(ASC->GetAnimatingAbility()) : nullptr)
 	{
-		Ability->CloseComboWindow();
+		Ability->OpenComboWindow(MontageInstanceID);
+	}
+}
+
+void UWxAnimNotifyState_ComboWindow::CloseWindow(USkeletalMeshComponent* MeshComp, int32 MontageInstanceID)
+{
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(MeshComp ? MeshComp->GetOwner() : nullptr);
+	if (UWxAbilityBase* Ability = ASC ? Cast<UWxAbilityBase>(ASC->GetAnimatingAbility()) : nullptr)
+	{
+		Ability->CloseComboWindow(MontageInstanceID);
 	}
 }

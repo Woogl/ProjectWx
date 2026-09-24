@@ -26,6 +26,8 @@ protected:
 
 	virtual void HandleMontageCompleted() override;
 
+	virtual void OnComboWindowClosed() override;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
 

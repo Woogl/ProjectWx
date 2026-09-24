@@ -32,6 +32,8 @@ protected:
 	/** 콤보 미입력으로 끝났으므로 다음 발동은 첫 단부터 시작한다. */
 	virtual void HandleMontageCompleted() override;
 
+	virtual void OnComboWindowClosed() override;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
 

@@ -95,14 +95,15 @@ public:
 	/** 일반적으로는 ASPD가 반영된 몽타주 재생 속도 사용. */
 	virtual float GetMontagePlayRate() const;
 
-	void OpenComboWindow();
-	void CloseComboWindow();
+	/** 노티파이를 보낸 몽타주 인스턴스가 지금 재생 중인 것이 아니면 무시한다 — 끊긴 앞 단 몽타주도 블렌드아웃 동안 노티파이를 보낸다. */
+	void OpenComboWindow(int32 MontageInstanceID);
+	void CloseComboWindow(int32 MontageInstanceID);
 
 	/**
 	 * 본동작이 걸고 있던 발동 그룹 잠금을 풀어서 그 순간부터 이후 발동하는 Exclusive 어빌리티에 의한 캔슬을 허용한다.
 	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사한다.
 	 */
-	void StartRecovery();
+	void StartRecovery(int32 MontageInstanceID);
 
 	/**
 	 * 점유자(후딜에 들지 않은 Exclusive·Override) 중 Candidate의 발동을 막는 첫 어빌리티. 없으면 nullptr.
@@ -138,6 +139,9 @@ protected:
 	
 	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
 
+	/** 창이 닫힌 뒤의 발동은 첫 단부터 시작해야 한다. */
+	virtual void OnComboWindowClosed();
+
 	UFUNCTION()
 	virtual void HandleMontageCompleted();
 
@@ -153,6 +157,8 @@ protected:
 private:
 	void SetActionPhase(EWxAbilityActionPhase NewPhase);
 	EWxAbilityActionPhase ActionPhase = EWxAbilityActionPhase::Blocking;
+
+	bool IsPlayingMontageInstance(int32 MontageInstanceID) const;
 
 	const FWxAbilityTableRow* GetTableRow() const;
 

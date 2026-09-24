@@ -4,6 +4,7 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Animation/ActiveMontageInstanceScope.h"
 #include "System/WxCombatDeveloperSettings.h"
 
 FLinearColor UWxAnimNotify_StartRecovery::GetEditorColor()
@@ -15,20 +16,20 @@ void UWxAnimNotify_StartRecovery::Notify(USkeletalMeshComponent* MeshComp, UAnim
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 
-	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
-	if (!Owner)
-	{
-		return;
-	}
+	const UE::Anim::FAnimNotifyMontageInstanceContext* MontageContext = EventReference.GetContextData<UE::Anim::FAnimNotifyMontageInstanceContext>();
+	Recover(MeshComp, MontageContext ? MontageContext->MontageInstanceID : INDEX_NONE);
+}
 
-	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner);
-	if (!ASC)
-	{
-		return;
-	}
+void UWxAnimNotify_StartRecovery::BranchingPointNotify(FBranchingPointNotifyPayload& BranchingPointPayload)
+{
+	Recover(BranchingPointPayload.SkelMeshComponent, BranchingPointPayload.MontageInstanceID);
+}
 
-	if (UWxAbilityBase* Ability = Cast<UWxAbilityBase>(ASC->GetAnimatingAbility()))
+void UWxAnimNotify_StartRecovery::Recover(USkeletalMeshComponent* MeshComp, int32 MontageInstanceID)
+{
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(MeshComp ? MeshComp->GetOwner() : nullptr);
+	if (UWxAbilityBase* Ability = ASC ? Cast<UWxAbilityBase>(ASC->GetAnimatingAbility()) : nullptr)
 	{
-		Ability->StartRecovery();
+		Ability->StartRecovery(MontageInstanceID);
 	}
 }
