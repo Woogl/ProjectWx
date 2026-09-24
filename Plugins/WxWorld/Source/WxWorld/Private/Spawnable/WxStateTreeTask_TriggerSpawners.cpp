@@ -2,6 +2,7 @@
 
 #include "Spawnable/WxStateTreeTask_TriggerSpawners.h"
 
+#include "Device/WxDeviceStateTreeComponent.h"
 #include "GameFramework/Actor.h"
 #include "Spawnable/WxSpawner.h"
 #include "StateTreeExecutionContext.h"
@@ -21,8 +22,7 @@ FWxStateTreeTask_TriggerSpawners::FWxStateTreeTask_TriggerSpawners()
 
 EStateTreeRunStatus FWxStateTreeTask_TriggerSpawners::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
-	if (bInitialEntry)
+	if (UWxDeviceStateTreeComponent::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
