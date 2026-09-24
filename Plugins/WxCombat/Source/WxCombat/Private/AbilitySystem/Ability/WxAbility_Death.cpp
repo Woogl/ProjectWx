@@ -44,17 +44,8 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	// 커밋하지 않는다 — 사망은 코스트·쿨다운이 없는 강제 전이이고, 커밋 실패가 곧 사망 미성립(Ability.Death 미부여)이 된다.
 
-	// 시체의 피격 판정 해제는 AWxCharacterBase::HandleDeath가, BT 정지는 그 OnDeath를 받는 AI 컨트롤러가 맡는다 — 둘 다 발동 전에 붙는 Ability.Death로 이미 끝나 있다.
-	AActor* Avatar = GetAvatarActorFromActorInfo();
-
+	// 시체의 피격 판정 해제와 수명은 AWxCharacterBase::HandleDeath가, BT 정지는 그 OnDeath를 받는 AI 컨트롤러가 맡는다 — 모두 발동 전에 붙는 Ability.Death로 이미 끝나 있다.
 	PlayDeathMontageOrRagdoll();
-
-	// 이 어빌리티는 스스로 종료하지 않아 종료 시점에는 이미 액터가 파괴되는 중이므로, 시체 수명은 발동 시점에 건다.
-	// 오너 클라 인스턴스의 호출은 SetLifeSpan 내부의 권위 검사가 걸러낸다.
-	if (Avatar && PendingDestroyTime > 0.f)
-	{
-		Avatar->SetLifeSpan(PendingDestroyTime);
-	}
 }
 
 void UWxAbility_Death::HandleMontageCompleted()

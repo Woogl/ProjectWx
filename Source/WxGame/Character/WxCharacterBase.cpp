@@ -274,5 +274,11 @@ void AWxCharacterBase::HandleDeath()
 	// CollisionEnabled를 내리면 ShouldCreatePhysicsState가 false가 되어 피직스 바디가 통째로 파괴되고, 래그돌 진입에서 다시 만드는 왕복이 생긴다.
 	GetMesh()->SetCollisionResponseToChannel(ECC_WxAttack, ECR_Ignore);
 
+	// 클라에서의 호출은 SetLifeSpan 내부의 권위 검사가 걸러낸다.
+	if (CorpseLifeSpan > 0.f)
+	{
+		SetLifeSpan(CorpseLifeSpan);
+	}
+
 	OnDeath.Broadcast(this);
 }

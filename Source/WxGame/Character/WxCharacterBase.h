@@ -127,4 +127,8 @@ protected:
 	/** 캐릭터 종류를 가리는 고정 태그다. 전 머신에서 ASC에 loose 태그로 올라 GAS 태그 조건에서도 보인다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Character", meta = (Categories = "Character"))
 	FGameplayTagContainer IdentityTags;
+
+	/** 사망부터 액터 파괴까지의 시간. 0 이하면 시체를 남긴다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Character", meta = (ClampMin = "0.0"))
+	float CorpseLifeSpan = 0.f;
 };
