@@ -19,13 +19,12 @@ FWxStateTreeTask_PlaySound::FWxStateTreeTask_PlaySound()
 
 EStateTreeRunStatus FWxStateTreeTask_PlaySound::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
-
-	const bool bInitialEntry = UWxDeviceStateTreeComponent::IsRestoring(Context, Transition);
-	if (bInitialEntry && !Instance.bPlayOnRestore)
+	if (UWxDeviceStateTreeComponent::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
+
+	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
 	AActor* Owner = Cast<AActor>(Context.GetOwner());
 	if (!Owner)

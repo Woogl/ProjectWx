@@ -20,14 +20,10 @@ struct FWxStateTreeTask_PlaySoundInstanceData
 	/** 액터 위치에서 재생한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<USoundBase> Sound;
-
-	/** false(기본)면 라이브 발동에서만 1회 재생(트리거 사운드), true 면 로드/복원 시에도 재생한다(상태에 묶인 지속 사운드용). */
-	UPROPERTY(EditAnywhere, Category = "Parameter")
-	bool bPlayOnRestore = false;
 };
 
 /**
- * StateTree 시작과 장치 초기화·상태 복구에서는 기본적으로 재생하지 않는다.
+ * 라이브 발동에서만 1회 재생하는 원샷이다. StateTree 시작과 장치 초기화·상태 복구에서는 재생하지 않고, 재생 핸들을 남기지 않으므로 상태를 떠나도 멈추지 않는다 — 루프 사운드를 넣지 않는다.
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
  */
 USTRUCT(meta = (DisplayName = "사운드 재생", Category = "Wx"))
