@@ -4,11 +4,8 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxEffect_DrainGP.h"
-#include "AIController.h"
 #include "Animation/AnimInstance.h"
-#include "BrainComponent.h"
 #include "Engine/World.h"
-#include "GameFramework/Pawn.h"
 #include "TimerManager.h"
 #include "WxGameplayTags.h"
 
@@ -62,8 +59,6 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		StartGroggyDrain(Handle, ActorInfo, ActivationInfo);
 	}
 
-	SetAILogicPaused(ActorInfo, true);
-
 	HandleMontagePollTick();
 }
 
@@ -73,8 +68,6 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	if (ActorInfo)
 	{
-		SetAILogicPaused(ActorInfo, false);
-
 		if (ActorInfo->AbilitySystemComponent.IsValid())
 		{
 			UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
@@ -169,25 +162,5 @@ void UWxAbility_Groggy::StopGroggyDrain(UAbilitySystemComponent& ASC)
 	{
 		ASC.GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute()).Remove(GPDelegateHandle);
 		GPDelegateHandle.Reset();
-	}
-}
-
-void UWxAbility_Groggy::SetAILogicPaused(const FGameplayAbilityActorInfo* ActorInfo, bool bPaused) const
-{
-	APawn* AvatarPawn = ActorInfo ? Cast<APawn>(ActorInfo->AvatarActor.Get()) : nullptr;
-	AAIController* AIController = AvatarPawn ? Cast<AAIController>(AvatarPawn->GetController()) : nullptr;
-	UBrainComponent* Brain = AIController ? AIController->GetBrainComponent() : nullptr;
-	if (!Brain)
-	{
-		return;
-	}
-
-	if (bPaused)
-	{
-		Brain->PauseLogic(TEXT("Groggy"));
-	}
-	else
-	{
-		Brain->ResumeLogic(TEXT("Groggy"));
 	}
 }

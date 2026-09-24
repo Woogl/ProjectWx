@@ -3,7 +3,9 @@
 #include "WxAIController.h"
 #include "WxBlackboardKeys.h"
 #include "WxAIBehaviorComponent.h"
+#include "WxGameplayTags.h"
 #include "Character/WxCharacterBase.h"
+#include "AbilitySystemComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BrainComponent.h"
@@ -84,6 +86,8 @@ void AWxAIController::OnPossess(APawn* InPawn)
 	if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(InPawn))
 	{
 		WxCharacter->OnDeath.AddDynamic(this, &AWxAIController::HandlePawnDeath);
+		WxCharacter->GetAbilitySystemComponent()->RegisterGameplayTagEvent(WxGameplayTags::Ability_Groggy, EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &AWxAIController::HandleGroggyTagChanged);
 
 		// 재사용된 폰도 새 빙의에서는 대상 없이 시작한다.
 		WxCharacter->GetLockOnComponent()->SetLockOnTarget(nullptr);
@@ -121,7 +125,14 @@ void AWxAIController::OnUnPossess()
 	if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(GetPawn()))
 	{
 		WxCharacter->OnDeath.RemoveDynamic(this, &AWxAIController::HandlePawnDeath);
+		WxCharacter->GetAbilitySystemComponent()->RegisterGameplayTagEvent(WxGameplayTags::Ability_Groggy, EGameplayTagEventType::NewOrRemoved).RemoveAll(this);
 		WxCharacter->GetLockOnComponent()->SetLockOnTarget(nullptr);
+	}
+
+	// 구독을 끊으면 그로기 태그 제거를 받지 못하므로, 이 폰 때문에 건 잠금을 여기서 푼다.
+	if (BrainComponent)
+	{
+		BrainComponent->ClearResourceLock(EAIRequestPriority::Reaction);
 	}
 
 	if (UBlackboardComponent* BB = GetBlackboardComponent())
@@ -170,5 +181,23 @@ void AWxAIController::HandlePawnDeath(AWxCharacterBase* DeadCharacter)
 	if (BrainComponent)
 	{
 		BrainComponent->StopLogic(TEXT("Pawn died"));
+	}
+}
+
+void AWxAIController::HandleGroggyTagChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	if (!BrainComponent)
+	{
+		return;
+	}
+
+	if (NewCount > 0)
+	{
+		BrainComponent->LockResource(EAIRequestPriority::Reaction);
+	}
+	else
+	{
+		// 사망으로 트리가 멈춘 뒤에도 푼다 — 엔진은 트리를 다시 시작할 때 일시정지를 초기화하지 않는다.
+		BrainComponent->ClearResourceLock(EAIRequestPriority::Reaction);
 	}
 }

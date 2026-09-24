@@ -41,8 +41,6 @@ private:
 	void StartGroggyDrain(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo);
 	void StopGroggyDrain(UAbilitySystemComponent& ASC);
 
-	void SetAILogicPaused(const FGameplayAbilityActorInfo* ActorInfo, bool bPaused) const;
-
 	FDelegateHandle GPDelegateHandle;
 	FActiveGameplayEffectHandle DrainGPEffectHandle;
 	FTimerHandle MontagePollingTimerHandle;

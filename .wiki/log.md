@@ -301,3 +301,12 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 - combat-finisher: 적의 자격 판정 위치를 `GetInteractionOptions`로 고치고, 문구는 넘겨받은 상호작용자의 Finisher 어빌리티에서 찾으며 그 어빌리티가 없으면 선택지를 내지 않는다는 점을 추가했다. `36fbb4371` 위 작업, 빌드 통과, 인게임 미검증.
 
 ## [2026-09-24] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
+## [2026-09-24] ingest | AI 트리 정지·잠금을 AWxAIController 단독으로 (raw/notes/2026-09-24-ai-brain-control-single-owner.md)
+
+## [2026-09-24] compile | 1 source → 0 new articles, 3 updated (ai, combat, combat-groggy)
+- ai: "트리 정지와 잠금" 절을 추가했다. 사망은 `OnDeath` → `StopLogic`, 그로기는 `Ability.Groggy` 태그 → `LockResource(Reaction)`이고 전투 쪽은 트리를 건드리지 않는다.
+- combat: 경계 문장의 사망 BT 정지 주체를 트리 정지·잠금 전체의 주체로 넓혔다.
+- combat-groggy: 수명 도식과 본문에서 어빌리티의 AI 일시정지·재개를 지우고 "AI 트리 잠금" 절을 추가했다. 작업 트리 코드 기준, 빌드 통과, 사용자 인게임 확인.
+
+## [2026-09-24] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed

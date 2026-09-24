@@ -5,8 +5,6 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "AIController.h"
-#include "BrainComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -62,14 +60,6 @@ bool UWxRootMotionModifier_Rush::InitializeRush(AActor& Other, const UAnimNotify
 	Avatar->bUseControllerRotationYaw = false;
 	Avatar->GetCharacterMovement()->bAllowPhysicsRotationDuringAnimRootMotion = false;
 	Avatar->SetActorRotation(Direction.Rotation());
-	if (AAIController* AI = Cast<AAIController>(Avatar->GetController()))
-	{
-		if (UBrainComponent* Brain = AI->GetBrainComponent(); Brain && Brain->IsRunning() && !Brain->IsPaused())
-		{
-			PausedBrain = Brain;
-			Brain->PauseLogic(TEXT("Rush"));
-		}
-	}
 	UCapsuleComponent* Capsule = Avatar->GetCapsuleComponent();
 	SavedCollisionResponses = Capsule->GetCollisionResponseToChannels();
 	for (const TEnumAsByte<EObjectTypeQuery> ObjectType : IgnoreCollisions)
@@ -176,9 +166,4 @@ void UWxRootMotionModifier_Rush::ReleaseState()
 	{
 		Warping->RemoveWarpTarget(WarpTargetName);
 	}
-	if (UBrainComponent* Brain = PausedBrain.Get(); Brain && Brain->IsPaused())
-	{
-		Brain->ResumeLogic(TEXT("RushEnded"));
-	}
-	PausedBrain.Reset();
 }

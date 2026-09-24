@@ -5,13 +5,14 @@ sources:
   - "raw/notes/2026-09-22-current-ai.md"
   - "raw/notes/2026-09-22-current-foundation.md"
   - "raw/notes/2026-09-23-wxai-review-followups.md"
+  - "raw/notes/2026-09-24-ai-brain-control-single-owner.md"
 created: 2026-09-22
-updated: 2026-09-23
+updated: 2026-09-24
 tags: [wx, ai]
 aliases: ["WxAI"]
 confidence: medium
 volatility: warm
-verified: 2026-09-23
+verified: 2026-09-24
 summary: "WxAI는 인지 결과를 Blackboard로 전달하고 Behavior Tree 노드로 이동·전투 행동을 구성한다."
 ---
 
@@ -30,6 +31,10 @@ WxAI는 AIBehavior 설정·Blackboard 키·BT 서비스/태스크/데코레이�
 `UpdateTargetActor`는 현재 타겟이 유효하고 사망·IgnoreAggro 상태가 아니면 유지한다. 교체가 필요하면 이전 타겟의 인지 기록을 지운 뒤 감지 목록에서 유효 후보를 찾는다. 이 코드는 가장 가까운 적을 점수화하는 선정기가 아니며, 반환된 감지 목록의 첫 허용 후보를 사용한다.
 
 Blackboard의 SelfActor·HomeLocation·Master와 TargetActor·TargetDistance·PatrolTargetLocation은 공용 키 계약이다. 타겟 부재의 거리를 0으로 초기화하면 근접 조건을 통과할 수 있어 `NoTargetDistance`를 사용한다. 키 이름·타입은 실제 Blackboard 에셋과 맞아야 한다.
+
+## 트리 정지와 잠금
+
+트리를 멈추거나 잠그는 곳은 WxGame의 `AWxAIController` 하나다. 엔진의 일시정지는 단일 플래그라 여러 곳이 걸면 서로의 정지를 풀어 버리기 때문이다. 사망은 캐릭터의 `OnDeath`를 받아 `StopLogic`으로 트리를 끝낸다. 그로기는 `Ability.Groggy` 태그 이벤트를 받아 `LockResource(EAIRequestPriority::Reaction)`로 잠그고 태그가 빠지면 푼다. 엔진 AI 태스크가 쓰는 Logic 잠금과 우선순위가 달라, 그쪽이 풀려도 그로기 중에는 재개되지 않는다. 전투 어빌리티와 돌진 modifier는 트리를 건드리지 않는다. 잠금은 이미 진행 중인 MoveTo 경로 추종과 포커스 회전을 멈추지 않는다.
 
 ## 락온 수명
 
@@ -60,6 +65,7 @@ Blackboard의 SelfActor·HomeLocation·Master와 TargetActor·TargetDistance·Pa
 - [근거 1](../../raw/notes/2026-09-22-current-ai.md)
 - [근거 2](../../raw/notes/2026-09-22-current-foundation.md)
 - [근거 3](../../raw/notes/2026-09-23-wxai-review-followups.md)
+- [AI 트리 정지·잠금 컨트롤러 단독화](../../raw/notes/2026-09-24-ai-brain-control-single-owner.md) — 사망 정지·그로기 잠금 주체
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -67,6 +73,8 @@ Blackboard의 SelfActor·HomeLocation·Master와 TargetActor·TargetDistance·Pa
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
 2026-09-23 WxAI 리뷰 후속 수정(커밋 `411e74d7f`~`0aaaa917d`)을 반영했다. 이 범위는 빌드·자동화 테스트·`BT_Doppelganger` 저장값 확인과 사용자 인게임 확인을 거쳤다.
+
+2026-09-24: 트리 정지와 잠금 절을 작업 트리의 `AWxAIController` 코드와 대조해 추가했다. 빌드 통과, 사용자 인게임 확인.
 
 그 밖의 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 

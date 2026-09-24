@@ -7,7 +7,6 @@
 #include "Engine/EngineTypes.h"
 #include "WxRootMotionModifier_Rush.generated.h"
 
-class UBrainComponent;
 class UAbilitySystemComponent;
 class UAnimNotifyState;
 struct FAbilityEndedData;
@@ -33,7 +32,6 @@ private:
 
 	TWeakObjectPtr<AActor> Target;
 	TWeakObjectPtr<const UAnimNotifyState> SourceNotify;
-	TWeakObjectPtr<UBrainComponent> PausedBrain;
 	TWeakObjectPtr<UAbilitySystemComponent> OwnerASC;
 	FGameplayAbilitySpecHandle AbilityHandle;
 	FVector SourceLocation = FVector::ZeroVector;

@@ -1,44 +1,32 @@
 # WxCombat — 코드 리뷰
 
-> GAS 순정 경로(GE 컴포넌트·Immunity 통지·순정 쿨다운/코스트 API)를 잘 따르고 주석이 판단 근거를 충실히 남긴다. AGENTS.md 규칙 1·2 위반은 없다. 반면 여러 소유자가 참조 계수 없이 AI 브레인 일시정지를 제어하는 곳에서 실제 오동작 경로가 보인다.
+> GAS 순정 경로(GE 컴포넌트·Immunity 통지·순정 쿨다운/코스트 API)를 잘 따르고 주석이 판단 근거를 충실히 남긴다. AGENTS.md 규칙 1·2 위반은 없다. 남은 발견은 콤보 진행 복제, 권위 없는 머신의 피해 판정 쿼리, AttributeSet 접근자 매크로의 규칙 3 예외 표기다.
 > 커버리지: 피해 파이프라인, AttributeSet, ASC, 어빌리티 베이스와 주요 어빌리티 전부, 락온·타게팅, 무기·투사체, 피니셔, 미니언, 컷신, 히트스톱·입력 버퍼를 깊게 봤다. 나머지 GE·Cue·ANS·태스크 cpp는 대부분 훑었고, 헤더는 필요한 것만 읽었다.
 
 ## 요약
 | 심각도 | 개수 |
 | --- | --- |
-| 🔴 심각 | 1 |
+| 🔴 심각 | 0 |
 | 🟡 개선 | 2 |
 | 🟢 사소 | 1 |
 
 ## 결과
 
-### 1. 🔴 AI 브레인 일시정지를 두 곳이 참조 계수 없이 따로 제어한다
-- **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_Rush.cpp:181`, `Plugins/WxCombat/Source/WxCombat/Private/Targeting/WxRootMotionModifier_Rush.cpp:67`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp:187`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp:191`
-- **범주**: 설계/구조
-- **문제**: `UBrainComponent`의 일시정지는 단일 플래그다. Reason 문자열은 로그용일 뿐이다(엔진 `BehaviorTreeComponent.cpp:173`·`:187`). 그런데 돌진 modifier·그로기가 각자 `PauseLogic`/`ResumeLogic`을 부른다. 사망 시 정지는 2026-09-24부터 `OnDeath`를 받는 `AWxAIController`만 한다(사망 어빌리티의 중복 `StopLogic` 제거). 돌진 중에 GP가 차면 다음 순서가 된다.
-  1. 그로기가 PreActivate에서 `Ability.*`를 취소하고(`WxAbility_Groggy.cpp:32`) 발동 즉시 정지를 건다(`:65`).
-  2. 돌진 modifier는 그 뒤에 해제된다. 몽타주가 바뀐 다음 워핑 갱신에서 MarkedForRemoval되거나(엔진 `RootMotionModifier.cpp:287`), 몽타주 종료 시 ANS가 끝날 때다.
-  3. 해제 시 `ReleaseState`는 `IsPaused()`만 보고 `ResumeLogic`을 부른다(`:181`). 결과적으로 그로기 도중 BT가 다시 돈다. 이동 태스크가 그로기 자세의 적을 끌고 다니거나 피니시 거리를 벗어나게 할 수 있다.
-
-  그로기가 사망을 감지해 끝날 때(`WxAbility_Groggy.cpp:108`)도 컨트롤러의 `StopLogic` 뒤에 `ResumeLogic("Groggy")`를 부른다. AI 모듈(WxAI)에는 브레인 제어 코드가 하나도 없다. 일시정지 여부를 전투 모듈이 직접 정하는 구조다.
-- **제안**: 브레인 제어의 주인을 하나로 둔다. 전투 쪽은 상태 태그(`Ability.Groggy`, `Ability.Death`, 돌진 중 태그)만 낸다. WxAI BT는 그 태그를 보는 데코레이터(관찰자 중단)로 분기를 멈춘다. 임시 대응으로 Rush 해제 시 `Ability.Groggy`·`Ability.Death`면 재개를 건너뛸 수는 있다. 다만 소유자가 늘면 같은 문제가 재발한다.
-- **확신도**: 중간. 호출 순서는 엔진 코드로 확인했지만 플레이로 재현하지는 않았다.
-
-### 2. 🟡 콤보 진행 코드가 Attack·Skill·Pattern에 세 벌 복제되어 있다
+### 1. 🟡 콤보 진행 코드가 Attack·Skill·Pattern에 세 벌 복제되어 있다
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Attack.cpp:19`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Skill.cpp:24`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Pattern.cpp:19`
 - **범주**: 중복/복잡도
 - **문제**: `ComboMontages`·`ComboIndex` 필드(`WxAbility_Attack.h:30`, `WxAbility_Skill.h:36`, `WxAbility_Pattern.h:30`)와 인덱스 전진·취소 시 초기화 로직이 세 클래스에 그대로 있다. Attack과 Skill은 `ActivateAbility`/`EndAbility`/`HandleMontageCompleted` 본문이 같고 생성자 태그·쿨다운만 다르다. Pattern은 블렌드아웃 체이닝(`WxAbility_Pattern.cpp:48`)만 다르다. 콤보 규칙을 바꾸면 세 곳을 함께 고쳐야 한다.
 - **제안**: 콤보 진행(필드와 Activate/End/Completed 처리)을 한곳으로 모은다. 공통 콤보 베이스 하나를 두거나, `UWxAbilityBase`의 몽타주 헬퍼 옆에 선택적 콤보 진행을 둔다. Pattern의 자동 체이닝만 오버라이드로 남긴다.
 - **확신도**: 높음
 
-### 3. 🟡 피해 판정 쿼리가 권위 없는 머신에서도 돈 뒤 `ApplyDamage`에서 버려진다
+### 2. 🟡 피해 판정 쿼리가 권위 없는 머신에서도 돈 뒤 `ApplyDamage`에서 버려진다
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp:48`, `Plugins/WxCombat/Source/WxCombat/Private/Weapon/WxWeaponBase.cpp:178`, `Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotify_AreaDamage.cpp:32`, `Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp:49`
 - **범주**: 성능/안전
 - **문제**: WeaponAttack ANS와 AreaDamage 노티파이는 몽타주를 재생하는 모든 머신(서버, 소유 클라, 모든 시뮬 프록시)에서 실행된다. 무기는 `BeginAttack`에서 판정 형상을 켜고 틱을 돌려 형상마다 매 틱 `SweepMultiByChannel`을 한다. AreaDamage는 TargetingSystem 쿼리를 실행한다. 그러나 결과 소비처는 `ApplyDamage`(`WxWeaponBase.cpp:238`, `WxAnimNotify_AreaDamage.cpp:45`)뿐이고, 권위 검사(`WxCombatLibrary.cpp:49`)에서 전부 버려진다. 적이 많은 오픈월드에서는 클라마다 모든 적 공격의 스윕 비용을 낸다.
 - **제안**: `AWxWeaponBase::BeginAttack`/`Tick`과 `UWxAnimNotify_AreaDamage::Notify` 초입에 권위 게이트를 둔다. 사망 시 `CancelAttack`은 모든 머신에서 불려도 무해하다.
 - **확신도**: 높음
 
-### 4. 🟢 AttributeSet 접근자 매크로가 헤더에 인라인 정의 76개를 만든다(규칙 3)
+### 3. 🟢 AttributeSet 접근자 매크로가 헤더에 인라인 정의 76개를 만든다(규칙 3)
 - **위치**: `Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Attribute/WxCombatAttributeSet.h:10`
 - **범주**: 규칙 위반
 - **문제**: `ATTRIBUTE_ACCESSORS`가 GAS 매크로를 묶어 19개 어트리뷰트마다 클래스 본문 인라인 함수 4개를 정의한다(엔진 `AttributeSet.h:428`~`:455`). AGENTS.md 규칙 3의 예외는 템플릿 함수와 `GetInstanceDataType()`뿐이다. 예외라면 해당 지점에 사유 주석이 있어야 하는데 없다.
@@ -65,4 +53,4 @@
   - 그 작업 문서의 "현재 흐름" 절(51~55행)은 삭제된 Hit GE·Hit 컴포넌트·DamageResponse 경로를 서술해 현재 코드(`ApplyDamage` → `UWxEffect_Damage` → Damage GE 컴포넌트 4종)와 어긋난다.
 
 ---
-*문서 기준 커밋 `e72c9179f` · 리뷰일 2026-09-23 · 소스 203파일 — `/module-review`로 갱신. 2026-09-24 후속 정리로 옛 4번(락온 폴백·캐시·저장값)을 해결해 지웠고 1번의 사망 정지 부분을 갱신했다([원자료](../../../.wiki/raw/notes/2026-09-24-wxcombat-machinery-cleanup.md)).*
+*문서 기준 커밋 `e72c9179f` · 리뷰일 2026-09-23 · 소스 203파일 — `/module-review`로 갱신. 2026-09-24 후속 정리로 옛 4번(락온 폴백·캐시·저장값)을 해결해 지웠고 1번의 사망 정지 부분을 갱신했다([원자료](../../../.wiki/raw/notes/2026-09-24-wxcombat-machinery-cleanup.md)). 같은 날 옛 1번(AI 브레인 일시정지 다중 소유)을 컨트롤러 단독 제어로 해결해 지웠다(빌드 통과, 사용자 인게임 확인, [원자료](../../../.wiki/raw/notes/2026-09-24-ai-brain-control-single-owner.md)).*
