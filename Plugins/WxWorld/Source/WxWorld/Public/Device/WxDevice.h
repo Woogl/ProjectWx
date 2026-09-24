@@ -84,7 +84,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxDeviceStateTreeComponent> StateTreeComponent;
 
-	/** 없으면 이 장치는 작동도 플레이어 상호작용도 받지 않는다. */
+	/** 없으면 이 장치는 작동도 플레이어 상호작용도 받지 않는다. 트리가 끝나거나 멈추면 대기 노드의 이탈이 걷으므로, 있으면 트리는 돌고 있다. */
 	const FWxStateTreeTask_WaitForTrigger* WaitingTask = nullptr;
 	FStateTreeWeakExecutionContext WaitingContext;
 };

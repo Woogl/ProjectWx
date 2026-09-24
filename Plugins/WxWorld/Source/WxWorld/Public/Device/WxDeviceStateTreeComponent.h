@@ -19,7 +19,7 @@ struct FWxDeviceStateSnapshot
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
-	FName StateTagName;
+	FGameplayTag StateTag;
 
 	/** 서버의 태그 상태가 바뀔 때마다 1 오른다. 0은 미수신이다. 클라는 직전+1 이면 라이브로, 그 밖(첫 수신·건너뜀)이면 복원으로 들어간다. */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
@@ -47,12 +47,9 @@ class UWxDeviceStateTreeComponent : public UStateTreeComponent
 public:
 	UWxDeviceStateTreeComponent();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void BeginPlay() override;
 	virtual void StartLogic() override;
 	virtual void RestartLogic() override;
-	virtual bool IsRunning() const override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	FGameplayTag GetStateTag() const;
 	FString DescribeSynchronization() const;
 	bool IsRestoringState() const;
 
@@ -73,16 +70,15 @@ protected:
 private:
 	void SynchronizeAfterStart();
 	void PublishState();
-	void EnterState(FGameplayTag Tag, bool bRestore);
+	/** 전이를 요청했으면 true. 루트 에셋에 그 태그 상태가 없거나 트리를 시작하지 못하면 에러 로그를 남기고 false. */
+	bool EnterState(FGameplayTag Tag, bool bRestore);
 	void ApplyInteractor();
 	FGameplayTag FindActiveStateTag() const;
-	bool HasState(FGameplayTag Tag) const;
 
 #if WITH_EDITOR
 	UFUNCTION()
 	TArray<FPropertyTextFName> GetInitialStateOptions() const;
 #endif
 
-	FGameplayTag InitialTarget;
 	bool bRestoringState = false;
 };

@@ -34,7 +34,7 @@ EStateTreeRunStatus FWxStateTreeTask_ComponentMove::EnterState(FStateTreeExecuti
 	const FVector Anchor = Archetype ? Archetype->GetRelativeLocation() : Component->GetRelativeLocation();
 	Instance.TargetLocation = Anchor + Instance.LocalOffset;
 
-	const bool bReachNow = FWxDeviceExecutionPolicy::IsRestoringDevice(Context) || Instance.Duration <= 0.f || Component->GetRelativeLocation().Equals(Instance.TargetLocation);
+	const bool bReachNow = FWxDeviceExecutionPolicy::IsRestoring(Context, Transition) || Instance.Duration <= 0.f || Component->GetRelativeLocation().Equals(Instance.TargetLocation);
 	if (bReachNow)
 	{
 		Component->SetRelativeLocation(Instance.TargetLocation);

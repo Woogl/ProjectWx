@@ -11,5 +11,4 @@ struct FStateTreeTransitionResult;
 struct FWxDeviceExecutionPolicy
 {
 	static bool IsRestoring(const FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition);
-	static bool IsRestoringDevice(const FStateTreeExecutionContext& Context);
 };

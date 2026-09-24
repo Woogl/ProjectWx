@@ -25,7 +25,7 @@ bool AWxDevice::CanInteract(const AActor* Interactor) const
 
 void AWxDevice::GetInteractionOptions(const AActor* Interactor, TArray<FWxInteractionOption>& OutOptions) const
 {
-	if (!WaitingTask || !WaitingTask->bPlayerInteraction || !StateTreeComponent->IsRunning())
+	if (!WaitingTask || !WaitingTask->bPlayerInteraction)
 	{
 		return;
 	}
@@ -115,7 +115,7 @@ int32 AWxDevice::GetSelectedOptionValue() const
 
 void AWxDevice::GetAcceptedOptions(const AWxDevice* Sender, TArray<FWxInteractionOption>& OutOptions) const
 {
-	if (WaitingTask && StateTreeComponent->IsRunning())
+	if (WaitingTask)
 	{
 		WaitingTask->GetAcceptedOptions(*this, Sender, OutOptions);
 	}

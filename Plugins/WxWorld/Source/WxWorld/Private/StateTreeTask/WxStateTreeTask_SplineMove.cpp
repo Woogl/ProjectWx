@@ -50,7 +50,7 @@ EStateTreeRunStatus FWxStateTreeTask_SplineMove::EnterState(FStateTreeExecutionC
 	const float SegmentLength = FMath::Abs(TargetDistance - StartDistance);
 	Instance.MoveSpeed = Instance.Duration > 0.f ? SegmentLength / Instance.Duration : SegmentLength;
 
-	const bool bSnap = FWxDeviceExecutionPolicy::IsRestoringDevice(Context) || Instance.Duration <= 0.f || FMath::IsNearlyEqual(StartDistance, TargetDistance);
+	const bool bSnap = FWxDeviceExecutionPolicy::IsRestoring(Context, Transition) || Instance.Duration <= 0.f || FMath::IsNearlyEqual(StartDistance, TargetDistance);
 	Instance.CurrentDistance = bSnap ? TargetDistance : StartDistance;
 	Component->SetWorldLocation(Spline->GetLocationAtDistanceAlongSpline(Instance.CurrentDistance, ESplineCoordinateSpace::World));
 
