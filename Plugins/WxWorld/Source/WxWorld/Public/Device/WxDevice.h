@@ -65,8 +65,8 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "Wx")
 	TArray<TObjectPtr<AWxDevice>> LinkedDevices;
 
-	/** 네트워크 소유권은 컴포넌트의 상태 스냅샷에 있다. */
-	UPROPERTY(Transient)
+	/** 다른 도메인의 ST 태스크(몽타주 1회 재생 등)가 Actor 바인딩으로 읽는다. 클라에는 컴포넌트의 상태 스냅샷이 실어 나른다. */
+	UPROPERTY(VisibleInstanceOnly, Transient, Category = "Wx")
 	TObjectPtr<ACharacter> InteractingCharacter;
 
 	/**

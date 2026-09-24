@@ -20,6 +20,7 @@ public class WxCombat : ModuleRules
 			"GameplayTags",
 			"GameplayTasks",
 			"MotionWarping",
+			"StateTreeModule",
 			"TargetingSystem",
 			"UMG",
 			"WxCore",
