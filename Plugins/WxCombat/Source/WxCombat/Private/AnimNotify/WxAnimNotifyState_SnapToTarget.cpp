@@ -99,3 +99,13 @@ void UWxAnimNotifyState_SnapToTarget::DrawInEditor(FPrimitiveDrawInterface* PDI,
 	WxTargetingPreview::DrawDebugTargetingPreset(PDI, MeshComp, NotifyEvent, TargetingPreset, PreviewColor);
 }
 #endif
+
+FString UWxAnimNotifyState_SnapToTarget::GetNotifyName_Implementation() const
+{
+	if (bSnapLocation)
+	{
+		return bSnapRotation ? TEXT("Snap: Move+Turn") : TEXT("Snap: Move");
+	}
+
+	return bSnapRotation ? TEXT("Snap: Turn") : TEXT("Snap: Off");
+}

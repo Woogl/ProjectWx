@@ -333,3 +333,6 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 
 ## [2026-09-25] ingest + compile | Row 미리보기 빈 하위 구조체 수정
 - HGTest 사용자 화면으로 부모 전체 비교의 누락을 확인했다. 하위 객체별 기본값 비교와 제한 범위를 editor-tools에 반영했다.
+
+## [2026-09-25] ingest + compile | AnimNotify 라벨 축약
+- 사용자 합의와 17종 표시 함수 근거를 수집하고 editor-tools에 표시 규칙을 통합했다. 런타임 동작 변경과 에디터 화면 검증은 포함하지 않는다.

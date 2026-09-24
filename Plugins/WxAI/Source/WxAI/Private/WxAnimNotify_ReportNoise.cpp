@@ -23,3 +23,8 @@ void UWxAnimNotify_ReportNoise::Notify(USkeletalMeshComponent* MeshComp, UAnimSe
 		UAISense_Hearing::ReportNoiseEvent(Owner, Owner->GetActorLocation(), 1.f, Owner, HearingDistance);
 	}
 }
+
+FString UWxAnimNotify_ReportNoise::GetNotifyName_Implementation() const
+{
+	return FString::Printf(TEXT("Noise: %scm"), *FString::SanitizeFloat(HearingDistance, 0));
+}

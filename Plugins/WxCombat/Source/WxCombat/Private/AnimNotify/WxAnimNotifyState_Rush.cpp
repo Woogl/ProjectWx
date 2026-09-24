@@ -96,3 +96,18 @@ void UWxAnimNotifyState_Rush::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimS
 		}
 	}
 }
+
+FString UWxAnimNotifyState_Rush::GetNotifyName_Implementation() const
+{
+	switch (TargetSource)
+	{
+	case EWxRushTarget::LockOnTarget:
+		return TEXT("Rush: LockOn");
+	case EWxRushTarget::Master:
+		return TEXT("Rush: Master");
+	case EWxRushTarget::Minion:
+		return TEXT("Rush: Minion");
+	default:
+		return TEXT("Rush: None");
+	}
+}

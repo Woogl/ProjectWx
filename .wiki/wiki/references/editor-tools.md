@@ -2,6 +2,7 @@
 title: "편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer"
 category: reference
 sources:
+  - "raw/notes/2026-09-25-animnotify-labels.md"
   - "raw/notes/2026-09-25-row-preview-nested.md"
   - "raw/notes/2026-09-25-row-preview-tooltip.md"
   - "raw/notes/2026-09-25-row-preview-empty-struct.md"
@@ -17,7 +18,7 @@ tags: [wx, editor, datatable]
 aliases: ["WxEditor", "WxToolset", "DataTableRowFixup", "BoxComponentVisualizerEditor"]
 confidence: medium
 volatility: warm
-verified: 2026-09-23
+verified: 2026-09-25
 summary: "네 편집기 모듈은 속성 편집·썸네일·시각화·에셋 도구와 DataTable 행 참조 갱신을 제공하며 런타임 게임 기능과 구분된다."
 ---
 
@@ -73,6 +74,14 @@ Row 미리보기는 값이 있는 부모 안의 빈 하위 구조체도 각각 �
 VM 클래스를 바꾸는 WBP 전환은 `MVVMEditorSubsystem.ReparentViewModel` → 한 번 컴파일 → 경로 변경 순서로 하는 편이 깨끗하다. 기존 VM 클래스를 먼저 삭제한 채 로드하면 스켈레톤에 VM 프로퍼티가 없어, 변환 인자 경로를 설정할 때 `MVVMConversionFunctionHelper` ensure가 난다. 저장 데이터는 올바르게 남는다. 보스 네임플레이트 전환에서 확인했다.
 
 WBP의 C++ 부모 클래스를 없앨 때는 클래스를 남긴 채 빌드 → 헤드리스 에디터(`-run=PythonScript`)로 VM 생성 방식·이벤트 목적지를 먼저 바꾸고 `BlueprintEditorLibrary.reparent_blueprint`로 부모를 교체·저장 → 클래스 삭제 후 재빌드 → 새 프로세스에서 재로드·경고를 오류로 취급한 컴파일 순서로 하면 깨진 부모 상태를 거치지 않는다. VM 생성 방식을 Resolver로 바꿀 때는 컨텍스트의 `CreationType`을 `RESOLVER`로 두고 `unreal.new_object(리졸버 클래스, outer=view)`를 `Resolver`에 넣는다. 대화·퀘스트 화면 클래스 제거에서 확인했다.
+
+## AnimNotify 타임라인 표시
+
+프로젝트 Notify/NotifyState 17종은 `종류: 대표 값 하나`로 표시한다. 피해 Row에는 `Attack`, `Area`, `Finisher`, 에셋 참조에는 `Victim`, `Cutscene`, `Projectile`, `Summon`, `Despawn`, `Effect`를 붙인다. Row·에셋 이름은 보존하고 클래스명 끝 `_C`만 제거한다. 미설정 값은 `None`이다.
+
+`Slow: x0.40`, `Noise: 300cm`는 핵심 수치를 보여준다. Rush는 `LockOn/Master/Minion`, Snap은 `Move/Turn/Move+Turn/Off`, Camera는 `Follow/Fixed`로 동작을 구분한다. 설정 없는 표식은 `Recovery`, `Combo Window`, `Use Item`으로 고정한다. 소켓·타겟팅 프리셋·오프셋·정지 거리·FOV는 Details에 남겨 라벨 길이를 제한한다. 이는 표시 규칙이며 실행 동작은 바꾸지 않는다.
+
+[사용자 합의와 코드 근거](../../raw/notes/2026-09-25-animnotify-labels.md). 에디터 화면의 실제 가독성은 미검증이다.
 
 ## 확인 범위와 진입점
 

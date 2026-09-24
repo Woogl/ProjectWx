@@ -23,6 +23,7 @@ class WXCOMBAT_API UWxAnimNotifyState_Rush : public UAnimNotifyState
 	GENERATED_BODY()
 
 public:
+	virtual FString GetNotifyName_Implementation() const override;
 	UWxAnimNotifyState_Rush();
 	virtual FLinearColor GetEditorColor() override;
 	virtual void BranchingPointNotifyBegin(FBranchingPointNotifyPayload& Payload) override;

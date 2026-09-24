@@ -30,10 +30,5 @@ void UWxAnimNotify_FinisherDamage::Notify(USkeletalMeshComponent* MeshComp, UAni
 
 FString UWxAnimNotify_FinisherDamage::GetNotifyName_Implementation() const
 {
-	if (DamageDataRow.IsNull())
-	{
-		return Super::GetNotifyName_Implementation();
-	}
-
-	return DamageDataRow.RowName.ToString();
+	return FString::Printf(TEXT("Finisher: %s"), DamageDataRow.IsNull() ? TEXT("None") : *DamageDataRow.RowName.ToString());
 }

@@ -33,3 +33,8 @@ void UWxAnimNotify_StartRecovery::Recover(USkeletalMeshComponent* MeshComp, int3
 		Ability->StartRecovery(MontageInstanceID);
 	}
 }
+
+FString UWxAnimNotify_StartRecovery::GetNotifyName_Implementation() const
+{
+	return TEXT("Recovery");
+}

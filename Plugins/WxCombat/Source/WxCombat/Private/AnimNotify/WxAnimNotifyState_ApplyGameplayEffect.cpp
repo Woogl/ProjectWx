@@ -41,12 +41,9 @@ void UWxAnimNotifyState_ApplyGameplayEffect::BranchingPointNotifyEnd(FBranchingP
 
 FString UWxAnimNotifyState_ApplyGameplayEffect::GetNotifyName_Implementation() const
 {
-	if (EffectClass)
-	{
-		return EffectClass->GetName();
-	}
-
-	return Super::GetNotifyName_Implementation();
+	FString ClassName = EffectClass ? EffectClass->GetName() : TEXT("None");
+	ClassName.RemoveFromEnd(TEXT("_C"), ESearchCase::CaseSensitive);
+	return FString::Printf(TEXT("Effect: %s"), *ClassName);
 }
 
 void UWxAnimNotifyState_ApplyGameplayEffect::BeginWindow(USkeletalMeshComponent* MeshComp, int32 MontageInstanceID)

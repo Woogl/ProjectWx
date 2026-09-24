@@ -75,3 +75,4 @@ Last updated: 2026-09-25
 | [Row 미리보기의 기본 구조체 축약](2026-09-25-row-preview-empty-struct.md) | 초기 기본값과 같은 구조체를 {}로 표시하고 원문은 툴팁에 유지한다. | wx, editor, datatable | 2026-09-25 |
 | [Row 미리보기와 툴팁 표시 통일](2026-09-25-row-preview-tooltip.md) | 셀과 툴팁에 같은 텍스트를 표시한다. | wx, editor, datatable | 2026-09-25 |
 | [Row 미리보기의 빈 하위 구조체 축약](2026-09-25-row-preview-nested.md) | 부모에 값이 있어도 빈 하위 객체를 각각 축약한다. | wx, editor, datatable | 2026-09-25 |
+| [AnimNotify 타임라인 이름 축약 규칙](2026-09-25-animnotify-labels.md) | 종류와 대표 값 하나로 17종 라벨 통일 | wx, animation, editor | 2026-09-25 |

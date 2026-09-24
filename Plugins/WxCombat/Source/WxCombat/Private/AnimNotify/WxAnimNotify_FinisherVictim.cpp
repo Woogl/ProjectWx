@@ -31,10 +31,5 @@ void UWxAnimNotify_FinisherVictim::Notify(USkeletalMeshComponent* MeshComp, UAni
 
 FString UWxAnimNotify_FinisherVictim::GetNotifyName_Implementation() const
 {
-	if (!VictimMontage)
-	{
-		return Super::GetNotifyName_Implementation();
-	}
-
-	return VictimMontage->GetName();
+	return FString::Printf(TEXT("Victim: %s"), VictimMontage ? *VictimMontage->GetName() : TEXT("None"));
 }

@@ -49,12 +49,7 @@ void UWxAnimNotify_AreaDamage::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 
 FString UWxAnimNotify_AreaDamage::GetNotifyName_Implementation() const
 {
-	if (DamageDataRow.IsNull())
-	{
-		return Super::GetNotifyName_Implementation();
-	}
-
-	return DamageDataRow.RowName.ToString();
+	return FString::Printf(TEXT("Area: %s"), DamageDataRow.IsNull() ? TEXT("None") : *DamageDataRow.RowName.ToString());
 }
 
 #if WITH_EDITOR

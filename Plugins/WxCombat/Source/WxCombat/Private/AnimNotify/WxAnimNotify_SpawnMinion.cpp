@@ -34,10 +34,7 @@ void UWxAnimNotify_SpawnMinion::Notify(USkeletalMeshComponent* MeshComp, UAnimSe
 
 FString UWxAnimNotify_SpawnMinion::GetNotifyName_Implementation() const
 {
-	if (const UClass* TargetClass = MinionClass.Get())
-	{
-		return TargetClass->GetName();
-	}
-
-	return Super::GetNotifyName_Implementation();
+	FString ClassName = MinionClass ? MinionClass->GetName() : TEXT("None");
+	ClassName.RemoveFromEnd(TEXT("_C"), ESearchCase::CaseSensitive);
+	return FString::Printf(TEXT("Summon: %s"), *ClassName);
 }

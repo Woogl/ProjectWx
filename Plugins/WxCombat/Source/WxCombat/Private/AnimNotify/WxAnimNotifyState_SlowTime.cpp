@@ -35,5 +35,5 @@ void UWxAnimNotifyState_SlowTime::NotifyBegin(USkeletalMeshComponent* MeshComp, 
 
 FString UWxAnimNotifyState_SlowTime::GetNotifyName_Implementation() const
 {
-	return FString::Printf(TEXT("Slow Time (x%.2f)"), TimeDilation);
+	return FString::Printf(TEXT("Slow: x%.2f"), TimeDilation);
 }

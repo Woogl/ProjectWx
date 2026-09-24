@@ -22,3 +22,8 @@ void UWxAnimNotify_UseItem::Notify(USkeletalMeshComponent* MeshComp, UAnimSequen
 	Payload.OptionalObject2 = MeshComp;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Owner, Payload.EventTag, Payload);
 }
+
+FString UWxAnimNotify_UseItem::GetNotifyName_Implementation() const
+{
+	return TEXT("Use Item");
+}

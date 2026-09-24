@@ -197,3 +197,8 @@ void UWxAnimNotifyState_CameraMove::PostEditChangeProperty(FPropertyChangedEvent
 	}
 }
 #endif
+
+FString UWxAnimNotifyState_CameraMove::GetNotifyName_Implementation() const
+{
+	return bAttachToOwner ? TEXT("Camera: Follow") : TEXT("Camera: Fixed");
+}

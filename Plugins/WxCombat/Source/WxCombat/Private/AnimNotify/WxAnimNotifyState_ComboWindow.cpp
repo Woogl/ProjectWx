@@ -56,3 +56,8 @@ void UWxAnimNotifyState_ComboWindow::CloseWindow(USkeletalMeshComponent* MeshCom
 		Ability->CloseComboWindow(MontageInstanceID);
 	}
 }
+
+FString UWxAnimNotifyState_ComboWindow::GetNotifyName_Implementation() const
+{
+	return TEXT("Combo Window");
+}

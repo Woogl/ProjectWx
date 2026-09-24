@@ -42,10 +42,7 @@ void UWxAnimNotify_SpawnProjectile::Notify(USkeletalMeshComponent* MeshComp, UAn
 
 FString UWxAnimNotify_SpawnProjectile::GetNotifyName_Implementation() const
 {
-	if (const UClass* TargetClass = ProjectileClass.Get())
-	{
-		return TargetClass->GetName();
-	}
-
-	return Super::GetNotifyName_Implementation();
+	FString ClassName = ProjectileClass ? ProjectileClass->GetName() : TEXT("None");
+	ClassName.RemoveFromEnd(TEXT("_C"), ESearchCase::CaseSensitive);
+	return FString::Printf(TEXT("Projectile: %s"), *ClassName);
 }

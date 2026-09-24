@@ -11,10 +11,5 @@ FLinearColor UWxAnimNotify_SkillCutscene::GetEditorColor()
 
 FString UWxAnimNotify_SkillCutscene::GetNotifyName_Implementation() const
 {
-	if (!Sequence)
-	{
-		return Super::GetNotifyName_Implementation();
-	}
-
-	return Sequence->GetName();
+	return FString::Printf(TEXT("Cutscene: %s"), Sequence ? *Sequence->GetName() : TEXT("None"));
 }

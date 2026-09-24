@@ -49,10 +49,5 @@ void UWxAnimNotifyState_WeaponAttack::NotifyEnd(USkeletalMeshComponent* MeshComp
 
 FString UWxAnimNotifyState_WeaponAttack::GetNotifyName_Implementation() const
 {
-	if (DamageDataRow.IsNull())
-	{
-		return Super::GetNotifyName_Implementation();
-	}
-	
-	return DamageDataRow.RowName.ToString();
+	return FString::Printf(TEXT("Attack: %s"), DamageDataRow.IsNull() ? TEXT("None") : *DamageDataRow.RowName.ToString());
 }
