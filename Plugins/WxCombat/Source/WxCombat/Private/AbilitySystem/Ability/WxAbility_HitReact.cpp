@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_HitReact.h"
 #include "AbilitySystemComponent.h"
+#include "Animation/AnimMontage.h"
 #include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
 
@@ -44,8 +45,8 @@ bool UWxAbility_HitReact::ShouldAbilityRespondToEvent(const FGameplayAbilityActo
 	}
 
 	// ActivateAbility에서 거르면 재트리거 종료와 공격·스킬 취소가 이미 끝난 뒤다.
-	// 패리는 반응 태그와 무관하게 받는다 — 성립 여부는 대미지 행의 bCanParry가 이미 갈랐다.
-	if (Payload->EventTag == WxGameplayTags::Event_Hit && !Payload->TargetTags.HasTag(WxGameplayTags::HitReact))
+	const FGameplayTag ReactionTag = GetReactionTag(*Payload);
+	if (!ReactionTag.IsValid() || !HitReactMontage || !HitReactMontage->IsValidSectionName(ReactionTag.GetTagLeafName()))
 	{
 		return false;
 	}
@@ -70,16 +71,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	}
 
 	// 기본 반응은 없다 — 대미지 행이 HitReactTag 를 비운 것이 곧 "이 공격은 피격 반응을 일으키지 않는다"는 지정이다.
-	FGameplayTag ReactionTag;
-	if (TriggerEventData)
-	{
-		ReactionTag = TriggerEventData->TargetTags.Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
-		if (TriggerEventData->EventTag == WxGameplayTags::Event_Hit_Parry)
-		{
-			ReactionTag = WxGameplayTags::Event_Hit_Parry;
-		}
-	}
-
+	const FGameplayTag ReactionTag = TriggerEventData ? GetReactionTag(*TriggerEventData) : FGameplayTag();
 	if (!ReactionTag.IsValid())
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
@@ -89,7 +81,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
 
 	// 그로기 중 넉 계열은 보내는 쪽(UWxEffectComponent_DamageReaction)이 일반 피격으로 낮춰 온다.
-	if (!PlayMontage(SelectMontage(ReactionTag)))
+	if (!PlayMontage(HitReactMontage, ReactionTag.GetTagLeafName()))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -110,28 +102,15 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	}
 }
 
-UAnimMontage* UWxAbility_HitReact::SelectMontage(FGameplayTag ReactionTag) const
+FGameplayTag UWxAbility_HitReact::GetReactionTag(const FGameplayEventData& Payload)
 {
-	UAnimMontage* Montage = nullptr;
-
-	if (ReactionTag == WxGameplayTags::HitReact_KnockBack)
+	// 패리는 반응 태그와 무관하게 받는다 — 성립 여부는 대미지 행의 bCanParry가 이미 갈랐다.
+	if (Payload.EventTag == WxGameplayTags::Event_Hit_Parry)
 	{
-		Montage = KnockbackMontage;
-	}
-	else if (ReactionTag == WxGameplayTags::HitReact_KnockDown)
-	{
-		Montage = KnockdownMontage;
-	}
-	else if (ReactionTag == WxGameplayTags::HitReact_KnockUp)
-	{
-		Montage = KnockupMontage;
-	}
-	else if (ReactionTag == WxGameplayTags::Event_Hit_Parry)
-	{
-		Montage = ParryReactMontage;
+		return WxGameplayTags::Event_Hit_Parry;
 	}
 
-	return Montage ? Montage : NormalHitReactMontage.Get();
+	return Payload.TargetTags.Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
 }
 
 void UWxAbility_HitReact::FaceInstigator(AActor* AvatarActor, const AActor* Instigator)
