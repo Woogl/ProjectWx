@@ -22,6 +22,7 @@ public class WxEditor : ModuleRules
 			"GameplayAbilities",
 			"GameplayTags",
 			"GameplayStateTreeModule",
+			"Json",
 			"Slate",
 			"SlateCore",
 			"PropertyEditor",

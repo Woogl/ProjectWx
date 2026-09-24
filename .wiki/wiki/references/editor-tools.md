@@ -2,6 +2,9 @@
 title: "편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer"
 category: reference
 sources:
+  - "raw/notes/2026-09-25-row-preview-nested.md"
+  - "raw/notes/2026-09-25-row-preview-tooltip.md"
+  - "raw/notes/2026-09-25-row-preview-empty-struct.md"
   - "raw/notes/2026-09-22-current-editor.md"
   - "raw/notes/2026-09-22-current-foundation.md"
   - "raw/notes/2026-09-23-datatable-row-fixup.md"
@@ -9,7 +12,7 @@ sources:
   - "raw/notes/2026-09-23-item-viewmodel-unification.md"
   - "raw/notes/2026-09-23-screen-classes-to-resolvers.md"
 created: 2026-09-22
-updated: 2026-09-23
+updated: 2026-09-25
 tags: [wx, editor, datatable]
 aliases: ["WxEditor", "WxToolset", "DataTableRowFixup", "BoxComponentVisualizerEditor"]
 confidence: medium
@@ -40,6 +43,10 @@ WxEditor는 엔진 Object Details를 감싸 원래 콜백·순서를 보관한�
 DataTableRowFixup은 모듈 시작 시 DataTable 변경 리스너를 만들고 종료 시 해제한다. WxToolset은 모듈 시작 시 네 도구 클래스(AnimMontage·Blueprint·MVVM·StateTree)를 등록하고 종료 시 해제한다. 공개 계약상 Montage 구조 복사는 대상의 노티파이·블렌드 설정을 유지하며, 노티파이 복제는 이미 노티파이가 있는 섹션을 건너뛴다. StateTree 루트 파라미터 삭제 시 그 파라미터를 쓰던 바인딩은 별도 정리 대상이다. 도구 호출 가능성과 특정 에셋 변경의 성공·저장·컴파일 성공은 구분한다.
 
 ## DataTable 행 참조 갱신
+
+Row 미리보기는 값이 있는 부모 안의 빈 하위 구조체도 각각 축약한다. 엔진이 내보낸 현재 값과 초기 기본값 JSON의 같은 이름 객체를 재귀 비교하므로 `IgnoreTags`가 설정되어 있어도 빈 `RequireTags`·`TagQuery`는 `{}`가 된다. 파싱 실패·고정 배열은 원문을 유지하며 컨테이너 요소 내부의 재귀 축약은 지원하지 않는다. [중첩 처리 수정 근거](../../raw/notes/2026-09-25-row-preview-nested.md).
+
+`WxPreviewRow` 메타데이터의 Row 핸들 미리보기는 구조체가 생성자 초기 기본값과 같으면 셀을 `{}`로 축약한다. 기본값과 다른 구조체는 기존 전체 텍스트를 표시한다. 툴팁도 셀과 같은 텍스트를 표시하고 실제 Row 데이터는 변경하지 않는다. 생성자에 지정된 0이 아닌 기본값도 축약될 수 있다. [표시 기준과 검증 범위](../../raw/notes/2026-09-25-row-preview-empty-struct.md), [툴팁 후속 변경](../../raw/notes/2026-09-25-row-preview-tooltip.md).
 
 엔진의 `FDataTableEditorUtils::RenameRow`는 테이블 키만 바꾸고 행 이름 리다이렉트도 없어, 행 이름을 바꾸면 그 행을 쓰던 에셋의 참조가 조용히 끊긴다. DataTableRowFixup은 이 참조를 새 이름으로 고친다. 켜고 끄는 것은 Editor Preferences > Wx > DataTable Row Fixup의 개인 설정이며 기본값은 켜짐이다.
 

@@ -324,3 +324,12 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 - 미반영은 장치 StateTree 정리 8건(`b32c1f622`·`844010a94`·`f6b4af9d4`·`9e922a15b`·`36fbb4371`·`80e3e370b`·`8f06b1ffc`·`70495c0e7`)이었다. 영향 기사는 world·combat·modules이고, 나머지 14개 기사는 이 변경과 겹치는 서술이 없다(Wiki 본문 검색으로 확인).
 
 ## [2026-09-24] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
+## [2026-09-25] ingest + compile | Row 미리보기 기본 구조체 축약
+- 원자료 1개를 수집하고 editor-tools에 초기 기본값 비교와 원문 툴팁 유지 규칙을 반영했다. C++ 컴파일 통과, DLL 점유로 링크 실패, 화면 미검증.
+
+## [2026-09-25] ingest + compile | Row 미리보기 툴팁 통일
+- 사용자 후속 요청을 원자료로 수집하고 editor-tools에 셀과 툴팁 표시 통일을 반영했다. 기존 원문 툴팁 유지 정책을 대체한다.
+
+## [2026-09-25] ingest + compile | Row 미리보기 빈 하위 구조체 수정
+- HGTest 사용자 화면으로 부모 전체 비교의 누락을 확인했다. 하위 객체별 기본값 비교와 제한 범위를 editor-tools에 반영했다.

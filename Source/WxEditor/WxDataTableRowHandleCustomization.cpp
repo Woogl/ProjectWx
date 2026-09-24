@@ -4,6 +4,10 @@
 
 #include "AssetRegistry/AssetData.h"
 #include "DataTableEditorUtils.h"
+#include "DataTableUtils.h"
+#include "Dom/JsonObject.h"
+#include "Serialization/JsonSerializer.h"
+#include "Policies/CondensedJsonPrintPolicy.h"
 #include "DetailWidgetRow.h"
 #include "Editor.h"
 #include "Engine/DataTable.h"
@@ -13,6 +17,7 @@
 #include "PropertyCustomizationHelpers.h"
 #include "PropertyHandle.h"
 #include "UObject/Class.h"
+#include "UObject/StructOnScope.h"
 #include "UObject/UnrealType.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SWrapBox.h"
@@ -26,6 +31,55 @@ namespace WxDataTableRowHandleCustomization
 	static const FName PreviewMetadataName(TEXT("WxPreviewRow"));
 	static const FName RowStructureTagName(TEXT("RowStructure"));
 	static const FName RowTypeMetadataName(TEXT("RowType"));
+
+	void CollapseDefaultObjects(const TSharedPtr<FJsonValue>& Value, const TSharedPtr<FJsonValue>& DefaultValue)
+	{
+		if (!Value.IsValid() || !DefaultValue.IsValid() || Value->Type != EJson::Object || DefaultValue->Type != EJson::Object)
+		{
+			return;
+		}
+
+		const TSharedPtr<FJsonObject>& Object = Value->AsObject();
+		if (FJsonValue::CompareEqual(*Value, *DefaultValue))
+		{
+			Object->Values.Reset();
+			return;
+		}
+
+		// 부모에 값이 있어도 빈 하위 구조체는 각각 축약해야 한다.
+		const TSharedPtr<FJsonObject>& DefaultObject = DefaultValue->AsObject();
+		for (const auto& Field : Object->Values)
+		{
+			if (const TSharedPtr<FJsonValue>* DefaultField = DefaultObject->Values.Find(Field.Key))
+			{
+				CollapseDefaultObjects(Field.Value, *DefaultField);
+			}
+		}
+	}
+
+	FText MakeStructPreviewText(const FStructProperty* Property, const FText& OriginalText)
+	{
+		// 고정 배열의 엔진 표기는 JSON 객체가 아니므로 기존 표현을 유지한다.
+		if (Property->ArrayDim != 1)
+		{
+			return OriginalText;
+		}
+
+		const FStructOnScope DefaultStruct(Property->Struct);
+		const FString DefaultText = DataTableUtils::GetPropertyValueAsTextDirect(Property, DefaultStruct.GetStructMemory()).ToString();
+		TSharedPtr<FJsonValue> Value;
+		TSharedPtr<FJsonValue> DefaultValue;
+		if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(OriginalText.ToString()), Value)
+			|| !FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(DefaultText), DefaultValue))
+		{
+			return OriginalText;
+		}
+
+		CollapseDefaultObjects(Value, DefaultValue);
+		FString Result;
+		const auto Writer = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&Result);
+		return FJsonSerializer::Serialize(Value, TEXT(""), Writer) ? FText::FromString(Result) : OriginalText;
+	}
 
 	const FProperty* FindMetaCarrier(const FProperty* Property, FName MetaName)
 	{
@@ -183,7 +237,11 @@ void FWxDataTableRowHandleCustomization::CustomizeChildren(TSharedRef<IPropertyH
 			continue;
 		}
 
-		const FText CellText = SelectedRow->CellData[ColumnIndex];
+		FText CellText = SelectedRow->CellData[ColumnIndex];
+		if (const FStructProperty* StructProperty = CastField<FStructProperty>(Column->Property))
+		{
+			CellText = WxDataTableRowHandleCustomization::MakeStructPreviewText(StructProperty, CellText);
+		}
 		ColumnNames.Add(Column->DisplayName.ToString());
 
 		// 폭 상한이 없으면 대사처럼 긴 값 하나가 패널 폭을 넘겨 잘린다.
