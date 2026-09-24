@@ -5,6 +5,8 @@
 #include "AbilitySystem/Effect/WxEffect_SuperArmor.h"
 #include "AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h"
 #include "AbilitySystemComponent.h"
+#include "Animation/AnimMontage.h"
+#include "AnimNotify/WxAnimNotify_SkillCutscene.h"
 #include "LevelSequence.h"
 #include "WxGameplayTags.h"
 #include "Cutscene/WxSkillCutsceneComponent.h"
@@ -36,7 +38,19 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	ULevelSequence* Sequence = CutsceneSequence;
+	ULevelSequence* Sequence = nullptr;
+	if (UltimateMontage)
+	{
+		for (const FAnimNotifyEvent& NotifyEvent : UltimateMontage->Notifies)
+		{
+			if (const UWxAnimNotify_SkillCutscene* CutsceneNotify = Cast<UWxAnimNotify_SkillCutscene>(NotifyEvent.Notify))
+			{
+				Sequence = CutsceneNotify->Sequence;
+				break;
+			}
+		}
+	}
+
 	UWxSkillCutsceneComponent* Coordinator = nullptr;
 	if (Sequence && ActorInfo->IsNetAuthority())
 	{
@@ -88,13 +102,6 @@ void UWxAbility_Ultimate::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 
 void UWxAbility_Ultimate::HandleCutsceneCompleted()
 {
-	// 몽타주 없이 컷신만으로 끝나는 구성도 정상이다.
-	if (!UltimateMontage)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-		return;
-	}
-
 	if (!PlayMontage(UltimateMontage))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
