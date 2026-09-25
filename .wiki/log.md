@@ -361,3 +361,13 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 - 미반영은 어빌리티 테이블 구동 전환 1-1·1-2단계 14건(`b4510a45c`~`b652ee043`)과 GA_ 복귀 4건(`5153da936`·`0473e201b`·`e305161ee`·`7c52ce0ce`)이었다. modules·foundation·dialogue·quests와 Wiki 운영 참조 문서는 이 변경과 겹치는 서술이 없다(본문 검색과 대조로 확인).
 
 ## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
+- 2026-09-25: 체크포인트 SaveGame 전환 원자료를 수집하고 world 기사의 저장·조회·초기화 계약과 진입점을 갱신했다. 정적 확인이며 인게임 검증은 별도다.
+
+- 2026-09-25: game 기사의 GameInstance 책임·새 게임 삭제 실패·부활 조회 경로를 같은 원자료로 갱신하고 원자료 수를 70개로 대조했다.
+
+- 2026-09-25: 사용자 후속 명칭 변경에 따라 world의 RecordCheckpoint를 SaveCheckpoint로 정정했다. API·태스크·InstanceData·파일명을 함께 변경하고 기존 에셋 호환용 StructRedirects를 추가했다.
+
+- 2026-09-25: SpawnerLibrary 제거 원자료를 수집하고 world에 AWxSpawner::RespawnAll의 C++ 호출·Manual 제외·로드 범위를 반영했다.
+
+- 2026-09-25: 사용자 결정으로 체크포인트 슬롯을 WxCheckpoint 하나로 통일하고 world의 PIE 분리 설명을 갱신했다. 세분화는 추후 진행한다.

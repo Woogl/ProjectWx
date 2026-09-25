@@ -1,17 +1,17 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "StateTreeTask/WxStateTreeTask_RecordCheckpoint.h"
+#include "StateTreeTask/WxStateTreeTask_SaveCheckpoint.h"
 
 #include "Components/SceneComponent.h"
 #include "Device/WxDevice.h"
 #include "Device/WxDeviceStateTreeComponent.h"
-#include "Engine/GameInstance.h"
+#include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "StateTreeExecutionContext.h"
-#include "System/WxCheckpointSubsystem.h"
+#include "System/WxCheckpointSaveGame.h"
 #include "WxWorldModule.h"
 
-FWxStateTreeTask_RecordCheckpoint::FWxStateTreeTask_RecordCheckpoint()
+FWxStateTreeTask_SaveCheckpoint::FWxStateTreeTask_SaveCheckpoint()
 {
 	bShouldCallTick = false;
 #if WITH_EDITORONLY_DATA
@@ -20,7 +20,7 @@ FWxStateTreeTask_RecordCheckpoint::FWxStateTreeTask_RecordCheckpoint()
 #endif
 }
 
-EStateTreeRunStatus FWxStateTreeTask_RecordCheckpoint::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FWxStateTreeTask_SaveCheckpoint::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	if (UWxDeviceStateTreeComponent::IsRestoring(Context, Transition))
 	{
@@ -28,18 +28,22 @@ EStateTreeRunStatus FWxStateTreeTask_RecordCheckpoint::EnterState(FStateTreeExec
 	}
 	const AWxDevice* Device = Cast<AWxDevice>(Context.GetOwner());
 	const ACharacter* Interactor = Device ? Device->GetInteractingCharacter() : nullptr;
-	if (!Device || !Device->HasAuthority() || !Interactor || !Interactor->IsPlayerControlled())
+	if (!Device || !Device->HasAuthority() || !Interactor || !Interactor->IsPlayerControlled()
+		|| !Device->GetWorld()->IsNetMode(NM_Standalone))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	const USceneComponent* Marker = Instance.RespawnPoint.Resolve(Device);
-	UGameInstance* GameInstance = Device->GetGameInstance();
-	if (!Marker || !GameInstance)
+	if (!Marker)
 	{
-		UE_LOG(LogWxWorld, Warning, TEXT("Checkpoint(%s): 부활 위치 컴포넌트 또는 GameInstance가 없습니다."), *Device->GetName());
+		UE_LOG(LogWxWorld, Warning, TEXT("Checkpoint(%s): 부활 위치 컴포넌트가 없습니다."), *Device->GetName());
 		return EStateTreeRunStatus::Failed;
 	}
-	GameInstance->GetSubsystem<UWxCheckpointSubsystem>()->RecordCheckpoint(Device->GetWorld(), Marker->GetComponentTransform());
+	if (!UWxCheckpointSaveGame::SaveCheckpoint(Device->GetWorld(), Marker->GetComponentTransform()))
+	{
+		UE_LOG(LogWxWorld, Warning, TEXT("Checkpoint(%s): 체크포인트 저장에 실패했습니다."), *Device->GetName());
+		return EStateTreeRunStatus::Failed;
+	}
 	return EStateTreeRunStatus::Succeeded;
 }

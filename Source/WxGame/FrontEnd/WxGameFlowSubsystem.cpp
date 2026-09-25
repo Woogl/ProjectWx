@@ -10,7 +10,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/PackageName.h"
-#include "System/WxCheckpointSubsystem.h"
+#include "System/WxCheckpointSaveGame.h"
 
 #define LOCTEXT_NAMESPACE "WxGameFlow"
 
@@ -47,10 +47,14 @@ bool UWxGameFlowSubsystem::RequestNewGame(TSoftClassPtr<APawn> PawnClass, TSoftO
 		StatusText = LOCTEXT("InvalidSelection", "캐릭터 또는 레벨을 확인해주세요.");
 		return false;
 	}
+	if (!UWxCheckpointSaveGame::ResetCheckpoint(World))
+	{
+		StatusText = LOCTEXT("CheckpointResetFailed", "체크포인트 저장 초기화에 실패했습니다. 다시 시도해주세요.");
+		return false;
+	}
 	PendingPawnClass = PawnClass;
 	PendingLevel = Level;
 	StatusText = FText::GetEmpty();
-	GetGameInstance()->GetSubsystem<UWxCheckpointSubsystem>()->ResetCheckpoint();
 	UGameplayStatics::OpenLevel(this, FName(*Level.ToSoftObjectPath().GetLongPackageName()), true);
 	return true;
 }

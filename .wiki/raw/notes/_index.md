@@ -77,3 +77,7 @@ Last updated: 2026-09-25
 | [Row 미리보기의 기본 구조체 축약](2026-09-25-row-preview-empty-struct.md) | Row 미리보기에서 초기 기본값과 같은 구조체를 {}로 표시하고 원문은 툴팁에 유지한다. | wx, editor, datatable | 2026-09-25 |
 | [Row 미리보기의 빈 하위 구조체 축약](2026-09-25-row-preview-nested.md) | 값이 있는 부모 구조체 안에서도 기본값과 같은 하위 JSON 객체를 각각 {}로 축약한다. | wx, editor, datatable | 2026-09-25 |
 | [Row 미리보기와 툴팁 표시 통일](2026-09-25-row-preview-tooltip.md) | 사용자 후속 요청으로 축약된 셀과 툴팁에 같은 텍스트를 표시한다. | wx, editor, datatable | 2026-09-25 |
+| [체크포인트 SaveGame 전환](2026-09-25-checkpoint-savegame.md) | 체크포인트 디스크 저장·부활 조회·새 게임 초기화 | wx, world, savegame | 2026-09-25 |
+| [체크포인트 저장 명칭 통일](2026-09-25-save-checkpoint-rename.md) | SaveCheckpoint API·태스크 이름과 에셋 호환 리다이렉트 | wx, world, savegame | 2026-09-25 |
+| [SpawnerLibrary 제거와 C++ 일괄 재생성](2026-09-25-spawner-library-removal.md) | AWxSpawner C++ API로 부활·StateTree 재생성 연결 | wx, world, spawner | 2026-09-25 |
+| [체크포인트 단일 슬롯 결정](2026-09-25-checkpoint-single-slot.md) | PIE와 일반 플레이가 WxCheckpoint 슬롯 공유 | wx, world, savegame | 2026-09-25 |

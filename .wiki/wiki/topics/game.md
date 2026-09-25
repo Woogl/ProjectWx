@@ -2,6 +2,7 @@
 title: "WxGame — 게임 조립과 실행 흐름"
 category: topic
 sources:
+  - "raw/notes/2026-09-25-checkpoint-savegame.md"
   - "raw/notes/2026-09-22-current-game.md"
   - "raw/notes/2026-09-22-current-foundation.md"
   - "raw/notes/2026-09-23-boss-battle-three-layer.md"
@@ -31,7 +32,7 @@ WxGame은 캐릭터·컨트롤러·GameState에 도메인 기능을 배치하고
 | `AWxPlayerController` | 인벤토리, 상호작용 스캐너, 대화 세션, PlayerLayout, NameplateManager |
 | `AWxEnemyCharacter` | 교전 태그(`State.Engaged`) 갱신 |
 | `AWxGameState` | 퀘스트 컴포넌트, 스킬 컷신 컴포넌트 |
-| GameInstance 서브시스템 | 새 게임 흐름, UI 레이아웃, 체크포인트 등 각 도메인의 장기 수명 |
+| GameInstance 서브시스템 | 새 게임 흐름, UI 레이아웃 등 각 도메인의 장기 수명 |
 | 월드 서브시스템 | `UWxBattleSubsystem`: 교전 중인 보스와 현재 보스 |
 
 `AWxPlayerController`에 붙은 WxGame `UWxNameplateManagerComponent`가 빙의 캐릭터의 락온 대상과 적의 교전 태그를 직접 읽어 머리 위 Nameplate·Reticle을 붙인다. 락온(WxCombat)과 위젯·VM(WxUI)을 함께 알아야 하는 연결 코드라 조립 계층에 있다. 표시 규칙은 [UI](ui.md)의 머리 위 Nameplate 절에 있다.
@@ -63,13 +64,13 @@ ASC는 PlayerState가 아니라 캐릭터의 기본 서브오브젝트다. 사�
 
 ## 새 게임
 
-`UWxGameFlowSubsystem::RequestNewGame`은 Standalone·유효한 캐릭터/레벨 선택·중복 요청 조건을 검사한다. 선택을 저장하고 체크포인트를 초기화한 뒤 레벨을 연다. GameMode는 목적지 월드에서 선택 Pawn 클래스를 사용한다. 다른 월드가 열리거나 이동이 실패하면 선택을 정리한다.
+`UWxGameFlowSubsystem::RequestNewGame`은 Standalone·유효한 캐릭터/레벨 선택·중복 요청 조건을 검사한다. 체크포인트 SaveGame 슬롯을 삭제하고, 성공하면 선택을 저장한 뒤 레벨을 연다. 삭제 실패 시 상태 문구를 표시하고 이동하지 않는다. GameMode는 목적지 월드에서 선택 Pawn 클래스를 사용한다. 다른 월드가 열리거나 이동이 실패하면 선택을 정리한다.
 
 목적지 로드 뒤 카메라 위치를 갱신하고 레벨 스트리밍 완료를 기다려 첫 틱 전에 지형을 준비한다. 선택 목록은 `WxFrontEndDeveloperSettings`와 DefaultGame.ini에 있다. 파일 경로 등록만으로 모든 맵의 실제 로딩을 검증한 것은 아니다.
 
 ## 같은 월드 부활
 
-`RequestRespawn`은 활성 사망 화면·로컬 컨트롤러·Standalone·사망 태그·기본 Pawn 클래스를 확인한다. 기존 Pawn을 비빙의한 뒤 체크포인트 또는 일반 RestartPlayer로 새 Pawn을 만든다. 생성 실패 시 기존 Pawn의 충돌과 빙의를 복구한다. 성공하면 기존 Pawn을 파괴하고 새 Pawn HP/MP를 최대값으로 채운 뒤 시점·스트리밍·스포너 재생성을 처리한다.
+`RequestRespawn`은 활성 사망 화면·로컬 컨트롤러·Standalone·사망 태그·기본 Pawn 클래스를 확인한다. 체크포인트 SaveGame을 로드해 현재 맵과 Transform을 검사하고, 기존 Pawn을 비빙의한 뒤 유효한 체크포인트 또는 일반 RestartPlayer로 새 Pawn을 만든다. 생성 실패 시 기존 Pawn의 충돌과 빙의를 복구한다. 성공하면 기존 Pawn을 파괴하고 새 Pawn HP/MP를 최대값으로 채운 뒤 시점·스트리밍·스포너 재생성을 처리한다.
 
 이 경로는 멀티플레이 부활이나 디스크 저장 복원으로 일반화하지 않는다. 인벤토리는 컨트롤러에 있으므로 Pawn 교체와 인벤토리 객체 수명이 다르지만, 게임 종료 후 저장을 의미하지는 않는다.
 

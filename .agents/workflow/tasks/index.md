@@ -10,6 +10,10 @@
 
 ## 작업 인계
 
+- [SpawnerLibrary 제거](spawner-library-removal.md)
+
+- [체크포인트 SaveGame 전환](checkpoint-savegame.md)
+
 - [어빌리티 테이블 구동 전환](ability-table-driven.md)
 - [보스 표시 VM 단순화](boss-display-simplification.md)
 - [DataTable 행 이름 변경 시 사용처 참조 갱신](datatable-row-rename-reference-update.md)

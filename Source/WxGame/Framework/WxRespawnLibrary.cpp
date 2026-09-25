@@ -6,12 +6,11 @@
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "Camera/PlayerCameraManager.h"
 #include "CommonActivatableWidget.h"
-#include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
-#include "System/WxCheckpointSubsystem.h"
+#include "System/WxCheckpointSaveGame.h"
 #include "Spawnable/WxSpawner.h"
 #include "WxGameplayTags.h"
 #include "WxGame.h"
@@ -37,10 +36,8 @@ bool UWxRespawnLibrary::RequestRespawn(UCommonActivatableWidget* DeathScreen)
 	{
 		return false;
 	}
-	const UGameInstance* GameInstance = World->GetGameInstance();
-	const UWxCheckpointSubsystem* Checkpoint = GameInstance ? GameInstance->GetSubsystem<UWxCheckpointSubsystem>() : nullptr;
 	FTransform RespawnTransform;
-	const bool bHasCheckpoint = Checkpoint && Checkpoint->TryGetCheckpoint(World, RespawnTransform);
+	const bool bHasCheckpoint = UWxCheckpointSaveGame::TryGetCheckpoint(World, RespawnTransform);
 	const bool bHadCollision = DeadPawn->GetActorEnableCollision();
 	DeadPawn->SetActorEnableCollision(false);
 	// 엔진 RestartPlayer는 빙의 중인 Pawn이 있으면 재사용한다.
