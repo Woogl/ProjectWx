@@ -11,6 +11,8 @@ if not errorlevel 1 (
   pause
   exit /b 1
 )
+"%WX_WIKI_PWSH%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\.agents\scripts\Export-AbilitySystemLists.ps1"
+if errorlevel 1 echo Ability, effect and character list update failed. Opening the wiki with the previous lists.
 "%WX_WIKI_PWSH%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\.agents\scripts\Export-Wiki.ps1" -Open
 if errorlevel 1 (
   pause

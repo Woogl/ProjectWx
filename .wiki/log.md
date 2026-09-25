@@ -362,6 +362,8 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 
 ## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
 
+## [2026-09-25] compile | 어빌리티·이펙트·캐릭터 목록 기사(references/ability-list·effect-list·character-list) 추가. BatchFiles/ExportAbilitySystemLists.bat(.agents/scripts/Export-AbilitySystemLists.ps1)이 GA_·ABS_·GE_·AM_·BT_·DT_·캐릭터 BP 등 에셋의 저장값·참조(몽타주 섹션·노티파이, 속성 초기값, 피해 행과 행 참조 포함)와 C++ 소스를 에디터 없이 읽어 생성하고, OpenWiki.bat이 위키를 열 때 다시 만든다. combat-abilities에 관련 링크 추가. 게임 실행 검증 아님.
+
 - 2026-09-25: 체크포인트 SaveGame 전환 원자료를 수집하고 world 기사의 저장·조회·초기화 계약과 진입점을 갱신했다. 정적 확인이며 인게임 검증은 별도다.
 
 - 2026-09-25: game 기사의 GameInstance 책임·새 게임 삭제 실패·부활 조회 경로를 같은 원자료로 갱신하고 원자료 수를 70개로 대조했다.
@@ -373,6 +375,10 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 - 2026-09-25: 사용자 결정으로 체크포인트 슬롯을 WxCheckpoint 하나로 통일하고 world의 PIE 분리 설명을 갱신했다. 세분화는 추후 진행한다.
 
 - 2026-09-25: ST_CheckPoint 리세이브 후 구조체 리다이렉트 두 항목을 제거하고 별도 프로세스의 로드·StateTree 컴파일·저장 성공을 원자료와 world에 반영했다.
+
+## [2026-09-25] compile | 어빌리티·이펙트 목록 표기 정정
+
+Export-AbilitySystemLists.ps1을 고쳐 목록을 다시 생성했다. 빈 칸이 "없음"이 아니라 부모 기본값임을 명시하고 어빌리티 타입 칸·GE_ 부모 칸을 C++ 생성자 파일로 링크했다. GE_ 기타 칸에서 엔진이 컴포넌트 값을 되써 두는 5.3 폐기 필드(`UGameplayEffect::PreSave`)를 뺐다. 몽타주 섹션은 시작 시각 순이고 노티파이 `{}` 값은 인스턴스·섹션 대응이 없는 모음임을 정정했다. config.md에 세 목록이 스크립트로만 갱신하는 생성물임을 적었다. 게임 실행 검증 아님.
 
 ## [2026-09-25] ingest + compile | 쿨다운 GE 통합
 

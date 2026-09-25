@@ -8,6 +8,9 @@ Last updated: 2026-09-25
 
 | File | Summary | Tags | Updated |
 |------|---------|------|---------|
+| [어빌리티 목록](ability-list.md) | GA_·AM_ 에셋에서 생성한 표로, 어빌리티마다 타입·WxAbilitySet·입력·몽타주·태그·쿨다운·비용과 몽타주 섹션·노티파이를 보인다. | wx, combat | 2026-09-25 |
+| [캐릭터 목록](character-list.md) | AbilitySets를 가진 캐릭터 BP의 GAS 구성으로, 캐릭터별 WxAbilitySet과 각 WxAbilitySet이 주는 어빌리티·이펙트, 속성 초기값을 보인다. | wx, combat | 2026-09-25 |
+| [이펙트 목록](effect-list.md) | GE_ 에셋의 모디파이어·컴포넌트 저장값, 에셋이 참조하는 C++ 이펙트·컴포넌트·계산 클래스, 피해 행(DT_Damage) 값을 에셋 사용처와 함께 보인다. | wx, combat | 2026-09-25 |
 | [편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer](editor-tools.md) | 네 편집기 모듈은 속성 편집·썸네일·시각화·에셋 도구와 DataTable 행 참조 갱신을 제공하며 런타임 게임 기능과 구분된다. | wx, editor, datatable | 2026-09-25 |
 | [WX Wiki 운영과 재생성](wiki-operation.md) | 프로젝트 로컬 Wiki는 최신 근거를 수집한 뒤 편찬하며, 정적 확인과 빌드·실행 검증을 구분한다. | wx, workflow | 2026-09-22 |
 | [Wiki·Workflow 도구 구조](wiki-workflow.md) | Wiki는 프로젝트 지식의 정본이고 Workflow는 사람의 판단·확정본·실행 상태의 정본이다. | wx, workflow | 2026-09-22 |

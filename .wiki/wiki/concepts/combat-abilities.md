@@ -90,14 +90,17 @@ summary: "어빌리티 하나는 데이터 전용 GA_ 하나다. C++ 타입이 �
 
 ## 변경 시 확인
 
-[AbilityBase](../../../Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h)의 프로퍼티와 [구현](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp)의 활성화 조건·종료 정리·`IsDataValid`를 함께 본다. 부여와 세트 규칙은 [AbilitySet](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySet.cpp)에서, 비용·충전 규칙은 [비용 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cost.cpp)와 [쿨다운 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cooldown.cpp)에서, 구간 상태 GE는 [구간 GE 노티파이](../../../Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp)에서 본다. GA_·세트·몽타주의 실제 값은 에셋 안에 있어 코드만으로 단정하지 않는다.
+[AbilityBase](../../../Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h)의 프로퍼티와 [구현](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp)의 활성화 조건·종료 정리·`IsDataValid`를 함께 본다. 부여와 세트 규칙은 [AbilitySet](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySet.cpp)에서, 비용·충전 규칙은 [비용 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cost.cpp)와 [쿨다운 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cooldown.cpp)에서, 구간 상태 GE는 [구간 GE 노티파이](../../../Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp)에서 본다. GA_·세트·몽타주의 실제 값은 에셋 안에 있어 코드만으로 단정하지 않는다. GA_·몽타주 저장값은 [어빌리티 목록](../references/ability-list.md)에서, 캐릭터별 WxAbilitySet과 속성 초기값은 [캐릭터 목록](../references/character-list.md)에서, 이펙트의 GE_ 저장값과 에셋·코드 사용처는 [이펙트 목록](../references/effect-list.md)에서 본다.
 
 ## 관련 문서
 
+- [[ability-list|어빌리티 목록]] ([어빌리티 목록](../references/ability-list.md))
 - [[ai|WxAI — AI 인지와 행동]] ([WxAI — AI 인지와 행동](../topics/ai.md))
+- [[character-list|캐릭터 목록]] ([캐릭터 목록](../references/character-list.md))
 - [[combat|WxCombat — 전투 시스템]] ([WxCombat — 전투 시스템](../topics/combat.md))
 - [[combat-damage|피해 처리와 전투 연출]] ([피해 처리와 전투 연출](../concepts/combat-damage.md))
 - [[combat-resources|전투 자원과 현광의 예외]] ([전투 자원과 현광의 예외](../concepts/combat-resources.md))
+- [[effect-list|이펙트 목록]] ([이펙트 목록](../references/effect-list.md))
 
 ## Sources
 
