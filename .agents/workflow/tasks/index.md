@@ -19,6 +19,7 @@
 | [상호작용 목록·엘리베이터 버튼](interaction-list-vm-simplification.md) | 구현·빌드 확인 | 선택지 표시·실행과 탑승칸 버튼 잠금·해제를 확인한다. |
 | [아이템·퀵슬롯](item-viewmodel-unification.md) | 빌드·위젯 컴파일 확인 | 게임 맵에서 목록·퀵슬롯·획득 표시와 사용 동작을 확인한다. |
 | [적 이름표·락온 표시](nameplate-manager.md) | 빌드·에셋 재로드 확인 | 교전·락온·사망 표시와 호스트/클라이언트별 표시를 확인한다. |
+| [UI 데이터 인터페이스 제거](ui-data-interface-removal.md) | 빌드·회귀 테스트 3개·리다이렉트 없는 BP 97개 컴파일 확인 | 코드 리뷰 후 HUD·버프·보스·이름표 표시를 플레이로 확인한다. |
 | [어빌리티 슬롯 Resolver](ability-resolver-to-wxui.md) | 빌드·리다이렉트 없는 WBP 로드 확인 | 게임에서 어빌리티 슬롯이 실제로 표시되는지 확인한다. |
 
 ## 에디터 확인

@@ -123,11 +123,6 @@ FText AWxCharacterBase::GetTitle() const
 	return CharacterName;
 }
 
-FText AWxCharacterBase::GetDescription() const
-{
-	return FText::GetEmpty();
-}
-
 TSoftObjectPtr<UObject> AWxCharacterBase::GetIcon() const
 {
 	return Portrait;

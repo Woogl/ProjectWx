@@ -3,32 +3,26 @@
 #include "MVVM/WxViewModel_Effect.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
-#include "WxUIData.h"
 #include "Engine/Texture2D.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
 
-void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const IWxUIData* InUIData)
+void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const FWxConfigureEffectViewModel& InConfigurePresentation)
 {
 	Deinitialize();
-	if (!InASC || !InHandle.IsValid() || !InUIData)
+	if (!InASC || !InHandle.IsValid() || !InConfigurePresentation.IsBound())
 	{
 		return;
 	}
 
 	const FActiveGameplayEffect* ActiveEffect = InASC->GetActiveGameplayEffect(InHandle);
-	if (!ActiveEffect)
+	if (!ActiveEffect || !ActiveEffect->Spec.Def || !InConfigurePresentation.Execute(*this, *ActiveEffect->Spec.Def))
 	{
 		return;
 	}
 
 	CachedASC = InASC;
 	BoundHandle = InHandle;
-
-	SetTitle(InUIData->GetTitle());
-	SetDescription(InUIData->GetDescription());
-
-	RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Effect, Icon), InUIData->GetIcon());
 
 	SetStackCount(ActiveEffect->Spec.GetStackCount());
 
@@ -252,4 +246,11 @@ void UWxViewModel_Effect::ApplyLoadedImage(FName FieldName, UObject* LoadedImage
 	{
 		SetIcon(LoadedImage);
 	}
+}
+
+void UWxViewModel_Effect::SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon)
+{
+	SetTitle(InTitle);
+	SetDescription(InDescription);
+	RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Effect, Icon), InIcon);
 }

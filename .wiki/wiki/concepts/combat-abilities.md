@@ -2,6 +2,7 @@
 title: "전투 어빌리티와 이펙트"
 category: concept
 sources:
+  - "raw/notes/2026-09-25-ui-data-interface-removal.md"
   - "raw/notes/2026-09-22-current-combat.md"
   - "raw/notes/2026-09-22-current-ability-cost-cooldown.md"
   - "raw/notes/2026-09-24-wxcombat-cleanup.md"
@@ -60,7 +61,7 @@ summary: "어빌리티 하나는 데이터 전용 GA_ 하나다. C++ 타입이 �
 
 - 비용 GE `UWxEffect_Cost`는 모든 어빌리티가 함께 쓰는 Instant 효과다(`CostGameplayEffectClass` 기본값). MP·UP·SP에 Additive 모디파이어를 하나씩 두고, 각 MMC가 소스 어빌리티 CDO(`GetAbility()`)의 `CostResource`가 자기 자원일 때만 `-CostAmount`를 낸다. 엔진 순정 CheckCost·ApplyCost를 그대로 쓰며, 순정 자원 부족 판정이 Additive 모디파이어만 보기 때문에 Additive를 쓴다.
 - 쿨다운 GE `UWxEffect_Cooldown`도 모든 어빌리티가 함께 쓴다(`CooldownGameplayEffectClass` 기본값). 쿨다운의 식별자는 GA_의 `CooldownTags`(`Cooldown.*`)다. `ApplyCooldown`이 공용 GE 스펙의 `DynamicGrantedTags`에 붙이고 `GetCooldownTags()`가 돌려주므로 순정 쿨다운 판정·쿼리가 그대로 본다. 같은 태그를 고른 어빌리티끼리 쿨다운을 나눠 쓴다. 엔진은 스택을 GE 클래스로만 합쳐 태그를 가리지 않으므로 공용 GE는 쌓지 않는다(2026-09-25 그룹별 파생 클래스를 합침).
-- 소모한 충전 하나가 쿨다운 GE 하나다. `UWxAbilityBase::CheckCooldown`은 `CooldownTags`로 찾은 활성 GE가 `MaxRecharges`보다 적으면 통과시킨다. `ApplyCooldown`이 적용 전에 같은 태그 쿨다운의 최대 남은 시간에 `CooldownTime`을 더해 `SetByCaller.Duration`으로 넘기므로 충전이 차례로 돌아온다(회피 2초·충전 2를 0초·0.5초에 쓰면 2초·4초에 회복). 이 계산을 MMC에 두면 안 된다. 엔진이 GE를 활성 목록에 넣은 뒤 지속시간을 다시 계산해 MMC가 자기 자신을 대기열로 센다(1회 사용에 4초가 됐던 결함). UI는 GE 지속시간이 아니라 `IWxUIData::GetCooldownTime()`을 충전 하나의 주기로 쓴다.
+- 소모한 충전 하나가 쿨다운 GE 하나다. `UWxAbilityBase::CheckCooldown`은 `CooldownTags`로 찾은 활성 GE가 `MaxRecharges`보다 적으면 통과시킨다. `ApplyCooldown`이 적용 전에 같은 태그 쿨다운의 최대 남은 시간에 `CooldownTime`을 더해 `SetByCaller.Duration`으로 넘기므로 충전이 차례로 돌아온다(회피 2초·충전 2를 0초·0.5초에 쓰면 2초·4초에 회복). 이 계산을 MMC에 두면 안 된다. 엔진이 GE를 활성 목록에 넣은 뒤 지속시간을 다시 계산해 MMC가 자기 자신을 대기열로 센다(1회 사용에 4초가 됐던 결함). UI는 GE 지속시간이 아니라 WxGame 리졸버가 `UWxAbilityBase::GetCooldownTime()`에서 전달한 값을 충전 하나의 주기로 쓴다.
 - `CooldownTime`이 0 이하면 `GetCooldownGameplayEffect`가 nullptr을 돌려 쿨다운이 없다. 지속시간 0인 GE는 만료 타이머가 걸리지 않기 때문이다.
 - 쿨다운 무시(`UWxEffect_IgnoreCooldowns`)는 Infinite GE다. 순정 Immunity·RemoveOther 컴포넌트가 `Cooldown` 부모 태그를 부여하는 GE를 막고 걷는다. 코스트 무시(`UWxEffect_IgnoreCosts`)는 `Effect.IgnoreCosts` 태그를 세우고 `UWxAbilityBase`가 코스트 검사·적용을 건너뛴다. 순정 CheckCost는 면역이 아니라 어트리뷰트를 보기 때문이다. 둘 다 소환물 AbilitySet이 부여한다.
 - AbilitySet의 `GrantedEffects`는 SetByCaller를 채우지 않는다. SetByCaller로 지속시간을 받는 GE를 넣으면 엔진이 경고 없이 1초로 둔다.
@@ -103,6 +104,8 @@ summary: "어빌리티 하나는 데이터 전용 GA_ 하나다. C++ 타입이 �
 - [[effect-list|이펙트 목록]] ([이펙트 목록](../references/effect-list.md))
 
 ## Sources
+
+- [UI 데이터 인터페이스 제거와 리졸버 연결](../../raw/notes/2026-09-25-ui-data-interface-removal.md) — 2026-09-25 사용자 합의와 구현
 
 - [근거 1](../../raw/notes/2026-09-22-current-combat.md)
 - [어빌리티 비용·쿨다운 GE 정적 조사](../../raw/notes/2026-09-22-current-ability-cost-cooldown.md) — 비용·쿨다운 GE 구조

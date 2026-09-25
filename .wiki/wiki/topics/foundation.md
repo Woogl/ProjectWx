@@ -2,6 +2,7 @@
 title: "WxCore — 공용 계약과 설정"
 category: topic
 sources:
+  - "raw/notes/2026-09-25-ui-data-interface-removal.md"
   - "raw/notes/2026-09-22-current-foundation.md"
   - "raw/notes/2026-09-22-current-core-support.md"
   - "raw/notes/2026-09-22-current-game.md"
@@ -16,12 +17,12 @@ aliases: ["WxCore"]
 confidence: medium
 volatility: warm
 verified: 2026-09-25
-summary: "WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰·표시 계약을 제공한다."
+summary: "WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰 계약을 제공한다."
 ---
 
 # WxCore — 공용 계약과 설정
 
-WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰·표시 계약을 제공한다.
+WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰 계약을 제공한다.
 
 ## 책임과 의존 방향
 
@@ -34,10 +35,11 @@ WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에
 | `WxGameplayTags` | 네이티브 태그의 단일 위치. 선언은 `WxGameplayTags.h`, 정의는 `WxGameplayTags.cpp`의 `UE_DEFINE_GAMEPLAY_TAG`에 둔다. 도메인 내부용 태그도 이곳에 둔다. |
 | `IWxInteractable` | 액터가 선택지(문구·값)를 내고 `OnInteracted`로 실행한다. 선택지가 비면 지금은 상호작용할 수 없다는 뜻이며, 스캐너 표시와 서버 검증이 같은 답을 받는다. 선택지의 `Value` 의미는 대상이 정한다. |
 | `IWxSpawnable` | 스폰된 액터가 서버에서 처치를 통지한다. 네이티브 델리게이트 계약이므로 BP 단독 구현은 허용하지 않는다. |
-| `IWxUIData` | 게임 도메인의 제목·설명·아이콘 등 표시 정보를 UI가 읽는 접점. |
 | `FWxLocatorUtils` | 에디터에서 UniversalObjectLocator를 읽기 쉬운 이름으로 표시한다. 해석되면 액터 라벨, 미해석이면 경로 끝 이름, 비어 있으면 unset이다. 함수는 `WITH_EDITOR`에서만 존재하며 런타임 액터 수명을 보장하는 기능이 아니다. |
 
 태그를 `WxGameplayTags.h/.cpp`에 모으는 규칙은 기존 Wiki에 2026-09-21 사용자 확정으로 기록되어 있었으며, 현재 헤더의 명시 규칙과도 일치한다. 이번 재편찬으로 새 결정을 만든 것은 아니다.
+
+`IWxUIData`는 2026-09-25 제거했다. 표시 데이터는 각 도메인에 두고 WxGame 리졸버가 WxUI VM에 전달한다. 충전 수·회복 시간도 공용 UI 계약이 아닌 어빌리티 데이터다.
 
 ## 설정과 실제 적용의 구분
 
@@ -69,6 +71,8 @@ WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에
 - [[world|WxWorld — 장치와 상호작용]] ([WxWorld — 장치와 상호작용](../topics/world.md))
 
 ## Sources
+
+- [UI 데이터 인터페이스 제거와 리졸버 연결](../../raw/notes/2026-09-25-ui-data-interface-removal.md) — 2026-09-25 사용자 합의와 구현
 
 - [근거 1](../../raw/notes/2026-09-22-current-foundation.md)
 - [WxCore 태그 정의·로케이터 표시·픽업 상호작용 조사](../../raw/notes/2026-09-22-current-core-support.md) — 태그 정의부·로케이터 헬퍼·픽업 구현

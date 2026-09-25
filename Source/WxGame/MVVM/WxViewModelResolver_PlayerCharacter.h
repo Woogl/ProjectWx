@@ -14,7 +14,7 @@ class UMVVMView;
  * 생성 시점에 Pawn 을 읽으므로 위젯은 빙의 완료 후에 생성되어야 한다 (HUD 는 OnPossessedPawnChanged 에서 푸시되므로 보장됨).
  */
 UCLASS(EditInlineNew, CollapseCategories)
-class WXUI_API UWxViewModelResolver_PlayerCharacter : public UMVVMViewModelContextResolver
+class WXGAME_API UWxViewModelResolver_PlayerCharacter : public UMVVMViewModelContextResolver
 {
 	GENERATED_BODY()
 

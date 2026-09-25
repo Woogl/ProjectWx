@@ -2,16 +2,17 @@
 title: "모듈 경계와 배치 원칙"
 category: topic
 sources:
+  - "raw/notes/2026-09-25-ui-data-interface-removal.md"
   - "raw/notes/2026-09-24-module-principles.md"
   - "raw/notes/2026-09-24-nameplate-manager-wxgame.md"
   - "raw/notes/2026-09-24-device-statetree-cleanup.md"
 created: 2026-09-24
-updated: 2026-09-24
+updated: 2026-09-25
 tags: [wx, architecture, foundation]
 aliases: ["모듈화 원칙", "플러그인 경계"]
 confidence: medium
 volatility: warm
-verified: 2026-09-24
+verified: 2026-09-25
 summary: "Wx 플러그인은 다른 프로젝트 재사용이 아니라 이 게임 안의 도메인 경계를 지키기 위해 둔다. 코드는 책임이 속한 도메인에 두고, 여러 도메인을 엮는 책임과 도메인 없는 게임 고유 코드는 WxGame에 둔다. 경계를 넘는 정보는 성격에 맞는 통로로 받는다."
 ---
 
@@ -97,7 +98,8 @@ Wx 플러그인은 다른 프로젝트 재사용이 아니라 이 게임 안의 
 |---|---|---|
 | `IWxSpawnable` | WxWorld 스포너(스폰·처치 추적) | WxGame 적 |
 | `IWxInteractable` | WxWorld 스캐너(상호작용 탐색·선택), WxGame 상호작용 어빌리티(서버 실행) | WxWorld·WxDialogue·WxInventory·WxGame 액터 |
-| `IWxUIData` | WxUI VM, WxEditor 썸네일(표시) | WxCombat 어빌리티·GE 컴포넌트, WxGame 캐릭터 |
+
+**표시 연결(2026-09-25):** `IWxUIData`를 제거했다. 어빌리티·GE의 표시 데이터는 WxCombat, 표시 값과 GAS 공통 구독·갱신은 WxUI, 구체 도메인 타입을 읽어 값을 전달하는 리졸버는 WxGame에 둔다. 전역 제공자나 중계 서브시스템을 추가하지 않는다. WxEditor 썸네일은 에디터 조립 계층에서 해당 타입의 아이콘을 직접 읽는다.
 
 **기각 사례:** 락온 대상 질의 계약(2026-09-24). 소비자인 NameplateManager의 판단이 전투와 UI에 걸쳐 있어 조건 1을 채우지 못했고, WxGame 배치로 풀었다. 상호작용 선택(WxWorld 스캐너)이 락온 대상을 읽게 되면, 그때는 상호작용이라는 한 도메인 책임의 소비자가 생기므로 다시 검토한다.
 
@@ -142,7 +144,7 @@ Wx 플러그인은 다른 프로젝트 재사용이 아니라 이 게임 안의 
 
 2026-09-24 정적 확인 결과다.
 - `*.Build.cs` 기준으로 도메인 플러그인 7개는 모두 Wx 모듈 중 WxCore만 의존한다.
-- WxGame은 도메인 7개 모두를 의존하고, WxEditor는 WxCore·WxInventory·WxUI·WxWorld를 의존한다. WxToolset과 범용 플러그인은 Wx 모듈을 의존하지 않는다.
+- WxGame은 도메인 7개 모두를 의존하고, WxEditor는 당시 WxCore·WxInventory·WxUI·WxWorld를 의존했다. 2026-09-25 썸네일 직접 조회로 WxCombat·WxGame 의존성을 추가했다. WxToolset과 범용 플러그인은 Wx 모듈을 의존하지 않는다.
 - WxGame에서 도메인을 하나 이하로 참조하는 클래스는 8개다. 모두 도메인 없는 게임 고유 코드이거나(이동, MetaHuman, 팀, 입력 설정, PlayerState, 프런트엔드 설정, 모듈) 여러 도메인으로 넓어질 치트다.
 - `[CoreRedirects]`는 비어 있다.
 
@@ -157,6 +159,8 @@ Wx 플러그인은 다른 프로젝트 재사용이 아니라 이 게임 안의 
 - [[editor-tools|편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer]] ([편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer](../references/editor-tools.md))
 
 ## Sources
+
+- [UI 데이터 인터페이스 제거와 리졸버 연결](../../raw/notes/2026-09-25-ui-data-interface-removal.md) — 2026-09-25 사용자 합의와 구현
 
 - [모듈화 목적 재정의와 배치 원칙 정립](../../raw/notes/2026-09-24-module-principles.md) — 사용자 발언, 초안 반증 검토와 확정, 의존 그래프·태그·콘텐츠 현황
 - [NameplateManager를 WxGame으로 옮기고 마커·락온 질의를 제거](../../raw/notes/2026-09-24-nameplate-manager-wxgame.md) — 배치와 WxCore 계약 기각 사례

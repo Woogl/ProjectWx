@@ -6,14 +6,12 @@
 #include "MVVM/WxViewModel.h"
 #include "WxViewModel_Character.generated.h"
 
-class UAbilitySystemComponent;
-class UTexture2D;
 class UWxViewModel_AbilitySystem;
 
 /**
  * 캐릭터 단위 표시 정보를 묶는 Composite 뷰모델.
  *
- * 대상의 IWxUIData를 통해 표시 데이터를 읽으므로 구체 캐릭터 타입에 의존하지 않는다.
+ * 리졸버가 넘긴 이름·초상화·GAS VM을 표시한다. 구체 캐릭터 타입은 알지 않는다.
  */
 UCLASS()
 class WXUI_API UWxViewModel_Character : public UWxViewModel
@@ -22,12 +20,12 @@ class WXUI_API UWxViewModel_Character : public UWxViewModel
 
 public:
 	/**
-	 * ASC를 Outer로 공유하며, 새로 만든 경우에만 InDisplaySource로 초기화한다.
+	 * AbilitySystem VM을 Outer로 공유하며, 새로 만든 경우에만 표시 데이터를 초기화한다.
 	 * 기존 공유본의 표시 데이터와 진행 중인 이미지 요청은 유지한다.
 	 */
-	static UWxViewModel_Character* GetOrCreate(UAbilitySystemComponent* InASC, const UObject* InDisplaySource);
+	static UWxViewModel_Character* GetOrCreate(UWxViewModel_AbilitySystem* InAbilitySystem, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait);
 
-	void Initialize(UAbilitySystemComponent* InASC, const UObject* InDisplaySource);
+	void Initialize(UWxViewModel_AbilitySystem* InAbilitySystem, FText InCharacterName, TSoftObjectPtr<UObject> InPortrait);
 
 	/** 표시 필드를 비운다. 파괴 중이 아니면 변경을 통지해, 소스가 빠졌다는 사실이 화면에 반영되게 한다. */
 	virtual void Deinitialize() override;

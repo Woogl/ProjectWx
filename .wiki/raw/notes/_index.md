@@ -85,6 +85,8 @@ Last updated: 2026-09-25
 | [Row 미리보기와 툴팁 표시 통일](2026-09-25-row-preview-tooltip.md) | 사용자 후속 요청으로 축약된 셀과 툴팁에 같은 텍스트를 표시한다. | wx, editor, datatable | 2026-09-25 |
 | [체크포인트 저장 명칭 통일](2026-09-25-save-checkpoint-rename.md) | 사용자 요청으로 RecordCheckpoint API와 StateTree 태스크를 SaveCheckpoint로 변경하고 기존 에셋의 구조체 경로를 리다이렉트했다. | wx, world, savegame | 2026-09-25 |
 | [SpawnerLibrary 제거와 C++ 일괄 재생성](2026-09-25-spawner-library-removal.md) | UWxSpawnerLibrary를 제거하고 AWxSpawner::RespawnAll C++ 전용 함수로 부활·StateTree 호출을 연결했다. | wx, world, spawner | 2026-09-25 |
+| [UI 데이터 인터페이스 제거와 리졸버 연결](2026-09-25-ui-data-interface-removal.md) | IWxUIData를 제거하고 WxGame 리졸버가 어빌리티·GE 데이터를 WxUI VM에 전달한다. GAS 공통 갱신·표시 필드는 WxUI에 유지한다. | wx, ui, combat, architecture | 2026-09-25 |
+| [UI 표시 연결 회귀 검증과 제거된 슬롯 정리](2026-09-25-ui-presentation-verification.md) | IWxUIData 제거 후 회귀 3개와 Blueprint 97개 컴파일을 확인했다. Garbage로 무효화된 어빌리티의 슬롯 정리 누락을 재현하고 IsExplicitlyNull 분기로 수정했다. | wx, ui, testing, lifetime | 2026-09-25 |
 | [테스트 결과 처리 AI 선택](2026-09-25-workflow-feedback-providers.md) | 테스트 결과의 처리 AI를 Codex·Claude Code·Gemini CLI에서 선택하고 재시도 이력을 보존하는 변경 | wx, workflow | 2026-09-25 |
 | [Workflow 작업 기록 현황 표시](2026-09-25-workflow-task-records.md) | 기존 Workflow 대시보드에서 대화 작업의 확인 범위와 다음 행동을 분류별로 조회하는 변경 | wx, workflow | 2026-09-25 |
 | [Workflow 작업 테스트 결과 접수](2026-09-25-workflow-test-feedback.md) | 기존 작업에서 사람의 테스트 결과를 AI에게 전달하고 수정·정리·재확인을 이어가는 경로 | wx, workflow | 2026-09-25 |

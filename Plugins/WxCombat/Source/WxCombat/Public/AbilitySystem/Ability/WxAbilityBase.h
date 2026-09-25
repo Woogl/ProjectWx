@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Abilities/GameplayAbility.h"
-#include "WxUIData.h"
 #include "WxAbilityBase.generated.h"
 
 class UAbilitySystemComponent;
@@ -63,7 +62,7 @@ enum class EWxAbilityActionPhase : uint8
  * GA_는 몽타주·입력·수치·표시를 채운다.
  */
 UCLASS(Abstract, BlueprintType, Blueprintable)
-class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility, public IWxUIData
+class WXCOMBAT_API UWxAbilityBase : public UGameplayAbility
 {
 	GENERATED_BODY()
 
@@ -105,13 +104,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cost", meta = (ClampMin = "0.0"))
 	float CostAmount = 0.f;
 
-	//~ Begin IWxUIData
-	virtual FText GetTitle() const override;
-	virtual FText GetDescription() const override;
-	virtual TSoftObjectPtr<UObject> GetIcon() const override;
-	virtual int32 GetMaxRecharges() const override;
-	virtual float GetCooldownTime() const override;
-	//~ End IWxUIData
+	FText GetTitle() const;
+	FText GetDescription() const;
+	TSoftObjectPtr<UObject> GetIcon() const;
+	int32 GetMaxRecharges() const;
+	float GetCooldownTime() const;
 
 	/** 변형은 섹션으로 나눈다. */
 	UAnimMontage* GetMontage() const;

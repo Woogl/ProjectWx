@@ -437,3 +437,15 @@ raw/notes/2026-09-25-checkpoint-validation-scope.md에 사용자 제출 범위�
 마지막 Wiki 반영(5c66bfaf9) 이후 미반영 커밋 be1c832e4·fbf8d89e9·ccf16da7b를 raw/notes/2026-09-25-performance-config-defaults.md에 수집했다. 38d4dde08(에셋 리세이브)는 지식 변화가 없어 제외했다. ui에 위젯 속성 바인딩 Prevent를, foundation에 기본 충돌 복잡도 Simple as Complex와 에디터 스케일러빌리티 High 기본값을 반영했다. 설정 의미는 UE 5.8 엔진 소스와 대조했고 WBP_·EUW_ 레거시 바인딩 0건과 C++ complex 트레이스 0건을 재확인했다. 메시 38개 분류는 적용 당시 에디터 조회 결과이며, 에셋 쪽 쿼리·게임 실행·프레임 측정은 검증하지 않았다.
 
 ## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
+## [2026-09-25] ingest + compile | UI 데이터 인터페이스 제거
+
+사용자 합의와 구현 관찰을 raw/notes/2026-09-25-ui-data-interface-removal.md에 수집하고 ui·foundation·modules·combat-abilities·editor-tools에 통합했다. WxGame 리졸버의 데이터 전달, WxUI GAS 공통 갱신, 캐릭터 VM 공유 수명, 에디터 썸네일 의존성을 반영했다. 실행 검증과 인간 플레이 수용은 Workflow 작업 기록에서 구분한다.
+
+## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
+## [2026-09-25] ingest + compile | UI 표시 연결 검증
+
+최종 빌드·회귀 3개·리다이렉트 없는 Blueprint 97개 컴파일과 무효화된 어빌리티 슬롯 정리 수정 근거를 수집해 ui에 반영했다. 원격 복제와 실제 화면 확인은 미검증으로 구분했다.
+
+## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed

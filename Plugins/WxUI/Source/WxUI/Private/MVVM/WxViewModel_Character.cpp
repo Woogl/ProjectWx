@@ -1,45 +1,38 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModel_Character.h"
-#include "AbilitySystemComponent.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 
-#include "WxUIData.h"
-
-UWxViewModel_Character* UWxViewModel_Character::GetOrCreate(UAbilitySystemComponent* InASC, const UObject* InDisplaySource)
+UWxViewModel_Character* UWxViewModel_Character::GetOrCreate(UWxViewModel_AbilitySystem* InAbilitySystem, const FText& InCharacterName, const TSoftObjectPtr<UObject>& InPortrait)
 {
-	if (!InASC)
+	if (!InAbilitySystem)
 	{
 		return nullptr;
 	}
 
-	if (UWxViewModel* Existing = FindSharedViewModel(InASC, StaticClass()))
+	if (UWxViewModel* Existing = FindSharedViewModel(InAbilitySystem, StaticClass()))
 	{
 		return CastChecked<UWxViewModel_Character>(Existing);
 	}
 
-	UWxViewModel_Character* ViewModel = NewObject<UWxViewModel_Character>(InASC);
-	ViewModel->Initialize(InASC, InDisplaySource);
+	UWxViewModel_Character* ViewModel = NewObject<UWxViewModel_Character>(InAbilitySystem);
+	ViewModel->Initialize(InAbilitySystem, InCharacterName, InPortrait);
 
 	return ViewModel;
 }
 
-void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, const UObject* InDisplaySource)
+void UWxViewModel_Character::Initialize(UWxViewModel_AbilitySystem* InAbilitySystem, FText InCharacterName, TSoftObjectPtr<UObject> InPortrait)
 {
 	Deinitialize();
 
-	if (!InASC)
+	if (!InAbilitySystem)
 	{
 		return;
 	}
 
-	UE_MVVM_SET_PROPERTY_VALUE(AbilitySystem, UWxViewModel_AbilitySystem::GetOrCreate(InASC));
-
-	if (const IWxUIData* UIData = Cast<IWxUIData>(InDisplaySource))
-	{
-		UE_MVVM_SET_PROPERTY_VALUE(CharacterName, UIData->GetTitle());
-		RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Character, Portrait), UIData->GetIcon());
-	}
+	UE_MVVM_SET_PROPERTY_VALUE(AbilitySystem, InAbilitySystem);
+	UE_MVVM_SET_PROPERTY_VALUE(CharacterName, InCharacterName);
+	RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Character, Portrait), InPortrait);
 }
 
 void UWxViewModel_Character::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
