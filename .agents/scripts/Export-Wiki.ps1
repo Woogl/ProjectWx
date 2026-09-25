@@ -29,6 +29,7 @@ $documents = @(
                 category = $category
                 frontmatter = if ($frontmatter.Success) { $frontmatter.Groups[1].Value } else { '' }
                 text = $raw
+                modified = $file.LastWriteTimeUtc.ToString('o')
                 html = (ConvertFrom-Markdown -InputObject $renderBody).Html
             }
         }
@@ -51,7 +52,7 @@ if (Test-Path -LiteralPath $assetRoot) {
 $template = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/index.html'))
 $diagramScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/diagrams.js'))
 $mermaidVendor = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/vendor/mermaid-11.12.0.min.js')).Replace('</script', '<\/script')
-$workflowScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/workflow-model.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/workflow.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/test-feedback.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/execution.js'))
+$workflowScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/task-records.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/workflow.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/test-feedback.js'))
 foreach ($mode in @('Wiki', 'Workflow')) {
     $indexPath = if ($mode -eq 'Wiki') { Join-Path $wiki '_index.md' } else { Join-Path $repo '.agents/workflow/index.md' }
     $navigation = @()
@@ -69,10 +70,10 @@ foreach ($mode in @('Wiki', 'Workflow')) {
     $connection = if ($mode -eq 'Workflow') { $ai } else { $null }
     $payload = @{ mode = $mode; ai = $connection; images = $images; generated = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'); documents = $documents; navigation = $navigation } | ConvertTo-Json -Depth 8 -Compress
     $payload = $payload.Replace('<', '\u003c').Replace('>', '\u003e').Replace('&', '\u0026')
-    $script = if ($mode -eq 'Workflow') { $workflowScript } else { "function renderWorkSummary() {} function renderWorkflow() {} function onWikiNavigation() { readRoute(); }" }
+    $script = if ($mode -eq 'Workflow') { $workflowScript } else { 'function renderWorkSummary() {}' }
     $page = $template.Replace('__WX_WORKFLOW_SCRIPT__', $script).Replace('__WX_WIKI_DATA__', $payload).Replace('__WX_DIAGRAM_SCRIPT__', $diagramScript).Replace('__WX_MERMAID_VENDOR__', $mermaidVendor)
     if ($mode -eq 'Wiki') { $page = $page.Replace('connect-src http://127.0.0.1:18743', "connect-src 'none'") }
-    # 기존 파일 URL과 저장 키를 유지하여 미확정 판단·저장 복구 기록을 옮기지 않는다.
+    # 기존 파일 URL을 유지해 브라우저에 보존된 테스트 결과 입력을 잃지 않는다.
     $name = if ($mode -eq 'Workflow') { 'index.html' } else { 'knowledge.html' }
     $output = Join-Path $repo ('Saved/Wiki/' + $name)
     New-Item -ItemType Directory -Path (Split-Path $output -Parent) -Force | Out-Null

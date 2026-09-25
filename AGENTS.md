@@ -20,10 +20,7 @@
 
 ## AI 워크플로우
 
-- 사람은 판단하고, AI는 조사·구현·검증·기록을 맡는다. 합의한 범위에서 진행하고, 요구사항·설계 변경이 필요하면 영향받는 항목만 확인한다.
+- 작업 절차·작업 기록·상태 규칙의 정본은 `.agents/workflow/process/index.md` 한 장이다. 워크플로우 규칙은 이 파일에만 적고, 다른 문서에는 링크만 둔다.
 - 공용 스킬과 스크립트는 `.agents/`에서 관리한다.
-- 작업 전 현재 작업의 자동 백업(파일 복사, 임시 커밋, Git stash 등)을 만들지 않는다.
 - 프로젝트 지식은 순정 LLM Wiki의 프로젝트 로컬 정본 `.wiki/_index.md`에서 탐색한다. Wiki 수정 시 순정 플러그인 절차와 `.wiki/config.md`·`.wiki/schema.md`를 따른다. `.wiki/`는 팀 공유를 위해 Git으로 추적하며 개인 Hub 경로에 의존하지 않는다.
 - 어빌리티(GA_·몽타주)·이펙트(GE)·캐릭터 구성(WxAbilitySet·속성 초기값) 조사는 `.agents/scripts/Export-AbilitySystemLists.ps1`을 실행한 뒤 `.wiki/wiki/references/`의 `ability-list.md`·`effect-list.md`·`character-list.md`부터 본다.
-- 작업 절차는 `.agents/workflow/index.md`에서 탐색한다. 공통 절차는 `process/`, 개별 작업의 상태·판단·미해결 사항은 `tasks/`에 둔다. 각 단계 완료 시 Task를 기록하고, 작업 완료 시 재사용할 지식을 Wiki에 반영한다.
-- 일회성 작업 결과는 대화로 전달하고, 재사용할 지식은 기존 Wiki에 통합한다.
