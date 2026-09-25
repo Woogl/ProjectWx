@@ -2,6 +2,7 @@
 title: "WxGame — 게임 조립과 실행 흐름"
 category: topic
 sources:
+  - "raw/notes/2026-09-25-checkpoint-single-slot.md"
   - "raw/notes/2026-09-25-checkpoint-savegame.md"
   - "raw/notes/2026-09-22-current-game.md"
   - "raw/notes/2026-09-22-current-foundation.md"
@@ -72,7 +73,7 @@ ASC는 PlayerState가 아니라 캐릭터의 기본 서브오브젝트다. 사�
 
 `RequestRespawn`은 활성 사망 화면·로컬 컨트롤러·Standalone·사망 태그·기본 Pawn 클래스를 확인한다. 체크포인트 SaveGame을 로드해 현재 맵과 Transform을 검사하고, 기존 Pawn을 비빙의한 뒤 유효한 체크포인트 또는 일반 RestartPlayer로 새 Pawn을 만든다. 생성 실패 시 기존 Pawn의 충돌과 빙의를 복구한다. 성공하면 기존 Pawn을 파괴하고 새 Pawn HP/MP를 최대값으로 채운 뒤 시점·스트리밍·스포너 재생성을 처리한다.
 
-이 경로는 멀티플레이 부활이나 디스크 저장 복원으로 일반화하지 않는다. 인벤토리는 컨트롤러에 있으므로 Pawn 교체와 인벤토리 객체 수명이 다르지만, 게임 종료 후 저장을 의미하지는 않는다.
+체크포인트 한 개의 레벨 패키지·위치·회전은 디스크에 유지되며, 같은 맵에서 부활할 때 읽는다. PIE와 일반 플레이는 `WxCheckpoint` 슬롯과 사용자 인덱스 0을 공유한다. 캐릭터·인벤토리·장치 상태 전체를 복원하거나 멀티플레이 부활을 제공하는 경로는 아니다. 인벤토리는 컨트롤러에 있으므로 Pawn 교체와 인벤토리 객체 수명이 다르지만, 게임 종료 후 저장을 의미하지는 않는다. 체크포인트의 사용자 확인 범위와 남은 검증은 [[world|WxWorld의 체크포인트 검증 범위]] ([WxWorld의 체크포인트 검증 범위](world.md))를 따른다.
 
 ## 확장 진입점
 
@@ -93,6 +94,8 @@ ASC는 PlayerState가 아니라 캐릭터의 기본 서브오브젝트다. 사�
 
 ## Sources
 
+- [체크포인트 SaveGame 전환](../../raw/notes/2026-09-25-checkpoint-savegame.md) — 부활 조회·새 게임 초기화와 저장 범위
+- [체크포인트 단일 슬롯 결정](../../raw/notes/2026-09-25-checkpoint-single-slot.md) — PIE·일반 플레이의 공용 슬롯
 - [근거 1](../../raw/notes/2026-09-22-current-game.md)
 - [근거 2](../../raw/notes/2026-09-22-current-foundation.md)
 - [보스 표시 세 층 구조](../../raw/notes/2026-09-23-boss-battle-three-layer.md)

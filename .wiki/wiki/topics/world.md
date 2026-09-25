@@ -2,6 +2,7 @@
 title: "WxWorld — 장치와 상호작용"
 category: topic
 sources:
+  - "raw/notes/2026-09-25-checkpoint-validation-scope.md"
   - "raw/notes/2026-09-25-checkpoint-redirect-cleanup.md"
   - "raw/notes/2026-09-25-checkpoint-single-slot.md"
   - "raw/notes/2026-09-25-spawner-library-removal.md"
@@ -127,6 +128,14 @@ UWxCheckpointSaveGame은 Standalone에서 레벨 패키지와 위치·회전을 
 
 진입점: [장치 동기화](../../../Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp), [상호작용 스캐너](../../../Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp), [상호작용 목록 VM](../../../Source/WxGame/MVVM/WxViewModel_InteractionList.cpp), [체크포인트](../../../Plugins/WxWorld/Source/WxWorld/Private/System/WxCheckpointSaveGame.cpp).
 
+기존 `WxCheckpoint_PIE` 파일은 자동 이관하거나 삭제하지 않는다. 과거 원자료의 PIE 별도 슬롯과 구조체 리다이렉트 추가는 변경 당시 기록이며, 현재 단일 슬롯·리다이렉트 제거 결정을 대체하지 않는다.
+
+### 체크포인트 검증 범위
+
+2026-09-25 사용자 확인은 저장 후 사망·부활, 재접속, 새 게임 초기화에 한정한다. 정리 시작 시 접수 Task·코드 식별값을 대조한 제출 버전의 확인이며 상세 근거는 [검증 범위 원자료](../../raw/notes/2026-09-25-checkpoint-validation-scope.md)에 있다. 이후 변경 버전의 수용으로 이어받지 않는다. “재접속”이 프로세스 완전 종료·재시작 후 같은 맵 부활까지 포함했는지는 제출문만으로 단정하지 않는다.
+
+저장·조회·삭제 실패 경로와 PIE·일반 플레이 간 슬롯 공유는 이번 제출 범위 밖이며 실행 검증이 남아 있다. 사람의 코드 리뷰 수용도 별도로 남아 있다. 작업 상태·승인 원문은 [Workflow Task](../../../.agents/workflow/tasks/checkpoint-savegame.md)를 따르며, 이 확인을 다른 장치 동작이나 전체 게임 상태 저장의 검증으로 확대하지 않는다.
+
 ## 관련 문서
 
 - [[ai|WxAI — AI 인지와 행동]] ([WxAI — AI 인지와 행동](../topics/ai.md))
@@ -142,6 +151,10 @@ UWxCheckpointSaveGame은 Standalone에서 레벨 패키지와 위치·회전을 
 ## Sources
 
 - [체크포인트 SaveGame 전환](../../raw/notes/2026-09-25-checkpoint-savegame.md)
+- [체크포인트 저장 명칭 통일](../../raw/notes/2026-09-25-save-checkpoint-rename.md) — SaveCheckpoint 명칭으로의 변경
+- [체크포인트 단일 슬롯 결정](../../raw/notes/2026-09-25-checkpoint-single-slot.md) — 현재 슬롯과 이전 PIE 파일 처리 범위
+- [체크포인트 구조체 리다이렉트 제거](../../raw/notes/2026-09-25-checkpoint-redirect-cleanup.md) — 에셋 마이그레이션 후 검증
+- [체크포인트 SaveGame 검증 범위](../../raw/notes/2026-09-25-checkpoint-validation-scope.md) — 사용자 확인 범위와 남은 검증의 구분
 
 - [근거 1](../../raw/notes/2026-09-22-current-world.md)
 - [근거 2](../../raw/notes/2026-09-22-current-foundation.md)
