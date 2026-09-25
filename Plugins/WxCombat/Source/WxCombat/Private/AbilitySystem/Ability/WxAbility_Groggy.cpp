@@ -111,7 +111,19 @@ void UWxAbility_Groggy::HandleMontagePollTick()
 		return;
 	}
 
-	ASC->PlayMontage(this, CurrentActivationInfo, GetMontage(), 1.f);
+	PlayMontage(GetMontage());
+}
+
+bool UWxAbility_Groggy::PlayMontageInternal(UAnimMontage* Montage, FName StartSection)
+{
+	// 그로기는 몽타주 종료가 아니라 GP 드레인으로 끝나며, 중간 피격 뒤에는 폴링으로 자세를 복구한다.
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (ASC && ASC->GetCurrentMontage())
+	{
+		// 방향을 기다리는 사이 다른 반응이 시작됐으면 다음 폴링까지 기다린다.
+		return true;
+	}
+	return ASC && ASC->PlayMontage(this, CurrentActivationInfo, Montage, 1.f, StartSection) > 0.f;
 }
 
 void UWxAbility_Groggy::StartMontagePolling()

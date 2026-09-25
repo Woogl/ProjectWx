@@ -4,14 +4,18 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Animation/ActiveMontageInstanceScope.h"
-#include "System/WxCombatDeveloperSettings.h"
+#if WITH_EDITOR
+#include "WxAnimNotifySettings.h"
+#endif
 #include "WxCombatLibrary.h"
 #include "WxCombatModule.h"
 
+#if WITH_EDITOR
 FLinearColor UWxAnimNotifyState_ApplyGameplayEffect::GetEditorColor()
 {
-	return GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
+	return GetDefault<UWxAnimNotifySettings>()->EffectColor;
 }
+#endif
 
 void UWxAnimNotifyState_ApplyGameplayEffect::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {

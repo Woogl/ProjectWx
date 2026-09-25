@@ -8,14 +8,13 @@
 #include "GameplayTagContainer.h"
 #include "GameplayEffectTypes.h"
 #include "MVVM/WxViewModel.h"
-#include "View/MVVMViewModelContextResolver.h"
 #include "WxViewModel_Ability.generated.h"
 
-class UMVVMView;
-class UUserWidget;
 class UAbilitySystemComponent;
 class UGameplayAbility;
-class UTexture2D;
+class UWxViewModel_Ability;
+
+DECLARE_DELEGATE_TwoParams(FWxOnBoundAbilityChanged, UWxViewModel_Ability&, const UGameplayAbility*);
 struct FGameplayEventData;
 struct FGameplayEffectSpec;
 
@@ -40,8 +39,11 @@ class WXUI_API UWxViewModel_Ability : public UWxViewModel
 
 public:
 	/** @param InAbilityTags 슬롯을 가리키는 어빌리티 에셋 태그. 비어 있으면 아무 어빌리티나 매칭되므로 거부한다. */
-	void Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags);
+	void Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged);
 	virtual void Deinitialize() override;
+
+	/** 슬롯 변경 통지에서 호출한다. 이후 충전·쿨다운 갱신이 이 값을 사용한다. */
+	void SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon, int32 InMaxRecharges, float InCooldownTime);
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
 	bool TryActivateAbility();
@@ -175,6 +177,8 @@ private:
 	/** 어빌리티마다 다른 구독이라 어빌리티를 놓을 때마다 푼다. */
 	void UnbindCostAttributes(UAbilitySystemComponent& ASC);
 
+	FWxOnBoundAbilityChanged OnBoundAbilityChanged;
+
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;
 
@@ -196,21 +200,4 @@ private:
 
 	/** 타이머가 활성이면 재평가가 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
 	FTimerHandle ActivationRefreshHandle;
-};
-
-/**
- * 위젯을 소유한 PlayerController 의 빙의 Pawn 에서 ASC 를 끌어와 AbilityTags 가 가리키는 스킬 슬롯의 뷰모델을 얻는다.
- * 슬롯 태그 하나에 뷰모델 하나이며, 후보가 여럿인 슬롯에서 누구를 무는지는 뷰모델이 스스로 정한다.
- */
-UCLASS(EditInlineNew, CollapseCategories)
-class WXUI_API UWxViewModelResolver_Ability : public UMVVMViewModelContextResolver
-{
-	GENERATED_BODY()
-
-public:
-	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
-
-	/** 이 슬롯이 지목하는 어빌리티 에셋 태그. 슬롯에 들어올 어빌리티는 이 태그를 달아야 하고, 여럿이면 서로 후보가 된다. */
-	UPROPERTY(EditAnywhere, Category = "Wx")
-	FGameplayTagContainer AbilityTags;
 };

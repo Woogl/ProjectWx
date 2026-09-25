@@ -7,6 +7,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "FrontEnd/WxFrontEndDeveloperSettings.h"
+#include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/PackageName.h"
@@ -47,12 +48,20 @@ bool UWxGameFlowSubsystem::RequestNewGame(TSoftClassPtr<APawn> PawnClass, TSoftO
 		StatusText = LOCTEXT("InvalidSelection", "캐릭터 또는 레벨을 확인해주세요.");
 		return false;
 	}
+	UClass* SelectedPawnClass = PawnClass.LoadSynchronous();
+	if (!SelectedPawnClass || !SelectedPawnClass->IsChildOf(APawn::StaticClass())
+		|| SelectedPawnClass->HasAnyClassFlags(CLASS_Abstract | CLASS_Deprecated | CLASS_NewerVersionExists))
+	{
+		StatusText = LOCTEXT("InvalidPawnClass", "선택한 캐릭터를 생성할 수 없습니다. 다른 캐릭터를 선택해주세요.");
+		return false;
+	}
 	if (!UWxCheckpointSaveGame::ResetCheckpoint(World))
 	{
 		StatusText = LOCTEXT("CheckpointResetFailed", "체크포인트 저장 초기화에 실패했습니다. 다시 시도해주세요.");
 		return false;
 	}
-	PendingPawnClass = PawnClass;
+	// 검증한 클래스를 맵 이동 중에도 유지해 목적지에서 다시 로드하거나 기본 Pawn으로 대체하지 않는다.
+	PendingPawnClass = SelectedPawnClass;
 	PendingLevel = Level;
 	StatusText = FText::GetEmpty();
 	UGameplayStatics::OpenLevel(this, FName(*Level.ToSoftObjectPath().GetLongPackageName()), true);
@@ -76,7 +85,7 @@ const FText& UWxGameFlowSubsystem::GetStatusText() const
 
 UClass* UWxGameFlowSubsystem::GetSelectedPawnClass(const UWorld* World) const
 {
-	return IsDestinationWorld(World) ? PendingPawnClass.LoadSynchronous() : nullptr;
+	return IsDestinationWorld(World) ? PendingPawnClass.Get() : nullptr;
 }
 
 void UWxGameFlowSubsystem::HandlePostLoadMap(UWorld* World)
@@ -88,7 +97,7 @@ void UWxGameFlowSubsystem::HandlePostLoadMap(UWorld* World)
 	if (!IsDestinationWorld(World))
 	{
 		// 전환이 어긋났든 이후의 일반 이동이든, 목적지가 아닌 맵이 열리면 선택은 여기서 끝난다.
-		PendingPawnClass.Reset();
+		PendingPawnClass = nullptr;
 		PendingLevel.Reset();
 		return;
 	}
@@ -109,7 +118,7 @@ void UWxGameFlowSubsystem::HandleTravelFailure(UWorld* World, ETravelFailure::Ty
 		return;
 	}
 	// 출발 맵에 그대로 있으므로 선택만 버리면 메뉴가 문구를 띄우고 버튼을 다시 연다.
-	PendingPawnClass.Reset();
+	PendingPawnClass = nullptr;
 	PendingLevel.Reset();
 	StatusText = FText::Format(LOCTEXT("TravelFailure", "레벨 전환에 실패했습니다: {0}"), FText::FromString(Error));
 }

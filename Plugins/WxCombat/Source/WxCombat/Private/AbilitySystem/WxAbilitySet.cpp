@@ -8,11 +8,10 @@
 #include "GameplayAbilitySpec.h"
 #include "InputAction.h"
 #include "Misc/DataValidation.h"
-#include "WxCombatModule.h"
 
 void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC) const
 {
-	if (!ASC)
+	if (!ASC || !ASC->IsOwnerActorAuthoritative())
 	{
 		return;
 	}
@@ -53,17 +52,20 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC) const
 		}
 	}
 
+	GiveAbilitiesToAbilitySystem(ASC);
+}
+
+void UWxAbilitySet::GiveAbilitiesToAbilitySystem(UWxAbilitySystemComponent* ASC) const
+{
+	if (!ASC || !ASC->IsOwnerActorAuthoritative())
+	{
+		return;
+	}
+
 	for (const TSubclassOf<UWxAbilityBase>& AbilityClass : GrantedAbilities)
 	{
-		if (!AbilityClass)
+		if (!AbilityClass || ASC->FindAbilitySpecFromClass(AbilityClass))
 		{
-			continue;
-		}
-
-		// 같은 어빌리티를 두 번 주면 이벤트로 도는 어빌리티가 한 번의 이벤트에 두 번 반응한다.
-		if (ASC->FindAbilitySpecFromClass(AbilityClass))
-		{
-			UE_LOG(LogWxCombat, Warning, TEXT("%s: %s는 이미 부여해 건너뛴다."), *GetName(), *AbilityClass->GetName());
 			continue;
 		}
 

@@ -46,7 +46,7 @@ bool UWxAbility_HitReact::ShouldAbilityRespondToEvent(const FGameplayAbilityActo
 	// ActivateAbility에서 거르면 재트리거 종료와 공격·스킬 취소가 이미 끝난 뒤다.
 	const FGameplayTag ReactionTag = GetReactionTag(*Payload);
 	const UAnimMontage* HitReactMontage = GetMontage();
-	if (!ReactionTag.IsValid() || !HitReactMontage || !HitReactMontage->IsValidSectionName(ReactionTag.GetTagLeafName()))
+	if (!ReactionTag.IsValid() || !HasMontageSection(HitReactMontage, ReactionTag.GetTagLeafName()))
 	{
 		return false;
 	}
@@ -63,7 +63,8 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// 회전·띄우기는 커밋과 몽타주가 모두 성립한 뒤에 낸다 — 어느 하나라도 실패해 곧장 종료하면 캐릭터가 어빌리티 없이 공중에 뜬다.
+	// 회전·띄우기는 커밋과 몽타주 재생 요청이 받아들여진 뒤에 낸다 — 요청 실패로 즉시 종료하면 캐릭터가 어빌리티 없이 공중에 뜬다.
+	// 원격 소유자의 방향 데이터를 기다리는 동안에는 실제 몽타주 재생보다 먼저 적용될 수 있다.
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);

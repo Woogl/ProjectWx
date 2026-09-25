@@ -8,8 +8,12 @@
 #include "MVVM/WxViewModel.h"
 #include "WxViewModel_Effect.generated.h"
 
-class IWxUIData;
 class UAbilitySystemComponent;
+class UGameplayEffect;
+class UWxViewModel_Effect;
+
+/** 표시할 효과이면 필드를 채우고 true를 반환한다. */
+DECLARE_DELEGATE_RetVal_TwoParams(bool, FWxConfigureEffectViewModel, UWxViewModel_Effect&, const UGameplayEffect&);
 
 UCLASS()
 class WXUI_API UWxViewModel_Effect : public UWxViewModel
@@ -17,7 +21,8 @@ class WXUI_API UWxViewModel_Effect : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	void Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const IWxUIData* InUIData);
+	void Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const FWxConfigureEffectViewModel& InConfigurePresentation);
+	void SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon);
 	virtual void Deinitialize() override;
 
 	FActiveGameplayEffectHandle GetBoundHandle() const;

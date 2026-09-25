@@ -16,7 +16,9 @@ class WXCOMBAT_API UWxAnimNotifyState_WeaponAttack : public UAnimNotifyState
 public:
 	UWxAnimNotifyState_WeaponAttack();
 
+#if WITH_EDITOR
 	virtual FLinearColor GetEditorColor() override;
+#endif
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 	

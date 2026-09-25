@@ -55,13 +55,13 @@ void UWxAIBehaviorComponent::BeginPlay()
 	}
 
 	// 배치된 폰은 이 컴포넌트의 BeginPlay 전에 빙의되므로 델리게이트만으로는 첫 컨트롤러를 놓친다.
-	Pawn->ReceiveControllerChangedDelegate.AddDynamic(this, &UWxAIBehaviorComponent::HandleControllerChanged);
+	Pawn->ReceiveControllerChangedDelegate.AddUniqueDynamic(this, &UWxAIBehaviorComponent::HandleControllerChanged);
 	ApplySenseSettings(Pawn->GetController());
 
-	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
+	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn); ASC && !PawnHitDelegateHandle.IsValid())
 	{
 		// 가드 브레이크 히트는 Event.Hit.GuardBreak 자식으로 나가므로 정확 매칭 구독은 놓친다.
-		ASC->AddGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Hit),
+		PawnHitDelegateHandle = ASC->AddGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Hit),
 			FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxAIBehaviorComponent::HandlePawnHit));
 	}
 }
@@ -126,7 +126,10 @@ UWxPatrolComponent* UWxAIBehaviorComponent::GetPatrolPath() const
 
 void UWxAIBehaviorComponent::HandleControllerChanged(APawn* Pawn, AController* OldController, AController* NewController)
 {
-	ApplySenseSettings(NewController);
+	if (HasBegunPlay())
+	{
+		ApplySenseSettings(NewController);
+	}
 }
 
 void UWxAIBehaviorComponent::ApplySenseSettings(AController* Controller) const
@@ -160,7 +163,7 @@ void UWxAIBehaviorComponent::ApplySenseSettings(AController* Controller) const
 void UWxAIBehaviorComponent::HandlePawnHit(FGameplayTag MatchingTag, const FGameplayEventData* Payload)
 {
 	// 패리 반동은 대미지 없이 Event.Hit.Parry 로 같은 구독에 걸리므로 자극에서 뺀다.
-	if (!Payload || Payload->EventMagnitude <= 0.f)
+	if (!HasBegunPlay() || !Payload || Payload->EventMagnitude <= 0.f)
 	{
 		return;
 	}

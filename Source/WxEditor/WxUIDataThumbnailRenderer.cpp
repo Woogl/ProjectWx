@@ -7,9 +7,10 @@
 #include "Engine/Blueprint.h"
 #include "Engine/Texture2D.h"
 #include "GameplayEffect.h"
-#include "GameplayEffectUIData.h"
 #include "Materials/MaterialInterface.h"
-#include "WxUIData.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
+#include "AbilitySystem/Effect/WxEffectComponent_UIData.h"
+#include "Character/WxCharacterBase.h"
 
 TSoftObjectPtr<UObject> UWxUIDataThumbnailRenderer::GetIcon(UObject* Object)
 {
@@ -22,17 +23,22 @@ TSoftObjectPtr<UObject> UWxUIDataThumbnailRenderer::GetIcon(UObject* Object)
 
 	const UObject* CDO = GeneratedClass->GetDefaultObject();
 
-	// 어빌리티·캐릭터는 CDO 가 계약을 직접 들고, GE 는 컴포넌트가 든다.
-	const IWxUIData* UIData = Cast<IWxUIData>(CDO);
-	if (UIData == nullptr)
+	if (const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(CDO))
 	{
-		if (const UGameplayEffect* Effect = Cast<UGameplayEffect>(CDO))
+		return Ability->GetIcon();
+	}
+	if (const AWxCharacterBase* Character = Cast<AWxCharacterBase>(CDO))
+	{
+		return Character->GetIcon();
+	}
+	if (const UGameplayEffect* Effect = Cast<UGameplayEffect>(CDO))
+	{
+		if (const UWxEffectComponent_UIData* Data = Effect->FindComponent<UWxEffectComponent_UIData>())
 		{
-			UIData = Cast<IWxUIData>(Effect->FindComponent<UGameplayEffectUIData>());
+			return Data->GetIcon();
 		}
 	}
-
-	return UIData ? UIData->GetIcon() : nullptr;
+	return nullptr;
 }
 
 bool UWxUIDataThumbnailRenderer::CanVisualizeAsset(UObject* Object)

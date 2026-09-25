@@ -2,6 +2,8 @@
 title: "WxUI — 화면 레이어와 표시 수명"
 category: topic
 sources:
+  - "raw/notes/2026-09-25-ui-presentation-verification.md"
+  - "raw/notes/2026-09-25-ui-data-interface-removal.md"
   - "raw/notes/2026-09-23-screen-classes-to-resolvers.md"
   - "raw/notes/2026-09-23-quest-presentation-vm.md"
   - "raw/notes/2026-09-22-current-ui.md"
@@ -26,7 +28,7 @@ aliases: ["WxUI"]
 confidence: medium
 volatility: warm
 verified: 2026-09-25
-summary: "WxUI는 CommonUI 레이어와 MVVM 표시를 관리하고, 도메인 상태는 공용 태그·표시 계약으로 관찰한다."
+summary: "WxUI는 CommonUI 레이어와 MVVM 표시를 관리하고, 공용 태그·GAS를 관찰하며 도메인 고유 표시 값은 WxGame 리졸버에서 받는다."
 ---
 
 # WxUI — 화면 레이어와 표시 수명
@@ -45,11 +47,11 @@ PlayerController의 `UWxPlayerLayoutComponent`는 로컬 컨트롤러에서만 �
 
 폰 교체 때 태그 관찰도 새 폰으로 갈아타며, 대화 창은 닫지만 사망 화면은 닫지 않는다. 부활이 폰을 교체하고, 사망 화면은 부활 요청이 완료될 때 스스로 비활성화되기 때문이다.
 
-Attribute ViewModel은 초기 값을 읽은 뒤 속성 변경을 구독하고, Deinitialize에서 같은 ASC의 구독과 캐시를 해제한다. 표시 값 접근은 `IWxUIData`와 GAS 계약을 사용한다.
+Attribute ViewModel은 초기 값을 읽은 뒤 속성 변경을 구독하고, Deinitialize에서 같은 ASC의 구독과 캐시를 해제한다. GAS 공통 조회는 WxUI에 유지하고, 구체 어빌리티·GE·캐릭터의 표시 값은 WxGame에서 전달한다.
 
 Effect ViewModel은 유한 지속 효과의 남은 시간을 월드 타이머로 월드 틱마다 갱신하고, 효과가 사라지면 멈춘다. 월드가 정지된 동안에는 타이머와 남은 시간이 함께 멈춘다. 무한 지속 효과는 갱신을 걸지 않는다.
 
-버프 목록(AbilitySystem VM의 `ActiveEffectViewModels`)은 GE의 `UGameplayEffectUIData` 컴포넌트를 `IWxUIData`로 캐스트해 읽고, 아이콘을 채운 GE만 올린다. Wx GE의 구현체는 WxCombat `UWxEffectComponent_UIData`이며 `Title`·`Description`·`Icon`을 GE 에셋에 직접 둔다(2026-09-25 `DT_Effect`와 `UWxEffectComponent_Table` 제거, 커밋 `7c52ce0ce`). 베이스가 엔진 `UGameplayEffectUIData`라 WxUI의 조회 코드는 바뀌지 않았다.
+버프 목록은 WxGame `UWxViewModelResolver_AbilitySystem`이 `UWxEffectComponent_UIData`를 읽어 제목·설명·아이콘을 전달하며, 아이콘을 채운 GE만 올린다. GE 에셋의 표시 데이터 소유권은 WxCombat에 유지한다. WxUI는 GE 추가·제거·스택·시간 갱신을 맡는다. 연결은 공유 AS VM에 한 번만 설정하며, 연결 전에 목록을 조회했어도 현재 활성 GE를 보충한다. `IWxUIData`는 2026-09-25 제거했다.
 
 ## 표시 VM의 위치와 연결
 
@@ -58,7 +60,7 @@ Wx 기능 모듈 사이의 신규 의존성은 WxCore를 제외하면 추가하�
 VM은 WxUI에 모은다(2026-09-23 사용자 결정). 도메인 데이터가 필요한 표시는 세 층으로 나눈다.
 - 모델(WxGame·도메인): 상태와 변경 델리게이트만 두고, VM·MVVM을 모른다.
 - 연결: WxGame 리졸버가 맡는다. 도메인 연결용 C++ 위젯 부모 클래스는 두지 않는다. 사용자 이유: "MVVM을 쓰기 때문에 굳이 Widget 클래스를 늘릴 필요가 없다."
-- VM: WxUI의 순수 표시 데이터다.
+- VM: WxUI의 표시 데이터와 GAS 공통 구독·갱신이다. 구체 도메인 타입 해석은 WxGame에 둔다(2026-09-25 합의).
 
 리졸버는 위젯 클래스가 공유하는 const 객체라 상태를 들 수 없다. 그래서 구독은 VM을 소유자로 하는 약한 델리게이트(`FDelegate::CreateWeakLambda(VM, …)`)로 걸고, 해제는 `DestroyInstance`에서 `RemoveAll(VM)`으로 한다. 리졸버를 구독의 주인으로 두면 위젯 하나를 해제할 때 다른 위젯의 구독까지 끊긴다(08c73f513에서 고친 버그). 늦게 생긴 위젯을 위해 `CreateInstance`에서 현재 값을 한 번 반영한다.
 
@@ -70,7 +72,11 @@ HUD 보스 바(`WBP_Nameplate_Boss`)가 이 규칙을 처음 적용한 사례다
 - UIManager와 머리 위 Nameplate(`UWxNameplateManagerComponent`)는 보스를 모른다.
 - WBP 로드·컴파일은 확인했지만 인게임 표시는 검증하지 않았다.
 
-`UWxViewModelResolver_Ability`는 WxUI의 `WxViewModel_Ability.h/.cpp`에 함께 둔다. 위젯 소유 컨트롤러의 Pawn에서 ASC를 얻고, AbilityTags에 대응하는 공유 슬롯 VM을 AbilitySystem VM에서 가져온다. 슬롯 VM은 스펙의 기본 인스턴스(`GetPrimaryInstance`) 중 AbilityTags를 모두 가진 것을 고른다. 발동 가능·비용 판정과 `TryActivateAbility`도 그 인스턴스의 스펙 핸들로 한다(커밋 `0473e201b`). 제목·설명·아이콘·충전 수는 그 어빌리티의 `IWxUIData`에서 읽으며, 값은 GA_ 에셋의 프로퍼티다([전투 어빌리티](../concepts/combat-abilities.md)). 이전 WxGame 클래스 경로의 CoreRedirect는 2026-09-24에 제거했다. 참조 WBP가 리다이렉트 없이 경고 없이 로드되고 컴파일되는 것을 확인했다. 인게임 표시는 따로 검증하지 않았다.
+`UWxViewModelResolver_Ability`는 WxGame에 있다. 위젯 소유 Pawn의 ASC에서 AbilityTags에 대응하는 공유 슬롯 VM을 얻고, VM의 `FWxOnBoundAbilityChanged`를 리졸버 cpp의 정적 전달 함수로 연결한다. 슬롯 VM은 스펙의 기본 인스턴스 중 태그 조건을 충족하는 후보를 선택하고, 선택이 바뀌면 표시 값을 비운 뒤 제목·설명·아이콘·최대 충전 수·충전 한 칸의 시간을 받는다. 최초 매칭 전에 연결하며 충전·쿨다운 계산은 값을 받은 뒤 수행한다. 발동·비용 판정과 `TryActivateAbility`는 기존 GAS 경로를 유지한다. GA_ 프로퍼티는 WxCombat의 `UWxAbilityBase`가 소유한다([전투 어빌리티](../concepts/combat-abilities.md)).
+
+`UWxViewModelResolver_PlayerCharacter`도 WxGame에 있다. Character VM에는 구체 캐릭터 대신 이름·초상화와 연결된 AbilitySystem VM을 전달한다. 캐릭터 공유본은 AS VM을 Outer로 삼으며, 재조회 시 초기화나 이미지 요청을 반복하지 않는다. 보스 리졸버의 위젯별 VM과 NameplateManager도 같은 값 전달 경로를 쓴다.
+
+슬롯의 마지막 어빌리티를 회수하면 엔진이 인스턴스를 Garbage로 표시한다. 따라서 후보와 `CachedAbility.Get()`이 모두 null이어도 이전 표시를 정리해야 한다. `IsExplicitlyNull()`로 처음부터 빈 슬롯과 무효화된 참조를 구분한다. 2026-09-25 회귀 테스트 3개(슬롯 재연결·효과의 늦은 연결·캐릭터 공유)를 통과했고, 이동한 리졸버를 쓰는 위젯을 포함한 Blueprint 97개가 리다이렉트 없이 컴파일됐다. 실제 플레이·원격 복제는 별도 확인 범위다.
 
 대화 창(`WBP_DialogueScreen`, 부모 `UWxActivatableWidget`)은 WxGame `UWxViewModelResolver_Dialogue`가 만든 WxUI `UWxViewModel_Dialogue`로 구동된다. VM은 Speaker·LineText·HasSpeaker와 SetLine, 진행 명령 `RequestAdvance`만 가진다. 리졸버가 세션 대사를 VM에 걸고, VM의 `OnAdvanceRequested`를 세션 `Advance`에 잇는다. 진행 버튼의 MVVM 이벤트 목적지는 `WxViewModel_Dialogue.RequestAdvance`다. 2026-09-23 이전의 `UWxDialogueScreen`(활성화 수명으로 연결)은 제거했다. 구독 수명과 인게임 확인은 [대화](dialogue.md)의 수명과 연출에 있다.
 
@@ -117,7 +123,7 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 | 거리 | 새로 붙이려면 `MaxVisibilityDistance`(3000cm) − `VisibilityDistanceHysteresis`(200cm) 안쪽이어야 하고, 이미 붙은 것은 3000cm까지 유지한다. 경계에서 붙였다 떼기를 반복하지 않기 위해서다. |
 | 높이 | 대상 캡슐에 붙인다. 높이는 붙일 때 한 번, 캡슐 반높이 + `HeadClearance`(C++ 기본 90cm, 사용자 의도값)로 정한다(사용자 지시로 메시 기본 포즈 바운드 방식을 대체). 애니메이션 바운드와 `head` 본은 모션마다 흔들려 쓰지 않는다. |
 | 수명 | 위젯 컴포넌트는 대상 액터 소유로 만들어 대상 파괴 때 함께 사라진다. NameplateManager의 EndPlay에서도 직접 뗀다. |
-| VM | 대상 ASC의 `UWxViewModel_Character` 공유본을 MVVM View에 넣는다. 공유본 수명은 View가 유지한다. |
+| VM | 대상 AS VM의 `UWxViewModel_Character` 공유본을 MVVM View에 넣는다. 공유본 수명은 View가 유지한다. |
 
 마커 컴포넌트를 지우면서 적 BP 5종과 `LV_DevCombat` 배치 액터 1개를 다시 저장해 옛 데이터를 없앴다. 빌드, 관련 BP 컴파일, 레벨 재로드 시 경고 0건은 확인했다. 인게임 표시와 리슨 서버·원격 클라이언트에서 각자 자기 락온만 보이는지는 검증하지 않았다. 확인 항목은 [작업 자료](../../../.agents/workflow/tasks/nameplate-manager.md)에 있다.
 
@@ -143,6 +149,9 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 - [[world|WxWorld — 장치와 상호작용]] ([WxWorld — 장치와 상호작용](../topics/world.md))
 
 ## Sources
+
+- [UI 표시 연결 회귀 검증과 제거된 슬롯 정리](../../raw/notes/2026-09-25-ui-presentation-verification.md) — 자동화·에셋 검증 범위, 무효화된 약한 참조의 빈 슬롯 정리
+- [UI 데이터 인터페이스 제거와 리졸버 연결](../../raw/notes/2026-09-25-ui-data-interface-removal.md) — 2026-09-25 사용자 합의와 구현
 
 - [대화·퀘스트 화면 클래스 제거와 리졸버 연결](../../raw/notes/2026-09-23-screen-classes-to-resolvers.md) — 화면 클래스 제거, VM 명령 델리게이트
 - [Quest 표시 VM 분리](../../raw/notes/2026-09-23-quest-presentation-vm.md)

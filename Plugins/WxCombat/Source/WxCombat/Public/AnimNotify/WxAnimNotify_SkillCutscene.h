@@ -18,7 +18,9 @@ class WXCOMBAT_API UWxAnimNotify_SkillCutscene : public UAnimNotify
 	GENERATED_BODY()
 
 public:
+#if WITH_EDITOR
 	virtual FLinearColor GetEditorColor() override;
+#endif
 	virtual FString GetNotifyName_Implementation() const override;
 
 	UPROPERTY(EditAnywhere, Category = "Wx")

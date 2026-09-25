@@ -109,43 +109,6 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-EWxDodgeDirection UWxAbility_Dodge::ResolveDodgeDirection(const FVector& LocalDirection) const
-{
-	const FVector Local = LocalDirection.GetSafeNormal2D();
-	if (Local.IsNearlyZero())
-	{
-		return EWxDodgeDirection::Back;
-	}
-
-	const float AngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X));
-	const int32 Octant = ((FMath::RoundToInt(AngleDeg / 45.f) % 8) + 8) % 8;
-	return static_cast<EWxDodgeDirection>(Octant);
-}
-
-FName UWxAbility_Dodge::SelectDodgeSection(const FVector& LocalDirection, const FString& Prefix) const
-{
-	const UAnimMontage* DodgeMontage = GetMontage();
-	if (!DodgeMontage)
-	{
-		return NAME_None;
-	}
-
-	const EWxDodgeDirection DodgeDirection = ResolveDodgeDirection(LocalDirection);
-	const FName SectionName(Prefix + StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(DodgeDirection)));
-	if (DodgeMontage->IsValidSectionName(SectionName))
-	{
-		return SectionName;
-	}
-
-	const FName ForwardSection(Prefix + StaticEnum<EWxDodgeDirection>()->GetNameStringByValue(static_cast<int64>(EWxDodgeDirection::Forward)));
-	if (DodgeMontage->IsValidSectionName(ForwardSection))
-	{
-		return ForwardSection;
-	}
-
-	return NAME_None;
-}
-
 bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 {
 	UAnimMontage* DodgeMontage = GetMontage();
@@ -162,7 +125,7 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 		return true;
 	}
 
-	const FName SectionName = SelectDodgeSection(LocalDirection, FString());
+	const FName SectionName = SelectDirectionalSection(LocalDirection, FString(), EWxAbilityDirection::Back);
 
 	// 락온 중에는 락온이 Ability.Dodge를 보고 회전 태스크를 멈춰 회피 내내 몸 방향을 고정하므로, 회피도 몸을 돌리지 않는다.
 	// 비락온은 섹션 루트모션이 몸 기준 고정 방향이라, 양자화 잔차(±22.5°, 폴백 시 그 이상)만큼 몸을 돌려 이동을 입력 방향에 맞춘다.
@@ -170,11 +133,11 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 	const bool bLockedOn = ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_LockOn);
 	if (!Local.IsNearlyZero() && !bLockedOn)
 	{
-		// NAME_None(섹션 없는 몽타주)은 전방 이동 몽타주로 간주한다.
+		// 방향 섹션을 찾지 못해 NAME_None이면 전방 이동 몽타주로 간주한다.
 		float SectionAngleDeg = 0.f;
 		if (!SectionName.IsNone())
 		{
-			SectionAngleDeg = StaticEnum<EWxDodgeDirection>()->GetValueByName(SectionName) * 45.f;
+			SectionAngleDeg = StaticEnum<EWxAbilityDirection>()->GetValueByName(SectionName) * 45.f;
 		}
 
 		const float InputAngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X));
@@ -234,13 +197,13 @@ void UWxAbility_Dodge::HandleDodgeSuccess()
 		return;
 	}
 
-	// 회피 섹션은 몸을 돌리지 않고 몸 기준 루트모션으로만 흐르므로, 극한 회피도 같은 방향 섹션으로 이어야 이동이 꺾이지 않는다.
+	// 극한 회피는 현재 진행 방향의 섹션으로 이어야 이동이 꺾이지 않는다.
 	// 루트모션 중 속도가 곧 진행 방향이라, 8방향 양자화·잔차 보정·백스텝이 이 값 하나로 수렴한다.
 	FName SectionName = NAME_None;
 	if (const AActor* Avatar = GetAvatarActorFromActorInfo())
 	{
 		const FVector LocalDirection = Avatar->GetActorTransform().InverseTransformVectorNoScale(Avatar->GetVelocity());
-		SectionName = SelectDodgeSection(LocalDirection, SuccessSectionPrefix);
+		SectionName = SelectDirectionalSection(LocalDirection, SuccessSectionPrefix, EWxAbilityDirection::Back);
 	}
 
 	if (SectionName.IsNone())

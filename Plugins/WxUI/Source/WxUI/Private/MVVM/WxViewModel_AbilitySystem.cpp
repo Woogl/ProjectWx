@@ -5,10 +5,8 @@
 #include "MVVM/WxViewModel_Attribute.h"
 #include "AbilitySystemComponent.h"
 #include "Engine/World.h"
-#include "GameplayEffectUIData.h"
 #include "MVVM/WxViewModel_Effect.h"
 #include "TimerManager.h"
-#include "WxUIData.h"
 
 UWxViewModel_AbilitySystem* UWxViewModel_AbilitySystem::GetOrCreate(UAbilitySystemComponent* InASC)
 {
@@ -84,6 +82,7 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 	// 자식은 배열에서 떼기만 한다 — 위젯이 아직 붙들고 있는 공유본을 끊으면 그 표시가 언다.
 	// 자식이 이 VM 을 Outer 로 삼아 살려 두므로, 파괴로 여기 닿았다면 자식을 붙든 위젯도 없고 각 자식은 자기 BeginDestroy 로 구독·티커를 정리한다.
 	CachedASC.Reset();
+	ConfigureEffectViewModel.Unbind();
 	AttributeViewModels.Empty();
 	AbilityViewModels.Empty();
 	ActiveEffectViewModels.Empty();
@@ -123,7 +122,7 @@ UWxViewModel_Attribute* UWxViewModel_AbilitySystem::GetOrCreateAttributeViewMode
 	return AttrVM;
 }
 
-UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags)
+UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 
@@ -142,7 +141,7 @@ UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(co
 	}
 
 	UWxViewModel_Ability* AbilityVM = NewObject<UWxViewModel_Ability>(this);
-	AbilityVM->Initialize(ASC, InAbilityTags);
+	AbilityVM->Initialize(ASC, InAbilityTags, MoveTemp(InOnBoundAbilityChanged));
 	AbilityViewModels.Add(AbilityVM);
 	return AbilityVM;
 }
@@ -209,17 +208,13 @@ bool UWxViewModel_AbilitySystem::AddActiveEffectViewModel(UAbilitySystemComponen
 		}
 	}
 
-	// GE 의 컴포넌트 배열은 클래스로만 뒤질 수 있어, 도메인 구현체와 공유하는 엔진 베이스를 앵커로 잡고 계약으로 내린다.
-	const IWxUIData* UIData = Cast<IWxUIData>(Spec.Def->FindComponent<UGameplayEffectUIData>());
-
-	// 아이콘 없는 표시 데이터(엔진 TextOnly 등)도 같은 앵커에 걸리므로, 아이콘을 채운 GE 만 목록에 올린다 — 버프 목록은 아이콘으로 그려진다.
-	if (!UIData || UIData->GetIcon().IsNull())
+	if (!ConfigureEffectViewModel.IsBound())
 	{
 		return false;
 	}
 
 	UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(this);
-	EffectVM->Initialize(InASC, Handle, UIData);
+	EffectVM->Initialize(InASC, Handle, ConfigureEffectViewModel);
 
 	// 초기화가 핸들을 잡지 못했으면 제거 통지와 영영 매칭되지 않아 목록에 유령으로 남는다.
 	if (!EffectVM->GetBoundHandle().IsValid())
@@ -291,5 +286,21 @@ void UWxViewModel_AbilitySystem::FlushAbilityRebind()
 		{
 			AbilityVM->RefreshBoundAbility();
 		}
+	}
+}
+
+void UWxViewModel_AbilitySystem::ConfigureEffectPresentation(FWxConfigureEffectViewModel InConfigurePresentation)
+{
+	if (ConfigureEffectViewModel.IsBound() || !InConfigurePresentation.IsBound())
+	{
+		return;
+	}
+
+	ConfigureEffectViewModel = MoveTemp(InConfigurePresentation);
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	if (ASC && ASC->OnActiveGameplayEffectAddedDelegateToSelf.IsBoundToObject(this))
+	{
+		BuildActiveEffectViewModels();
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
 	}
 }

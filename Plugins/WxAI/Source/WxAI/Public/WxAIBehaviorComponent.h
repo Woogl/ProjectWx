@@ -38,6 +38,8 @@ public:
 	UWxPatrolComponent* GetPatrolPath() const;
 
 private:
+	FDelegateHandle PawnHitDelegateHandle;
+
 	UFUNCTION()
 	void HandleControllerChanged(APawn* Pawn, AController* OldController, AController* NewController);
 

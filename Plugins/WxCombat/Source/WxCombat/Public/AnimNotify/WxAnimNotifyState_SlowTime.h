@@ -18,7 +18,9 @@ class WXCOMBAT_API UWxAnimNotifyState_SlowTime : public UAnimNotifyState
 	GENERATED_BODY()
 
 public:
+#if WITH_EDITOR
 	virtual FLinearColor GetEditorColor() override;
+#endif
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 
 	virtual FString GetNotifyName_Implementation() const override;

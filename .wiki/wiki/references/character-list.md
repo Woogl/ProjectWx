@@ -39,7 +39,7 @@ summary: "AbilitySets를 가진 캐릭터 BP의 GAS 구성으로, 캐릭터별 W
 
 | WxAbilitySet | 캐릭터 | AttributeInitRow | GrantedAbilities (부여 순서) | GrantedEffects |
 |---|---|---|---|---|
-| ABS_Doppelganger | BP_Doppelganger | DT_CharacterAttribute.Minion |  | WxEffect_IgnoreAggro, WxEffect_IgnoreCooldowns, WxEffect_IgnoreCosts, WxEffect_IgnoreAbilityTags |
+| ABS_Doppelganger | BP_Doppelganger | DT_CharacterAttribute.Minion |  | WxEffect_IgnoreAggro, WxEffect_IgnoreCooldowns, WxEffect_IgnoreCosts, WxEffect_IgnoreAbilityActivationTags |
 | ABS_HGTest | BP_HGTest | DT_CharacterAttribute.HGTest | GA_HGTest_Attack_Light_1, GA_HGTest_Attack_Light_2, GA_HGTest_Attack_Heavy_1, GA_HGTest_Attack_Heavy_2, GA_HGTest_Attack_Air, GA_HGTest_Attack_DodgeCounter, GA_HGTest_Skill_1, GA_HGTest_Skill_2, GA_HGTest_Skill_3, GA_HGTest_Ultimate_1, GA_HGTest_Ultimate_2, GA_HGTest_Passive |  |
 | ABS_Minion | BP_Minion | DT_CharacterAttribute.Minion | GA_Minion_Attack_Heavy, GA_Minion_Skill_1, GA_Minion_Skill_2 | WxEffect_IgnoreAggro, WxEffect_IgnoreCooldowns, WxEffect_IgnoreCosts |
 | ABS_Sandbag | BP_Sandbag | DT_CharacterAttribute.Sandbag | GA_Shared_HitReact, GA_Shared_HitReact_KnockUp, GA_Shared_HitReact_Normal, GA_Shared_Death, GA_Shared_Groggy |  |

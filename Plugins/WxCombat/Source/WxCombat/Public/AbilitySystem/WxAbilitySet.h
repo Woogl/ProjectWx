@@ -22,6 +22,9 @@ public:
 	/** 캐릭터가 받는 세트 전체에서 같은 어빌리티는 한 번만 부여한다. */
 	void GiveToAbilitySystem(UWxAbilitySystemComponent* ASC) const;
 
+	/** 없는 어빌리티만 부여한다. 재등록으로 스펙이 사라져도 속성과 GE는 다시 적용하지 않는다. */
+	void GiveAbilitiesToAbilitySystem(UWxAbilitySystemComponent* ASC) const;
+
 	/** 여러 세트를 한 배열에 모으므로 중복 제거는 받은 배열 기준이다. */
 	void AppendInputActions(TArray<const UInputAction*>& OutInputActions) const;
 

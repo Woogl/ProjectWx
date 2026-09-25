@@ -22,7 +22,9 @@ class WXCOMBAT_API UWxAnimNotifyState_CameraMove : public UAnimNotifyState
 
 public:
 	virtual FString GetNotifyName_Implementation() const override;
+#if WITH_EDITOR
 	virtual FLinearColor GetEditorColor() override;
+#endif
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;

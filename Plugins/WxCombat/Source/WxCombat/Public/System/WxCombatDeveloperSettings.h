@@ -16,13 +16,4 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "Damage", meta = (ClampMin = "0.0001", UIMin = "0.0001"))
 	float DefenseConstant;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Anim Notify", meta = (HideAlphaChannel))
-	FLinearColor CombatAnimNotifyColor;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Anim Notify", meta = (HideAlphaChannel))
-	FLinearColor MovementAnimNotifyColor;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Anim Notify", meta = (HideAlphaChannel))
-	FLinearColor CosmeticAnimNotifyColor;
 };

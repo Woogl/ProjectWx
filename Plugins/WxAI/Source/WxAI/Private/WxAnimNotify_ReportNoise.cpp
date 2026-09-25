@@ -1,10 +1,20 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxAnimNotify_ReportNoise.h"
+#if WITH_EDITOR
+#include "WxAnimNotifySettings.h"
+#endif
 
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "Perception/AISense_Hearing.h"
+
+#if WITH_EDITOR
+FLinearColor UWxAnimNotify_ReportNoise::GetEditorColor()
+{
+	return GetDefault<UWxAnimNotifySettings>()->MiscColor;
+}
+#endif
 
 void UWxAnimNotify_ReportNoise::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {

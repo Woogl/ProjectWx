@@ -4,13 +4,17 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Animation/AnimMontage.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "System/WxCombatDeveloperSettings.h"
+#if WITH_EDITOR
+#include "WxAnimNotifySettings.h"
+#endif
 #include "WxGameplayTags.h"
 
+#if WITH_EDITOR
 FLinearColor UWxAnimNotify_FinisherVictim::GetEditorColor()
 {
-	return GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
+	return GetDefault<UWxAnimNotifySettings>()->AbilityFlowColor;
 }
+#endif
 
 void UWxAnimNotify_FinisherVictim::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {

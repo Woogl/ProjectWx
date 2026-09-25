@@ -2,6 +2,7 @@
 title: "편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer"
 category: reference
 sources:
+  - "raw/notes/2026-09-25-ui-data-interface-removal.md"
   - "raw/notes/2026-09-25-animnotify-labels.md"
   - "raw/notes/2026-09-25-row-preview-nested.md"
   - "raw/notes/2026-09-25-row-preview-tooltip.md"
@@ -44,6 +45,8 @@ DataTableRowFixup은 프로젝트 범위를 넘는 범용 플러그인이라 이
 WxEditor는 엔진 Object Details를 감싸 원래 콜백·순서를 보관한다. Blueprint 썸네일 렌더러는 기존 등록을 해제하고 교체하며 종료 시 기본 렌더러를 복구한다. StateTree 시각화와 속성 커스터마이징도 종료 때 해제한다. 새 도구는 등록만 추가하지 말고 해제·기존 등록 복구까지 짝을 맞춘다.
 
 DataTableRowFixup은 모듈 시작 시 DataTable 변경 리스너를 만들고 종료 시 해제한다. WxToolset은 모듈 시작 시 네 도구 클래스(AnimMontage·Blueprint·MVVM·StateTree)를 등록하고 종료 시 해제한다. 공개 계약상 Montage 구조 복사는 대상의 노티파이·블렌드 설정을 유지하며, 노티파이 복제는 이미 노티파이가 있는 섹션을 건너뛴다. StateTree 루트 파라미터 삭제 시 그 파라미터를 쓰던 바인딩은 별도 정리 대상이다. 도구 호출 가능성과 특정 에셋 변경의 성공·저장·컴파일 성공은 구분한다.
+
+`UWxUIDataThumbnailRenderer`는 WxCombat 어빌리티·GE 표시 컴포넌트와 WxGame 캐릭터의 getter에서 아이콘을 직접 읽는다(2026-09-25). 공용 `IWxUIData`는 제거했으며 이 연결을 위해 WxEditor가 WxCombat·WxGame을 의존한다. 아이콘이 없는 BP는 엔진 기본 썸네일을 사용한다.
 
 ## DataTable 행 참조 갱신
 
@@ -117,6 +120,8 @@ WBP의 C++ 부모 클래스를 없앨 때는 클래스를 남긴 채 빌드 → 
 - [[world|WxWorld — 장치와 상호작용]] ([WxWorld — 장치와 상호작용](../topics/world.md))
 
 ## Sources
+
+- [UI 데이터 인터페이스 제거와 리졸버 연결](../../raw/notes/2026-09-25-ui-data-interface-removal.md) — 2026-09-25 사용자 합의와 구현
 
 - [근거 1](../../raw/notes/2026-09-22-current-editor.md)
 - [근거 2](../../raw/notes/2026-09-22-current-foundation.md)

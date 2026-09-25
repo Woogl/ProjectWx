@@ -2,20 +2,14 @@
 
 #include "MVVM/WxViewModel_Ability.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemInterface.h"
-#include "Blueprint/UserWidget.h"
-#include "GameFramework/Pawn.h"
-#include "GameFramework/PlayerController.h"
-#include "MVVM/WxViewModel_AbilitySystem.h"
 #include "Abilities/GameplayAbility.h"
 #include "Engine/Texture2D.h"
 #include "Engine/World.h"
 #include "GameplayEffect.h"
 #include "TimerManager.h"
-#include "WxUIData.h"
 #include "WxGameplayTags.h"
 
-void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags)
+void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged)
 {
 	// 호출자가 현재 슬롯의 태그를 다시 전달할 수도 있으므로 종료 전에 복사한다.
 	const FGameplayTagContainer NewAbilityTags = InAbilityTags;
@@ -27,6 +21,7 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGam
 
 	CachedASC = InASC;
 	AbilityTags = NewAbilityTags;
+	OnBoundAbilityChanged = MoveTemp(InOnBoundAbilityChanged);
 
 	// 어빌리티가 갈려도 쿨다운 GE 는 같은 ASC 에서 오므로 구독은 한 번뿐이다 — 지금 물고 있는 쿨다운 태그로 거르는 것은 핸들러가 한다.
 	InASC->OnActiveGameplayEffectAddedDelegateToSelf
@@ -136,6 +131,7 @@ void UWxViewModel_Ability::Deinitialize()
 
 	CachedASC.Reset();
 	CachedAbility.Reset();
+	OnBoundAbilityChanged.Unbind();
 	AbilityTags.Reset();
 	CachedCooldownTags.Reset();
 	CachedCooldownTime = 0.f;
@@ -207,7 +203,8 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 		MatchedAbility = FallbackAbility;
 	}
 
-	if (MatchedAbility == CachedAbility.Get())
+	// 제거된 인스턴스는 Get()이 이미 null이어도 이전 표시를 비워야 한다.
+	if (MatchedAbility == CachedAbility.Get() && (MatchedAbility || CachedAbility.IsExplicitlyNull()))
 	{
 		return;
 	}
@@ -225,33 +222,16 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 
 	if (!MatchedAbility)
 	{
-		SetTitle(FText::GetEmpty());
-		SetDescription(FText::GetEmpty());
-		RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Ability, Icon), nullptr);
+		SetPresentation(FText::GetEmpty(), FText::GetEmpty(), nullptr, 0, 0.f);
+		OnBoundAbilityChanged.ExecuteIfBound(*this, nullptr);
 		SetCostAmount(0.f);
-		SetMaxRecharges(0);
 		SetCurrentCharges(0);
 		RefreshActivationState();
 		return;
 	}
 
-	int32 NewMaxRecharges = 1;
-	SetTitle(FText::GetEmpty());
-	SetDescription(FText::GetEmpty());
-	if (const IWxUIData* UIData = Cast<IWxUIData>(MatchedAbility))
-	{
-		SetTitle(UIData->GetTitle());
-		SetDescription(UIData->GetDescription());
-		NewMaxRecharges = UIData->GetMaxRecharges();
-		CachedCooldownTime = UIData->GetCooldownTime();
-
-		// 전투 중 동기 로드 히치를 피한다.
-		RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Ability, Icon), UIData->GetIcon());
-	}
-	else
-	{
-		RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Ability, Icon), nullptr);
-	}
+	SetPresentation(FText::GetEmpty(), FText::GetEmpty(), nullptr, 1, 0.f);
+	OnBoundAbilityChanged.ExecuteIfBound(*this, MatchedAbility);
 
 	if (const FGameplayTagContainer* CooldownTags = MatchedAbility->GetCooldownTags())
 	{
@@ -259,12 +239,11 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 	}
 
 	BindCostAttributes(*ASC, *MatchedAbility);
-	SetMaxRecharges(NewMaxRecharges);
 
 	// 쿨다운이 없는 어빌리티는 아래 갱신이 첫 줄에서 빠져나가므로 충전을 여기서 채운다.
 	if (CachedCooldownTags.IsEmpty())
 	{
-		SetCurrentCharges(NewMaxRecharges);
+		SetCurrentCharges(MaxRecharges);
 	}
 	else if (UpdateCooldownState())
 	{
@@ -628,24 +607,11 @@ void UWxViewModel_Ability::UnbindCostAttributes(UAbilitySystemComponent& ASC)
 	CostMaxAttribute = FGameplayAttribute();
 }
 
-UObject* UWxViewModelResolver_Ability::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
+void UWxViewModel_Ability::SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon, int32 InMaxRecharges, float InCooldownTime)
 {
-	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
-	const IAbilitySystemInterface* AbilitySystemPawn = PC ? Cast<IAbilitySystemInterface>(PC->GetPawn()) : nullptr;
-	UAbilitySystemComponent* ASC = AbilitySystemPawn ? AbilitySystemPawn->GetAbilitySystemComponent() : nullptr;
-
-	// 빈 컨테이너는 HasAll 이 항상 true 라 아무 어빌리티나 매칭된다.
-	if (!ASC || AbilityTags.IsEmpty())
-	{
-		return nullptr;
-	}
-
-	// 슬롯 뷰모델의 소유는 ASC 의 어빌리티시스템 VM 이 맡는다 — 같은 슬롯을 보는 위젯끼리 하나를 나눠 쓴다.
-	UWxViewModel_AbilitySystem* AbilitySystemViewModel = UWxViewModel_AbilitySystem::GetOrCreate(ASC);
-	if (!AbilitySystemViewModel)
-	{
-		return nullptr;
-	}
-
-	return AbilitySystemViewModel->GetOrCreateAbilityViewModel(AbilityTags);
+	SetTitle(InTitle);
+	SetDescription(InDescription);
+	SetMaxRecharges(InMaxRecharges);
+	CachedCooldownTime = InCooldownTime;
+	RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Ability, Icon), InIcon);
 }

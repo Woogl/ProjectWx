@@ -1,5 +1,7 @@
 # Ability Resolver를 WxUI로 이동
 
+> 후속(2026-09-25): 사용자가 IWxUIData 제거와 모듈별 책임 분리를 승인했다. 어빌리티 리졸버는 도메인 데이터를 VM에 연결하기 위해 WxGame으로 돌아간다. 현재 상태는 [UI 데이터 인터페이스 제거](ui-data-interface-removal.md)를 따른다. 아래는 이전 이동의 판단·검증 이력이다.
+
 - 날짜: 2026-09-23
 - 요청: `UWxViewModelResolver_Ability`를 WxUI로 이동.
 - 조사: 참조하는 Ability·AbilitySystem VM은 이미 WxUI에 있고 필요한 GAS·MVVM 의존성도 등록되어 있다.

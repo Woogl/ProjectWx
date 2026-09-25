@@ -2,12 +2,16 @@
 
 #include "AnimNotify/WxAnimNotify_SkillCutscene.h"
 #include "LevelSequence.h"
-#include "System/WxCombatDeveloperSettings.h"
+#if WITH_EDITOR
+#include "WxAnimNotifySettings.h"
+#endif
 
+#if WITH_EDITOR
 FLinearColor UWxAnimNotify_SkillCutscene::GetEditorColor()
 {
-	return GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
+	return GetDefault<UWxAnimNotifySettings>()->PresentationColor;
 }
+#endif
 
 FString UWxAnimNotify_SkillCutscene::GetNotifyName_Implementation() const
 {

@@ -3,7 +3,7 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/Effect/WxEffect_Cost.h"
-#include "AbilitySystem/Effect/WxEffect_IgnoreAbilityTags.h"
+#include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxInputBufferComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
@@ -12,6 +12,8 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "GameplayEffect.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Misc/DataValidation.h"
 #include "WxCombatModule.h"
 #include "WxGameplayTags.h"
@@ -26,6 +28,37 @@ UWxAbilityBase::UWxAbilityBase()
 	// 쿨다운 GE도 공용이다 — 쌓지 않고 어빌리티의 CooldownTags로 구분하므로 어빌리티끼리 섞이지 않는다.
 	CostGameplayEffectClass = UWxEffect_Cost::StaticClass();
 	CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
+}
+
+FGameplayTagContainer UWxAbilityBase::GetAbilityBlockTags() const
+{
+	FGameplayTagContainer BlockTags = BlockAbilitiesWithTag;
+	if (ActivationGroup == EWxAbilityActivationGroup::Independent)
+	{
+		return BlockTags;
+	}
+
+	// 강공격이 약공격을 취소하려면 순정 발동 검사를 먼저 통과해야 한다.
+	// 명시한 BlockAbilitiesWithTag는 유지하고, 공통 규칙에서만 Heavy를 제외한다.
+	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && GetAssetTags().HasTag(WxGameplayTags::Ability_Attack_Light))
+	{
+		BlockTags.AddTag(WxGameplayTags::Ability_Attack_Light);
+		BlockTags.AddTag(WxGameplayTags::Ability_Attack_Air);
+		BlockTags.AddTag(WxGameplayTags::Ability_Attack_DodgeCounter);
+	}
+	else
+	{
+		BlockTags.AddTag(WxGameplayTags::Ability_Attack);
+	}
+	BlockTags.AddTag(WxGameplayTags::Ability_Skill);
+	BlockTags.AddTag(WxGameplayTags::Ability_Pattern);
+	BlockTags.AddTag(WxGameplayTags::Ability_Ultimate);
+	BlockTags.AddTag(WxGameplayTags::Ability_Dodge);
+	BlockTags.AddTag(WxGameplayTags::Ability_Guard);
+	BlockTags.AddTag(WxGameplayTags::Ability_UseItem);
+	BlockTags.AddTag(WxGameplayTags::Ability_Interact);
+	BlockTags.AddTag(WxGameplayTags::Ability_Jump);
+	return BlockTags;
 }
 
 FText UWxAbilityBase::GetTitle() const
@@ -58,6 +91,53 @@ UAnimMontage* UWxAbilityBase::GetMontage() const
 	return AbilityMontage;
 }
 
+EWxAbilityDirection UWxAbilityBase::ResolveDirection(const FVector& LocalDirection, EWxAbilityDirection DefaultDirection)
+{
+	const FVector Local = LocalDirection.GetSafeNormal2D();
+	if (Local.IsNearlyZero())
+	{
+		return DefaultDirection;
+	}
+
+	const float AngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X));
+	const int32 Octant = ((FMath::RoundToInt(AngleDeg / 45.f) % 8) + 8) % 8;
+	return static_cast<EWxAbilityDirection>(Octant);
+}
+
+FName UWxAbilityBase::SelectDirectionalSection(const FVector& LocalDirection, const FString& Prefix, EWxAbilityDirection DefaultDirection) const
+{
+	return SelectDirectionalSection(GetMontage(), LocalDirection, Prefix, DefaultDirection);
+}
+
+FName UWxAbilityBase::SelectDirectionalSection(const UAnimMontage* Montage, const FVector& LocalDirection, const FString& Prefix, EWxAbilityDirection DefaultDirection)
+{
+	if (!Montage)
+	{
+		return NAME_None;
+	}
+
+	const EWxAbilityDirection Direction = ResolveDirection(LocalDirection, DefaultDirection);
+	const FName SectionName(Prefix + StaticEnum<EWxAbilityDirection>()->GetNameStringByValue(static_cast<int64>(Direction)));
+	if (Montage->IsValidSectionName(SectionName))
+	{
+		return SectionName;
+	}
+
+	const FName ForwardSection(Prefix + StaticEnum<EWxAbilityDirection>()->GetNameStringByValue(static_cast<int64>(EWxAbilityDirection::Forward)));
+	if (Montage->IsValidSectionName(ForwardSection))
+	{
+		return ForwardSection;
+	}
+
+	return NAME_None;
+}
+
+bool UWxAbilityBase::HasMontageSection(const UAnimMontage* Montage, FName SectionName)
+{
+	const FString Prefix = SectionName.IsNone() ? FString() : SectionName.ToString();
+	return Montage && (Montage->IsValidSectionName(SectionName) || Montage->IsValidSectionName(FName(Prefix + TEXT("Forward"))));
+}
+
 float UWxAbilityBase::GetMontagePlayRate() const
 {
 	const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
@@ -77,6 +157,10 @@ void UWxAbilityBase::SetActionPhase(EWxAbilityActionPhase NewPhase)
 	}
 
 	ActionPhase = NewPhase;
+	if (IsActive() && ActivationGroup == EWxAbilityActivationGroup::Exclusive)
+	{
+		SetShouldBlockOtherAbilities(NewPhase != EWxAbilityActionPhase::Recovery);
+	}
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
 		FGameplayEventData Payload;
@@ -89,12 +173,12 @@ void UWxAbilityBase::SetActionPhase(EWxAbilityActionPhase NewPhase)
 
 void UWxAbilityBase::OpenComboWindow(int32 MontageInstanceID)
 {
-	// 배타 본동작에서만 연다 — 콤보가 없는 어빌리티의 몽타주에 노티파이가 섞여도 Independent를 점유자로 승격시키지 않는다.
+	// 공용 몽타주의 노티파이가 Independent·Override에 콤보 재발동 예외를 열지 않게 한다.
 	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && ActionPhase == EWxAbilityActionPhase::Blocking && IsPlayingMontageInstance(MontageInstanceID))
 	{
 		SetActionPhase(EWxAbilityActionPhase::ComboWindow);
 
-		// 재발동이 이 인스턴스를 그대로 되살리므로 전이 뒤에는 아무것도 쓰지 않는다.
+		// 입력 버퍼 처리로 같은 인스턴스가 재발동할 수 있으므로 이후 상태를 덮어쓰지 않는다.
 		const AActor* Avatar = GetAvatarActorFromActorInfo();
 		if (UWxInputBufferComponent* InputBuffer = Avatar ? Avatar->FindComponentByClass<UWxInputBufferComponent>() : nullptr)
 		{
@@ -110,13 +194,12 @@ void UWxAbilityBase::CloseComboWindow(int32 MontageInstanceID)
 		return;
 	}
 
-	// 창이 아직 열려 있을 때만 되돌린다 — 창이 후딜보다 늦게 닫히는 배치가 정상이라 무조건 되돌리면 후딜을 도로 닫는다.
+	// 콤보 창이 후딜보다 늦게 닫혀도 이미 시작한 Recovery를 되돌리지 않는다.
 	if (ActionPhase == EWxAbilityActionPhase::ComboWindow)
 	{
 		SetActionPhase(EWxAbilityActionPhase::Blocking);
 	}
 
-	// 후딜에 들어가 있어도 창은 닫혔으므로 다음 발동은 첫 단부터다.
 	OnComboWindowClosed();
 }
 
@@ -126,12 +209,12 @@ void UWxAbilityBase::OnComboWindowClosed()
 
 void UWxAbilityBase::StartRecovery(int32 MontageInstanceID)
 {
-	// 배타 어빌리티만 후딜로 — 엉뚱한 노티파이가 Independent를 점유자로 승격시키거나 Override의 캔슬 면역을 벗기지 않게 한다.
+	// 공용 몽타주의 노티파이가 Independent·Override의 단계까지 바꾸지 않게 한다.
 	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && ActionPhase != EWxAbilityActionPhase::Recovery && IsPlayingMontageInstance(MontageInstanceID))
 	{
 		SetActionPhase(EWxAbilityActionPhase::Recovery);
 
-		// 성립한 어빌리티가 이 인스턴스를 끊으므로 전이 뒤에는 아무것도 쓰지 않는다.
+		// 입력 버퍼에서 발동한 어빌리티가 이 인스턴스를 끝낼 수 있으므로 이후 상태를 덮어쓰지 않는다.
 		const AActor* Avatar = GetAvatarActorFromActorInfo();
 		if (UWxInputBufferComponent* InputBuffer = Avatar ? Avatar->FindComponentByClass<UWxInputBufferComponent>() : nullptr)
 		{
@@ -149,98 +232,49 @@ bool UWxAbilityBase::IsPlayingMontageInstance(int32 MontageInstanceID) const
 	return MontageInstance && MontageInstance->GetInstanceID() == MontageInstanceID;
 }
 
-const UWxAbilityBase* UWxAbilityBase::FindActivationGroupBlocker(const UAbilitySystemComponent& ASC, const UWxAbilityBase* Candidate)
-{
-	for (const FGameplayAbilitySpec& Spec : ASC.GetActivatableAbilities())
-	{
-		if (!Spec.IsActive())
-		{
-			continue;
-		}
-
-		// 모든 Wx 어빌리티는 기반 생성자가 InstancedPerActor를 강제하므로 스펙당 인스턴스는 하나뿐이다.
-		const UWxAbilityBase* Occupant = Cast<UWxAbilityBase>(Spec.GetPrimaryInstance());
-		if (!Occupant || !Occupant->IsActive())
-		{
-			continue;
-		}
-
-		const bool bOccupying = Occupant->ActivationGroup == EWxAbilityActivationGroup::Override
-			|| (Occupant->ActivationGroup == EWxAbilityActivationGroup::Exclusive && Occupant->ActionPhase != EWxAbilityActionPhase::Recovery);
-		if (!bOccupying)
-		{
-			continue;
-		}
-
-		if (!Candidate)
-		{
-			return Occupant;
-		}
-
-		// 점유자가 후보 자신이면 엔진 재발동으로 들어온 콤보 진행이다. 콤보 창은 후딜보다 이르므로 여기서 갈라야 두 창이 분리된다.
-		if (Occupant == Candidate)
-		{
-			if (Candidate->ActionPhase != EWxAbilityActionPhase::ComboWindow)
-			{
-				return Occupant;
-			}
-		}
-		// 끊겠다고 지목한 점유자는 후보를 막지 못한다. 취소 자체는 발동 직후 순정 PreActivate가 수행한다.
-		else if (!Occupant->GetAssetTags().HasAny(Candidate->CancelAbilitiesWithTag))
-		{
-			return Occupant;
-		}
-	}
-
-	return nullptr;
-}
-
-bool UWxAbilityBase::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
-{
-	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
-	{
-		return false;
-	}
-
-	if (ActivationGroup == EWxAbilityActivationGroup::Independent || ActivationGroup == EWxAbilityActivationGroup::Override)
-	{
-		return true;
-	}
-
-	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	if (!ASC)
-	{
-		return true;
-	}
-
-	return FindActivationGroupBlocker(*ASC, this) == nullptr;
-}
-
 bool UWxAbilityBase::DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	if (AbilitySystemComponent.HasMatchingGameplayTag(WxGameplayTags::Effect_IgnoreAbilityTags))
+	const bool bComboRetrigger = ActivationGroup == EWxAbilityActivationGroup::Exclusive && IsActive() && ActionPhase == EWxAbilityActionPhase::ComboWindow;
+	const bool bIgnoreActivationTags = AbilitySystemComponent.HasMatchingGameplayTag(WxGameplayTags::Effect_IgnoreAbilityActivationTags);
+	if (!bComboRetrigger && !bIgnoreActivationTags)
 	{
-		return true;
+		return Super::DoesAbilitySatisfyTagRequirements(AbilitySystemComponent, SourceTags, TargetTags, OptionalRelevantTags);
 	}
 
-	// 자기 발동이 실어 둔 상태 태그에 자기 다음 단이 막히지 않게 한다.
-	if (IsActive() && ActionPhase == EWxAbilityActionPhase::ComboWindow)
+	bool bBlocked = AbilitySystemComponent.AreAbilityTagsBlocked(GetAssetTags());
+	if (bComboRetrigger && IsBlockingOtherAbilities())
 	{
-		// 무적·슈퍼아머·사망이 막겠다고 선언한 어빌리티는 콤보 중에도 막혀야 한다.
-		if (!AbilitySystemComponent.AreAbilityTagsBlocked(GetAssetTags()))
+		if (const UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(&AbilitySystemComponent))
 		{
-			return true;
+			// 같은 태그를 쓰는 다른 GA까지 풀지 않고, 이 실행이 등록한 차단 1건만 제외한다.
+			bBlocked = WxASC->AreAbilityTagsBlockedIgnoringContribution(GetAssetTags(), GetAbilityBlockTags());
 		}
+	}
 
-		if (OptionalRelevantTags)
+	// 콤보는 이미 성립한 액션의 다음 단이므로 소유자 발동 조건을 다시 요구하지 않는다.
+	bool bMissing = false;
+	if (SourceTags)
+	{
+		bBlocked |= SourceTags->HasAny(SourceBlockedTags);
+		bMissing |= !SourceTags->HasAll(SourceRequiredTags);
+	}
+	if (TargetTags)
+	{
+		bBlocked |= TargetTags->HasAny(TargetBlockedTags);
+		bMissing |= !TargetTags->HasAll(TargetRequiredTags);
+	}
+	if (OptionalRelevantTags)
+	{
+		if (bBlocked)
 		{
 			OptionalRelevantTags->AddTag(UAbilitySystemGlobals::Get().ActivateFailTagsBlockedTag);
 		}
-
-		return false;
+		if (bMissing)
+		{
+			OptionalRelevantTags->AddTag(UAbilitySystemGlobals::Get().ActivateFailTagsMissingTag);
+		}
 	}
-
-	return Super::DoesAbilitySatisfyTagRequirements(AbilitySystemComponent, SourceTags, TargetTags, OptionalRelevantTags);
+	return !bBlocked && !bMissing;
 }
 
 bool UWxAbilityBase::CanBeCanceled() const
@@ -250,15 +284,15 @@ bool UWxAbilityBase::CanBeCanceled() const
 
 void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	// 직전 활성화가 재사용 인스턴스에 남긴 캔슬 창을 닫는다.
+	bHasMontageInputDirection = false;
+	MontageInputDirection = FVector::ZeroVector;
 	SetActionPhase(EWxAbilityActionPhase::Blocking);
 
 	if (ActivationGroup != EWxAbilityActivationGroup::Independent)
 	{
 		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr))
 		{
-			// 후딜에 든 앞 액션은 들어온 배타 발동이 끊는다 — 후딜은 지목할 태그가 없어 여기서만 창으로 가른다.
-			// 본동작 점유를 무엇까지 끊을지는 CancelAbilitiesWithTag 선언이 정하고 순정 PreActivate가 수행한다.
+			// 본동작의 차단·취소는 순정 GAS가 처리하고, Recovery는 전용 태그가 없으므로 단계로 찾아 취소한다.
 			WxASC->CancelRecoveringAbilities(this);
 		}
 	}
@@ -282,6 +316,7 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 
 void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	ClearPendingDirectionalMontage();
 	// 태스크를 여기서 끝내면 안 된다 — 엔진 EndAbility가 소유자 종료로 끝내는 경로만 재생 중인 몽타주를 멈추므로, 미리 끊으면 루핑 가드 몽타주처럼 스스로 끝나지 않는 것이 종료 후에도 계속 돈다.
 	MontageTask = nullptr;
 
@@ -308,12 +343,58 @@ bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
 		return false;
 	}
 
+	// 이미 고른 방향·Backstep은 그대로 쓴다. Forward는 자동 선택의 진입점이자 누락 방향의 대체 섹션이다.
+	const FString Prefix = StartSection.IsNone() ? FString() : StartSection.ToString();
+	const bool bSelectDirection = (StartSection.IsNone() || !Montage->IsValidSectionName(StartSection))
+		&& Montage->IsValidSectionName(FName(Prefix + TEXT("Forward")));
+	if (bSelectDirection)
+	{
+		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+		const bool bSharesClientDirection = NetExecutionPolicy == EGameplayAbilityNetExecutionPolicy::LocalPredicted
+			|| NetExecutionPolicy == EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+		if (!bHasMontageInputDirection && ASC && bSharesClientDirection && HasAuthority(&CurrentActivationInfo)
+			&& CurrentActorInfo && CurrentActorInfo->PlayerController.IsValid() && !IsLocallyControlled())
+		{
+			PendingDirectionalMontage = Montage;
+			PendingDirectionalSection = StartSection;
+			if (!MontageDirectionHandle.IsValid())
+			{
+				MontageDirectionHandle = ASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey())
+					.AddUObject(this, &UWxAbilityBase::HandleMontageDirectionReceived);
+			}
+			ASC->CallReplicatedTargetDataDelegatesIfSet(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
+			return IsActive();
+		}
+
+		if (!bHasMontageInputDirection)
+		{
+			MontageInputDirection = GetLocalMontageInputDirection();
+			bHasMontageInputDirection = true;
+			if (ASC && bSharesClientDirection && IsLocallyControlled() && !HasAuthority(&CurrentActivationInfo))
+			{
+				FGameplayAbilityTargetDataHandle DataHandle;
+				FWxAbilityTargetData_Direction* DirectionData = new FWxAbilityTargetData_Direction();
+				DirectionData->Direction = MontageInputDirection;
+				DataHandle.Add(DirectionData);
+				ASC->CallServerSetReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey(), DataHandle, FGameplayTag(), ASC->ScopedPredictionKey);
+			}
+		}
+		StartSection = SelectDirectionalSection(Montage, MontageInputDirection, Prefix);
+	}
+
+	// 대기 중 다른 섹션으로 교체됐으면 늦게 온 방향 데이터로 앞 요청을 재생하지 않는다.
+	ClearPendingDirectionalMontage();
 	if (!StartSection.IsNone() && !Montage->IsValidSectionName(StartSection))
 	{
 		UE_LOG(LogWxCombat, Warning, TEXT("%s: 몽타주 %s에 섹션 %s가 없다."), *GetName(), *Montage->GetName(), *StartSection.ToString());
 		return false;
 	}
 
+	return PlayMontageInternal(Montage, StartSection);
+}
+
+bool UWxAbilityBase::PlayMontageInternal(UAnimMontage* Montage, FName StartSection)
+{
 	// EndTask가 구 태스크를 가비지로 표시하므로, 바인딩은 남아도 약참조가 끊겨 후속 이벤트는 발송되지 않는다.
 	if (MontageTask)
 	{
@@ -333,25 +414,65 @@ bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
 	return true;
 }
 
-int32 UWxAbilityBase::GetComboStageCount(const UAnimMontage* Montage)
+FVector UWxAbilityBase::GetLocalMontageInputDirection() const
 {
-	if (!Montage)
+	const APawn* Pawn = Cast<APawn>(GetAvatarActorFromActorInfo());
+	if (!Pawn)
 	{
-		return 0;
+		return FVector::ZeroVector;
 	}
 
-	int32 StageCount = 0;
-	while (Montage->IsValidSectionName(FName(*FString::FromInt(StageCount + 1))))
+	FVector WorldDirection = Pawn->GetLastMovementInputVector();
+	// 직접 제어하지 않는 캐릭터는 마지막 입력 벡터 대신 이동 컴포넌트가 받은 가속도를 사용한다.
+	if (!Pawn->IsLocallyControlled())
 	{
-		++StageCount;
+		if (const ACharacter* Character = Cast<ACharacter>(Pawn))
+		{
+			WorldDirection = Character->GetCharacterMovement()->GetCurrentAcceleration();
+		}
 	}
-	return FMath::Max(StageCount, 1);
+	return Pawn->GetActorTransform().InverseTransformVectorNoScale(WorldDirection).GetSafeNormal2D();
 }
 
-FName UWxAbilityBase::GetComboStageSection(const UAnimMontage* Montage, int32 StageIndex)
+void UWxAbilityBase::HandleMontageDirectionReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ApplicationTag)
 {
-	const FName SectionName(*FString::FromInt(StageIndex + 1));
-	return Montage && Montage->IsValidSectionName(SectionName) ? SectionName : NAME_None;
+	MontageInputDirection = FVector::ZeroVector;
+	const FGameplayAbilityTargetData* Data = DataHandle.Get(0);
+	if (Data && Data->GetScriptStruct() == FWxAbilityTargetData_Direction::StaticStruct())
+	{
+		const FVector Direction = static_cast<const FWxAbilityTargetData_Direction*>(Data)->Direction;
+		if (!Direction.ContainsNaN())
+		{
+			MontageInputDirection = Direction.GetSafeNormal2D();
+		}
+	}
+	bHasMontageInputDirection = true;
+
+	UAnimMontage* Montage = PendingDirectionalMontage;
+	const FName StartSection = PendingDirectionalSection;
+	ClearPendingDirectionalMontage();
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
+	}
+	if (IsActive() && Montage && !PlayMontage(Montage, StartSection))
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	}
+}
+
+void UWxAbilityBase::ClearPendingDirectionalMontage()
+{
+	if (MontageDirectionHandle.IsValid())
+	{
+		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+		{
+			ASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).Remove(MontageDirectionHandle);
+		}
+		MontageDirectionHandle.Reset();
+	}
+	PendingDirectionalMontage = nullptr;
+	PendingDirectionalSection = NAME_None;
 }
 
 void UWxAbilityBase::HandleMontageCompleted()

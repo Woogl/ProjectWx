@@ -9,7 +9,6 @@
 #include "GenericTeamAgentInterface.h"
 #include "GameplayEffectTypes.h"
 #include "Character/WxTeamTypes.h"
-#include "WxUIData.h"
 #include "WxCharacterBase.generated.h"
 
 class UChildActorComponent;
@@ -28,7 +27,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnDeathSignature, AWxCharacterBas
  * 생성자 서브오브젝트는 기본적으로 존재하지만, 직렬화된 BP·레벨 인스턴스를 다루는 초기화 경계에서는 유효성을 확인한다.
  */
 UCLASS(Abstract)
-class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface, public IWxUIData
+class WXGAME_API AWxCharacterBase : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -57,11 +56,8 @@ public:
 
 	UWxLockOnComponent* GetLockOnComponent() const;
 
-	//~ Begin IWxUIData
-	virtual FText GetTitle() const override;
-	virtual FText GetDescription() const override;
-	virtual TSoftObjectPtr<UObject> GetIcon() const override;
-	//~ End IWxUIData
+	FText GetTitle() const;
+	TSoftObjectPtr<UObject> GetIcon() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "Wx|Character")
 	FWxOnDeathSignature OnDeath;
@@ -131,4 +127,7 @@ protected:
 	/** 사망부터 액터 파괴까지의 시간. 0 이하면 시체를 남긴다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Character", meta = (ClampMin = "0.0"))
 	float CorpseLifeSpan = 0.f;
+
+private:
+	bool bDeathHandled = false;
 };

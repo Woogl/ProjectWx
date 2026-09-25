@@ -16,6 +16,9 @@ class WXINVENTORY_API UWxAnimNotify_UseItem : public UAnimNotify
 	GENERATED_BODY()
 
 public:
+#if WITH_EDITOR
+	virtual FLinearColor GetEditorColor() override;
+#endif
 	virtual FString GetNotifyName_Implementation() const override;
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 };

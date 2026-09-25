@@ -19,7 +19,7 @@
  * Damage.CanGuard가 없는 피격은 퍼펙트 가드 윈도우 중이라도 가드로 막히지 않는다.
  * UWxEffectComponent_DamageReaction이 이 어빌리티를 Cancel한 뒤 Event.Hit을 보낸다.
  *
- * 가드 반격은 아직 성립하지 않는다 — 이 어빌리티가 배타 점유를 놓지 않아 가드 중에는 공격이 발동하지 못한다.
+ * 가드 반격은 아직 성립하지 않는다 — 공통 차단 태그 Ability.Attack이 가드 중 공격 발동을 막는다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Guard : public UWxAbilityBase

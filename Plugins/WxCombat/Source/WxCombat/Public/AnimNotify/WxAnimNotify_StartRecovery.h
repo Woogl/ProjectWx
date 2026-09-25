@@ -17,7 +17,9 @@ class WXCOMBAT_API UWxAnimNotify_StartRecovery : public UAnimNotify
 
 public:
 	virtual FString GetNotifyName_Implementation() const override;
+#if WITH_EDITOR
 	virtual FLinearColor GetEditorColor() override;
+#endif
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
 	/** 엔진 기본 구현은 빈 이벤트 참조를 넘겨 몽타주 인스턴스를 잃는다. */
