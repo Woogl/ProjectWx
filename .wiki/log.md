@@ -383,3 +383,7 @@ Export-AbilitySystemLists.ps1을 고쳐 목록을 다시 생성했다. 빈 칸�
 ## [2026-09-25] ingest + compile | 쿨다운 GE 통합
 
 사용자 결정(쿨다운 클래스 통합, CooldownTags 컨테이너 유지, SharesCooldownGroup 미도입, Pattern 번호 태그 유지)과 구현·검증 관찰을 raw/notes/2026-09-25-cooldown-single-ge.md에 수집하고 combat-abilities의 타입과 GA_·비용과 쿨다운·검증 절에 반영했다. 설계 때 놓친 엔진 순정 쿨다운 태그 규칙과 그 보정을 적었다. 어빌리티 목록은 생성기에 CooldownTags 칸을 더해 다시 만들었다. 빌드·데이터 검증 커맨드릿 통과, 인게임 미검증.
+
+## [2026-09-25] lint | 어빌리티·이펙트·캐릭터 목록 교차 검증
+
+헤드리스 커맨드릿의 T3D 내보내기와 Python 속성 조회로 세 목록을 스크립트 파서와 독립적으로 대조했다. GA_ 40개(타입·WxAbilitySet·저장값 칸), 몽타주 34개(섹션 순서, 노티파이 클래스·개수·저장값), WxAbilitySet·캐릭터 구성, DT_Damage·DT_CharacterAttribute 행 값, GE_ 6개, C++ 클래스 에셋 사용처, 표에 없는 행 참조 3건이 일치했다. 노티파이의 벡터·트랜스폼 값(`LocalSpawnOffset`)을 적지 않는다는 점이 문서에 없어 머리말에 보강했다. 게임 실행 검증 아님.
