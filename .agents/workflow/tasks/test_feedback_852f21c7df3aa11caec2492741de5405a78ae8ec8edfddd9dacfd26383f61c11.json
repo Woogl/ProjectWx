@@ -1,0 +1,60 @@
+{
+  "taskPath": ".agents/workflow/tasks/animnotify-labels.md",
+  "revision": 5,
+  "requests": [
+    {
+      "operationId": "request-44ffe9fd-cc0f-4922-b2b6-2989e4e0a289",
+      "digest": "4cb1a6f7e6bcd61c757ba95967a44f9d96a88ff82e05ba2fed543badb53fc91c",
+      "action": "submit",
+      "kind": "record",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/animnotify-labels.md",
+      "title": "AnimNotify 표시 이름 정리",
+      "actor": "이우성",
+      "at": "2026-09-25T17:14:48.161Z",
+      "checks": [
+        {
+          "item": "17종 라벨 값",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "라벨 가독성",
+          "result": "통과",
+          "note": ""
+        }
+      ],
+      "status": "recorded"
+    },
+    {
+      "operationId": "request-44ffe9fd-cc0f-4922-b2b6-2989e4e0a289-cleanup",
+      "action": "cleanup",
+      "kind": "cleanup",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/animnotify-labels.md",
+      "title": "AnimNotify 표시 이름 정리",
+      "actor": "이우성",
+      "at": "2026-09-25T17:14:48.166Z",
+      "taskHash": "d40b92a81c52df76f669259b5eb2b146776be098471a0f1099b0f7fbfdc3ffe3",
+      "status": "complete",
+      "error": "",
+      "attempt": 1,
+      "startedAt": "2026-09-25T17:14:48.166Z",
+      "report": {
+        "summary": "AnimNotify 17종 라벨 값과 가독성의 사람 확인 범위를 Wiki에 반영했습니다. 게임 코드·에셋·작업 기록·접수 JSON·작업 상태는 변경하지 않았습니다.\n기존 다른 작업의 변경과 관련 문서의 줄바꿈 경고는 그대로 보존했습니다.",
+        "evidence": [
+          "AGENTS.md, 작업 절차, animnotify-labels.md, Wiki config.md·schema.md, wiki 스킬과 기존 라벨 원자료·편집기 기사를 읽었습니다.",
+          "Get-FileHash 결과 작업 기록 SHA-256이 접수 해시 d40b92a81c52df76f669259b5eb2b146776be098471a0f1099b0f7fbfdc3ffe3과 일치했습니다.",
+          "순정 llm-wiki lint --local --json 통과: 오류·경고 0건.",
+          "git diff --check 통과, 관련 문서 로컬 링크 33개 확인.",
+          "Export-Wiki.ps1 실행으로 Wiki·Workflow 뷰어 각각 64개 문서를 갱신했습니다. 빌드·에디터 테스트는 재실행하지 않았습니다."
+        ],
+        "changes": [
+          ".wiki/raw/notes/2026-09-26-animnotify-label-acceptance.md에 사람 확인 결과와 검증 범위를 수집했습니다.",
+          ".wiki/wiki/references/editor-tools.md에 17종 값 일치·가독성 확인과 적용 범위를 반영했습니다.",
+          "Wiki 루트·원자료 색인과 log.md를 갱신했습니다."
+        ]
+      }
+    }
+  ]
+}

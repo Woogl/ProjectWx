@@ -1,0 +1,81 @@
+{
+  "taskPath": ".agents/workflow/tasks/interaction-list-vm-simplification.md",
+  "revision": 5,
+  "requests": [
+    {
+      "operationId": "request-9e631ae3-bbf4-403f-a945-1a8f5a80fe55",
+      "digest": "47e1b5068cdc8197fe95ef6379cee47d2c53e92bc15c2faf9fc94a9789197166",
+      "action": "submit",
+      "kind": "record",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/interaction-list-vm-simplification.md",
+      "title": "상호작용 목록 VM 단순화",
+      "actor": "이우성",
+      "at": "2026-09-25T17:21:48.320Z",
+      "checks": [
+        {
+          "item": "목록 표시",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "휠 선택",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "범위 이탈·리스폰",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "행 표시",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "탑승칸 버튼 잠금",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "코드 리뷰",
+          "result": "통과",
+          "note": ""
+        }
+      ],
+      "status": "recorded"
+    },
+    {
+      "operationId": "request-9e631ae3-bbf4-403f-a945-1a8f5a80fe55-cleanup",
+      "action": "cleanup",
+      "kind": "cleanup",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/interaction-list-vm-simplification.md",
+      "title": "상호작용 목록 VM 단순화",
+      "actor": "이우성",
+      "at": "2026-09-25T17:21:48.324Z",
+      "taskHash": "19a65edd6b81898aab59ec5ce562a265be8f726d66eebf4c0726aad6051ded1e",
+      "status": "complete",
+      "error": "",
+      "attempt": 1,
+      "startedAt": "2026-09-25T17:21:48.324Z",
+      "report": {
+        "summary": "사람 테스트 6개 통과 범위를 Wiki에 반영했습니다. 게임 코드·에셋·작업 기록·접수 JSON과 작업 상태는 변경하지 않았습니다.\n작업과 무관한 기존 변경과 Git 줄바꿈 경고는 그대로 보존했습니다.",
+        "evidence": [
+          "AGENTS.md, 작업 절차, 지정 작업 기록, wiki 스킬, .wiki/config.md·schema.md와 기존 관련 원자료를 읽었습니다.",
+          "Get-FileHash 결과 작업 기록 SHA-256이 접수 해시와 일치했습니다.",
+          "순정 llm-wiki lint --local --json: 모든 검사 항목 0건, pass.",
+          "CheckWikiLinks.ps1: 66개 문서 오류 0. 변경 문서의 로컬 링크 36개와 UTF-8 검사 통과.",
+          "git diff --check -- .wiki: 공백 오류 없음. 게임 테스트는 재실행하지 않았습니다.",
+          "Export-Wiki.ps1: Wiki·Workflow 뷰어 각각 64개 문서 갱신."
+        ],
+        "changes": [
+          ".wiki/raw/notes/2026-09-26-interaction-list-play-acceptance.md에 사람 테스트 결과와 검증 경계를 수집했습니다.",
+          ".wiki/wiki/topics/world.md의 인게임 미검증 설명을 갱신하고, 대기 상태의 호출 잠금과 비활성 상태의 깨우기 예외를 구분했습니다.",
+          "관련 색인·원자료 통계·log.md를 갱신했습니다. 기존 원자료는 보존했습니다."
+        ]
+      }
+    }
+  ]
+}

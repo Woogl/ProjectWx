@@ -1,0 +1,160 @@
+{
+  "taskPath": ".agents/workflow/tasks/ability-table-driven.md",
+  "revision": 17,
+  "requests": [
+    {
+      "operationId": "request-f27f7ec5-a4ef-43c7-83ac-29cd403c3438",
+      "digest": "afaeeedff3e00d32a4408cb6fd257b92106933fe6c60ca56c6c692b8d24562e9",
+      "action": "request",
+      "kind": "request",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/ability-table-driven.md",
+      "title": "어빌리티 테이블 구동 전환",
+      "actor": "이우성",
+      "at": "2026-09-25T16:55:15.010Z",
+      "message": "이 작업은 테이블화를 안하는 쪽으로 마무리되었습니다. 기능은 전부 정상 작동하고 있습니다.",
+      "taskHash": "69343a1cb01d58531dbcb69a3ed292cbaf8f5b669231fab82a35775c066a84ca",
+      "status": "retest",
+      "error": "",
+      "attempt": 1,
+      "startedAt": "2026-09-25T16:55:15.016Z",
+      "report": {
+        "summary": "마지막 요청은 기존 GA_ 복귀 결정에 따른 종료 통보이며, 새 구현이나 방향 변경 요청이 아닙니다. 테이블화를 진행하지 않고 GA_ 에셋 방식을 유지하며, 모든 기능이 정상 작동한다는 사용자 확인으로 이해했습니다. 추가 수정·테스트는 수행하지 않았고, 파일과 기존 사람 체크리스트 결과는 변경하지 않았습니다.",
+        "evidence": [],
+        "changes": [],
+        "questions": [],
+        "plan": "",
+        "checklist": []
+      }
+    },
+    {
+      "operationId": "request-388f18b1-481a-4159-8e22-b3a2d5f3f3e4",
+      "digest": "3d1363d094043df489c50e01e44b486d9e12f46cf619bdb8026969400f8edca6",
+      "action": "request",
+      "kind": "request",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/ability-table-driven.md",
+      "title": "어빌리티 테이블 구동 전환",
+      "actor": "이우성",
+      "at": "2026-09-25T16:56:46.611Z",
+      "message": "이 작업은 테이블화 안하는 쪽으로 결론났습니다. 테스트 했을 때에도 모두 이상 없습니다.",
+      "taskHash": "200c1cf739809b020cda53ca6d442a8cefd8cc8210579038062bfc3a9a4b63ed",
+      "status": "retest",
+      "error": "",
+      "attempt": 1,
+      "startedAt": "2026-09-25T16:56:46.618Z",
+      "report": {
+        "summary": "테이블화를 하지 않고 GA_ 에셋 방식을 유지하는 것으로 결론을 확인했습니다. 기록상 GA_ 복귀 구현은 이미 끝났으며, 이번 요청은 사용자 테스트에서도 모두 이상 없었다는 최종 확인입니다. 추가 구현이나 새 계획은 필요하지 않습니다. 파일 수정·테스트 재실행은 하지 않았고, 기존 사람 체크리스트 결과도 변경하지 않았습니다.",
+        "evidence": [],
+        "changes": [],
+        "questions": [],
+        "plan": "",
+        "checklist": []
+      }
+    },
+    {
+      "operationId": "request-677b2207-d1e0-4622-857a-bdc5d4a2b319",
+      "digest": "57b419994fdf265056e098beddc21556b036139aac69c7812c826f9c54bf040b",
+      "action": "request",
+      "kind": "request",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/ability-table-driven.md",
+      "title": "어빌리티 테이블 구동 전환",
+      "actor": "이우성",
+      "at": "2026-09-25T17:03:12.801Z",
+      "message": "이 작업은 테이블 전환을 하지 않는 것으로 마무리되었습니다. 테스트했을 때에도 문제 없었습니다.",
+      "taskHash": "226335236a80b3db79e7bb409ef386cb159af6f123cd4d3dc66f069aebd6386c",
+      "status": "retest",
+      "error": "",
+      "attempt": 1,
+      "startedAt": "2026-09-25T17:03:12.808Z",
+      "report": {
+        "summary": "테이블 전환 없이 GA_ 에셋 방식을 유지하는 것으로 마무리되었으며, 사용자 테스트에서도 문제가 없었다는 최종 확인으로 이해했습니다. 기록의 기존 GA_ 복귀 결정과 일치하므로 추가 구현이나 새 계획은 필요하지 않습니다. 파일 수정·테스트 재실행은 하지 않았고, 사람 체크리스트 결과도 변경하지 않았습니다.",
+        "evidence": [],
+        "changes": [],
+        "questions": [],
+        "plan": "",
+        "checklist": []
+      }
+    },
+    {
+      "operationId": "request-24a5a920-005b-4dfe-8d3e-77030b43ba20",
+      "digest": "70e2c28528f8814d982c99111180ef8646c0c1dcbc1d10f97b54edcec5b80f95",
+      "action": "submit",
+      "kind": "record",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/ability-table-driven.md",
+      "title": "어빌리티 테이블 구동 전환",
+      "actor": "이우성",
+      "at": "2026-09-25T17:04:24.338Z",
+      "checks": [
+        {
+          "item": "HGTest 어빌리티",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "분신",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "도플갱어",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "조작감",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "가드 경감·버프 아이콘",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "템플릿 패시브 UP",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "락온",
+          "result": "통과",
+          "note": ""
+        }
+      ],
+      "status": "recorded"
+    },
+    {
+      "operationId": "request-24a5a920-005b-4dfe-8d3e-77030b43ba20-cleanup",
+      "action": "cleanup",
+      "kind": "cleanup",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/ability-table-driven.md",
+      "title": "어빌리티 테이블 구동 전환",
+      "actor": "이우성",
+      "at": "2026-09-25T17:04:24.345Z",
+      "taskHash": "1e0263a661d3eea0ea8bf86b45ef0b2e285292ca862c0c27094affca9e85e21a",
+      "status": "complete",
+      "error": "",
+      "attempt": 1,
+      "startedAt": "2026-09-25T17:04:24.345Z",
+      "report": {
+        "summary": "GA_ 유지 결정과 사람 테스트 7개 통과 범위를 Wiki에 반영했습니다. 게임 코드·에셋·작업 기록·접수 JSON·작업 상태는 변경하지 않았습니다.\n무관한 기존 변경과 다른 문서의 줄바꿈 경고는 그대로 두었습니다.",
+        "evidence": [
+          "AGENTS.md, 워크플로우 정본, ability-table-driven.md, wiki 스킬과 .wiki/config.md·schema.md를 읽었습니다.",
+          "작업 기록 SHA-256은 처리 전후 접수 taskHash와 일치했습니다.",
+          "순정 llm-wiki lint --local --json: 통과, 오류·경고·제안 0건.",
+          "Export-Wiki.ps1: Wiki·Workflow 뷰어 생성 성공. git diff --check -- .wiki: 공백 오류 없음.",
+          "빌드·게임 테스트는 재실행하지 않았습니다."
+        ],
+        "changes": [
+          ".wiki/raw/notes/2026-09-26-ability-ga-play-acceptance.md에 최종 결정·테스트 범위·출처 해시를 수집했습니다.",
+          ".wiki/wiki/concepts/combat-abilities.md에 사람 확인 결과를 반영하고 과거 플레이 미확인 설명을 갱신했습니다.",
+          "Wiki 색인·원자료 수 102건·log.md와 Saved/Wiki 뷰어를 갱신했습니다."
+        ]
+      }
+    }
+  ]
+}

@@ -1,5 +1,8 @@
 # Ability Resolver를 WxUI로 이동
 
+이전 상태: 확인 대기 · 빌드·리다이렉트 없는 WBP 로드 확인
+대체: 남은 확인(실제 슬롯 표시)은 [UI 데이터 인터페이스 제거](ui-data-interface-removal.md)가 이어받았다.
+
 > 후속(2026-09-25): 사용자가 IWxUIData 제거와 모듈별 책임 분리를 승인했다. 어빌리티 리졸버는 도메인 데이터를 VM에 연결하기 위해 WxGame으로 돌아간다. 현재 상태는 [UI 데이터 인터페이스 제거](ui-data-interface-removal.md)를 따른다. 아래는 이전 이동의 판단·검증 이력이다.
 
 - 날짜: 2026-09-23

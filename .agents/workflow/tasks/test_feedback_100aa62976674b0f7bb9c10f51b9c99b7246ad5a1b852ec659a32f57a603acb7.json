@@ -1,0 +1,65 @@
+{
+  "taskPath": ".agents/workflow/tasks/datatable-row-preview.md",
+  "revision": 5,
+  "requests": [
+    {
+      "operationId": "request-f132c6bc-6799-4622-9765-b0c751e16417",
+      "digest": "304df1ea62afcf35c5daf49fb188dcc5637abe55cc1cb842c42839bfb482b7a7",
+      "action": "submit",
+      "kind": "record",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/datatable-row-preview.md",
+      "title": "DataTable Row 미리보기",
+      "actor": "이우성",
+      "at": "2026-09-25T17:08:00.518Z",
+      "checks": [
+        {
+          "item": "빈 구조체 축약",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "설정값 표시",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "툴팁",
+          "result": "통과",
+          "note": ""
+        }
+      ],
+      "status": "recorded"
+    },
+    {
+      "operationId": "request-f132c6bc-6799-4622-9765-b0c751e16417-cleanup",
+      "action": "cleanup",
+      "kind": "cleanup",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/datatable-row-preview.md",
+      "title": "DataTable Row 미리보기",
+      "actor": "이우성",
+      "at": "2026-09-25T17:08:00.523Z",
+      "taskHash": "06eb2648bc32a108d118245ccdb155966a27e8121986aecf4e5fbe4077cf1238",
+      "status": "complete",
+      "error": "",
+      "attempt": 1,
+      "startedAt": "2026-09-25T17:08:00.524Z",
+      "report": {
+        "summary": "Wiki에 사람 테스트 3개 통과 범위와 회귀 테스트 제거 후의 검증 경계를 반영했습니다. 게임 코드·에셋·작업 기록·작업 상태는 변경하지 않았습니다. 무관한 기존 변경은 보존했습니다.",
+        "evidence": [
+          "AGENTS.md, 작업 절차, datatable-row-preview.md, Wiki config·schema와 wiki 스킬을 읽었습니다.",
+          "작업 기록 SHA-256이 접수 해시와 일치함을 수정 전후 확인했습니다.",
+          "순정 Wiki lint 통과: 오류·경고·제안 0개.",
+          "git diff --check 통과, 대상 문서 로컬 링크 30개 확인.",
+          "Export-Wiki.ps1 실행으로 Wiki·Workflow 뷰어 각각 64개 문서를 갱신했습니다."
+        ],
+        "changes": [
+          ".wiki/wiki/references/editor-tools.md에 빈 구조체 축약·설정값 보존·툴팁 일치의 사람 확인 범위를 추가했습니다.",
+          ".wiki/raw/notes/2026-09-26-row-preview-acceptance.md에 출처·해시·검증 경계를 기록했습니다.",
+          "Wiki 색인·원자료 통계·log.md를 갱신했습니다."
+        ]
+      }
+    }
+  ]
+}

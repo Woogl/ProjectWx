@@ -1,0 +1,70 @@
+{
+  "taskPath": ".agents/workflow/tasks/cooldown-unification.md",
+  "revision": 5,
+  "requests": [
+    {
+      "operationId": "request-084ce7ee-f875-4827-946e-8c5f5451f276",
+      "digest": "c41ddf34c6a24842825b59fc884a447a3edd2d098cd7bdb9e1c86f4770eb159d",
+      "action": "submit",
+      "kind": "record",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/cooldown-unification.md",
+      "title": "쿨다운 GE 통합",
+      "actor": "이우성",
+      "at": "2026-09-25T17:17:46.283Z",
+      "checks": [
+        {
+          "item": "회피 쿨다운·UI 진행률",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "소환물 쿨다운 무시",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "네트워크 복제",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "코드 리뷰",
+          "result": "통과",
+          "note": ""
+        }
+      ],
+      "status": "recorded"
+    },
+    {
+      "operationId": "request-084ce7ee-f875-4827-946e-8c5f5451f276-cleanup",
+      "action": "cleanup",
+      "kind": "cleanup",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/cooldown-unification.md",
+      "title": "쿨다운 GE 통합",
+      "actor": "이우성",
+      "at": "2026-09-25T17:17:46.288Z",
+      "taskHash": "c7908997522bed7e1f8577ac6828fc7877f36e5e2b2d39bdbeca0a44cb301e1c",
+      "status": "complete",
+      "error": "",
+      "attempt": 1,
+      "startedAt": "2026-09-25T17:17:46.289Z",
+      "report": {
+        "summary": "쿨다운 통합의 사람 테스트 통과 범위를 Wiki에 반영했습니다. 게임 코드·에셋·작업 기록·접수 JSON·작업 상태는 변경하지 않았습니다.\n무관한 기존 변경과 다른 문서의 Git 줄바꿈 경고는 그대로 보존했습니다.",
+        "evidence": [
+          "AGENTS.md, 작업 절차, cooldown-unification.md, Wiki config·schema, wiki 스킬과 관련 규약을 읽었습니다.",
+          "작업 기록의 사람 체크리스트 4/4 통과를 확인했으며, Get-FileHash 결과는 접수 해시와 일치했습니다.",
+          "순정 llm-wiki lint --local --json: 오류·경고 0, pass.",
+          "git diff --check -- .wiki: 공백 오류 없음. UTF-8·로컬 링크 39개·원자료 107개 확인.",
+          "Export-Wiki.ps1 실행 성공: Wiki·Workflow 뷰어 각각 64개 문서 갱신. 게임 테스트는 재실행하지 않았습니다."
+        ],
+        "changes": [
+          ".wiki/raw/notes/2026-09-26-cooldown-play-acceptance.md에 사람 확인 근거와 검증 범위를 수집했습니다.",
+          ".wiki/wiki/concepts/combat-abilities.md에 회피 UI·소환물 쿨다운 무시·리슨 서버와 클라이언트 차례 회복·코드 리뷰 통과를 반영하고 해당 미확인 설명을 갱신했습니다.",
+          "Wiki 루트·원자료 색인과 log.md를 갱신했습니다."
+        ]
+      }
+    }
+  ]
+}

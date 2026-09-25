@@ -1,10 +1,24 @@
 # Nameplate를 로컬 NameplateManager가 붙이고 떼는 구조로 전환
 
-상태: 제출(2026-09-24, 사용자 "제출하려고 합니다") — 인게임 확인 대기. 이어서 NameplateManager를 WxGame으로 옮기고 오래된 CoreRedirects를 제거해 제출했다(2026-09-24, 사용자 "제출해주세요", 아래 "NameplateManager WxGame 이동" 절, Wiki 반영: raw `2026-09-24-nameplate-manager-wxgame.md`와 UI·게임 조립·전투 문서). Wiki 반영 완료(2026-09-24, [UI](../../../.wiki/wiki/topics/ui.md)의 머리 위 Nameplate 절·[게임 조립](../../../.wiki/wiki/topics/game.md)·[전투](../../../.wiki/wiki/topics/combat.md))
+상태: 완료 · 체크리스트 6/6 통과
+다음 행동: 변경 시 기록된 테스트 범위와 제약을 참고한다.
+
+이전 상태: 제출(2026-09-24, 사용자 "제출하려고 합니다") — 인게임 확인 대기. 이어서 NameplateManager를 WxGame으로 옮기고 오래된 CoreRedirects를 제거해 제출했다(2026-09-24, 사용자 "제출해주세요", 아래 "NameplateManager WxGame 이동" 절, Wiki 반영: raw `2026-09-24-nameplate-manager-wxgame.md`와 UI·게임 조립·전투 문서). Wiki 반영 완료(2026-09-24, [UI](../../../.wiki/wiki/topics/ui.md)의 머리 위 Nameplate 절·[게임 조립](../../../.wiki/wiki/topics/game.md)·[전투](../../../.wiki/wiki/topics/combat.md))
 
 - 날짜: 2026-09-23
 - 계기: [WxCombat 모듈 리뷰](module_review_WxCombat.md)의 "락온 표시가 대상 ASC 루즈 태그와 태스크가 만든 레티클 위젯으로 흩어져 있다".
 - 기획 근거: `Docs/CombatDesign/Nameplate_System.md` 5장. 기본은 숨김이고, 인식 시와 카메라 락온 시에 표시하며, 추적이 끝나면 즉시 숨긴다.
+
+## 테스트 체크리스트
+
+| 항목 | 확인 방법 | 담당 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 교전 표시 | 게임: 교전 전의 적에는 Nameplate가 없고, 적이 인식하면 뜨고, 추적을 끝내면 바로 사라진다 | 사람 | 통과 | 이우성 2026-09-25 |
+| 락온 표시 | 게임: 교전하지 않은 적을 락온하면 Nameplate와 레티클이 뜨고 해제하면 Nameplate가 사라진다(교전 중이면 남는다) | 사람 | 통과 | 이우성 2026-09-25 |
+| 락온 대상 전환 | 게임: 락온 대상을 바꾸면 레티클이 새 부위로 즉시 옮겨간다 | 사람 | 통과 | 이우성 2026-09-25 |
+| 사망 표시 | 게임: 사망한 적은 락온 중이어도 Nameplate가 사라진다 | 사람 | 통과 | 이우성 2026-09-25 |
+| 크기·위치 | 게임: 거리별 크기 변화와 3000cm 밖 숨김이 이전과 같고, 캡슐 윗면 약 90cm 위에 뜨며 공격·피격 모션에 흔들리지 않는다 | 사람 | 통과 | 이우성 2026-09-25 |
+| 호스트·클라이언트 구분 | 리슨 서버와 원격 클라이언트: 각자 자기 락온에만 레티클과 Nameplate를 본다 | 사람 | 통과 | 이우성 2026-09-25 |
 
 ## 조사
 
@@ -192,3 +206,45 @@
 4. 사망한 적은 락온 중이어도 Nameplate가 사라진다.
 5. 거리에 따른 Nameplate 크기 변화와 3000cm 밖 숨김이 이전과 같다. Nameplate가 적 종류마다 캡슐 윗면에서 약 90cm 위에 뜨고(사용자 의도값), 공격·피격 모션에 흔들리지 않는다.
 6. 리슨 서버 호스트와 원격 클라이언트가 각자 자기 락온에만 레티클과 Nameplate를 본다.
+
+
+## 사용자 테스트 결과 · 2026-09-25T17:11:01.445Z
+
+<!-- test-feedback:request-6a2afc27-b357-4f63-9138-6d234a334e75:submitted -->
+- 전달한 사람: 이우성
+
+> 통과 · 교전 표시
+> 통과 · 락온 표시
+> 통과 · 락온 대상 전환
+> 통과 · 사망 표시
+> 통과 · 크기·위치
+> 통과 · 호스트·클라이언트 구분
+
+
+## AI 완료 정리 · 2026-09-25T17:11:01.451Z
+
+<!-- test-feedback:request-6a2afc27-b357-4f63-9138-6d234a334e75-cleanup:1 -->
+- 전달한 사람: 이우성
+- 처리 AI: Codex
+- 처리 결과: 정리 완료
+
+AI 요약:
+
+> Nameplate 사람 테스트 6개 통과 범위를 Wiki에 반영했습니다. 게임 코드·에셋·작업 기록·접수 JSON·작업 상태는 변경하지 않았습니다.
+> 무관한 기존 변경과 Git 줄바꿈 경고는 그대로 보존했습니다.
+
+> 변경: .wiki/raw/notes/2026-09-26-nameplate-play-acceptance.md에 사람 확인 범위와 출처 해시를 수집했습니다.
+
+> 변경: .wiki/wiki/topics/ui.md의 인게임 미확인 설명을 갱신하고 락온 대상 거리 예외를 명시했습니다.
+
+> 변경: .wiki/raw/notes/_index.md, .wiki/_index.md와 .wiki/log.md를 갱신했습니다.
+
+> 근거: AGENTS.md, 작업 절차·nameplate-manager.md, Wiki config.md·schema.md와 wiki 스킬을 읽었습니다.
+
+> 근거: Get-FileHash로 작업 기록 SHA-256이 처리 전후 접수 해시와 동일함을 확인했습니다.
+
+> 근거: 순정 llm-wiki lint --local --json: 오류·경고·제안 0개, 통과.
+
+> 근거: git diff --check -- .wiki: 종료 코드 0. 관련 문서의 로컬 링크 45개 검사 통과.
+
+> 근거: Export-Wiki.ps1: Wiki·Workflow 뷰어 각각 64개 문서 갱신. 게임 테스트는 재실행하지 않았습니다.
