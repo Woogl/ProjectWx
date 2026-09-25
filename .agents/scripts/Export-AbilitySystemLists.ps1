@@ -525,24 +525,15 @@ function Get-PluginFolders([string]$Repo, [string]$Name) {
     return @(Get-ChildItem -LiteralPath (Join-Path $Repo 'Plugins') -Directory | ForEach-Object { Join-Path $_.FullName $Name })
 }
 
-# UCLASS declarations of every project class: enough to tell effects apart, to give /Script classes their U or A prefix and to link the file holding a class's defaults.
+# UCLASS declarations of every project class: enough to tell effects apart and to give /Script classes their U or A prefix.
 function Read-NativeTypes([string]$Repo) {
     $types = @{}
-    $roots = @(Join-Path $Repo 'Source') + (Get-PluginFolders $Repo 'Source')
     # UCLASS specifiers may nest one level of parentheses, as in meta=(...).
     $classPattern = 'UCLASS\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)\s*class\s+(?:\w+_API\s+)?(?<name>[UA]\w+)\s*(?:final\s*)?:\s*public\s+(?<parent>[UA]\w+)'
-    foreach ($path in (Get-FilesUnder $roots '*.h')) {
+    foreach ($path in (Get-FilesUnder (@(Join-Path $Repo 'Source') + (Get-PluginFolders $Repo 'Source')) '*.h')) {
         if ($path -match '\\(Intermediate|ThirdParty)\\') { continue }
         foreach ($m in [regex]::Matches([IO.File]::ReadAllText($path), $classPattern)) {
-            $types[$m.Groups['name'].Value] = @{ Name = $m.Groups['name'].Value; Parent = $m.Groups['parent'].Value; Source = $path.Substring($Repo.Length + 1).Replace('\', '/') }
-        }
-    }
-    # A class without a constructor keeps its defaults in the header's member initializers.
-    foreach ($path in (Get-FilesUnder $roots '*.cpp')) {
-        if ($path -match '\\(Intermediate|ThirdParty)\\') { continue }
-        foreach ($m in [regex]::Matches([IO.File]::ReadAllText($path), '\b(?<name>[UA]\w+)::\k<name>\s*\(')) {
-            $type = $types[$m.Groups['name'].Value]
-            if ($type) { $type.Source = $path.Substring($Repo.Length + 1).Replace('\', '/') }
+            $types[$m.Groups['name'].Value] = @{ Name = $m.Groups['name'].Value; Parent = $m.Groups['parent'].Value }
         }
     }
     return $types
@@ -564,13 +555,6 @@ function Get-ClassDisplay([string]$Path, $Types) {
         foreach ($prefix in @('U', 'A')) { if ($Types.ContainsKey($prefix + $name) -or $known -contains ($prefix + $name)) { return $prefix + $name } }
     }
     return $name
-}
-
-# Project classes link to their constructor file; engine classes and Blueprint parents stay plain names.
-function Format-Class([string]$Name, $Types) {
-    $type = $Types[$Name]
-    if ($type) { return Format-Link $Name $type.Source }
-    return $Name
 }
 
 function Get-PackagePath([string]$File, [string]$Repo) {
@@ -867,12 +851,12 @@ function Get-CharacterBody($Characters, $Sets, $Abilities, $AttributeTables, $Ro
     return ($lines -join "`n") + "`n"
 }
 
-function Get-AbilityBody($Abilities, $Montages, $Types) {
+function Get-AbilityBody($Abilities, $Montages) {
     $lines = New-Object System.Collections.Generic.List[string]
     $lines.Add('# 어빌리티 목록')
     $lines.Add('')
     foreach ($line in (Get-IntroLines '에디터 없이 GA_·AM_ 에셋을 읽어 만든 표다.')) { $lines.Add($line) }
-    $lines.Add('- 값은 에셋에 저장된 값이다. 빈 칸은 "없음"이 아니라 저장된 값이 없어 부모 기본값을 따른다는 뜻이다. 기본값은 타입 칸의 C++ 클래스와 그 상위 클래스의 생성자·헤더 초기값에 있고, 타입 칸 링크가 그 클래스의 생성자 파일이다.')
+    $lines.Add('- 값은 에셋에 저장된 값이다. 빈 칸은 "없음"이 아니라 저장된 값이 없어 부모 기본값을 따른다는 뜻이다. 기본값은 타입 칸의 C++ 클래스와 그 상위 클래스의 생성자·헤더 초기값에 있다.')
     $lines.Add('- 발동 조건의 Required·Blocked는 `ActivationRequiredTags`·`ActivationBlockedTags`다. `ActivationOwnedTags`는 AbilityTags와 같으면 적지 않는다.')
     $lines.Add('- WxAbilitySet 칸의 에셋을 받는 캐릭터와 그 구성은 [캐릭터 목록](../references/character-list.md)에 있다.')
     $lines.Add('')
@@ -914,7 +898,7 @@ function Get-AbilityBody($Abilities, $Montages, $Types) {
         $setCell = '—'
         if ($a.Sets.Count) { $setCell = @($a.Sets) -join ', ' }
         $lines.Add((Format-Row @(
-            $a.Display, (Format-Class $a.Type $Types), $setCell, (Format-Value $p['ActivationInputAction']), (Format-Value $p['AbilityMontage']),
+            $a.Display, $a.Type, $setCell, (Format-Value $p['ActivationInputAction']), (Format-Value $p['AbilityMontage']),
             (Format-Value $p['AbilityTags']), ($conditions -join '; '), ($cooldown -join ', '), ($cost -join ' '), ($text -join ' — '), (Format-Others $p $skip))))
     }
     $lines.Add('')
@@ -942,7 +926,7 @@ function Get-AbilityBody($Abilities, $Montages, $Types) {
     return ($lines -join "`n") + "`n"
 }
 
-function Get-EffectBody($Effects, $NativeClasses, $DamageTables, $RowUsage, $AssetUsage, $Types) {
+function Get-EffectBody($Effects, $NativeClasses, $DamageTables, $RowUsage, $AssetUsage) {
     $lines = New-Object System.Collections.Generic.List[string]
     $lines.Add('# 이펙트 목록')
     $lines.Add('')
@@ -953,7 +937,7 @@ function Get-EffectBody($Effects, $NativeClasses, $DamageTables, $RowUsage, $Ass
 
     $lines.Add('## GE_ 에셋')
     $lines.Add('')
-    $lines.Add('값은 에셋에 저장된 값이다. 빈 칸은 "없음"이 아니라 저장된 값이 없어 부모 기본값을 따른다는 뜻이고, `없음`은 부모 값을 빈 값으로 덮어쓴 것이다. 값 없이 이름만 적힌 컴포넌트도 부모 기본값을 쓴다. 부모가 C++ 클래스면 기본값은 그 클래스와 상위 클래스의 생성자·헤더 초기값에 있고, 부모 칸 링크가 그 클래스의 생성자 파일이다. 모디파이어는 `어트리뷰트 연산 크기`로 적는다.')
+    $lines.Add('값은 에셋에 저장된 값이다. 빈 칸은 "없음"이 아니라 저장된 값이 없어 부모 기본값을 따른다는 뜻이고, `없음`은 부모 값을 빈 값으로 덮어쓴 것이다. 값 없이 이름만 적힌 컴포넌트도 부모 기본값을 쓴다. 부모가 C++ 클래스면 기본값은 그 클래스와 상위 클래스의 생성자·헤더 초기값에 있다. 모디파이어는 `어트리뷰트 연산 크기`로 적는다.')
     $lines.Add('')
     $lines.Add('| 이펙트 | 부모 | Modifiers | GEComponents | 기타 | 에셋 사용처 |')
     $lines.Add('|---|---|---|---|---|---|')
@@ -966,7 +950,7 @@ function Get-EffectBody($Effects, $NativeClasses, $DamageTables, $RowUsage, $Ass
             })
             if ($fields.Count) { $component.Class + '{' + ($fields -join ', ') + '}' } else { $component.Class }
         })
-        $lines.Add((Format-Row @($e.Display, (Format-Class $e.Type $Types), (Format-Value $e.Props['Modifiers']), ($components -join '; '), (Format-Others $e.Props (@('Modifiers', 'GEComponents', 'DataVersion') + $DeprecatedEffectProps)), $AssetUsage[$e.Package])))
+        $lines.Add((Format-Row @($e.Display, $e.Type, (Format-Value $e.Props['Modifiers']), ($components -join '; '), (Format-Others $e.Props (@('Modifiers', 'GEComponents', 'DataVersion') + $DeprecatedEffectProps)), $AssetUsage[$e.Package])))
     }
     $lines.Add('')
 
@@ -1128,9 +1112,9 @@ try {
     $assetUsage = Get-AssetUsage $records (@(foreach ($type in ($effectTypes + $partTypes)) { $type.Name }) + @($effects.Keys))
     $rowUsage = Get-RowUsage $records ($damageTables + $attributeTables)
 
-    $abilityBody = Get-AbilityBody $abilities $usedMontages $types
+    $abilityBody = Get-AbilityBody $abilities $usedMontages
     $characterBody = Get-CharacterBody $characterList $sets $abilities (Sort-Ordinal $attributeTables { param($r) $r.File }) $rowUsage
-    $effectBody = Get-EffectBody $effects ($effectTypes + $partTypes) (Sort-Ordinal $damageTables { param($r) $r.File }) $rowUsage $assetUsage $types
+    $effectBody = Get-EffectBody $effects ($effectTypes + $partTypes) (Sort-Ordinal $damageTables { param($r) $r.File }) $rowUsage $assetUsage
     Write-Output (Write-Article $repo 'ability-list' '어빌리티 목록' '["GA_ 목록", "몽타주 노티파이 목록"]' 'GA_·AM_ 에셋에서 생성한 표로, 어빌리티마다 타입·WxAbilitySet·입력·몽타주·태그·쿨다운·비용과 몽타주 섹션·노티파이를 보인다.' $abilityBody)
     Write-Output (Write-Article $repo 'character-list' '캐릭터 목록' '["WxAbilitySet 목록", "캐릭터 속성 초기값"]' 'AbilitySets를 가진 캐릭터 BP의 GAS 구성으로, 캐릭터별 WxAbilitySet과 각 WxAbilitySet이 주는 어빌리티·이펙트, 속성 초기값을 보인다.' $characterBody)
     Write-Output (Write-Article $repo 'effect-list' '이펙트 목록' '["GE_ 목록", "GameplayEffect 목록", "DT_Damage 행 목록"]' 'GE_ 에셋의 모디파이어·컴포넌트 저장값, 에셋이 참조하는 C++ 이펙트·컴포넌트·계산 클래스, 피해 행(DT_Damage) 값을 에셋 사용처와 함께 보인다.' $effectBody)

@@ -23,7 +23,7 @@ summary: "GE_ 에셋의 모디파이어·컴포넌트 저장값, 에셋이 참�
 
 ## GE_ 에셋
 
-값은 에셋에 저장된 값이다. 빈 칸은 "없음"이 아니라 저장된 값이 없어 부모 기본값을 따른다는 뜻이고, `없음`은 부모 값을 빈 값으로 덮어쓴 것이다. 값 없이 이름만 적힌 컴포넌트도 부모 기본값을 쓴다. 부모가 C++ 클래스면 기본값은 그 클래스와 상위 클래스의 생성자·헤더 초기값에 있고, 부모 칸 링크가 그 클래스의 생성자 파일이다. 모디파이어는 `어트리뷰트 연산 크기`로 적는다.
+값은 에셋에 저장된 값이다. 빈 칸은 "없음"이 아니라 저장된 값이 없어 부모 기본값을 따른다는 뜻이고, `없음`은 부모 값을 빈 값으로 덮어쓴 것이다. 값 없이 이름만 적힌 컴포넌트도 부모 기본값을 쓴다. 부모가 C++ 클래스면 기본값은 그 클래스와 상위 클래스의 생성자·헤더 초기값에 있다. 모디파이어는 `어트리뷰트 연산 크기`로 적는다.
 
 | 이펙트 | 부모 | Modifiers | GEComponents | 기타 | 에셋 사용처 |
 |---|---|---|---|---|---|
@@ -32,7 +32,7 @@ summary: "GE_ 에셋의 모디파이어·컴포넌트 저장값, 에셋이 참�
 | GE_HGTest_Skill_2 | UGameplayEffect | MP AddBase 1 |  |  | GA_HGTest_Skill_2 |
 | GE_HGTest_Skill_3 | UGameplayEffect | MP AddBase 1 |  |  | GA_HGTest_Skill_3 |
 | GE_Template_Passive_AddUP | UGameplayEffect | UP AddBase 5 |  |  | GA_Template_Passive |
-| GE_Shared_GuardReduction | [UWxEffect_GuardReduction](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_GuardReduction.cpp) | GuardReductionScale AddBase 0.5 | TargetTagsGameplayEffectComponent; AssetTagsGameplayEffectComponent; WxEffectComponent_UIData{Icon=T_UI_Shield} |  | GA_Shared_Guard |
+| GE_Shared_GuardReduction | UWxEffect_GuardReduction | GuardReductionScale AddBase 0.5 | TargetTagsGameplayEffectComponent; AssetTagsGameplayEffectComponent; WxEffectComponent_UIData{Icon=T_UI_Shield} |  | GA_Shared_Guard |
 
 ## C++ 클래스의 에셋 사용처
 
