@@ -5,7 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "StateTreeExecutionContext.h"
 #include "Device/WxDeviceStateTreeComponent.h"
-#include "System/WxSpawnerLibrary.h"
+#include "Spawnable/WxSpawner.h"
 
 FWxStateTreeTask_RespawnSpawners::FWxStateTreeTask_RespawnSpawners()
 {
@@ -28,7 +28,7 @@ EStateTreeRunStatus FWxStateTreeTask_RespawnSpawners::EnterState(FStateTreeExecu
 	AActor* Owner = Cast<AActor>(Context.GetOwner());
 	if (Owner && Owner->HasAuthority())
 	{
-		UWxSpawnerLibrary::TryRespawnAll(Owner);
+		AWxSpawner::RespawnAll(Owner->GetWorld());
 	}
 
 	return EStateTreeRunStatus::Succeeded;

@@ -12,7 +12,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "System/WxCheckpointSubsystem.h"
-#include "System/WxSpawnerLibrary.h"
+#include "Spawnable/WxSpawner.h"
 #include "WxGameplayTags.h"
 #include "WxGame.h"
 
@@ -75,7 +75,7 @@ bool UWxRespawnLibrary::RequestRespawn(UCommonActivatableWidget* DeathScreen)
 		Controller->PlayerCameraManager->UpdateCamera(0.0f);
 	}
 	World->BlockTillLevelStreamingCompleted();
-	UWxSpawnerLibrary::TryRespawnAll(Controller);
+	AWxSpawner::RespawnAll(World);
 	DeathScreen->DeactivateWidget();
 	return true;
 }

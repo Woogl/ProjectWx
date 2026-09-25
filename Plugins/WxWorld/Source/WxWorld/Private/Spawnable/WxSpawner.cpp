@@ -8,6 +8,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Engine/Texture2D.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "UObject/ConstructorHelpers.h"
 #include "System/WxWorldDeveloperSettings.h"
 #include "WxWorldModule.h"
@@ -46,6 +47,32 @@ AWxSpawner::AWxSpawner()
 	// 프리뷰 컴포넌트는 여기서 만들지 않는다.
 	// CDO 서브오브젝트로 두면 게임 월드에도 딸려오고 RF_Transient 도 붙지 않으므로, 에디터 월드에서만 PostRegisterAllComponents 가 NewObject 로 생성한다.
 #endif
+}
+
+void AWxSpawner::RespawnAll(const UWorld* World)
+{
+	if (!World || World->GetNetMode() == NM_Client)
+	{
+		return;
+	}
+
+	// Respawn의 Destroy/Spawn 콜백이 월드 액터를 바꿀 수 있으므로 먼저 수집한다.
+	TArray<TWeakObjectPtr<AWxSpawner>> Spawners;
+	for (TActorIterator<AWxSpawner> It(World); It; ++It)
+	{
+		if (It->GetSpawnMode() != EWxSpawnerMode::Manual)
+		{
+			Spawners.Add(*It);
+		}
+	}
+
+	for (const TWeakObjectPtr<AWxSpawner>& Spawner : Spawners)
+	{
+		if (AWxSpawner* Target = Spawner.Get())
+		{
+			Target->Respawn();
+		}
+	}
 }
 
 void AWxSpawner::Respawn()

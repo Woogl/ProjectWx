@@ -29,10 +29,13 @@ class WXWORLD_API AWxSpawner : public AActor
 public:
 	AWxSpawner();
 
+	/** 현재 로드된 스포너를 서버에서 재생성한다. Manual 모드는 제외한다. */
+	static void RespawnAll(const UWorld* World);
+
 	/** 서버 권한 필요. 영구 처치(bNeverRevive) 대상은 스킵. */
 	void Respawn();
 
-	/** Manual 은 일괄 리스폰(TryRespawnAll) 대상에서 제외되고 개별 트리거로만 스폰된다. */
+	/** Manual 은 일괄 리스폰(RespawnAll) 대상에서 제외되고 개별 트리거로만 스폰된다. */
 	EWxSpawnerMode GetSpawnMode() const;
 
 	bool IsKilled() const;
