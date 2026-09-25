@@ -14,6 +14,6 @@ class WXCOMBAT_API UWxCombatDeveloperSettings : public UDeveloperSettings
 public:
 	UWxCombatDeveloperSettings();
 
-	UPROPERTY(Config, EditAnywhere, Category = "Damage", meta = (ClampMin = "0.0001", UIMin = "0.0001"))
+	UPROPERTY(Config, EditAnywhere, Category = "Damage")
 	float DefenseConstant;
 };
