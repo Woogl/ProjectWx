@@ -1,8 +1,10 @@
 # AnimNotify 카테고리와 색상 정리
-상태: 확인 대기 · 6개 색상과 에디터 전용 분리를 적용하고 Editor 빌드를 통과했다.
-다음 행동: 코드 리뷰와 에디터 타임라인 색상·설정 반영을 확인한다.
+상태: 확인 대기 · Config=Editor 변경과 불필요 데이터 점검을 마치고 Editor 빌드를 통과했다.
+다음 행동: 코드 리뷰와 에디터 색상·DefaultEditor.ini 저장 반영을 확인한다.
 
 ## 결정
+- 2026-09-26 사용자: "네, 그렇게 해주세요. UWxCombatDeveloperSettings의 불필요 데이터는 제거해주세요."
+- 색상 설정은 WxCore에 유지하고 Config=Editor, DefaultConfig로 변경한다. 기존 에디터 전용 전처리 보호는 유지한다. WxCombatDeveloperSettings의 색상 데이터는 이미 제거되어 있으며, 남은 DefenseConstant는 실제 피해 계산에서 사용하므로 유지한다.
 - 2026-09-26 사용자: "제출해주세요." — 이번 변경의 커밋·푸시 요청. 사람 테스트 결과는 별도 확인 전까지 대기로 유지한다.
 - 2026-09-25 사용자: "네, 적용해주세요."
 - Attack #E86666: WeaponAttack, AreaDamage, SpawnProjectile, FinisherDamage.
@@ -20,9 +22,10 @@
 | --- | --- | --- | --- | --- |
 | 분류와 색상 | 17종 매핑, 6개 sRGB 값, 미리보기 색상 참조 정적 검사 | AI | 통과 | 17종 전체 매핑과 AreaDamage·SnapToTarget 미리보기 참조 확인, 기존 색상 필드 참조 없음 |
 | 에디터 전용 분리 | 색상 필드·초기화와 17종 접근 경로의 전처리 조건 확인 | AI | 통과 | WITH_EDITORONLY_DATA 필드·초기화 확인, 34개 파일 선언·정의·include 보호 검사 통과. 패키지 빌드는 미실행 |
-| Editor 빌드 | WxEditor Win64 Development 빌드 | AI | 통과 | Saved/Logs/BuildDoctor/build_2026-09-25_235717_338_14840.log: Result Succeeded, 종료 코드 0 |
+| Editor 빌드 | WxEditor Win64 Development 빌드 | AI | 통과 | Saved/Logs/BuildDoctor/build_2026-09-26_000757_357_2060.log: Result Succeeded, 종료 코드 0 |
+| 설정 저장 위치·잔존 데이터 | Editor config 선언과 기존 색상 설정 잔존·방어 상수 사용처 확인 | AI | 통과 | DefaultConfig 유지, Config 내 이전 색상 키 없음, WxEffect_Damage.cpp에서 DefenseConstant 사용 |
 | 코드 리뷰 | 공용 색상 설정 이동과 17종 GetEditorColor 매핑 확인 | 사람 | 대기 | |
-| 타임라인 표시 | 에디터 재시작 후 6개 색상과 라벨 가독성, 설정 변경 반영 확인 | 사람 | 대기 | |
+| 타임라인 표시 | 에디터 재시작 후 6개 색상과 라벨 가독성, 설정 변경의 DefaultEditor.ini 저장·재로드 확인 | 사람 | 대기 | |
 
 ## 구현
 - 공용 설정: Plugins/WxCore/Source/WxCore/Public/WxAnimNotifySettings.h 및 Private/WxAnimNotifySettings.cpp.

@@ -6,7 +6,7 @@
 #include "Engine/DeveloperSettings.h"
 #include "WxAnimNotifySettings.generated.h"
 
-UCLASS(Config = Game, DefaultConfig, meta = (DisplayName = "Wx Anim Notify Settings"))
+UCLASS(Config = Editor, DefaultConfig, meta = (DisplayName = "Wx Anim Notify Settings"))
 class WXCORE_API UWxAnimNotifySettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
