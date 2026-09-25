@@ -96,7 +96,6 @@ void UWxGameFlowSubsystem::HandlePostLoadMap(UWorld* World)
 	}
 	if (!IsDestinationWorld(World))
 	{
-		// 전환이 어긋났든 이후의 일반 이동이든, 목적지가 아닌 맵이 열리면 선택은 여기서 끝난다.
 		PendingPawnClass = nullptr;
 		PendingLevel.Reset();
 		return;

@@ -35,7 +35,6 @@ public:
 	/** 서버 권한 필요. 영구 처치(bNeverRevive) 대상은 스킵. */
 	void Respawn();
 
-	/** Manual 은 일괄 리스폰(RespawnAll) 대상에서 제외되고 개별 트리거로만 스폰된다. */
 	EWxSpawnerMode GetSpawnMode() const;
 
 	bool IsKilled() const;
