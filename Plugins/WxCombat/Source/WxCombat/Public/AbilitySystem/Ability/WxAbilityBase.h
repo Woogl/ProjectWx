@@ -38,37 +38,33 @@ enum class EWxAbilityCostResource : uint8
 };
 
 /**
- * 어빌리티 발동을 그룹 단위로 묶어서 배타적으로 점유할 수 있다.
- * 기획자가 선언하는 값이며 런타임에 바뀌지 않는다 — 발동 중의 캔슬 창은 EWxAbilityActionPhase가 따로 받는다.
- *
- * CancelAbilitiesWithTag로 상대를 지목한 어빌리티는 이 판정보다 우선해 발동할 수 있다.
+ * 입력 버퍼·캔슬 창·취소 면역의 분류다. 공통 차단 태그는 이 그룹과 에셋 태그로 계산한다.
  */
 UENUM()
 enum class EWxAbilityActivationGroup : uint8
 {
-	/** 막지도 막히지도 않는다. */
+	/** 배타 액션의 입력 버퍼·캔슬 창에 참여하지 않는다. */
 	Independent,
 
-	/** 배타적으로 다른 Exclusive 어빌리티 발동을 막는다. */
+	/** 콤보 창·후딜 전이에 따라 태그 차단을 조절한다. */
 	Exclusive,
 
-	/** Exclusive 점유를 덮어쓰고 발동하며 캔슬되지도 않는다. 주로 HitReact, Groggy, Death에서 사용. */
+	/** 취소를 거부한다. 발동 차단 여부는 그룹과 별개로 에셋 태그로 판정한다. */
 	Override,
 };
 
 /**
- * Exclusive 어빌리티가 발동 한 번 동안 밟는 캔슬 창.
- * 몽타주 노티파이가 닫힘에서 열림 순으로 전이시킨다 — Blocking → ComboWindow → Recovery.
+ * Exclusive 어빌리티의 캔슬 창이며, 콤보 창을 닫아도 이미 시작한 Recovery는 유지한다.
  */
 enum class EWxAbilityActionPhase : uint8
 {
-	/** 본동작. 남의 배타 발동을 막는다. */
+	/** 기본 차단 태그를 유지하는 본동작. */
 	Blocking,
 
-	/** 콤보 창. 자기 재발동만 통과시키고, 남의 발동은 본동작처럼 막는다. */
+	/** 차단 태그를 유지하되 자기 재발동 검사에서 자기 차단 기여만 제외한다. */
 	ComboWindow,
 
-	/** 액션을 캔슬할 수 있게 된 후딜레이. 점유를 놓아 다른 배타 어빌리티가 끊고 들어올 수 있다. */
+	/** 태그 차단을 해제한 후딜레이. 뒤이어 발동한 Exclusive·Override가 이 액션을 취소한다. */
 	Recovery,
 };
 
@@ -104,6 +100,10 @@ public:
 
 	/** 지금 열려 있는 캔슬 창. Exclusive일 때만 뜻이 있고, 활성화마다 Blocking에서 다시 시작한다. */
 	EWxAbilityActionPhase GetActionPhase() const;
+
+	/** 명시한 차단 태그에 그룹·에셋 태그의 공통 규칙을 합친다. 적용·해제·콤보 조회가 공유하므로 실행 중 변하는 상태에 의존하면 안 된다. */
+	UFUNCTION(BlueprintPure, Category = "Wx")
+	FGameplayTagContainer GetAbilityBlockTags() const;
 
 	/**
 	 * 활성 구간 동안 소유자에게 유지되는 효과. ActivationOwnedTags의 GE판으로, 활성화에서 걸고 종료에서 걷는다.
@@ -151,21 +151,12 @@ public:
 	void CloseComboWindow(int32 MontageInstanceID);
 
 	/**
-	 * 본동작이 걸고 있던 발동 그룹 잠금을 풀어서 그 순간부터 이후 발동하는 Exclusive 어빌리티에 의한 캔슬을 허용한다.
+	 * 본동작의 태그 차단을 풀어서 이후 발동하는 배타 액션에 의한 캔슬을 허용한다.
 	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사한다.
 	 */
 	void StartRecovery(int32 MontageInstanceID);
 
-	/**
-	 * 점유자(후딜에 들지 않은 Exclusive·Override) 중 Candidate의 발동을 막는 첫 어빌리티. 없으면 nullptr.
-	 * Candidate가 없으면 점유자 존재 여부를 묻는 것으로 보아 첫 점유자를 반환한다.
-	 * Override는 서로를 끊지 않아 점유가 둘 이상일 수 있으므로, 통과하려면 점유자 전원을 지나야 한다.
-	 */
-	static const UWxAbilityBase* FindActivationGroupBlocker(const UAbilitySystemComponent& ASC, const UWxAbilityBase* Candidate = nullptr);
-
-	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-
-	/** 이 어빌리티가 선언한 진입 태그 조건은 처음 발동에서만 묻는다 — 콤보 창의 재발동은 이미 성립한 액션의 다음 단이다. 효과가 건 어빌리티 차단은 그 창에서도 유효하다. */
+	/** 콤보 재발동·IgnoreAbilityActivationTags는 소유자의 발동 조건만 면제한다. 콤보의 자기 차단을 제외한 어빌리티·GE 차단은 유지한다. */
 	virtual bool DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 	virtual bool CanBeCanceled() const override;

@@ -23,10 +23,10 @@ UWxAbility_Interact::UWxAbility_Interact()
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Interact);
 
-	// 배타 그룹 판정이 그 표시 게이트에 반영되어, 다른 액션 중(마시는 중·장치 연출 중 등)에는 표시가 사라진다.
+	// 다른 액션이 건 태그 차단을 표시 게이트도 읽으므로, 마시는 중·장치 연출 중에는 표시가 사라진다.
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 
-	// 이 차단 태그들이 서버 활성·클라 표시(스캐너 컴포넌트) 게이트의 단일 소스다.
+	// 소유 태그 조건도 서버 발동과 클라 표시에서 같은 CanActivateAbility 검사로 판정한다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
 	// 처형 연출 도중 근처 다른 대상과 상호작용해 처형 흐름에 개입하는 것을 차단한다.

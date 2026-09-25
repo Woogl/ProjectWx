@@ -28,8 +28,7 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	AssetTags.AddTag(WxGameplayTags::Ability_Finisher);
 	SetAssetTags(AssetTags);
 
-	// 처형은 상호작용 어빌리티 도중 대상이 되돌려 보낸 이벤트로 동기 발동하므로, 그 상호작용이 아직 점유 중일 때 뜬다.
-	// Override라 그 점유에 막히지 않는다 — 상호작용은 곧바로 스스로 끝나므로 끊어 줄 필요는 없다.
+	// Ability.Finisher는 상호작용의 공통 차단 목록에 없어 도중에 발동할 수 있고, Override는 외부 취소를 막는다.
 	ActivationGroup = EWxAbilityActivationGroup::Override;
 
 	ActivationOwnedEffects.Add(UWxEffect_Invincible::StaticClass());

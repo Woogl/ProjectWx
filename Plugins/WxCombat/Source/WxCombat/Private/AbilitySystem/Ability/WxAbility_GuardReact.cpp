@@ -19,7 +19,7 @@ UWxAbility_GuardReact::UWxAbility_GuardReact()
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_GuardReact);
 
-	// 가드가 배타 점유 중인 채로 그 위에 얹혀야 한다.
+	// Ability.GuardReact는 가드의 공통 차단 목록에 없어 함께 발동하고, Override는 반응 도중 취소를 막는다.
 	ActivationGroup = EWxAbilityActivationGroup::Override;
 
 	// HitReact가 차단에 쓰는 것과 같은 태그라 한 히트에 둘 중 하나만 뜬다.

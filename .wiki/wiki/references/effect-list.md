@@ -44,7 +44,7 @@ summary: "GE_ 에셋의 모디파이어·컴포넌트 저장값, 에셋이 참�
 | UWxEffect_FullHP | ST_CheckPoint |
 | UWxEffect_GuardReduction | GE_Shared_GuardReduction (파생) |
 | UWxEffect_HealPercent | DA_Potion |
-| UWxEffect_IgnoreAbilityTags | ABS_Doppelganger |
+| UWxEffect_IgnoreAbilityActivationTags | ABS_Doppelganger |
 | UWxEffect_IgnoreAggro | ABS_Doppelganger, ABS_Minion |
 | UWxEffect_IgnoreCooldowns | ABS_Doppelganger, ABS_Minion |
 | UWxEffect_IgnoreCosts | ABS_Doppelganger, ABS_Minion |

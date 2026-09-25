@@ -46,8 +46,14 @@ public:
 	/** 이 액터의 ASPD가 반영된 몽타주 재생 속도. 어빌리티가 오버라이드하지 않으면 그 어빌리티의 몽타주 재생 속도가 된다. */
 	float GetMontagePlayRate() const;
 
-	/** 후딜에 들어 점유를 놓은 배타 어빌리티를 끊는다. */
+	/** Recovery 상태의 Exclusive 어빌리티를 취소하되, 새로 발동한 IgnoreAbility는 제외한다. */
 	void CancelRecoveringAbilities(UGameplayAbility* IgnoreAbility);
+
+	/** 최종 차단 목록만 보완하고 차단 횟수와 취소 처리는 순정 GAS에 맡긴다. */
+	virtual void ApplyAbilityBlockAndCancelTags(const FGameplayTagContainer& AbilityTags, UGameplayAbility* RequestingAbility, bool bEnableBlockTags, const FGameplayTagContainer& BlockTags, bool bExecuteCancelTags, const FGameplayTagContainer& CancelTags) override;
+
+	/** 활성 어빌리티 하나가 건 차단 기여만 제외해 조회한다. 같은 태그를 건 다른 어빌리티·GE의 차단은 남는다. */
+	bool AreAbilityTagsBlockedIgnoringContribution(const FGameplayTagContainer& AbilityTags, const FGameplayTagContainer& IgnoredBlockTags) const;
 
 private:
 	bool bAbilitySetsInitialized = false;

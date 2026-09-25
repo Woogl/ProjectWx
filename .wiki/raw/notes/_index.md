@@ -90,3 +90,6 @@ Last updated: 2026-09-25
 | [테스트 결과 처리 AI 선택](2026-09-25-workflow-feedback-providers.md) | 테스트 결과의 처리 AI를 Codex·Claude Code·Gemini CLI에서 선택하고 재시도 이력을 보존하는 변경 | wx, workflow | 2026-09-25 |
 | [Workflow 작업 기록 현황 표시](2026-09-25-workflow-task-records.md) | 기존 Workflow 대시보드에서 대화 작업의 확인 범위와 다음 행동을 분류별로 조회하는 변경 | wx, workflow | 2026-09-25 |
 | [Workflow 작업 테스트 결과 접수](2026-09-25-workflow-test-feedback.md) | 기존 작업에서 사람의 테스트 결과를 AI에게 전달하고 수정·정리·재확인을 이어가는 경로 | wx, workflow | 2026-09-25 |
+| [어빌리티 공통 차단 규칙의 ASC 확장 지점 통합](2026-09-25-ability-block-policy-centralization.md) | 자식 생성자의 공통 차단 코드를 제거하고 ActivationGroup·에셋 태그 기반 계산과 순정 ASC ApplyAbilityBlockAndCancelTags로 통합했다. 빌드·GAS 회귀 3개·GA 40개 차단 관계 1,600건을 확인했다. 클래스 자체의 통합은 향후 검토이며 플레이·네트워크는 미확인이다. | wx, combat, architecture, decision | 2026-09-25 |
+| [Exclusive 차단 테스트 제거와 주석 정정](2026-09-25-exclusive-submission-cleanup.md) | 사용자 요청으로 Exclusive 차단의 임시 C++ 테스트와 전용 friend, GA 검증 스크립트를 제거했다. 점유·그룹 우회 설명을 태그 차단과 취소 면역으로 정정했으며, 앞선 회귀 결과는 삭제 전 검증 근거로 보존한다. | wx, combat, testing | 2026-09-25 |
+| [Exclusive 태그 차단과 도플갱어 발동 조건 면제](2026-09-25-exclusive-tag-blocking.md) | Exclusive 발동 차단을 순정 BlockAbilitiesWithTag로 옮겼다. 콤보는 자기 차단 기여만 제외하고, 도플갱어의 IgnoreAbilityActivationTags는 소유자 발동 조건만 면제한다. 빌드·GAS 회귀 2개·GA 40개의 차단 관계 1,600건·리다이렉트 없는 효과 참조 로드를 확인했다. 플레이·네트워크는 미확인이다. | wx, combat, ai, decision | 2026-09-25 |

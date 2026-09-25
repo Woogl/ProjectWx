@@ -22,7 +22,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Effect_SkillCutscene, "Effect.SkillCutscene");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_IgnoreAggro, "Effect.IgnoreAggro");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_IgnoreCosts, "Effect.IgnoreCosts");
-	UE_DEFINE_GAMEPLAY_TAG(Effect_IgnoreAbilityTags, "Effect.IgnoreAbilityTags");
+	UE_DEFINE_GAMEPLAY_TAG(Effect_IgnoreAbilityActivationTags, "Effect.IgnoreAbilityActivationTags");
 
 	UE_DEFINE_GAMEPLAY_TAG(Movement_InAir, "Movement.InAir");
 	UE_DEFINE_GAMEPLAY_TAG(Movement_Sprint, "Movement.Sprint");
@@ -90,6 +90,7 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Heavy, "Ability.Attack.Heavy");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Air, "Ability.Attack.Air");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_DodgeCounter, "Ability.Attack.DodgeCounter");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Jump, "Ability.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Dodge, "Ability.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Guard, "Ability.Guard");

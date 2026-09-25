@@ -449,3 +449,15 @@ raw/notes/2026-09-25-checkpoint-validation-scope.md에 사용자 제출 범위�
 최종 빌드·회귀 3개·리다이렉트 없는 Blueprint 97개 컴파일과 무효화된 어빌리티 슬롯 정리 수정 근거를 수집해 ui에 반영했다. 원격 복제와 실제 화면 확인은 미검증으로 구분했다.
 
 ## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
+## [2026-09-25] ingest + compile | Exclusive 태그 차단과 도플갱어 발동 조건 면제
+
+사용자 결정·구현 관찰·검증 근거를 raw/notes/2026-09-25-exclusive-tag-blocking.md에 수집하고 combat-abilities·ai에 통합했다. 차단 태그 선언, 콤보 자기 기여 제외, Recovery 수명, IgnoreAbilityActivationTags 이름·면제 범위, 미러링 재시도 제한을 반영했다. 빌드·GAS 회귀 2개·GA 40개의 1,600개 차단 관계·리다이렉트 없는 효과 참조 로드는 통과했고, 사람의 코드 리뷰·플레이·네트워크는 미확인이다.
+
+## [2026-09-25] ingest + compile | 어빌리티 공통 차단의 ASC 통합 (raw/notes/2026-09-25-ability-block-policy-centralization.md)
+
+자식 공통 차단 제거와 향후 클래스 축소 방향을 수집하고 combat-abilities에 통합했다. GetAbilityBlockTags가 그룹·태그와 명시 선언을 합치고 ASC의 순정 ApplyAbilityBlockAndCancelTags와 콤보 조회가 같은 목록을 사용한다. 빌드·GAS 회귀 3개·GA 40개 차단 관계 1,600건·점프 40건을 확인했다. 코드 리뷰·실제 플레이·네트워크는 사람 확인 대기로 구분한다.
+
+## [2026-09-25] ingest + compile | 차단 테스트 정리와 주석 정정 (raw/notes/2026-09-25-exclusive-submission-cleanup.md)
+
+사용자의 테스트 제거·주석 정정·제출 요청에 따라 임시 C++ 테스트 2개, 전용 friend, GA 검증 Python 2개를 제거했다. combat-abilities에 테스트가 제출 전 제거됐음을 명시하고 이전 회귀 결과는 실행 당시 근거로 보존했다. 차단 관련 주석 점검 대상 12개 파일에서 주석을 제외한 코드 해시가 동일함을 확인했다. 플레이·네트워크 확인 대기는 유지한다.

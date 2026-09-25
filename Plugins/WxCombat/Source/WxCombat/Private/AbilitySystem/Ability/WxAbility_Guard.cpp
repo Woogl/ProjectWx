@@ -12,7 +12,7 @@ UWxAbility_Guard::UWxAbility_Guard()
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Guard);
 
-	// 배타 판정은 콤보 창이 아니면 활성 중 자기 재발동까지 막는데, 가드는 그 성질에 기대어 상태를 유지한다.
+	// 본동작 중에는 공통 차단 목록에 포함된 Ability.Guard가 재발동을 막는다.
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 }
 

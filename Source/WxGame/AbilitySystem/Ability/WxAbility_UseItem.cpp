@@ -7,7 +7,7 @@
 
 UWxAbility_UseItem::UWxAbility_UseItem()
 {
-	// NetExecutionPolicy 는 베이스의 LocalPredicted 를 그대로 쓴다 — 몽타주와 배타 점유가 입력 프레임에 즉시 걸려야 한다.
+	// 베이스의 LocalPredicted를 유지해 몽타주와 어빌리티 태그 차단을 입력 프레임에 적용한다.
 
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_UseItem);
@@ -16,7 +16,7 @@ UWxAbility_UseItem::UWxAbility_UseItem()
 
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
-	// 마시는 중에는 다른 어빌리티로 캔슬되지 않고, 후딜 캔슬로 비집고 들어왔을 때는 발동이 앞 액션을 끊는다.
+	// 본동작은 공통 태그로 새 액션을 막고, 발동 시에는 앞 액션의 후딜을 취소한다.
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 }
 

@@ -2,6 +2,9 @@
 title: "전투 어빌리티와 이펙트"
 category: concept
 sources:
+  - "raw/notes/2026-09-25-exclusive-submission-cleanup.md"
+  - "raw/notes/2026-09-25-ability-block-policy-centralization.md"
+  - "raw/notes/2026-09-25-exclusive-tag-blocking.md"
   - "raw/notes/2026-09-25-ui-data-interface-removal.md"
   - "raw/notes/2026-09-22-current-combat.md"
   - "raw/notes/2026-09-22-current-ability-cost-cooldown.md"
@@ -26,7 +29,7 @@ summary: "어빌리티 하나는 데이터 전용 GA_ 하나다. C++ 타입이 �
 
 ## 타입과 GA_
 
-- C++ 파생 클래스가 타입이다. 생성자에서 에셋·소유 태그, 취소·차단 관계, 발동 그룹, 홀드·토글 같은 규칙 기본값을 정한다. GA_는 부모 타입을 고르고 콘텐츠를 채운다. GA_에서 규칙 칸을 바꾸지 않고 BP 그래프에 로직을 두지 않는 것은 관례다(엔진 칸을 숨기지 않기로 한 사용자 결정, 2026-09-25).
+- C++ 파생 클래스가 타입이다. 생성자에서 에셋·소유 태그, 취소 관계, 발동 그룹, 홀드·토글 같은 고유 기본값을 정한다. 그룹 공통 차단은 베이스와 ASC가 맡는다. GA_는 부모 타입을 고르고 콘텐츠를 채운다. GA_에서 규칙 칸을 바꾸지 않고 BP 그래프에 로직을 두지 않는 것은 관례다(엔진 칸을 숨기지 않기로 한 사용자 결정, 2026-09-25).
 - GA_가 채우는 Wx 프로퍼티: `ActivationInputAction`, `AbilityMontage`(`GetMontage()`), `ActivationOwnedEffects`(타입 기본값 뒤에 더함), `CooldownTime`·`CooldownTags`·`MaxRecharges`, `CostResource`(Custom/SP/MP/UP)·`CostAmount`, `Title`·`Description`·`Icon`. `ActivationGroup`과 타입 튜닝 값(락온·질주·넉업 속도·상호작용 사거리·처형 문구)도 `EditDefaultsOnly`다.
 - GA_가 채우는 엔진 칸: 캐릭터 상태 조건(`Master.*`)은 `ActivationRequiredTags`·`ActivationBlockedTags`, 패시브 트리거는 `AbilityTriggers`다. BT가 부르는 번호 태그(`Ability.Skill.N`, `Ability.Pattern.N`)는 `AbilityTags`와 `ActivationOwnedTags`에 함께 더한다.
 - 공격 타입은 넷이다. `UWxAbility_Attack_Light`(공중·회피 중 금지), `_Heavy`(Light 취소, 공중·회피 중 금지), `_Air`(`Movement.InAir` 필요), `_DodgeCounter`(`Ability.Dodge` 필요, 공중 금지). `UWxAbility_Attack`은 콤보 로직을 가진 추상 기반이다. 스킬 타입의 식별 태그는 `Ability.Skill`이다.
@@ -36,11 +39,23 @@ summary: "어빌리티 하나는 데이터 전용 GA_ 하나다. C++ 타입이 �
 
 ## 발동과 취소
 
-`UWxAbilityBase`는 InstancedPerActor와 LocalPredicted를 기본값으로 둔다. `Independent`는 배타 점유에 참여하지 않고, `Exclusive`는 다른 배타 액션을 막으며, `Override`는 반응·사망 등 강제 행동에 사용한다. `CancelAbilitiesWithTag`로 지목한 점유자에 대한 우선 규칙도 있으므로 그룹 이름만으로 발동 결과를 결정하면 안 된다.
+`UWxAbilityBase`는 InstancedPerActor와 LocalPredicted를 기본값으로 둔다. `GetAbilityBlockTags`가 개별 `BlockAbilitiesWithTag` 선언에 `ActivationGroup`과 에셋 태그의 공통 규칙을 합친다. Independent에는 공통 차단을 더하지 않고, Exclusive·Override에는 Attack·Skill·Pattern·Ultimate·Dodge·Guard·UseItem·Interact·Jump를 더한다. 그룹은 입력 버퍼 분류·콤보/후딜 전이·Override 취소 면역에도 쓰인다.
 
-발동 실패 사유는 엔진이 자기 판정(태그·쿨다운·코스트 등)만 `LogAbilitySystem` Verbose로 남긴다. Wx 고유 판정(발동 그룹 점유·가드 입력·질주 SP·컷신 사용 중)의 실패는 로그가 없다. 엔진의 로그 게이트 `FScopedCanActivateAbilityLogEnabler`는 GAS 모듈 밖에서 링크되지 않는다. 게이트 없는 로그는 UI·상호작용이 `CanActivateAbility`를 조회할 때마다 찍히므로 쓰지 않는다.
+ASC의 순정 확장 지점 `ApplyAbilityBlockAndCancelTags`는 전달받은 목록에 계산 결과를 합쳐 `Super`를 호출한다. 실제 차단 횟수와 취소 수명은 엔진이 처리한다. 자식의 공통 설정 호출·재정의는 없으며, 구체 클래스에도 의존하지 않는다. 에디터의 `BlockAbilitiesWithTag`에는 개별 선언만 보이고 최종 결과는 `GetAbilityBlockTags`로 조회한다. GA_에 자동 목록을 저장하지 않아 기존 에셋 재저장이 필요하지 않다.
 
-`Exclusive`의 실행 단계는 `Blocking`, `ComboWindow`, `Recovery`다. 콤보 창은 자기 재발동을 허용하고, Recovery는 다른 배타 액션이 끊고 들어올 수 있게 한다. `OpenComboWindow`와 `StartRecovery`는 입력 버퍼를 다시 처리한다. `CloseComboWindow`는 이미 Recovery로 넘어간 동작을 Blocking으로 되돌리지 않는다.
+가드 반응·피격·처형 등 Override의 식별 태그는 공통 대상 목록에 없어 중첩 진입할 수 있고, Override는 `CanBeCanceled`로 취소를 거부한다. Death는 사망 고유의 `Ability` 부모 전체 차단을 명시한다. 새로운 액션 태그 분류를 추가하면 공통 대상 목록과 개별 허용 관계를 검토한다.
+
+엔진은 발동 가능 검사를 통과한 뒤 `PreActivate`에서 `CancelAbilitiesWithTag`를 처리한다. 취소 선언이 차단을 뚫지는 않는다. 그래서 Exclusive이며 `Ability.Attack.Light` 태그를 가진 어빌리티는 공통 Attack 부모 대신 Light·Air·DodgeCounter만 막아 Heavy를 허용한다. 강공격의 취소 태그가 약공격을 끝내며, 개별 선언한 추가 차단은 이 예외가 지우지 않는다. 클래스 통합을 나중에 검토해도 그룹·태그 데이터와 고유 동작을 보존하면 이 공통 규칙은 유지할 수 있다.
+
+적용·해제·콤보 자기 기여 조회는 같은 `GetAbilityBlockTags`를 쓴다. 차단 목록은 액션 단계·체력·월드 같은 가변 상태에 의존하지 않으며, 그룹·식별 태그·명시 차단 선언도 활성 수명 동안 고정한다. Recovery는 목록을 바꾸는 대신 엔진의 차단 해제 API를 사용한다.
+
+발동 실패 사유는 엔진이 자기 판정(태그·쿨다운·코스트 등)만 `LogAbilitySystem` Verbose로 남긴다. 배타 차단도 이제 이 태그 판정에 포함된다. Wx 고유 판정(가드 입력·질주 SP·컷신 사용 중)의 실패는 로그가 없다. 엔진의 로그 게이트 `FScopedCanActivateAbilityLogEnabler`는 GAS 모듈 밖에서 링크되지 않는다. 게이트 없는 로그는 UI·상호작용이 `CanActivateAbility`를 조회할 때마다 찍히므로 쓰지 않는다.
+
+`Exclusive`의 실행 단계는 `Blocking`, `ComboWindow`, `Recovery`다. 콤보 창에서는 활성 인스턴스 자신이 등록한 차단 횟수 1건만 조회에서 제외해 자기 재발동을 허용한다. 같은 태그의 다른 스펙·다른 어빌리티·GE가 건 차단은 유지한다. ASC의 직접 등록 횟수(`GetExplicitTagCount`)를 읽으며, 가용성 조회 중 차단 컨테이너를 수정하지 않는다. 다음 단에서는 기존처럼 소유자 `ActivationRequiredTags`·`ActivationBlockedTags`를 재검사하지 않지만, 전달된 Source·Target 태그 조건은 검사한다.
+
+Recovery는 `SetShouldBlockOtherAbilities(false)`로 자기 차단만 해제한다. 기존 동작의 종료는 다음 배타 발동이나 점프가 호출하는 `CancelRecoveringAbilities`가 맡는다. 점프는 GA로 만들지 않고 `Ability.Jump`의 차단 여부를 조회한다. `OpenComboWindow`와 `StartRecovery`는 입력 버퍼를 다시 처리하고, `CloseComboWindow`는 이미 Recovery로 넘어간 동작을 Blocking으로 되돌리지 않는다.
+
+도플갱어의 `UWxEffect_IgnoreAbilityActivationTags`는 소유자 발동 조건만 면제한다. 어빌리티·GE의 차단, 전달된 Source·Target 조건, 자기 콤보/후딜 규칙은 지킨다. 비용·쿨다운 면제는 별도 효과다. 기존 `IgnoreAbilityTags`의 모든 태그 검사 우회에서 범위를 좁힌 변경이다. 미러링의 재시도와 제한은 [[ai|WxAI — AI 인지와 행동]] ([WxAI — AI 인지와 행동](../topics/ai.md))에 있다.
 
 - 콤보 창이 닫히면 `OnComboWindowClosed`가 공격·스킬의 단계를 되돌린다. 창이 닫힌 뒤 누르면 후딜 중이어도 1단부터다.
 - 콤보 창·후딜 노티파이는 몽타주 인스턴스 ID를 넘기고, 어빌리티는 지금 재생 중인 인스턴스가 아니면 무시한다(`IsPlayingMontageInstance`). 끊긴 앞 단 몽타주도 블렌드아웃 동안 노티파이를 보내기 때문이다. 브랜칭 포인트 경로도 오버라이드한다. 엔진 기본 구현이 빈 이벤트 참조를 넘겨 인스턴스를 잃는다.
@@ -105,6 +120,12 @@ summary: "어빌리티 하나는 데이터 전용 GA_ 하나다. C++ 타입이 �
 
 ## Sources
 
+- [Exclusive 차단 테스트 제거와 주석 정정](../../raw/notes/2026-09-25-exclusive-submission-cleanup.md) — 임시 테스트 제거, 검증 이력 보존, 태그 차단·취소 면역 설명 정정
+
+- [어빌리티 공통 차단 규칙의 ASC 확장 지점 통합](../../raw/notes/2026-09-25-ability-block-policy-centralization.md) — 자식의 공통 차단 제거, 그룹·태그 기반 계산, 순정 ASC 확장과 회귀 검증
+
+- [Exclusive 태그 차단과 도플갱어 발동 조건 면제](../../raw/notes/2026-09-25-exclusive-tag-blocking.md) — 순정 차단·취소 수명, 콤보 예외, 효과 이름과 에셋 참조 이관
+
 - [UI 데이터 인터페이스 제거와 리졸버 연결](../../raw/notes/2026-09-25-ui-data-interface-removal.md) — 2026-09-25 사용자 합의와 구현
 
 - [근거 1](../../raw/notes/2026-09-22-current-combat.md)
@@ -120,6 +141,8 @@ summary: "어빌리티 하나는 데이터 전용 GA_ 하나다. C++ 타입이 �
 
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 비용·쿨다운 GE 설명은 HEAD `60c324c714b1dab10cd48d36cabad63ace232716` 기준으로 보강했다. 2026-09-24에 몽타주 구간 상태 GE 절과 발동 소유 효과의 제거 방식을 HEAD `ca84c9aac` 코드와 대조해 추가했다. 같은 날 쿨다운·코스트 무시, AbilitySet의 SetByCaller 제약, 발동 실패 로그 범위를 미커밋 작업 트리 코드와 대조해 추가했다(빌드 통과, 인게임 미검증). 2026-09-25에 타입과 GA_, 몽타주 섹션, 비용과 쿨다운, 검증 절을 HEAD `d63ce0630` 코드와 대조해 다시 썼다. 같은 날 쿨다운 GE 통합을 미커밋 작업 트리(HEAD `38d4dde08`) 코드와 대조해 반영했다(빌드·데이터 검증·임시 자동화 테스트 통과, 회피 쿨다운과 UI 진행률은 사용자 인게임 확인, 소환물 쿨다운 무시·네트워크 복제는 미확인). GA_·세트 값과 PIE 부여 결과는 원자료의 에디터·PIE 확인을 따르며, HGTest·분신·도플갱어와 조작감은 인게임으로 확인하지 않았다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
-빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이 문서가 직접 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+2026-09-25에 Exclusive 태그 차단 전환 후 생성자 선언을 ASC 확장 지점으로 공통화했다. 빌드·임시 GAS 회귀 3개(AssetDefaults·HookRules·Lifecycle)·GA 40개의 계산된 차단 관계 1,600건·점프 40건·리다이렉트 없는 도플갱어 효과 재로드를 확인했다. 해당 임시 테스트 코드와 전용 friend는 사용자 요청으로 제출 전에 제거했으며 실행 결과는 당시 검증 근거로 보존한다. 자식 클래스 자체의 통합은 향후 검토다. 몽타주를 생략한 ServerOnly 테스트이므로 실제 선입력·도플갱어 BT 타이밍·UI·예측/복제와 사람의 코드 리뷰는 미확인이다.
+
+그 밖의 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이 문서가 직접 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 
 </details>

@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Character/WxCharacterBase.h"
-#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxHitStopComponent.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
@@ -104,8 +103,7 @@ void AWxCharacterBase::OnJumped_Implementation()
 {
 	Super::OnJumped_Implementation();
 
-	// 후딜에 든 앞 액션은 배타 어빌리티가 그러듯 점프도 끊는다.
-	// 본동작·Override는 CanJumpInternal이 점프 자체를 막으므로 여기 올 수 있는 배타 어빌리티는 후딜뿐이다.
+	// Ability.Jump 차단을 통과해 실제로 점프한 뒤에만 앞 액션의 후딜을 끊는다.
 	AbilitySystemComponent->CancelRecoveringAbilities(nullptr);
 }
 
@@ -173,7 +171,7 @@ bool AWxCharacterBase::CanJumpInternal_Implementation() const
 		return false;
 	}
 
-	if (UWxAbilityBase::FindActivationGroupBlocker(*AbilitySystemComponent) != nullptr)
+	if (AbilitySystemComponent->AreAbilityTagsBlocked(FGameplayTagContainer(WxGameplayTags::Ability_Jump)))
 	{
 		return false;
 	}

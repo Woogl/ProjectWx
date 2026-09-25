@@ -232,7 +232,6 @@ bool UWxAbilitySystemComponent::TryActivateByInputAction(const UInputAction* Act
 			continue;
 		}
 
-		// 신규 발동과 콤보 재발동은 엔진이 bRetriggerInstancedAbility로 가르므로 호출이 같다.
 		if (TryActivateAbility(Spec.Handle))
 		{
 			return true;
@@ -278,11 +277,35 @@ void UWxAbilitySystemComponent::CancelRecoveringAbilities(UGameplayAbility* Igno
 			continue;
 		}
 
-		// FindActivationGroupBlocker와 같은 근거 — 기반 생성자가 InstancedPerActor를 강제하므로 스펙당 인스턴스는 하나뿐이다.
+		// 기반 생성자가 InstancedPerActor를 사용하므로 스펙당 인스턴스는 하나뿐이다.
 		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.GetPrimaryInstance());
 		if (Ability && Ability != IgnoreAbility && Ability->IsActive() && Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive && Ability->GetActionPhase() == EWxAbilityActionPhase::Recovery)
 		{
 			CancelAbilitySpec(Spec, IgnoreAbility);
 		}
 	}
+}
+
+void UWxAbilitySystemComponent::ApplyAbilityBlockAndCancelTags(const FGameplayTagContainer& AbilityTags, UGameplayAbility* RequestingAbility, bool bEnableBlockTags, const FGameplayTagContainer& BlockTags, bool bExecuteCancelTags, const FGameplayTagContainer& CancelTags)
+{
+	FGameplayTagContainer EffectiveBlockTags = BlockTags;
+	if (const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(RequestingAbility))
+	{
+		EffectiveBlockTags.AppendTags(Ability->GetAbilityBlockTags());
+	}
+	Super::ApplyAbilityBlockAndCancelTags(AbilityTags, RequestingAbility, bEnableBlockTags, EffectiveBlockTags, bExecuteCancelTags, CancelTags);
+}
+
+bool UWxAbilitySystemComponent::AreAbilityTagsBlockedIgnoringContribution(const FGameplayTagContainer& AbilityTags, const FGameplayTagContainer& IgnoredBlockTags) const
+{
+	for (const FGameplayTag& BlockTag : BlockedAbilityTags.GetExplicitGameplayTags())
+	{
+		// 부모 집계는 자식 차단까지 더하므로, 자기 기여를 뺄 때는 직접 등록된 횟수만 비교한다.
+		const int32 IgnoredCount = IgnoredBlockTags.HasTagExact(BlockTag) ? 1 : 0;
+		if (AbilityTags.HasTag(BlockTag) && BlockedAbilityTags.GetExplicitTagCount(BlockTag) > IgnoredCount)
+		{
+			return true;
+		}
+	}
+	return false;
 }
