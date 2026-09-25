@@ -185,7 +185,7 @@ private:
 	/** 이 슬롯이 가리키는 어빌리티 에셋 태그. Asset Tags 가 이것을 모두 포함하는(HasAll) 어빌리티를 문다. */
 	FGameplayTagContainer AbilityTags;
 
-	/** 어빌리티의 쿨다운 태그. 비어 있으면 쿨다운이 없는 어빌리티다. */
+	/** 비어 있으면 쿨다운이 없는 어빌리티다. */
 	FGameplayTagContainer CachedCooldownTags;
 
 	/** 충전 하나의 회복 시간. 진행률의 분모다. */
