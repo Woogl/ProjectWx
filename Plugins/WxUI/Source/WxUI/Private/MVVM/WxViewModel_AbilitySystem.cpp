@@ -212,7 +212,7 @@ bool UWxViewModel_AbilitySystem::AddActiveEffectViewModel(UAbilitySystemComponen
 	// GE 의 컴포넌트 배열은 클래스로만 뒤질 수 있어, 도메인 구현체와 공유하는 엔진 베이스를 앵커로 잡고 계약으로 내린다.
 	const IWxUIData* UIData = Cast<IWxUIData>(Spec.Def->FindComponent<UGameplayEffectUIData>());
 
-	// 수치만 쓰는 GE 도 같은 앵커에 걸리므로, 아이콘을 채운 GE 만 목록에 올린다 — 버프 목록은 아이콘으로 그려진다.
+	// 아이콘 없는 표시 데이터(엔진 TextOnly 등)도 같은 앵커에 걸리므로, 아이콘을 채운 GE 만 목록에 올린다 — 버프 목록은 아이콘으로 그려진다.
 	if (!UIData || UIData->GetIcon().IsNull())
 	{
 		return false;
