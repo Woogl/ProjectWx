@@ -1,10 +1,11 @@
 # WxGame — 코드 리뷰
 
-상태: 확인 대기 · 단순화·테스트 코드 제거 후 빌드와 자동 회귀 통과
+상태: 확인 대기 · 남은 UI 테스트 소스까지 제거하고 최종 빌드 통과
 다음 행동: 코드 리뷰와 실제 레벨 재표시·새 게임 진입을 확인한다.
 
 ## 현재 작업
 
+- **추가 삭제 승인**: 사용자(2026-09-25) — 기존 UI 테스트 `Source/WxGame/Tests/WxUIPresentationTests.cpp`의 회귀 검사 3개도 삭제할지 확인한 뒤 “네, 제거하고 제출합시다”라고 승인했다. 해당 파일을 제거하고 재제출한다.
 - **요청**: 사용자(2026-09-25) — “WxGame — 코드 리뷰 의 지적사항을 모두 올바른 방법으로 해결해주세요.”
 - **후속 지시**: 사용자(2026-09-25) — “테스트 코드 제거 후 제출해주세요.”, “EWxAbilitySetGrantState  이라는 State가 추가된 것도 마음에 안들어요”. 추가로 “OnRegister, Unregister 자체를 아예 override하지 않았으면 해요. EndPlay도요”, “단순하고 직관적인 코드가 좋거든요”를 지시했다. 상태 enum과 이번 작업에서 추가한 수명 훅을 제거하고 실제 스펙 보유 여부로 판단한다. 검증용 테스트 코드를 제거해 제출한다.
 - **범위**: 아래 세 지적을 현재 작업 트리에 반영한다. 같은 재진입 테스트에서 드러난 WxAI 행동 컴포넌트의 컨트롤러 변경·피격 이벤트 중복 구독 방지도 포함한다. 다른 작업의 UI 리졸버·표시 계약과 Exclusive 정책 변경은 보존한다.
@@ -22,7 +23,8 @@
 
 | 항목 | 확인 방법 | 담당 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
-| Editor Development 빌드 | build-doctor 실행기 | AI | 통과 | `Saved/Logs/BuildDoctor/build_2026-09-25_231523_728_41392.log`: Succeeded, 종료 코드 0 |
+| Editor Development 빌드 | build-doctor 실행기 | AI | 통과 | `Saved/Logs/BuildDoctor/build_2026-09-25_232031_628_31828.log`: Succeeded, 종료 코드 0 |
+| WxGame 테스트 코드 제거 | 자동화 테스트 선언·조건부 코드·테스트 헤더 참조 검색 | AI | 통과 | WxGame 소스 검색 결과 0건, UI 표시 테스트 파일 삭제 확인 |
 | 어빌리티 재등록 | `Wx.Game.Review.AbilityReregister`: 두 차례 등록 왕복, 스펙·인스턴스 복원과 HP·SP·효과 핸들 보존 | AI | 통과 | 최종 회귀 보고서: Success, 오류·경고 0 |
 | 태그 구독·처치 일회성 | `Wx.Game.Review.DeathNotification`: 반복 초기화 후 사망·래그돌 구독 각각 1개, 사망 태그 재적용과 시체 BeginPlay 재진입의 처치 통지 1회 | AI | 통과 | 최종 회귀 보고서: Success, 오류·경고 0; 재진입 두 차례 뒤 AI 피격 구독도 1개 |
 | 새 게임 실패 시 저장 보존 | `Wx.Game.Review.NewGameValidation`: 없는 경로·추상 클래스·잘못된 부모 거절, 유효 선택만 저장 삭제 | AI | 통과 | 이전 회귀 보고서(20260925_225721): Success, 오류·경고 0; 이후 해당 구현 변경 없음, 전용 UserDir에서 실행 |
@@ -33,11 +35,11 @@
 ## 검증 근거
 
 - **일시**: 2026-09-25 23:14 KST. 기준 커밋의 지적을 현재 작업 트리에 반영하고 사용자 단순화 지시를 적용한 뒤 검증했다.
-- **최종 빌드 로그**: `C:/Wx/Saved/Logs/BuildDoctor/build_2026-09-25_231523_728_41392.log` — `Result: Succeeded`, `BUILD_DOCTOR_EXIT_CODE=0`. 테스트 소스 제거 후 최종 빌드다. 앞선 링크는 다른 헤드리스 에디터 실행과 겹쳐 LNK1104로 실패했으며 해당 실행 종료 후 소스 변경 없이 재실행해 성공했다.
+- **최종 빌드 로그**: `C:/Wx/Saved/Logs/BuildDoctor/build_2026-09-25_232031_628_31828.log` — `Result: Succeeded`, `BUILD_DOCTOR_EXIT_CODE=0`. 추가 승인한 UI 테스트 소스까지 제거한 최종 빌드다. 컴파일·링크 성공, 종료 코드 0.
 - **최종 회귀 보고서**: `C:/Wx/Saved/Automation/WxGameReview/20260925_231327/Report/index.json` — 수명 훅 제거 후 AbilityReregister·DeathNotification 2개 성공, 오류·경고·미실행 0. 두 차례 재등록의 스펙·인스턴스 복원, HP/SP·효과 핸들 유지, 사망 및 AI 이벤트 구독 일회성을 확인했다.
 - **새 게임 검증 이력**: `C:/Wx/Saved/Automation/WxGameReview/20260925_225721/Report/index.json`의 NewGameValidation 성공. 이후 새 게임 구현은 바꾸지 않았으므로 이번 재실행에서는 제외했다.
 - **저장 격리**: `-UserDir=C:/Wx/Saved/Automation/WxGameReview/20260925_222914/User`. 테스트는 이 전용 루트 안에서만 체크포인트를 생성·삭제한다.
-- **테스트 소스 제거**: 사용자 요청으로 `Source/WxGame/Tests/WxGameReviewTests.cpp`를 검증 후 제거했다. 위 회귀 결과는 제거 직전의 구현 검증 이력이며, 제출본에는 이 테스트가 포함되지 않는다. 다른 작업의 테스트는 변경하지 않았다.
+- **테스트 소스 제거**: `Source/WxGame/Tests/WxGameReviewTests.cpp`를 검증 후 제거했고, 추가 승인에 따라 기존 UI 회귀 검사 3개가 있는 `Source/WxGame/Tests/WxUIPresentationTests.cpp`도 제거했다. 위 회귀 결과는 삭제 전 구현의 검증 이력이다. WxGame 소스에서 자동화 테스트 선언·조건부 코드·테스트 헤더 참조가 남지 않았음을 확인했다.
 - **한계**: 자동 회귀는 등록·초기화·태그·저장 API의 동작을 확인한다. 실제 스트리밍 맵의 공격·래그돌 연출, 네트워크 PIE 및 프런트엔드의 목적지 진입은 이 실행 결과에 포함하지 않는다.
 
 빌드 재실행은 `.agents/skills/build-doctor/scripts/Invoke-WxEditorBuild.ps1 -ProjectRoot C:/Wx`를 사용한다. 최종 실행기가 출력한 실제 명령:
