@@ -51,6 +51,13 @@ public:
 	static int32 SnapNotifyEndsToSections(UAnimMontage* Montage, float Tolerance);
 
 	/**
+	 * 섹션 시작보다 Tolerance 안쪽 앞에서 트리거되어 그 섹션으로 넘어가는 노티파이 구간의 시작을 섹션 시작 + Offset으로 옮기고, 옮긴 개수를 돌려준다. 끝이 트리거되는 시각은 그대로 둔다.
+	 * 엔진은 섹션 시작에 놓인 시작도 앞 섹션 끝으로 잡으므로 Offset은 0보다 커야 한다.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static int32 SnapNotifyStartsToSections(UAnimMontage* Montage, float Tolerance, float Offset);
+
+	/**
 	 * 기준 섹션의 노티파이를 나머지 섹션에 같은 상대 위치로 복제하고 복제한 개수를 돌려준다.
 	 * 노티파이 오브젝트를 통째로 복제하므로 설정된 프로퍼티가 그대로 따라간다.
 	 * 이미 노티파이가 있는 섹션은 건너뛰므로 다시 돌려도 중복되지 않는다.

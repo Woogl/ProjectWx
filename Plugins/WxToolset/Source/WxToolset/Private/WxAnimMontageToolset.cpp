@@ -459,6 +459,62 @@ int32 UWxAnimMontageToolset::SnapNotifyEndsToSections(UAnimMontage* Montage, flo
 	return SnappedCount;
 }
 
+int32 UWxAnimMontageToolset::SnapNotifyStartsToSections(UAnimMontage* Montage, float Tolerance, float Offset)
+{
+	if (!ValidateMontage(Montage, TEXT("대상")))
+	{
+		return 0;
+	}
+
+	if (Offset <= 0.f)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("Offset은 0보다 커야 한다."));
+		return 0;
+	}
+
+	TArray<float> Boundaries;
+	for (int32 SectionIndex = 1; SectionIndex < Montage->CompositeSections.Num(); ++SectionIndex)
+	{
+		Boundaries.Add(Montage->GetAnimCompositeSection(SectionIndex).GetTime());
+	}
+
+	Montage->Modify();
+
+	int32 SnappedCount = 0;
+	for (FAnimNotifyEvent& NotifyEvent : Montage->Notifies)
+	{
+		if (!NotifyEvent.NotifyStateClass)
+		{
+			continue;
+		}
+
+		// 옮겨 온 노티파이는 섹션 시작에 놓이고도 뒤로 잡힌 오프셋으로 그 섹션에서 시작할 수 있어, 실제 트리거 시각으로 넘어가는 구간만 고른다.
+		const float StartTriggerTime = NotifyEvent.GetTriggerTime();
+		const float EndTriggerTime = NotifyEvent.GetEndTriggerTime();
+		for (const float Boundary : Boundaries)
+		{
+			const float NewStartTime = Boundary + Offset;
+			if (StartTriggerTime >= Boundary || Boundary - StartTriggerTime > Tolerance || EndTriggerTime <= NewStartTime)
+			{
+				continue;
+			}
+
+			// 상대·비율 링크는 시각을 다시 계산하며 오차를 만들므로 절대 시각으로 고정한다. 끝은 실제로 불리던 시각에 남긴다.
+			NotifyEvent.ChangeLinkMethod(EAnimLinkMethod::Absolute);
+			NotifyEvent.Link(Montage, NewStartTime, NotifyEvent.GetSlotIndex());
+			NotifyEvent.TriggerTimeOffset = GetTriggerTimeOffsetForType(Montage->CalculateOffsetForNotify(NewStartTime));
+			NotifyEvent.SetDuration(EndTriggerTime - NotifyEvent.EndTriggerTimeOffset - NotifyEvent.GetTriggerTime());
+			++SnappedCount;
+			break;
+		}
+	}
+
+	Montage->RefreshCacheData();
+	Montage->PostEditChange();
+	Montage->MarkPackageDirty();
+	return SnappedCount;
+}
+
 int32 UWxAnimMontageToolset::ReplicateNotifiesToSections(UAnimMontage* Montage, FName SourceSectionName)
 {
 	if (!ValidateMontage(Montage, TEXT("대상")))
