@@ -6,7 +6,4 @@ UWxCombatDeveloperSettings::UWxCombatDeveloperSettings()
 {
 	CategoryName = TEXT("Wx");
 	DefenseConstant = 100.f;
-	CombatAnimNotifyColor = FLinearColor::Red;
-	MovementAnimNotifyColor = FLinearColor::Blue;
-	CosmeticAnimNotifyColor = FLinearColor::Green;
 }

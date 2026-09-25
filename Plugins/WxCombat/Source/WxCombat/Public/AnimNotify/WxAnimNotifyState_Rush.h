@@ -25,7 +25,9 @@ class WXCOMBAT_API UWxAnimNotifyState_Rush : public UAnimNotifyState
 public:
 	virtual FString GetNotifyName_Implementation() const override;
 	UWxAnimNotifyState_Rush();
+#if WITH_EDITOR
 	virtual FLinearColor GetEditorColor() override;
+#endif
 	virtual void BranchingPointNotifyBegin(FBranchingPointNotifyPayload& Payload) override;
 	virtual void BranchingPointNotifyEnd(FBranchingPointNotifyPayload& Payload) override;
 	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;

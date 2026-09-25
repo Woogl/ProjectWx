@@ -5,12 +5,16 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Minion/WxMinionSubsystem.h"
-#include "System/WxCombatDeveloperSettings.h"
+#if WITH_EDITOR
+#include "WxAnimNotifySettings.h"
+#endif
 
+#if WITH_EDITOR
 FLinearColor UWxAnimNotify_SpawnMinion::GetEditorColor()
 {
-	return GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
+	return GetDefault<UWxAnimNotifySettings>()->MiscColor;
 }
+#endif
 
 UWxAnimNotify_SpawnMinion::UWxAnimNotify_SpawnMinion()
 {

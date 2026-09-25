@@ -6,12 +6,16 @@
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Types/TargetingSystemTypes.h"
 #include "WxCombatLibrary.h"
-#include "System/WxCombatDeveloperSettings.h"
+#if WITH_EDITOR
+#include "WxAnimNotifySettings.h"
+#endif
 
+#if WITH_EDITOR
 FLinearColor UWxAnimNotify_AreaDamage::GetEditorColor()
 {
-	return GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
+	return GetDefault<UWxAnimNotifySettings>()->AttackColor;
 }
+#endif
 
 void UWxAnimNotify_AreaDamage::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -55,7 +59,7 @@ FString UWxAnimNotify_AreaDamage::GetNotifyName_Implementation() const
 #if WITH_EDITOR
 void UWxAnimNotify_AreaDamage::DrawInEditor(FPrimitiveDrawInterface* PDI, USkeletalMeshComponent* MeshComp, const UAnimSequenceBase* Animation, const FAnimNotifyEvent& NotifyEvent) const
 {
-	const FLinearColor PreviewColor = GetDefault<UWxCombatDeveloperSettings>()->CombatAnimNotifyColor;
+	const FLinearColor PreviewColor = GetDefault<UWxAnimNotifySettings>()->AttackColor;
 	WxTargetingPreview::DrawDebugTargetingPreset(PDI, MeshComp, NotifyEvent, TargetingPreset, PreviewColor);
 }
 #endif

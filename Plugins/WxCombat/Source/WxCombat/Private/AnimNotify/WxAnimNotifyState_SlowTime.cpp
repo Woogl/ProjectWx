@@ -6,12 +6,16 @@
 #include "AbilitySystemComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
-#include "System/WxCombatDeveloperSettings.h"
+#if WITH_EDITOR
+#include "WxAnimNotifySettings.h"
+#endif
 
+#if WITH_EDITOR
 FLinearColor UWxAnimNotifyState_SlowTime::GetEditorColor()
 {
-	return GetDefault<UWxCombatDeveloperSettings>()->CosmeticAnimNotifyColor;
+	return GetDefault<UWxAnimNotifySettings>()->PresentationColor;
 }
+#endif
 
 void UWxAnimNotifyState_SlowTime::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
