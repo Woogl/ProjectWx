@@ -371,3 +371,5 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 - 2026-09-25: SpawnerLibrary 제거 원자료를 수집하고 world에 AWxSpawner::RespawnAll의 C++ 호출·Manual 제외·로드 범위를 반영했다.
 
 - 2026-09-25: 사용자 결정으로 체크포인트 슬롯을 WxCheckpoint 하나로 통일하고 world의 PIE 분리 설명을 갱신했다. 세분화는 추후 진행한다.
+
+- 2026-09-25: ST_CheckPoint 리세이브 후 구조체 리다이렉트 두 항목을 제거하고 별도 프로세스의 로드·StateTree 컴파일·저장 성공을 원자료와 world에 반영했다.

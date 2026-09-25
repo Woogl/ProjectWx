@@ -14,3 +14,5 @@
 
 - 후속 결정: 저장 슬롯을 WxCheckpoint 하나로 통일. GetSlotName의 World 인자와 PIE 분기를 제거했다. 기존 WxCheckpoint_PIE 파일은 자동 이관·삭제하지 않는다.
 - 단일 슬롯 변경 검증: WxEditor Win64 Development 빌드 성공(종료 코드 0, 47.10초). 로그: Saved/Logs/BuildDoctor/build_2026-09-25_183146_475_27060.log. 인게임 저장·조회는 미검증.
+
+- 후속 리다이렉트 정리 완료: ST_CheckPoint 리세이브 후 Config의 두 StructRedirects 제거. 리다이렉트 없는 별도 엔진 프로세스의 재로드·StateTree 컴파일·저장 성공(종료 0). 로그: Saved/Logs/CheckpointResave.log, Saved/Logs/CheckpointWithoutRedirects.log. Content/Plugins 에셋에서 이전 구조체 이름 검색 결과 없음. 기존 BP_CheckPoint 사용자 변경은 보존했다.

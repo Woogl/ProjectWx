@@ -2,6 +2,7 @@
 title: "WxWorld — 장치와 상호작용"
 category: topic
 sources:
+  - "raw/notes/2026-09-25-checkpoint-redirect-cleanup.md"
   - "raw/notes/2026-09-25-checkpoint-single-slot.md"
   - "raw/notes/2026-09-25-spawner-library-removal.md"
   - "raw/notes/2026-09-25-save-checkpoint-rename.md"
@@ -122,7 +123,7 @@ WxGame의 `UWxViewModel_InteractionList`가 스캐너를 구독한다. 신호가
 
 스포너는 별도 Spawnable 경로와 공용 `IWxSpawnable` 처치 통지를 사용한다. 일괄 재생성은 C++ 전용 `AWxSpawner::RespawnAll`이 맡고 플레이어 부활 성공 후와 StateTree 태스크에서 직접 호출한다. 현재 로드된 스포너만 대상으로 하며 Manual 모드는 제외한다. 별도 BP 라이브러리 호출은 필요하지 않다. 순찰 경로와 스폰/빙의 초기화는 WxAI·WxGame과 함께 확인한다.
 
-UWxCheckpointSaveGame은 Standalone에서 레벨 패키지와 위치·회전을 디스크에 저장한다. PIE와 일반 플레이 모두 `WxCheckpoint` 슬롯을 사용하며 사용자 인덱스는 0이다. 슬롯 세분화는 추후 진행한다. PIE 접두사를 제거해 같은 레벨인지 검사한다. 저장 없음·로드 실패·다른 맵·유효하지 않은 Transform은 기존 PlayerStart 부활로 돌아간다. 기록 실패는 StateTree 태스크의 Failed로 전달하며, 새 게임 시작 시 슬롯 삭제에 실패하면 맵 이동을 중단한다. 부활과 스포너 재생성 조립은 WxGame에 있다. 체크포인트 외 게임 상태와 이어하기 UI는 포함하지 않는다.
+UWxCheckpointSaveGame은 Standalone에서 레벨 패키지와 위치·회전을 디스크에 저장한다. PIE와 일반 플레이 모두 `WxCheckpoint` 슬롯을 사용하며 사용자 인덱스는 0이다. 슬롯 세분화는 추후 진행한다. `ST_CheckPoint`는 `SaveCheckpoint` 구조체로 리세이브했으며, 이전 `RecordCheckpoint` 구조체의 CoreRedirects는 제거했다. 리다이렉트 없는 새 프로세스에서 로드·StateTree 컴파일·저장을 확인했다. PIE 접두사를 제거해 같은 레벨인지 검사한다. 저장 없음·로드 실패·다른 맵·유효하지 않은 Transform은 기존 PlayerStart 부활로 돌아간다. 기록 실패는 StateTree 태스크의 Failed로 전달하며, 새 게임 시작 시 슬롯 삭제에 실패하면 맵 이동을 중단한다. 부활과 스포너 재생성 조립은 WxGame에 있다. 체크포인트 외 게임 상태와 이어하기 UI는 포함하지 않는다.
 
 진입점: [장치 동기화](../../../Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp), [상호작용 스캐너](../../../Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp), [상호작용 목록 VM](../../../Source/WxGame/MVVM/WxViewModel_InteractionList.cpp), [체크포인트](../../../Plugins/WxWorld/Source/WxWorld/Private/System/WxCheckpointSaveGame.cpp).
 

@@ -81,3 +81,4 @@ Last updated: 2026-09-25
 | [체크포인트 저장 명칭 통일](2026-09-25-save-checkpoint-rename.md) | SaveCheckpoint API·태스크 이름과 에셋 호환 리다이렉트 | wx, world, savegame | 2026-09-25 |
 | [SpawnerLibrary 제거와 C++ 일괄 재생성](2026-09-25-spawner-library-removal.md) | AWxSpawner C++ API로 부활·StateTree 재생성 연결 | wx, world, spawner | 2026-09-25 |
 | [체크포인트 단일 슬롯 결정](2026-09-25-checkpoint-single-slot.md) | PIE와 일반 플레이가 WxCheckpoint 슬롯 공유 | wx, world, savegame | 2026-09-25 |
+| [체크포인트 구조체 리다이렉트 제거](2026-09-25-checkpoint-redirect-cleanup.md) | ST_CheckPoint 리세이브와 리다이렉트 없이 재로드·컴파일 확인 | wx, world, savegame | 2026-09-25 |
