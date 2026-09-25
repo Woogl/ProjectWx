@@ -36,8 +36,7 @@ UWxEffect_Cost::UWxEffect_Cost()
 
 float UWxMMC_Cost::GetCostMagnitude(const FGameplayEffectSpec& Spec, EWxAbilityCostResource Resource) const
 {
-	// 컨텍스트의 소스 어빌리티 CDO는 GA_의 비용 값을 그대로 가진다(EditDefaultsOnly).
-	// 정적 데이터라 서버/클라 동일.
+	// CDO의 비용 값은 EditDefaultsOnly 정적 데이터라 서버/클라가 같은 값을 낸다.
 	const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.GetEffectContext().GetAbility());
 	return Ability && Ability->CostResource == Resource ? -Ability->CostAmount : 0.f;
 }

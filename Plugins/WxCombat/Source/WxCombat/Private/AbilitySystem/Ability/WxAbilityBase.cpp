@@ -423,7 +423,6 @@ FVector UWxAbilityBase::GetLocalMontageInputDirection() const
 	}
 
 	FVector WorldDirection = Pawn->GetLastMovementInputVector();
-	// 직접 제어하지 않는 캐릭터는 마지막 입력 벡터 대신 이동 컴포넌트가 받은 가속도를 사용한다.
 	if (!Pawn->IsLocallyControlled())
 	{
 		if (const ACharacter* Character = Cast<ACharacter>(Pawn))

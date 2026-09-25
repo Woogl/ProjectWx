@@ -83,7 +83,6 @@ void UWxAnimNotifyState_ApplyGameplayEffect::EndWindow(USkeletalMeshComponent* M
 	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Owner))
 	{
-		// 스택형 GE는 다른 구간·소유자의 적용과 한 핸들로 합쳐졌을 수 있으므로 이 구간의 몫 하나만 뺀다.
 		ASC->RemoveActiveGameplayEffect(Handle, 1);
 	}
 }

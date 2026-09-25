@@ -12,7 +12,6 @@ class WXCOMBAT_API UWxAbility_Combo : public UWxAbilityBase
 	GENERATED_BODY()
 
 public:
-	/** 진행 중인 단계의 몽타주를 반환하고, ComboIndex가 INDEX_NONE이면 첫 단계를 반환한다. */
 	virtual UAnimMontage* GetMontage() const override;
 
 protected:

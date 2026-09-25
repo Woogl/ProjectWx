@@ -87,7 +87,10 @@ public:
 	/** 쿨다운 시간에 쿨다운 태그가 있는지 본다. GA_를 저장할 때 엔진이 CDO에 대고 부른다. */
 	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 
-	/** 같은 입력을 쓰는 두 어빌리티가 함께 발동 조건을 만족할 수 없는지. 한쪽이 요구하는 태그를 다른 쪽이 막으면 배타적이다. 엔진이 태그 조건을 protected로 두어 판정을 여기서 한다. */
+	/**
+	 * 같은 입력을 쓰는 두 어빌리티가 함께 발동 조건을 만족할 수 없는지. 한쪽이 요구하는 태그를 다른 쪽이 막으면 배타적이다.
+	 * 엔진이 태그 조건을 protected로 두어 판정을 여기서 한다.
+	 */
 	bool IsActivationExclusive(const UWxAbilityBase& Other) const;
 #endif
 
@@ -134,8 +137,7 @@ public:
 	/**
 	 * GetMontage() 또는 전달받은 몽타주에서 Prefix + EWxAbilityDirection 항목명을 찾는다.
 	 * 해당 섹션이 없으면 같은 Prefix의 Forward, 그것도 없거나 몽타주가 없으면 NAME_None을 반환한다.
-	 * 섹션 이름만 선택하며 입력 수집·좌표 변환·방향 동기화·재생을 수행하지 않는다.
-	 * 방향 섹션 간 자동 연결은 변경하지 않는다.
+	 * 섹션 이름만 고르며 입력 수집·방향 동기화·재생·섹션 연결은 하지 않는다.
 	 */
 	FName SelectDirectionalSection(const FVector& LocalDirection, const FString& Prefix = TEXT(""), EWxAbilityDirection DefaultDirection = EWxAbilityDirection::Forward) const;
 	static FName SelectDirectionalSection(const UAnimMontage* Montage, const FVector& LocalDirection, const FString& Prefix = TEXT(""), EWxAbilityDirection DefaultDirection = EWxAbilityDirection::Forward);

@@ -91,7 +91,7 @@ EDataValidationResult UWxAbilitySet::IsDataValid(FDataValidationContext& Context
 	const EDataValidationResult Result = Super::IsDataValid(Context);
 	const uint32 NumErrors = Context.GetNumErrors();
 
-	// 속성 행은 비워 둘 수 있다. 지정했는데 풀리지 않으면 부여가 속성 초기화를 건너뛴다.
+	// 속성 행은 비워 둘 수 있다.
 	if (!AttributeInitRow.IsNull())
 	{
 		const FWxCombatAttributeInitTableRow* AttributeRow = AttributeInitRow.DataTable ? AttributeInitRow.DataTable->FindRow<FWxCombatAttributeInitTableRow>(AttributeInitRow.RowName, GetName(), false) : nullptr;
