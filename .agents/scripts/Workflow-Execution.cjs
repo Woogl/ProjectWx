@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-const {execFile,execFileSync}=require('node:child_process');
+const {execFileSync}=require('node:child_process');
+const {runProvider}=require('./Wiki-AI-Providers.cjs');
 const {taskName}=require('./wiki-viewer/workflow-model.js');
 const schema={type:'object',additionalProperties:false,required:['summary','changes','checks','humanChecks','blockers'],properties:{
   summary:{type:'string'},changes:{type:'array',items:{type:'string'}},blockers:{type:'array',items:{type:'string'}},
@@ -18,10 +19,11 @@ function writeExecution(root,record){
   record.updatedAt=new Date().toISOString();const file=executionFile(root,record.taskId),temp=file+'.'+crypto.randomUUID()+'.tmp';
   fs.mkdirSync(path.dirname(file),{recursive:true});try{fs.writeFileSync(temp,JSON.stringify(record,null,2)+'\n');fs.renameSync(temp,file);}finally{if(fs.existsSync(temp))fs.unlinkSync(temp);}
 }
-function codeVersion(root){
+function codeVersion(root,excludeDocumentation=false){
   const git=args=>execFileSync('git',['-c','safe.directory='+root.replace(/\\/g,'/'),...args],{cwd:root,windowsHide:true,maxBuffer:64*1024*1024});
   const hash=crypto.createHash('sha256');hash.update(git(['rev-parse','HEAD']));
   const scope=['--','.',':(exclude).agents/workflow/tasks'];
+  if(excludeDocumentation)scope.push(':(exclude).wiki',':(exclude,glob)**/*.md');
   hash.update(git(['diff','HEAD','--binary',...scope]));
   const files=git(['ls-files','--others','--exclude-standard','-z',...scope]).toString().split('\0').filter(Boolean).sort();
   for(const file of files){hash.update(file);hash.update(fs.readFileSync(path.join(root,file)));}
@@ -49,17 +51,11 @@ humanChecks에는 AI가 직접 확인할 수 없는 조작감·화면 등 사람
 ${record.phase==='verify'?'검증 중 코드를 수정하면 사람의 코드 리뷰를 다시 받아야 합니다.':''}
 확정 기준과 사람의 의견(JSON): ${JSON.stringify({taskId:record.taskId,planning:record.planning,design:record.design,feedback:record.feedback,previous:record.report,decisions:record.decisions})}`;
 }
-function runExecution({root,command,record,onSpawn=()=>{},execute=execFile}){
-  if(!command?.file)throw Error('구현 실행에는 Codex CLI 설치·로그인이 필요합니다.');
+async function runExecution({root,command,record,onSpawn,execute,prompt=executionPrompt(record),provider='codex'}){
   const output=path.join(root,'Saved/Wiki','execution-'+crypto.randomUUID()+'.json'),schemaFile=output+'.schema.json';
   fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(schemaFile,JSON.stringify(schema));
-  const args=[...(command.args||[]),'exec','--sandbox','workspace-write','--ephemeral','--output-schema',schemaFile,'--output-last-message',output,'-'];
-  return new Promise((resolve,reject)=>{
-    const child=execute(command.file,args,{cwd:root,windowsHide:true,timeout:30*60*1000,maxBuffer:8*1024*1024},error=>{
-      try{if(error)throw Error(error.killed?'AI 실행 시간이 초과되었습니다. 변경 내용은 유지됩니다.':'AI 실행에 실패했습니다. CLI 로그인·권한·사용 한도를 확인하세요.');resolve(validateReport(JSON.parse(fs.readFileSync(output,'utf8'))));}
-      catch(error){reject(error);}finally{for(const file of [output,schemaFile])if(fs.existsSync(file))fs.unlinkSync(file);}
-    });if(child.pid)onSpawn(child.pid);child.stdin.on('error',()=>{});child.stdin.end(executionPrompt(record));
-  });
+  try{return validateReport(await runProvider({provider,command,prompt,repo:root,output,schema:schemaFile,mode:'execution',onSpawn,execute}));}
+  finally{for(const file of [output,schemaFile,output+'.settings.json'])if(fs.existsSync(file))fs.unlinkSync(file);}
 }
 function createExecutionService({root,resolveCurrent,run,fingerprint=()=>codeVersion(root),diff=()=>reviewDiff(root)}){
   let active=null;

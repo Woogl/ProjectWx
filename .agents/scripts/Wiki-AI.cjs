@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 const { listTasks, saveTask } = require('./Wiki-Tasks.cjs');
 const { createExecutionService, runExecution } = require('./Workflow-Execution.cjs');
+const { createFeedbackService, runFeedback } = require('./Workflow-TestFeedback.cjs');
 const { importDocument } = require('./Wiki-Import.cjs');
 const http = require('node:http');
 const fs = require('node:fs');
@@ -11,7 +12,7 @@ const { validateResult, mergeDecisions, active, taskName, remapTask, encodeFilen
 const repo = path.resolve(__dirname, '../..');
 const identity = crypto.createHash('sha256').update(repo.toLowerCase()).digest('hex');
 const protocol = 3;
-const revision = [__filename, ...['wiki-checklist.schema.json','wiki-viewer/workflow-model.js','Wiki-AI-Providers.cjs','wiki-gemini-policy.toml','wiki-gemini-settings.json','Start-WikiAI.ps1','Wiki-Import.cjs','Wiki-Import.py','Wiki-Tasks.cjs','Workflow-Execution.cjs'].map(file=>path.join(__dirname,file))]
+const revision = [__filename, ...['wiki-checklist.schema.json','wiki-viewer/workflow-model.js','Wiki-AI-Providers.cjs','wiki-gemini-policy.toml','wiki-gemini-settings.json','Start-WikiAI.ps1','Wiki-Import.cjs','Wiki-Import.py','Wiki-Tasks.cjs','Workflow-Execution.cjs','Workflow-TestFeedback.cjs'].map(file=>path.join(__dirname,file))]
   .map(file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')).join(':');
 function validateContext(context = {}) {
   if (!context || typeof context !== 'object' || Array.isArray(context)) throw new Error('검토 재료 형식 오류');
@@ -284,28 +285,36 @@ function revokeHandoff(body,root=repo) {
   // 구버전 브라우저의 미처리 철회 요청은 파일을 변경하지 않고 복구한다.
   return {revision:current.revision,preserved:true};
 }
-function createServer({token,port=18743,runAnalysis,writeHandoff=saveHandoff,revoke=revokeHandoff,providers=[{id:'codex',label:'Codex'}],configuration='',execution=null}) {
+function createServer({token,port=18743,runAnalysis,writeHandoff=saveHandoff,revoke=revokeHandoff,providers=[{id:'codex',label:'Codex'}],configuration='',execution=null,testFeedback=null}) {
   let busy=false;
   return http.createServer(async(request,response)=>{
     response.setHeader('Cache-Control','no-store');response.setHeader('Content-Type','application/json; charset=utf-8');
     const send=(status,body)=>{response.writeHead(status);response.end(JSON.stringify(body));};
     if(request.headers.host!==`127.0.0.1:${port}`)return send(403,{error:'접근할 수 없습니다.'});
-    if(request.method==='GET'&&request.url==='/health')return send(200,{identity,protocol,revision,busy:busy||!!execution?.isBusy(),configuration});
+    if(request.method==='GET'&&request.url==='/health')return send(200,{identity,protocol,revision,busy:busy||!!execution?.isBusy()||!!testFeedback?.isBusy(),configuration});
     if(request.headers.origin!=='null')return send(403,{error:'OpenWorkflow 파일에서 요청하세요.'});
     response.setHeader('Access-Control-Allow-Origin','null');response.setHeader('Access-Control-Allow-Private-Network','true');
-    if(request.method==='OPTIONS'&&['/analyze','/handoff','/revoke','/change','/rename','/status','/import','/tasks','/task','/execution'].includes(request.url)){
+    if(request.method==='OPTIONS'&&['/analyze','/handoff','/revoke','/change','/rename','/status','/import','/tasks','/task','/execution','/test-feedback'].includes(request.url)){
       response.setHeader('Access-Control-Allow-Methods','POST');response.setHeader('Access-Control-Allow-Headers','Content-Type, X-Wx-Token');return send(204,{});
     }
-    if(request.method!=='POST'||!['/analyze','/handoff','/revoke','/change','/rename','/status','/import','/tasks','/task','/execution'].includes(request.url))return send(404,{error:'지원하지 않는 요청입니다.'});
+    if(request.method!=='POST'||!['/analyze','/handoff','/revoke','/change','/rename','/status','/import','/tasks','/task','/execution','/test-feedback'].includes(request.url))return send(404,{error:'지원하지 않는 요청입니다.'});
     if(request.headers['x-wx-token']!==token)return send(403,{error:'OpenWorkflow.bat을 다시 실행하세요.'});
-    if(busy&&request.url!=='/tasks')return send(409,{error:'다른 검토·저장이 진행 중입니다.'});
-    if(execution?.isBusy()&&!['/tasks','/task','/execution'].includes(request.url))return send(409,{error:'AI 구현·검증이 진행 중입니다. 결과가 준비되면 이어서 진행하세요.'});
+    if(busy&&!['/tasks','/test-feedback'].includes(request.url))return send(409,{error:'다른 검토·저장이 진행 중입니다.'});
+    if(testFeedback?.isBusy()&&!['/tasks','/test-feedback'].includes(request.url))return send(409,{error:'테스트 결과를 AI가 처리 중입니다. 완료 후 진행하세요.'});
+    if(execution?.isBusy()&&!['/tasks','/task','/execution','/test-feedback'].includes(request.url))return send(409,{error:'AI 구현·검증이 진행 중입니다. 결과가 준비되면 이어서 진행하세요.'});
     if(!request.headers['content-type']?.startsWith('application/json'))return send(400,{error:'JSON 입력이 필요합니다.'});
-    const ownsBusy=request.url!=='/tasks';if(ownsBusy)busy=true;
+    const ownsBusy=!['/tasks','/test-feedback'].includes(request.url);if(ownsBusy)busy=true;
     try{
       const chunks=[];let size=0;
       for await(const chunk of request){size+=chunk.length;if(size>(request.url==='/import'?28:2)*1024*1024)return send(413,{error:'검토 자료가 2MB를 초과했습니다. 작업 범위를 나누세요.'});chunks.push(chunk);}
       let body;try{body=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{return send(400,{error:'입력을 읽지 못했습니다.'});}
+      if(request.url==='/test-feedback'){
+        try{
+          if(!testFeedback)throw Error('테스트 결과 연결이 없습니다. OpenWorkflow.bat을 다시 실행하세요.');
+          if(!['list','read'].includes(body?.action)&&(busy||execution?.isBusy()))return send(409,{error:'다른 AI가 작업 중입니다. 입력은 유지됩니다. 잠시 후 전달하세요.'});
+          return send(200,testFeedback.act(body));
+        }catch(error){return send(400,{error:error.message});}
+      }
       if(request.url==='/tasks'){try{return send(200,listTasks(repo));}catch(error){return send(400,{error:error.message});}}
       if(request.url==='/task'){try{return send(200,saveTask(repo,body));}catch(error){return send(error.current?409:400,{error:error.message,current:error.current});}}
       if(request.url==='/execution'){try{if(!execution)throw Error('구현 실행 연결이 없습니다. OpenWorkflow.bat을 다시 실행하세요.');return send(200,execution.act(body));}catch(error){return send(400,{error:error.message});}}
@@ -333,7 +342,8 @@ if(require.main===module && process.argv[2]==='--current'){
   const providers=Object.keys(labels).filter(id=>config[id]?.file && fs.existsSync(config[id].file)).map(id=>({id,label:labels[id]}));
   const configuration=crypto.createHash('sha256').update(JSON.stringify(config)).digest('hex');
   const execution=createExecutionService({root:repo,resolveCurrent,run:(record,onSpawn)=>runExecution({root:repo,command:config.codex,record,onSpawn})});
-  const server=createServer({token,providers,configuration,execution,runAnalysis:(plan,mode,context,provider)=>analyze(plan,config[provider],mode,context,provider)});
+  const testFeedback=createFeedbackService({root:repo,providers:providers.map(p=>p.id),externalBusy:()=>execution.isBusy(),run:(request,onSpawn)=>runFeedback({root:repo,command:config[request.provider||'codex'],request,onSpawn})});
+  const server=createServer({token,providers,configuration,execution,testFeedback,runAnalysis:(plan,mode,context,provider)=>analyze(plan,config[provider],mode,context,provider)});
   server.on('error',error=>{console.error(error.message);process.exit(1);});
   server.listen(18743,'127.0.0.1',()=>{
     fs.mkdirSync(path.join(repo,'Saved/Wiki'),{recursive:true});

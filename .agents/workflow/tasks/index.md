@@ -1,38 +1,61 @@
-# 작업 자료
+# 작업 현황
 
-## 한줄 요약
+확인할 일을 고르고 상세 기록을 여세요. 각 작업의 마지막 후속 기록까지 대조해 정리했습니다.
 
-개별 작업의 진행 상태·판단·확정본·미해결 리뷰·검증 근거를 관리합니다.
+정리 기준: 2026-09-25. 아래 분류는 기록에 남은 확인 범위이며, 현재 코드의 검증 결과나 새로운 승인을 뜻하지 않습니다. 별도 인간 코드 리뷰 기록이 없는 작업은 상세 기록의 제한을 유지합니다.
 
 [Workflow](../index.md) · [보존·정리 규칙](../process/completion.md)
 
-웹 작업은 공용 작업 파일에서 목록을 읽고, 확정 인계는 아래 목록에 연결합니다. 일반 리뷰는 같은 대상의 기존 문서를 갱신합니다. 완료 여부는 상태로 관리하며 보존할 근거가 있는 자료는 완료 후에도 이 위치에 유지합니다.
+## 플레이 확인
 
-## 작업 인계
+| 작업 | 확인된 범위 | 다음 행동 |
+| --- | --- | --- |
+| [체크포인트 저장·부활](checkpoint-savegame.md) | AI 처리 결과 확인 필요 | Git 저장소 소유권 보호로 제출 코드 버전과 현재 버전을 대조하지 못했습니다. safe.directory 설정이나 내부적으로 예외를 적용하는 codeVersion 함수는 실행하지 않았습니다. |
+| [적 재생성](spawner-library-removal.md) | SpawnerLibrary 제거·빌드 확인 | 에셋 로드와 부활 시 적 재생성, 영구 처치 제한을 확인한다. |
+| [어빌리티·몽타주 — GA_ 복귀](ability-table-driven.md) | 데이터 대조·단독/네트워크 PIE 일부 확인 | HGTest·분신·도플갱어와 조작감을 확인한다. |
+| [쿨다운 GE 통합](cooldown-unification.md) | 빌드·자동화 테스트·사용자 회피 쿨다운 확인 | 소환물 쿨다운 무시와 네트워크 복제를 확인한다. |
+| [피해·가드·히트스톱](damage-pipeline-structure-review.md) | 후속 수정 빌드 확인 | 0 피해 히트스톱과 투사체 되돌림을 플레이로 확인한다. |
+| [보스 HUD](boss-display-simplification.md) | 빌드·위젯 바인딩 확인 | 보스 진입·사망·언로드와 보스 간 표시 전환을 확인한다. |
+| [상호작용 목록·엘리베이터 버튼](interaction-list-vm-simplification.md) | 구현·빌드 확인 | 선택지 표시·실행과 탑승칸 버튼 잠금·해제를 확인한다. |
+| [아이템·퀵슬롯](item-viewmodel-unification.md) | 빌드·위젯 컴파일 확인 | 게임 맵에서 목록·퀵슬롯·획득 표시와 사용 동작을 확인한다. |
+| [적 이름표·락온 표시](nameplate-manager.md) | 빌드·에셋 재로드 확인 | 교전·락온·사망 표시와 호스트/클라이언트별 표시를 확인한다. |
+| [어빌리티 슬롯 Resolver](ability-resolver-to-wxui.md) | 빌드·리다이렉트 없는 WBP 로드 확인 | 게임에서 어빌리티 슬롯이 실제로 표시되는지 확인한다. |
 
-- [쿨다운 GE 통합](cooldown-unification.md)
+## 에디터 확인
 
-- [SpawnerLibrary 제거](spawner-library-removal.md)
+| 작업 | 확인된 범위 | 다음 행동 |
+| --- | --- | --- |
+| [AnimNotify 표시 이름](animnotify-labels.md) | 빌드·표시 함수 변경 범위 확인 | 타임라인에서 17종 라벨의 값과 가독성을 확인한다. |
+| [DataTable Row 미리보기](datatable-row-preview.md) | 후속 빌드·빈 하위 구조체 회귀 확인 | 실제 표와 툴팁에서 빈 값 축약·설정값 표시를 확인한다. |
 
-- [체크포인트 SaveGame 전환](checkpoint-savegame.md)
+## 개선 판단
 
-- [어빌리티 테이블 구동 전환](ability-table-driven.md)
-- [보스 표시 VM 단순화](boss-display-simplification.md)
-- [DataTable 행 이름 변경 시 사용처 참조 갱신](datatable-row-rename-reference-update.md)
-- [Quest 표시 VM을 WxUI로 이전](quest-presentation-vm.md)
+리뷰 당시 지적과 개선 제안입니다. 착수 전에 현재 코드·후속 결정과 다시 대조합니다.
 
-- [Dialogue VM을 순수 표시 데이터로 분리](dialogue-presentation-vm.md)
-- [Ability Resolver를 WxUI로 이동](ability-resolver-to-wxui.md)
-- [Damage 파이프라인 구조 검토](damage-pipeline-structure-review.md)
-- [Wiki 전체 재생성](wiki-regeneration.md)
-- [상호작용 목록 VM 단순화](interaction-list-vm-simplification.md)
-- [사망·대화 화면 클래스를 컨트롤러 컴포넌트로 이동](player-screen-classes-to-layout-component.md)
-- [아이템 VM 단일화](item-viewmodel-unification.md)
-- [Nameplate를 로컬 NameplateManager가 붙이고 떼는 구조로 전환](nameplate-manager.md)
+| 작업 | 확인된 범위 | 다음 행동 |
+| --- | --- | --- |
+| [Workflow 개선](workflow-review.md) | 테스트 결과 접수·AI 선택·복구·실행 회귀 확인 | 대시보드에서 처리할 AI를 선택해 테스트 결과를 전달하고, 나머지 개선안의 적용 범위를 정한다. |
+| [월드 모듈 리뷰](module_review_WxWorld.md) | 2026-09-24 정적 리뷰 | 루프 FX 수명·영구 처치 보존·InitialState 태스크 지적을 재확인한다. |
+| [UI 모듈 리뷰](module_review_WxUI.md) | 2026-09-24 정적 리뷰 | 원격 클라이언트의 어빌리티 슬롯 재매칭 지적을 재확인한다. |
+| [전투 모듈 리뷰](module_review_WxCombat.md) | 2026-09-23 리뷰·09-24 후속 반영 | 콤보 중복·비권위 피해 쿼리·인라인 접근자 지적을 재확인한다. |
+| [AI 모듈 리뷰](module_review_WxAI.md) | 2026-09-23 정적 리뷰 | 실행별 어빌리티 인스턴스 관찰 누락 지적을 재확인한다. |
 
-## 모듈 리뷰
+## 완료 기록
 
-- [WxAI 코드 리뷰](module_review_WxAI.md)
-- [WxCombat 코드 리뷰](module_review_WxCombat.md)
-- [WxUI 코드 리뷰](module_review_WxUI.md)
-- [WxWorld 코드 리뷰](module_review_WxWorld.md)
+원문에서 완료 또는 사용자 동작 확인이 기록된 작업입니다. 당시 수용 범위와 미확인 제약은 원문에 보존합니다.
+
+| 작업 | 확인된 범위 | 다음 행동 |
+| --- | --- | --- |
+| [DataTable 행 이름·참조 갱신](datatable-row-rename-reference-update.md) | 사용자 에디터 확인·제출·Wiki 반영 | 참조 갱신 범위를 바꿀 때 제약과 기존 검증을 참고한다. |
+| [대화 표시 VM](dialogue-presentation-vm.md) | 후속 리졸버 전환·사용자 인게임 확인 | 대화 수명이나 연결 구조를 바꿀 때 참고한다. |
+| [퀘스트 표시 VM](quest-presentation-vm.md) | 후속 리졸버 전환·사용자 인게임 확인 | 퀘스트 표시나 복제 연결을 바꿀 때 참고한다. |
+| [사망·대화 화면 소유권](player-screen-classes-to-layout-component.md) | 사용자 인게임 확인·지식 반영 | 화면 클래스는 후속 작업에서 바뀌었으므로 대화·퀘스트 기록도 확인한다. |
+| [Wiki 전체 재생성](wiki-regeneration.md) | 편찬·Lint·링크·브라우저 확인 | 재편찬 범위와 출처 보존 판단을 참고한다. |
+
+## 갱신 방법
+
+각 단계 완료·인계 시 상세 Task를 먼저 갱신하고 이 표의 확인 범위·다음 행동·분류를 맞춥니다. 후속 기록으로 해결된 대기를 다시 열지 않으며, 확인자·대상 버전은 상세 기록에 있는 근거만 사용합니다. 파일과 판단 원문은 완료 후에도 같은 위치에 유지합니다.
+
+이 목차의 네 표는 Workflow 대시보드에도 표시됩니다. 제목·확인된 범위·다음 행동은 이 문서에서 관리하며, OpenWorkflow.bat으로 화면을 갱신합니다. 웹에서 생성한 작업의 확정·실행 상태는 기존 공용 작업 파일에서 별도로 조회합니다.
+
+작업별 **테스트 결과**에서 사람의 확인 결과를 AI에게 전달할 수 있습니다. 접수 이력은 같은 폴더의 `test_feedback_*.json`에 보존하며 AI 처리 후 원래 Task와 이 목차를 갱신합니다. 사용자 확인·AI 정리 완료와 수정 후 재확인을 구분합니다.

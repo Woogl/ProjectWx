@@ -73,6 +73,31 @@ assert.ok(html.includes('article img{display:block;max-width:100%;height:auto;')
 console.log('PASS bundled workflow PNG, relative image resolution, external image rejection and sanitized responsive rendering');
 assert.equal(byId('work-summary').children.length,0,'no stage choices before a task is selected');
 assert.match(byId('current-task-title').textContent,/공용 작업 연결/);
+// Recorded work remains visible offline and opens evidence without creating or approving a web task.
+const indexedPaths=Array.from(vm.runInContext('taskRecordGroups().flatMap(g=>g.items.map(item=>item.path))',context));
+const taskPaths=fs.readdirSync(path.join(root,'.agents/workflow/tasks')).filter(name=>name.endsWith('.md')&&name!=='index.md'&&!/^workflow_.+_(planning|implementation)\.md$/.test(name)).map(name=>'.agents/workflow/tasks/'+name);
+assert.deepEqual(indexedPaths.slice().sort(),taskPaths.sort(),'every Markdown task must be listed exactly once');
+assert.equal(byId('task-records').hidden,false,'records are available before the shared server connects');
+const recordState=vm.runInContext('JSON.stringify(workflowState)',context);
+const recordFilters=()=>byId('task-records').children.find(n=>n.className==='record-filters').children;
+recordFilters()[3].onclick();
+assert.equal(vm.runInContext('taskRecordFilter',context),'complete');
+assert.equal(recordFilters()[3].attributes['aria-pressed'],'true');
+const completedList=byId('task-records').children.at(-1);
+assert.equal(completedList.attributes['aria-label'],'완료 기록');
+const completedLinks=completedList.children.filter(n=>n.className==='record-item').map(n=>n.children.find(c=>c.className==='record-actions').children.find(c=>c.tagName==='A'));
+assert.ok(completedLinks.length>0);
+assert.ok(completedLinks.every(n=>indexedPaths.some(p=>n.href==='#'+encodeURIComponent(p))));
+assert.ok(html.includes('id="test-feedback-panel"'),'generated page includes the feedback panel');
+assert.equal(vm.runInContext('JSON.stringify(workflowState)',context),recordState,'browsing records must not change approval state');
+recordFilters()[0].onclick();
+vm.runInContext(String.raw`{
+ const index=data.documents.find(d=>d.path==='.agents/workflow/tasks/index.md'),original=index.text;
+ try{index.text='## 플레이 확인\n| [누락](missing.md) | 미확인 | 확인 |\n| [외부](https://example.com/task.md) | 미확인 | 확인 |\n## 갱신 방법\n| [과거](checkpoint-savegame.md) | 완료 | 없음 |';
+ globalThis.invalidRecordCount=taskRecordGroups().flatMap(g=>g.items).length;
+ }finally{index.text=original;}
+}`,context);
+assert.equal(context.invalidRecordCount,0,'unknown, external and non-status links must not become work items');
 assert.equal(byId('cards').children.length, 0, 'home must not list documents');
 context.location.hash = '#search';
 vm.runInContext('readRoute()', context);
@@ -113,13 +138,14 @@ assert.equal(vm.runInContext('workflowState.taskId',context),'');
 vm.runInContext('boardFixtures[2].source="수정된 기획"',context);
 assert.equal(vm.runInContext('dashboardStage(boardFixtures[2])',context),'planning','stale confirmations must not advance a task');
 vm.runInContext('otherTasks=Object.create(null);renderWorkSummary()',context);
-assert.equal(byId('work-summary').children.length,7);
-assert.match(byId('current-task-title').textContent,/등록된 일감이 없습니다/);
+assert.equal(byId('work-summary').children.length,0,'empty web stages must not distract from recorded work');
+assert.match(byId('current-task-title').textContent,/웹에서 진행 중인 작업이 없습니다/);
 vm.runInContext('sharedReady=false',context);
 
 for(const [hash,title] of [['#new-task','새 작업 만들기'],['#resume-task','기존 작업 이어하기']]){
 context.location.hash=hash;vm.runInContext('readRoute()',context);
 assert.equal(byId('dashboard').hidden,false);assert.equal(byId('dashboard-title').textContent,title);assert.equal(byId('work-summary').hidden,true);
+assert.equal(byId('task-records').hidden,true,'record browsing is hidden while creating or resuming web work');
 }
 context.location.hash='';vm.runInContext('readRoute()',context);assert.equal(byId('work-summary').hidden,false);
 assert.equal(vm.runInContext("resolvePath('.wiki/wiki/topics/ai.md', '../concepts/combat-groggy.md')", context), '.wiki/wiki/concepts/combat-groggy.md');
@@ -148,6 +174,7 @@ context.fetch=async(url,options)=>{
   const body=JSON.parse(options.body);assert.equal(options.headers['X-Wx-Token'],'test');
   if(url.endsWith('/execution'))return{ok:true,json:async()=>({taskId:body.taskId,status:'running',phase:'implement',revision:1})};
   if(url.endsWith('/tasks'))return{ok:true,json:async()=>({tasks:{}})};
+  if(url.endsWith('/test-feedback'))return{ok:true,json:async()=>({records:{}})};
   if(url.endsWith('/rename'))return{ok:true,json:async()=>({revision:body.expectedRevision+1,taskId:body.title,title:body.title,revisions:{[body.title]:body.expectedRevision+1}})};
   if(url.endsWith('/change'))return{ok:true,json:async()=>({revision:body.expectedRevision+1,taskId:body.newTaskId,childRevision:0,changeFrom:{taskId:body.taskId,stage:body.stage,reason:body.reason,scope:body.scope}})};
   if(url.endsWith('/handoff')){handoffs.push(body);return{ok:true,json:async()=>({path:`.agents/workflow/tasks/test-${handoffs.length}.md`,dataPath:'test.json',revision:body.expectedRevision+1})};}

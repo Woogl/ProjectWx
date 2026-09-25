@@ -8,6 +8,7 @@
 
 ## 작업
 
+- [작업 기록 현황](tasks/index.md)
 - [작업](process/design_review.md)
 - [사용 방법 안내](usage.md)
 

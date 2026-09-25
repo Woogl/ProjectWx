@@ -348,18 +348,72 @@ async function openDashboardTask(taskId) {
     workflowState=JSON.parse(JSON.stringify(otherTasks[taskId]));openWorkStage();
   }catch(error){$('work-summary-error').textContent=error.message;}
 }
+let taskRecordFilter='play';
+function taskRecordGroups() {
+  const groups=[['play','플레이 확인'],['editor','에디터 확인'],['decision','개선 판단'],['complete','완료 기록']].map(([id,title])=>({id,title,items:[]}));
+  const documents=data.documents||[],index=documents.find(d=>d.path==='.agents/workflow/tasks/index.md');
+  let group;
+  for(const line of (index?.text||'').split(/\r?\n/)){
+    if(line.startsWith('## ')){group=groups.find(g=>g.title===line.slice(3).trim());continue;}
+    const row=line.match(/^\| \[([^\]]+)\]\(([^)]+\.md)\) \| ([^|]+) \| ([^|]+) \|$/);
+    if(!group||!row)continue;
+    const path=resolvePath(index.path,row[2]);
+    if(!path.startsWith('.agents/workflow/tasks/')||!documents.some(d=>d.path===path))continue;
+    group.items.push({title:row[1],path,evidence:row[3].trim(),next:row[4].trim()});
+  }
+  return groups;
+}
+function renderTaskRecords() {
+  const panel=$('task-records');panel.replaceChildren();
+  const groups=taskRecordGroups(),total=groups.reduce((n,g)=>n+g.items.length,0);
+  const heading=el('div',undefined,'record-heading'),indexLink=el('a','전체 목차');
+  indexLink.href=route('.agents/workflow/tasks/index.md');
+  heading.append(el('h2','확인할 일과 작업 기록'),indexLink);panel.append(heading);
+  if(!total){panel.append(el('p','정리된 작업 기록이 없습니다.','notice'));return;}
+  const index=data.documents.find(d=>d.path==='.agents/workflow/tasks/index.md');
+  const date=index.text.match(/^정리 기준: (\d{4}-\d{2}-\d{2})/m)?.[1];
+  panel.append(el('p',(date?'기록 정리 · '+date+' · ':'')+total+'개 작업. 확인할 일을 고르면 다음 행동과 상세 기록을 볼 수 있습니다.','notice'));
+  const filters=el('div',undefined,'record-filters');filters.setAttribute('role','group');filters.setAttribute('aria-label','작업 기록 분류');
+  for(const group of groups){
+    const button=workflowButton(group.title+' · '+group.items.length,()=>{taskRecordFilter=group.id;renderTaskRecords();$('task-record-list').focus();});
+    button.setAttribute('aria-pressed',String(taskRecordFilter===group.id));button.setAttribute('aria-controls','task-record-list');filters.append(button);
+  }
+  panel.append(filters);
+  const group=groups.find(g=>g.id===taskRecordFilter)||groups[0],list=el('section',undefined,'record-list');
+  list.id='task-record-list';list.setAttribute('tabindex','-1');list.setAttribute('aria-label',group.title);
+  list.append(el('h3',group.title+' · '+group.items.length));
+  if(group.id==='decision')list.append(el('p','리뷰 당시 지적입니다. 적용 전에 현재 코드와 후속 결정을 확인하세요.','notice'));
+  if(group.id==='complete')list.append(el('p','기록 당시 완료·사용자 확인 범위입니다. 남은 제약은 상세 기록에 보존되어 있습니다.','notice'));
+  if(!group.items.length)list.append(el('p','이 분류의 작업이 없습니다.','notice'));
+  for(const item of group.items){
+    const link=el('div',undefined,'record-item');
+    const summary=el('div');summary.append(el('strong',item.title),el('span',item.evidence,'record-evidence'));
+    const next=el('div',undefined,'record-next');next.append(el('span',group.id==='complete'?'참고할 때':'다음 행동','record-label'),el('span',item.next));
+    const actions=el('div',undefined,'record-actions'),open=el('a','기록 열기 →');open.href=route(item.path);actions.append(open);
+    if(typeof openTestFeedback==='function'){
+      actions.append(workflowButton('테스트 결과',()=>openTestFeedback(item)));
+      const latest=feedbackRecords[item.path]?.latest;if(latest)actions.append(el('span',feedbackStatusText(latest.status),'notice'));
+    }
+    link.append(summary,next,actions);list.append(link);
+  }
+  panel.append(list);
+}
 function renderWorkSummary() {
   const summary=$('work-summary');summary.replaceChildren();
   const mode=location.hash==='#new-task'?'new':location.hash==='#resume-task'?'resume':'all';
   $('dashboard-title').textContent=mode==='new'?'새 작업 만들기':mode==='resume'?'기존 작업 이어하기':'작업 현황 대시보드';
   summary.hidden=mode!=='all';$('current-task-title').hidden=mode!=='all';
+  $('task-records').hidden=mode!=='all';if(mode==='all')renderTaskRecords();
+  $('test-feedback-panel').hidden=mode!=='all'||typeof feedbackSelected==='undefined'||!feedbackSelected;
+  if(mode==='all'&&typeof feedbackLoaded!=='undefined'&&!feedbackLoaded)loadTestFeedback();
   const picker=$('dashboard-tasks');picker.replaceChildren();
   $('work-summary-error').textContent=workflowStorageError;
   if(mode!=='all'){if(sharedReady)renderTaskPicker(picker,mode);return;}
   if(!sharedReady){$('current-task-title').textContent=sharedLoading?'일감을 불러오는 중입니다.':'공용 작업 연결을 기다리고 있습니다.';return;}
   const tasks={...otherTasks};if(workflowState.taskId)tasks[workflowState.taskId]=workflowState;
   const entries=Object.values(tasks).filter(task=>task?.taskId).sort((a,b)=>taskTitle(a).localeCompare(taskTitle(b),'ko'));
-  $('current-task-title').textContent=entries.length?'전체 '+entries.length+'개 일감 · 카드를 선택해 이어서 진행하세요.':'등록된 일감이 없습니다. 새 작업 만들기에서 시작하세요.';
+  $('current-task-title').textContent=entries.length?'웹에서 진행 중인 작업 · '+entries.length+'개':'웹에서 진행 중인 작업이 없습니다.';
+  if(!entries.length)return;
   const stages=[['planning','기획 검토'],['design','설계'],['implementation','구현'],['review','코드 리뷰'],['testing','테스트'],['cleanup','정리 대기'],['completion','완료']];
   if(entries.some(task=>task.changeTo))stages.push(['changed','후속 변경으로 인계']);
   for(const [stage,title] of stages){
@@ -377,7 +431,7 @@ function renderWorkSummary() {
 }
 async function workflowRequest(endpoint, body) {
   if (!data.ai) throw new Error('OpenWorkflow.bat을 다시 실행하여 AI 연결을 시작하세요.');
-  if(sharedReady&&!pendingSave&&!['/task','/tasks'].includes(endpoint))await flushSharedTasks();
+  if(sharedReady&&!pendingSave&&!['/task','/tasks','/test-feedback'].includes(endpoint))await flushSharedTasks();
   const response = await fetch(data.ai.url.replace(/\/analyze$/,endpoint), { method:'POST', headers:{'Content-Type':'application/json','X-Wx-Token':data.ai.token}, body:JSON.stringify(body) });
   const result = await response.json();
   if (!response.ok) {const error=new Error(result.error||'요청에 실패했습니다.');error.current=result.current;error.responded=true;throw error;}
