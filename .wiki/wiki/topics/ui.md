@@ -17,13 +17,14 @@ sources:
   - "raw/notes/2026-09-24-nameplate-manager.md"
   - "raw/notes/2026-09-24-nameplate-manager-wxgame.md"
   - "raw/notes/2026-09-24-wxui-review-followups.md"
+  - "raw/notes/2026-09-25-ability-data-on-ga.md"
 created: 2026-09-22
-updated: 2026-09-24
+updated: 2026-09-25
 tags: [wx, ui]
 aliases: ["WxUI"]
 confidence: medium
 volatility: warm
-verified: 2026-09-24
+verified: 2026-09-25
 summary: "WxUI는 CommonUI 레이어와 MVVM 표시를 관리하고, 도메인 상태는 공용 태그·표시 계약으로 관찰한다."
 ---
 
@@ -47,6 +48,8 @@ Attribute ViewModel은 초기 값을 읽은 뒤 속성 변경을 구독하고, D
 
 Effect ViewModel은 유한 지속 효과의 남은 시간을 월드 타이머로 월드 틱마다 갱신하고, 효과가 사라지면 멈춘다. 월드가 정지된 동안에는 타이머와 남은 시간이 함께 멈춘다. 무한 지속 효과는 갱신을 걸지 않는다.
 
+버프 목록(AbilitySystem VM의 `ActiveEffectViewModels`)은 GE의 `UGameplayEffectUIData` 컴포넌트를 `IWxUIData`로 캐스트해 읽고, 아이콘을 채운 GE만 올린다. Wx GE의 구현체는 WxCombat `UWxEffectComponent_UIData`이며 `Title`·`Description`·`Icon`을 GE 에셋에 직접 둔다(2026-09-25 `DT_Effect`와 `UWxEffectComponent_Table` 제거, 커밋 `7c52ce0ce`). 베이스가 엔진 `UGameplayEffectUIData`라 WxUI의 조회 코드는 바뀌지 않았다.
+
 ## 표시 VM의 위치와 연결
 
 Wx 기능 모듈 사이의 신규 의존성은 WxCore를 제외하면 추가하지 않는다. WxCore도 공용 정의 범위를 유지하며 UI 이동을 위해 게임 로직이나 과도한 중계 계약을 넣지 않는다. 도메인 연결은 WxGame의 조립 책임이다.
@@ -66,7 +69,7 @@ HUD 보스 바(`WBP_Nameplate_Boss`)가 이 규칙을 처음 적용한 사례다
 - UIManager와 머리 위 Nameplate(`UWxNameplateManagerComponent`)는 보스를 모른다.
 - WBP 로드·컴파일은 확인했지만 인게임 표시는 검증하지 않았다.
 
-`UWxViewModelResolver_Ability`는 WxUI의 `WxViewModel_Ability.h/.cpp`에 함께 둔다. 위젯 소유 컨트롤러의 Pawn에서 ASC를 얻고, AbilityTags에 대응하는 공유 슬롯 VM을 AbilitySystem VM에서 가져온다. 이전 WxGame 클래스 경로의 CoreRedirect는 2026-09-24에 제거했다. 참조 WBP가 리다이렉트 없이 경고 없이 로드되고 컴파일되는 것을 확인했다. 인게임 표시는 따로 검증하지 않았다.
+`UWxViewModelResolver_Ability`는 WxUI의 `WxViewModel_Ability.h/.cpp`에 함께 둔다. 위젯 소유 컨트롤러의 Pawn에서 ASC를 얻고, AbilityTags에 대응하는 공유 슬롯 VM을 AbilitySystem VM에서 가져온다. 슬롯 VM은 스펙의 기본 인스턴스(`GetPrimaryInstance`) 중 AbilityTags를 모두 가진 것을 고른다. 발동 가능·비용 판정과 `TryActivateAbility`도 그 인스턴스의 스펙 핸들로 한다(커밋 `0473e201b`). 제목·설명·아이콘·충전 수는 그 어빌리티의 `IWxUIData`에서 읽으며, 값은 GA_ 에셋의 프로퍼티다([전투 어빌리티](../concepts/combat-abilities.md)). 이전 WxGame 클래스 경로의 CoreRedirect는 2026-09-24에 제거했다. 참조 WBP가 리다이렉트 없이 경고 없이 로드되고 컴파일되는 것을 확인했다. 인게임 표시는 따로 검증하지 않았다.
 
 대화 창(`WBP_DialogueScreen`, 부모 `UWxActivatableWidget`)은 WxGame `UWxViewModelResolver_Dialogue`가 만든 WxUI `UWxViewModel_Dialogue`로 구동된다. VM은 Speaker·LineText·HasSpeaker와 SetLine, 진행 명령 `RequestAdvance`만 가진다. 리졸버가 세션 대사를 VM에 걸고, VM의 `OnAdvanceRequested`를 세션 `Advance`에 잇는다. 진행 버튼의 MVVM 이벤트 목적지는 `WxViewModel_Dialogue.RequestAdvance`다. 2026-09-23 이전의 `UWxDialogueScreen`(활성화 수명으로 연결)은 제거했다. 구독 수명과 인게임 확인은 [대화](dialogue.md)의 수명과 연출에 있다.
 
@@ -154,6 +157,7 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 - [Nameplate·Reticle을 로컬 NameplateManager로](../../raw/notes/2026-09-24-nameplate-manager.md)
 - [NameplateManager를 WxGame으로](../../raw/notes/2026-09-24-nameplate-manager-wxgame.md)
 - [WxUI 리뷰 후속](../../raw/notes/2026-09-24-wxui-review-followups.md) — 일시정지 해제 규칙, Effect VM 월드 타이머
+- [어빌리티·GE 데이터를 에셋 한 곳으로](../../raw/notes/2026-09-25-ability-data-on-ga.md) — 슬롯 VM의 기본 인스턴스 판정, GE 표시 데이터 컴포넌트
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -161,5 +165,7 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 2026-09-23에 보스 표시 세 층 구조 원자료(커밋 `4352e9100`)를 편찬해 추가했다. 같은 날 refresh에서 원자료 해시 대조로 누락을 찾아 아이템 VM 단일화(`ba396fc16`)·상호작용 목록 VM(`f98eef471`)·MVVM 변환 함수 제약을 HEAD `7d2a20408` 기준으로 추가하고, 표시 VM 절을 규칙→사례→예외 순으로 재배치했다. 이어서 대화·퀘스트 화면 클래스 제거 원자료(커밋 `570e72562`·`6daf3f804`)를 편찬해 연결 주체를 리졸버로 바꾸고 VM 명령 전달 규칙을 추가했다. 2026-09-24 refresh에서 NameplateManager 원자료(커밋 `aaf557a09`)를 편찬해 머리 위 표시 절을 추가하고, 이 절은 HEAD `ca84c9aac` 코드와 대조했다. 같은 날 두 번째 refresh에서 WxUI 리뷰 후속 원자료(커밋 `1b15a61ff`·`eb92e99a7`)를 편찬해 일시정지 해제 규칙과 Effect VM 갱신 주기를 HEAD `d76e48717` 코드·UE 5.8 엔진 소스와 대조해 추가했다(인게임 미검증). 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+
+2026-09-25 refresh: 슬롯 VM의 기본 인스턴스 판정(`0473e201b`)과 버프 목록의 GE 표시 데이터 조회(`7c52ce0ce`)를 HEAD `d63ce0630`의 `WxViewModel_Ability.cpp`·`WxViewModel_AbilitySystem.cpp`·`WxEffectComponent_UIData.h`와 대조해 추가했고, 슬롯·버프 목록의 인게임 표시와 GE_ 에셋의 아이콘 값은 확인하지 않았다.
 
 </details>

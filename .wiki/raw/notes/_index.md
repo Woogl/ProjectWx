@@ -71,8 +71,9 @@ Last updated: 2026-09-25
 | [WxCombat 불필요한 장치 정리: 쿨다운 무시 순정화·사망 BT 정지 단일화·락온 대상 사본 제거](2026-09-24-wxcombat-machinery-cleanup.md) | 소환물의 쿨다운 무시를 순정 Immunity·RemoveOther GE(UWxEffect_IgnoreCooldowns)로 바꾸고 NoCooldown·AbilityBase 태그 분기를 지웠다. 사망 BT 정지는 AI 컨트롤러만 하고, 락온 태스크는 UWxLockOnComponent의 대상을 매 틱 읽는다. 쓰지 않는 SendGameplayEvent 노티파이·InfiniteMP GE와 ASC 발동 실패 로그를 지웠다. | wx, combat, ai, architecture | 2026-09-24 |
 | [WxCore 정리: 쓰지 않는 태그·모듈 클래스 제거](2026-09-24-wxcore-cleanup.md) | 읽는 곳이 없는 Damage.Guarded와 사용처가 없는 Device.Locked 네이티브 태그를 지웠다. WxCore는 순수 정의만 두는 모듈이라 빈 FWxCoreModule을 없애고 FDefaultModuleImpl로 등록한다. WxAI의 자동화 테스트 두 개(MirrorMovement 순간이동·정찰 경로 스폰)와 테스트용 friend 선언도 지웠다. | wx, foundation, damage, architecture | 2026-09-24 |
 | [WxUI 리뷰 후속: 일시정지 해제 규칙 정정·Effect VM 월드 타이머·인디케이터 여백 상수](2026-09-24-wxui-review-followups.md) | 게임모드는 대리자를 건 정지만 해제 때 되묻고 대리자 없는 정지는 그냥 지운다는 엔진 동작에 맞춰 UIManager 주석을 고쳤다. Effect VM 남은 시간은 코어 티커 대신 월드 타이머로 갱신하고, 인디케이터 화면 여백은 C++ 상수로 바꿨다. | wx, ui, architecture | 2026-09-24 |
-
-| [Row 미리보기의 기본 구조체 축약](2026-09-25-row-preview-empty-struct.md) | 초기 기본값과 같은 구조체를 {}로 표시하고 원문은 툴팁에 유지한다. | wx, editor, datatable | 2026-09-25 |
-| [Row 미리보기와 툴팁 표시 통일](2026-09-25-row-preview-tooltip.md) | 셀과 툴팁에 같은 텍스트를 표시한다. | wx, editor, datatable | 2026-09-25 |
-| [Row 미리보기의 빈 하위 구조체 축약](2026-09-25-row-preview-nested.md) | 부모에 값이 있어도 빈 하위 객체를 각각 축약한다. | wx, editor, datatable | 2026-09-25 |
-| [AnimNotify 타임라인 이름 축약 규칙](2026-09-25-animnotify-labels.md) | 종류와 대표 값 하나로 17종 라벨 통일 | wx, animation, editor | 2026-09-25 |
+| [어빌리티·GE 데이터를 에셋 한 곳으로: 테이블 구동 시도 후 GA_ 복귀, DT_Ability·DT_Effect 제거](2026-09-25-ability-data-on-ga.md) | 어빌리티 테이블 구동을 구현했다가 AI 작업 편의를 최우선 기준으로 삼아 어빌리티별 데이터 전용 GA_로 돌아갔다. 행이 에셋과 1:1인 데이터는 그 에셋에 두고, 테이블은 여러 곳이 골라 쓰는 정의(DT_Damage)와 레벨 곡선에만 쓴다. DT_Ability·DT_Effect를 지우고, 비용·쿨다운·표시·몽타주는 GA_ 프로퍼티, 발동 조건·쿨다운 그룹·BT 번호 태그·패시브 트리거는 엔진 칸, GE 표시는 UWxEffectComponent_UIData에 둔다. | wx, combat, ui, architecture, decision | 2026-09-25 |
+| [어빌리티 규칙 변경과 몽타주 섹션 모델(테이블 구동 전환 1-1·1-2단계)](2026-09-25-ability-montage-section-model.md) | 콤보 창이 닫히면 첫 단부터, 늦은 노티파이는 몽타주 인스턴스 ID로 거름, 착지 섹션은 재생 중인 모든 몽타주에서 찾음, 그로기 강등은 대미지 반응 컴포넌트, 시체 수명은 캐릭터, 컷신 중 입력형 어빌리티 차단, 소비 아이템은 인벤토리가 고름. 콤보·패턴·회피·가드 반응·피격 반응은 한 몽타주의 섹션으로 고르고, 처형은 한 벌로 합쳐 짝 몽타주·피해 행을 노티파이가 담으며, 궁극기 컷신은 몽타주의 표식 노티파이에서 읽는다. | wx, combat, animation, inventory, editor | 2026-09-25 |
+| [AnimNotify 타임라인 이름 축약 규칙](2026-09-25-animnotify-labels.md) | 17종 Notify의 라벨을 종류와 대표 값 하나로 통일한 사용자 합의와 구현 근거. | wx, animation, editor | 2026-09-25 |
+| [Row 미리보기의 기본 구조체 축약](2026-09-25-row-preview-empty-struct.md) | Row 미리보기에서 초기 기본값과 같은 구조체를 {}로 표시하고 원문은 툴팁에 유지한다. | wx, editor, datatable | 2026-09-25 |
+| [Row 미리보기의 빈 하위 구조체 축약](2026-09-25-row-preview-nested.md) | 값이 있는 부모 구조체 안에서도 기본값과 같은 하위 JSON 객체를 각각 {}로 축약한다. | wx, editor, datatable | 2026-09-25 |
+| [Row 미리보기와 툴팁 표시 통일](2026-09-25-row-preview-tooltip.md) | 사용자 후속 요청으로 축약된 셀과 툴팁에 같은 텍스트를 표시한다. | wx, editor, datatable | 2026-09-25 |

@@ -6,13 +6,14 @@ sources:
   - "raw/notes/2026-09-22-current-damage.md"
   - "raw/notes/2026-09-22-groggy-montage-stop-fix.md"
   - "raw/notes/2026-09-24-ai-brain-control-single-owner.md"
+  - "raw/notes/2026-09-25-ability-montage-section-model.md"
 created: 2026-09-22
-updated: 2026-09-24
+updated: 2026-09-25
 tags: [wx, groggy]
 aliases: []
 confidence: medium
 volatility: warm
-verified: 2026-09-24
+verified: 2026-09-25
 summary: "GP 상한은 그로기 이벤트를 발생시키며, 실제 유지·종료는 어빌리티와 서버의 GP 감소 경로가 맡는다."
 ---
 
@@ -42,6 +43,10 @@ stateDiagram-v2
 
 `EndAbility`는 폴링·GP 구독·감소 GE를 해제한다. 그로기 몽타주는 ASC의 현재 몽타주인지와 관계없이 AnimInstance에서 직접 정지한다. 가산 슬롯 피격 몽타주가 ASC의 현재 몽타주 자리를 차지하면 `StopMontageIfCurrent`로는 그 아래에서 루프 중인 그로기 몽타주를 멈추지 못했기 때문이다(커밋 `c2b1088a0`). [그로기 어빌리티](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_Groggy.cpp)의 수명과 실제 AbilitySet·몽타주를 함께 확인해야 적별 동작을 판단할 수 있다.
 
+## 그로기 중 피격
+
+대상이 그로기면 넉 계열 반응 태그(`HitReact.KnockBack`·`KnockDown`·`KnockUp`)를 [`UWxEffectComponent_DamageReaction`](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffectComponent_DamageReaction.cpp)이 `HitReact.Normal`로 낮춰 피격 이벤트에 싣는다. 긴 넉 몽타주가 그로기 몽타주를 밀어내는 동안에도 GP 감소가 돌아 그로기 창이 잘리기 때문이다. 코드 주석에 따르면 GP 반영이 이 컴포넌트보다 먼저라 그로기를 시작시킨 타격도 낮춘다. 이 판단은 2026-09-24에 `UWxAbility_HitReact`에서 옮겼다(커밋 `15bcc1682`). 반응 이벤트 전체 흐름은 [피해 처리와 전투 연출](combat-damage.md)에 있다.
+
 ## AI 트리 잠금
 
 그로기 어빌리티는 AI 트리를 건드리지 않는다. `AWxAIController`가 `Ability.Groggy` 태그가 붙으면 트리를 `EAIRequestPriority::Reaction`으로 잠그고, 태그가 빠지면 푼다. 트리를 멈추지 않고 잠그므로 그로기가 끝나면 멈춘 자리에서 이어 간다. 사망으로 트리가 정지된 뒤에도 태그가 빠질 때 잠금을 푼다. 엔진이 트리를 다시 시작할 때 일시정지를 초기화하지 않기 때문이다. 이미 진행 중인 MoveTo 경로 추종과 포커스 회전은 잠금으로 멈추지 않는다([AI 컨트롤러](../../../Source/WxGame/Controller/WxAIController.cpp), [WxAI](../topics/ai.md)).
@@ -59,6 +64,7 @@ stateDiagram-v2
 - [근거 2](../../raw/notes/2026-09-22-current-damage.md)
 - [그로기 종료 시 몽타주 정지 경로 수정 조사](../../raw/notes/2026-09-22-groggy-montage-stop-fix.md) — 가산 피격 중 몽타주 정지 수정
 - [AI 트리 정지·잠금 컨트롤러 단독화](../../raw/notes/2026-09-24-ai-brain-control-single-owner.md) — 그로기 AI 잠금 주체 이동
+- [어빌리티 규칙 변경과 몽타주 섹션 모델](../../raw/notes/2026-09-25-ability-montage-section-model.md) — 그로기 중 넉 계열 강등을 대미지 반응 컴포넌트로 이동
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -68,5 +74,7 @@ stateDiagram-v2
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 
 2026-09-24: AI 트리 잠금 주체를 그로기 어빌리티에서 `AWxAIController`로 옮긴 작업 트리 코드와 대조해 수명 도식·본문을 고치고 "AI 트리 잠금" 절을 추가했다. 빌드 통과, 사용자 인게임 확인.
+
+2026-09-25: 그로기 중 넉 계열 강등 위치(커밋 `15bcc1682`)를 HEAD `d63ce0630`의 `UWxEffectComponent_DamageReaction`·`UWxAbility_HitReact` 코드와 대조해 "그로기 중 피격" 절을 추가했고, 나머지 절의 `UWxAbility_Groggy`·`UWxCombatAttributeSet`·`AWxAIController` 서술도 같은 HEAD에서 다시 확인했으며, 강등의 인게임 동작은 AI가 확인하지 않았다(원자료의 빌드 통과와 전반적인 사용자 플레이 확인만 있다).
 
 </details>

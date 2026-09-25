@@ -336,3 +336,28 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 
 ## [2026-09-25] ingest + compile | AnimNotify 라벨 축약
 - 사용자 합의와 17종 표시 함수 근거를 수집하고 editor-tools에 표시 규칙을 통합했다. 런타임 동작 변경과 에디터 화면 검증은 포함하지 않는다.
+
+## [2026-09-25] ingest | 어빌리티 규칙 변경과 몽타주 섹션 모델 (raw/notes/2026-09-25-ability-montage-section-model.md)
+
+## [2026-09-25] ingest | 어빌리티·GE 데이터를 에셋 한 곳으로: GA_ 복귀, DT_Ability·DT_Effect 제거 (raw/notes/2026-09-25-ability-data-on-ga.md)
+
+## [2026-09-25] compile | 2 sources → 0 new articles, 12 updated
+- combat-abilities: "타입과 GA_"(C++ 타입은 규칙, GA_는 콘텐츠, 공격 타입 넷, Abstract 타입, 데이터 배치 규칙, 세트 부여와 같은 클래스 건너뛰기), "몽타주 섹션", "비용과 쿨다운"(CDO에서 읽는 비용·쿨다운 값, `CooldownGameplayEffectClass` 그룹), "검증" 절로 다시 썼다. 콤보 재시작·늦은 노티파이 거르기·컷신 중 입력 차단을 발동 절에 더했다.
+- combat-finisher: 한 벌 통합과 `UWxAnimNotify_FinisherVictim`·`UWxAnimNotify_FinisherDamage` 흐름으로 구현 경로를 다시 썼다. Sources 목록에 빠져 있던 상호작용 계약 원자료를 넣었다.
+- combat-damage: 섹션 기반 피격 반응, 가드 반응 섹션, 그로기 강등 위치(`UWxEffectComponent_DamageReaction`), 가드 경감값의 GE_ 소유를 반영했다.
+- combat-groggy: "그로기 중 피격" 절(넉 계열 강등 위치)을 추가했다.
+- combat-resources: 비용을 GA_의 `CostResource`·`CostAmount`로 고쳤다. Q-003 미결정은 그대로다.
+- combat: 경계에 GA_ 데이터 배치와 테이블 제거를 적고, 수정 위치 표에 강등·GE 표시·섹션·착지·처형 노티파이·컷신 차단·시체 수명 행을 더했다.
+- game: 시체 수명(`AWxCharacterBase::CorpseLifeSpan`)과 착지 섹션 탐색 절을 추가했다.
+- ai: "어빌리티 발동" 절(에셋 태그 조회, GA_의 번호 태그)을 추가했다.
+- world: 스캐너의 발동 판정이 기본 인스턴스로 한다는 점을 상호작용 계약 절에 더했다.
+- inventory: 소비 아이템을 인벤토리가 고르는 흐름(`CanUseConsumable`·`UseConsumable`, `FindConsumableInstance`)으로 도식과 본문을 고쳤다.
+- ui: 어빌리티 슬롯 VM의 기본 인스턴스 판정과 버프 목록의 `UWxEffectComponent_UIData` 조회를 보강했다.
+- editor-tools: "AnimMontage 섹션 편집" 절(`AppendMontage`·`RenameSection`·`SnapNotifyEndsToSections`·`SnapNotifyStartsToSections`)을 추가했다.
+- 코드 서술은 HEAD `d63ce0630`과 대조했다. GA_·몽타주·GE 에셋 값과 PIE 결과는 원자료를 따르며, HGTest·분신·도플갱어·처형·가드 경감·락온은 인게임으로 확인하지 않았다.
+
+## [2026-09-25] refresh | 17 articles checked, 12 updated, 0 flagged, 0 retracted
+- 직전 refresh 커밋(`34bb76871`) 이후 커밋 23건을 추적했다. Row 미리보기·AnimNotify 라벨(`9e5529e87`·`b93072ef8`)은 이미 반영돼 있었다. 작업 기록만 바꾼 3건(`4e80be7ba`·`8652e585e`·`d63ce0630`)은 반영 대상이 아니다.
+- 미반영은 어빌리티 테이블 구동 전환 1-1·1-2단계 14건(`b4510a45c`~`b652ee043`)과 GA_ 복귀 4건(`5153da936`·`0473e201b`·`e305161ee`·`7c52ce0ce`)이었다. modules·foundation·dialogue·quests와 Wiki 운영 참조 문서는 이 변경과 겹치는 서술이 없다(본문 검색과 대조로 확인).
+
+## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed

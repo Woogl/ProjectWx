@@ -6,13 +6,14 @@ sources:
   - "raw/notes/2026-09-22-current-foundation.md"
   - "raw/notes/2026-09-23-wxai-review-followups.md"
   - "raw/notes/2026-09-24-ai-brain-control-single-owner.md"
+  - "raw/notes/2026-09-25-ability-data-on-ga.md"
 created: 2026-09-22
-updated: 2026-09-24
+updated: 2026-09-25
 tags: [wx, ai]
 aliases: ["WxAI"]
 confidence: medium
 volatility: warm
-verified: 2026-09-24
+verified: 2026-09-25
 summary: "WxAI는 인지 결과를 Blackboard로 전달하고 Behavior Tree 노드로 이동·전투 행동을 구성한다."
 ---
 
@@ -36,6 +37,10 @@ Blackboard의 SelfActor·HomeLocation·Master와 TargetActor·TargetDistance·Pa
 
 트리를 멈추거나 잠그는 곳은 WxGame의 `AWxAIController` 하나다. 엔진의 일시정지는 단일 플래그라 여러 곳이 걸면 서로의 정지를 풀어 버리기 때문이다. 사망은 캐릭터의 `OnDeath`를 받아 `StopLogic`으로 트리를 끝낸다. 그로기는 `Ability.Groggy` 태그 이벤트를 받아 `LockResource(EAIRequestPriority::Reaction)`로 잠그고 태그가 빠지면 푼다. 엔진 AI 태스크가 쓰는 Logic 잠금과 우선순위가 달라, 그쪽이 풀려도 그로기 중에는 재개되지 않는다. 전투 어빌리티와 돌진 modifier는 트리를 건드리지 않는다. 잠금은 이미 진행 중인 MoveTo 경로 추종과 포커스 회전을 멈추지 않는다.
 
+## 어빌리티 발동
+
+`UWxBTTask_ActivateAbility`는 `AbilityTag`를 에셋 태그로 가진 스펙을 차례로 발동해 처음 성공한 것을 쓴다. 어빌리티가 정상 종료되면 Succeeded, 발동 실패나 취소면 Failed다. BT가 부르는 번호 태그 `Ability.Skill.N`·`Ability.Pattern.N`은 C++ 타입이 아니라 GA_ 에셋이 에셋 태그와 `ActivationOwnedTags`에 더한다. C++ 타입 `UWxAbility_Skill`·`UWxAbility_Pattern`이 기본으로 두는 에셋 태그는 `Ability.Skill`·`Ability.Pattern`뿐이다. `UWxBTDecorator_ObserveAbility`와 `UWxBTTask_MirrorAbility`의 `ExcludedAbilities`도 어빌리티의 에셋 태그를 본다. 원자료에 따르면 PIE에서 솔저 BT가 에셋 태그로 패턴 1·2를 발동했고 소유 태그에 `Ability.Pattern.N`이 실렸다.
+
 ## 락온 수명
 
 `UWxBTService_LockOn`은 활성 진입과 틱에 Gameplay 우선순위 포커스를 맞추고 폰의 회전 모드를 설정한다. 분기 이탈 시 포커스를 해제하고 폰의 Movement 아키타입 기본값으로 복구한다. 빙의 해제 뒤에도 이전 폰을 정리할 수 있도록 노드 메모리에 폰을 보관한다. 검색 중 임시 활성화가 아니라 `OnBecomeRelevant`에서 적용하는 이유는 정리 콜백과 수명을 맞추기 위해서다.
@@ -50,7 +55,7 @@ Blackboard의 SelfActor·HomeLocation·Master와 TargetActor·TargetDistance·Pa
 
 ## 확장과 확인 범위
 
-[Blackboard 계약](../../../Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h), [타겟 서비스](../../../Plugins/WxAI/Source/WxAI/Private/WxBTService_UpdateTargetActor.cpp), [AIController](../../../Source/WxGame/Controller/WxAIController.cpp) 순서로 추적한다. 도플갱어 미러링은 [이동 서비스](../../../Plugins/WxAI/Source/WxAI/Private/WxBTService_MirrorMovement.cpp)와 [어빌리티 태스크](../../../Plugins/WxAI/Source/WxAI/Private/WxBTTask_MirrorAbility.cpp)에서 시작한다. 순찰·배회·어빌리티 발동 노드도 제공하지만 개별 BT 조합은 이번 조사로 보증하지 않는다. 도플갱어의 속도 추종은 2026-09-23 사용자가 인게임에서 확인했다.
+[Blackboard 계약](../../../Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h), [타겟 서비스](../../../Plugins/WxAI/Source/WxAI/Private/WxBTService_UpdateTargetActor.cpp), [AIController](../../../Source/WxGame/Controller/WxAIController.cpp) 순서로 추적한다. 도플갱어 미러링은 [이동 서비스](../../../Plugins/WxAI/Source/WxAI/Private/WxBTService_MirrorMovement.cpp)와 [어빌리티 태스크](../../../Plugins/WxAI/Source/WxAI/Private/WxBTTask_MirrorAbility.cpp)에서 시작한다. 순찰·배회·어빌리티 발동 노드도 제공하지만 개별 BT 조합은 이번 조사로 보증하지 않는다. 도플갱어의 속도 추종은 2026-09-23 사용자가 인게임에서 확인했다. 번호 태그를 GA_ 에셋으로 옮긴 뒤(2026-09-25)의 도플갱어 `Skill.3` 반응과 HGTest·분신 BT는 확인하지 않았다.
 
 ## 관련 문서
 
@@ -66,6 +71,7 @@ Blackboard의 SelfActor·HomeLocation·Master와 TargetActor·TargetDistance·Pa
 - [근거 2](../../raw/notes/2026-09-22-current-foundation.md)
 - [근거 3](../../raw/notes/2026-09-23-wxai-review-followups.md)
 - [AI 트리 정지·잠금 컨트롤러 단독화](../../raw/notes/2026-09-24-ai-brain-control-single-owner.md) — 사망 정지·그로기 잠금 주체
+- [어빌리티·GE 데이터를 에셋 한 곳으로](../../raw/notes/2026-09-25-ability-data-on-ga.md) — BT 번호 태그를 GA_ 에셋 태그·소유 태그로, 솔저 BT 패턴 발동 PIE 확인
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -75,6 +81,8 @@ Blackboard의 SelfActor·HomeLocation·Master와 TargetActor·TargetDistance·Pa
 2026-09-23 WxAI 리뷰 후속 수정(커밋 `411e74d7f`~`0aaaa917d`)을 반영했다. 이 범위는 빌드·자동화 테스트·`BT_Doppelganger` 저장값 확인과 사용자 인게임 확인을 거쳤다.
 
 2026-09-24: 트리 정지와 잠금 절을 작업 트리의 `AWxAIController` 코드와 대조해 추가했다. 빌드 통과, 사용자 인게임 확인.
+
+2026-09-25: 어빌리티 발동 절(`UWxBTTask_ActivateAbility`·`UWxBTDecorator_ObserveAbility`·`UWxBTTask_MirrorAbility`의 에셋 태그 조회와 `UWxAbility_Skill`·`UWxAbility_Pattern` 기본 태그)을 HEAD `d63ce0630` 코드와 대조해 추가했고, GA_ 에셋의 번호 태그와 솔저 BT의 PIE 발동은 원자료 기록에만 기대며 직접 검증하지 않았다.
 
 그 밖의 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 

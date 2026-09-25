@@ -18,13 +18,15 @@ sources:
   - "raw/notes/2026-09-23-zero-damage-hitstop.md"
   - "raw/notes/2026-09-24-wxcombat-cleanup.md"
   - "raw/notes/2026-09-24-wxcore-cleanup.md"
+  - "raw/notes/2026-09-25-ability-montage-section-model.md"
+  - "raw/notes/2026-09-25-ability-data-on-ga.md"
 created: 2026-09-22
-updated: 2026-09-24
+updated: 2026-09-25
 tags: [wx, damage]
 aliases: []
 confidence: medium
 volatility: warm
-verified: 2026-09-24
+verified: 2026-09-25
 summary: "피해는 서버 권한·적대·무적·가드 검사를 거쳐 자원에 반영되고, 그 결과로 피격 반응과 Cue를 발행한다."
 ---
 
@@ -70,9 +72,15 @@ Causer의 ASC를 출처로 쓰고, 없으면 Causer의 Owner ASC를 쓴다. 투�
 
 피해량은 `Round(Max(ATK × CoeffATK × K / (K + DEF), 0) × 크리배율 × 가드배율)`이다. K는 DefenseConstant를 작은 양수 이상으로 제한한 값이다. 크리 배율은 `1 + CritDMG/100`, 크리 확률은 `Clamp(CritRate/100, 0, 1)`이다. 일반 가드 배율은 `1 − Clamp(GuardReductionScale, 0, 1)`이며 퍼펙트 가드는 크리·일반 가드 경감 없이 반사량을 계산한다.
 
+`GuardReductionScale`은 가드 어빌리티가 수명을 쥐는 `UWxEffect_GuardReduction` 파생 GE_의 가산 모디파이어가 올린다. 이 모디파이어는 C++에서 0인 `FScalableFloat`이고 값은 GE_ 에셋이 채운다. 2026-09-25에 `DT_Effect`를 지우기 전에는 테이블 행을 읽는 MMC였다. 원자료 기준 `GE_Shared_GuardReduction`은 0.5다.
+
 HP를 GP보다 먼저 반영해 사망 이벤트가 그로기 이벤트보다 앞서도록 한다. 사망·그로기 발행은 AttributeSet에 있어 치트·AddGP 같은 직접 자원 경로도 공유한다. `IncomingDamage`는 실행 후 기본값을 읽고 초기화하며 HP 기본값에서 뺀다. 현재값을 기본값에 다시 쓰면 지속형 보정이 영구화될 수 있기 때문이다.
 
 반응 순서는 플로터 → Hit Cue → 가드 취소 → 피격 → 가해 → 퍼펙트 가드(투사체 되돌림 포함) → 히트스톱 → 추가 효과다. 반응은 Damage GE에 붙은 `UWxEffectComponent_DamageReaction`·`_PerfectGuard`·`_HitStop`·`_AdditionalEffects`가 생성자에서 추가된 순서대로 `OnGameplayEffectExecuted`에서 처리한다. 히트스톱은 Hit Cue와 같은 조건(피해 > 0 또는 퍼펙트 가드)에서만 원인 액터(무기·투사체)의 설정값을 읽어 공격자·피격자에게 걸며, 범위 공격·피니셔처럼 그 외 원인은 걸지 않는다. 플로터·Hit Cue는 `_DamageReaction`이, 퍼펙트 가드 Cue(`GameplayCue.PerfectGuard`)는 `_PerfectGuard`가 서버에서 발행하므로 공격자 클라이언트도 서버 판정 뒤에 받는다. `GC_Hit`와 `GC_PerfectGuard`는 같은 `UWxCueNotify_Hit` 클래스(Niagara·사운드·카메라 셰이크)를 태그만 달리해 쓴다. 퍼펙트 가드 전용 Cue 클래스는 2026-09-24에 중복이라 제거했다. 가드 불가 공격은 피격 이벤트 전에 가드를 취소한다. GuardBreak 태그가 있어도 같은 타격에서 그로기가 가드를 끊었다면 일반 Hit 이벤트로 보낸다.
+
+`_DamageReaction`은 피격 이벤트를 보내기 전에, 대상이 그로기(`Ability.Groggy`)면 넉 계열 반응 태그(`HitReact.KnockBack`·`KnockDown`·`KnockUp`)를 `HitReact.Normal`로 낮춘다([그로기](combat-groggy.md)). 이 판단은 2026-09-24에 `UWxAbility_HitReact`에서 옮겼다(커밋 `15bcc1682`).
+
+피격 이벤트를 받은 `UWxAbility_HitReact`는 반응 태그의 끝 이름(패리는 `Event.Hit.Parry` → `Parry`)과 같은 섹션이 자기 몽타주에 있을 때만 반응한다(`ShouldAbilityRespondToEvent`). 반응 태그가 없는 타격과 섹션이 없는 반응은 활성화 전에 거부되어 진행 중인 반응과 공격을 유지한다. 원자료 기준 피격 어빌리티는 넉 계열(`AM_Shared_HitReact_Knock`의 `KnockBack`·`KnockDown`·`Parry`), 넉업(`KnockUp` → `Loop`, 착지 `Grounded`), 가산 슬롯 일반 피격(`Normal`) 셋이다. 일반 피격은 넉 계열을 끊지 않고 위에 겹친다. 가드 중 반응은 `UWxAbility_GuardReact`가 맡으며 가드 브레이크는 `GuardBreak`, 퍼펙트 가드는 `PerfectGuard`, 넉 계열은 `GuardKnockback`, 그 밖은 `GuardHit` 섹션을 재생한다.
 
 ## 결과 해석
 
@@ -82,7 +90,7 @@ ExecCalc가 0 피해로 출력 없이 끝난 타격(반올림 0, 완전 경감 �
 
 투사체는 서버·클라이언트 모두 피해 적용 전에 대상의 무적 태그를 보고 통과를 정한다(회피 반응이 무적을 걷어낼 수 있어 적용 전에 본다). 퍼펙트 가드로 막히면 `_PerfectGuard` 컴포넌트가 원인 투사체를 방어자 Pawn 쪽으로 되돌린다(투사체의 `bCanReflect`가 false면 무시). 투사체는 피해 호출 뒤 Owner가 방어자로 바뀌었으면 되돌려진 것으로 보고 파괴하지 않는다. 서버 Overlap FX는 피해 호출 뒤 재생한다.
 
-[진입점](../../../Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp), [반응](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffectComponent_DamageReaction.cpp), [계산](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Damage.cpp)이 규칙 변경의 중심이다. 실제 몽타주·Cue·멀티플레이 연출은 별도 검증 대상이다.
+[진입점](../../../Plugins/WxCombat/Source/WxCombat/Private/WxCombatLibrary.cpp), [반응](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffectComponent_DamageReaction.cpp), [계산](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Damage.cpp)이 규칙 변경의 중심이다. 피격 이벤트의 섹션 선택은 [피격 반응 어빌리티](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbility_HitReact.cpp)에 있다. 실제 몽타주·Cue·멀티플레이 연출은 별도 검증 대상이다.
 
 ## 관련 문서
 
@@ -109,6 +117,8 @@ ExecCalc가 0 피해로 출력 없이 끝난 타격(반올림 0, 완전 경감 �
 - [0 피해 히트스톱 조건과 주석 정정](../../raw/notes/2026-09-23-zero-damage-hitstop.md)
 - [퍼펙트 가드 Cue 통합·ExecCalc 캡처 정의 통합](../../raw/notes/2026-09-24-wxcombat-cleanup.md)
 - [WxCore 정리: 쓰지 않는 태그·모듈 클래스 제거](../../raw/notes/2026-09-24-wxcore-cleanup.md) — `Damage.Guarded` 제거
+- [어빌리티 규칙 변경과 몽타주 섹션 모델](../../raw/notes/2026-09-25-ability-montage-section-model.md) — 그로기 강등 위치 이동, 피격·가드 반응 섹션 선택
+- [어빌리티·GE 데이터를 에셋 한 곳으로](../../raw/notes/2026-09-25-ability-data-on-ga.md) — 가드 경감률을 GE_ 에셋의 `FScalableFloat`로, `DT_Effect` 제거
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -124,5 +134,7 @@ ExecCalc가 0 피해로 출력 없이 끝난 타격(반올림 0, 완전 경감 �
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+
+2026-09-25: 그로기 강등 위치·피격과 가드 반응의 섹션 선택·가드 경감 값의 출처를 HEAD `d63ce0630`의 `UWxEffectComponent_DamageReaction`·`UWxAbility_HitReact`·`UWxAbility_GuardReact`·`UWxEffect_GuardReduction` 코드와 대조해 반영했고(나머지 절의 피해 경로 파일은 2026-09-24 이후 바뀌지 않았음을 git 이력으로 확인), 몽타주 구성과 `GE_Shared_GuardReduction` 값은 원자료에 기대며 경감률·피격 반응의 인게임 동작은 AI가 확인하지 않았다.
 
 </details>

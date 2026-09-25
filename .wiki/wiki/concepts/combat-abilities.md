@@ -6,19 +6,31 @@ sources:
   - "raw/notes/2026-09-22-current-ability-cost-cooldown.md"
   - "raw/notes/2026-09-24-wxcombat-cleanup.md"
   - "raw/notes/2026-09-24-wxcombat-machinery-cleanup.md"
+  - "raw/notes/2026-09-25-ability-montage-section-model.md"
+  - "raw/notes/2026-09-25-ability-data-on-ga.md"
 created: 2026-09-22
-updated: 2026-09-24
+updated: 2026-09-25
 tags: [wx, combat]
 aliases: ["GAS"]
 confidence: medium
 volatility: warm
-verified: 2026-09-24
-summary: "발동 그룹과 액션 단계는 서로 다른 계약이며, 비용·쿨다운·표시 데이터는 어빌리티 행으로 연결한다."
+verified: 2026-09-25
+summary: "어빌리티 하나는 데이터 전용 GA_ 하나다. C++ 타입이 규칙을, GA_가 몽타주·입력·수치·표시를 가진다. 콤보·패턴·반응은 한 몽타주의 섹션으로 고른다."
 ---
 
 # 전투 어빌리티와 이펙트
 
-발동 그룹과 액션 단계는 서로 다른 계약이며, 비용·쿨다운·표시 데이터는 어빌리티 행으로 연결한다.
+어빌리티 하나는 데이터 전용 GA_ 하나다. C++ 타입이 규칙을, GA_가 몽타주·입력·수치·표시를 가진다. 콤보·패턴·반응은 한 몽타주의 섹션으로 고른다.
+
+## 타입과 GA_
+
+- C++ 파생 클래스가 타입이다. 생성자에서 에셋·소유 태그, 취소·차단 관계, 발동 그룹, 홀드·토글 같은 규칙 기본값을 정한다. GA_는 부모 타입을 고르고 콘텐츠를 채운다. GA_에서 규칙 칸을 바꾸지 않고 BP 그래프에 로직을 두지 않는 것은 관례다(엔진 칸을 숨기지 않기로 한 사용자 결정, 2026-09-25).
+- GA_가 채우는 Wx 프로퍼티: `ActivationInputAction`, `AbilityMontage`(`GetMontage()`), `ActivationOwnedEffects`(타입 기본값 뒤에 더함), `CooldownTime`·`MaxRecharges`, `CostResource`(Custom/SP/MP/UP)·`CostAmount`, `Title`·`Description`·`Icon`. `ActivationGroup`과 타입 튜닝 값(락온·질주·넉업 속도·상호작용 사거리·처형 문구)도 `EditDefaultsOnly`다.
+- GA_가 채우는 엔진 칸: 캐릭터 상태 조건(`Master.*`)은 `ActivationRequiredTags`·`ActivationBlockedTags`, 쿨다운 그룹은 `CooldownGameplayEffectClass`, 패시브 트리거는 `AbilityTriggers`다. BT가 부르는 번호 태그(`Ability.Skill.N`, `Ability.Pattern.N`)는 `AbilityTags`와 `ActivationOwnedTags`에 함께 더한다.
+- 공격 타입은 넷이다. `UWxAbility_Attack_Light`(공중·회피 중 금지), `_Heavy`(Light 취소, 공중·회피 중 금지), `_Air`(`Movement.InAir` 필요), `_DodgeCounter`(`Ability.Dodge` 필요, 공중 금지). `UWxAbility_Attack`은 콤보 로직을 가진 추상 기반이다. 스킬 타입의 식별 태그는 `Ability.Skill`이다.
+- 콘텐츠가 있어야 하는 타입은 `Abstract`라 GA_로만 부여된다(공격 넷, Dodge, Finisher, Guard, GuardReact, HitReact, Pattern, Skill, Passive, WxGame의 Interact·UseItem). Death·Groggy·LockOn·Sprint·Ultimate·PlayMontageOnce는 구체 클래스다.
+- 데이터 배치 규칙(2026-09-25 사용자 확정): 행이 에셋과 1:1이면 값은 그 에셋에 둔다. 그래서 어빌리티 표(`DT_Ability`)와 효과 표(`DT_Effect`)를 없앴다. 테이블은 짝 에셋이 없고 여러 곳이 골라 쓰는 정의(`DT_Damage`)나 레벨별 수치(`FScalableFloat`+CurveTable)에만 쓴다. 어빌리티를 테이블 행으로 구동하는 구조를 구현했다가 되돌렸고, 판단 근거는 AI 작업 편의(순정 구조, 값이 한 곳, 로그·git에서 이름으로 보임)다.
+- `UWxAbilitySet`은 최대값→현재값 속성 초기화, `GrantedEffects` 적용, `GrantedAbilities` 부여 순서로 동작한다. 부여는 `FGameplayAbilitySpec(클래스, 1)`이고 `SourceObject`를 싣지 않는다. 캐릭터 ASC에 같은 클래스가 이미 있으면 경고하고 건너뛴다. 세트 사이에 같은 어빌리티가 겹치면 이벤트로 도는 어빌리티가 한 번에 두 번 반응하기 때문이다. 같은 입력의 어빌리티가 여럿이면 세트 순서대로 시도해 처음 성공한 것을 쓴다.
 
 ## 발동과 취소
 
@@ -28,16 +40,39 @@ summary: "발동 그룹과 액션 단계는 서로 다른 계약이며, 비용·
 
 `Exclusive`의 실행 단계는 `Blocking`, `ComboWindow`, `Recovery`다. 콤보 창은 자기 재발동을 허용하고, Recovery는 다른 배타 액션이 끊고 들어올 수 있게 한다. `OpenComboWindow`와 `StartRecovery`는 입력 버퍼를 다시 처리한다. `CloseComboWindow`는 이미 Recovery로 넘어간 동작을 Blocking으로 되돌리지 않는다.
 
-## 데이터와 수명
+- 콤보 창이 닫히면 `OnComboWindowClosed`가 공격·스킬의 단계를 되돌린다. 창이 닫힌 뒤 누르면 후딜 중이어도 1단부터다.
+- 콤보 창·후딜 노티파이는 몽타주 인스턴스 ID를 넘기고, 어빌리티는 지금 재생 중인 인스턴스가 아니면 무시한다(`IsPlayingMontageInstance`). 끊긴 앞 단 몽타주도 블렌드아웃 동안 노티파이를 보내기 때문이다. 브랜칭 포인트 경로도 오버라이드한다. 엔진 기본 구현이 빈 이벤트 참조를 넘겨 인스턴스를 잃는다.
+- 스킬 컷신 동안 `UWxSkillCutsceneComponent`가 모든 플레이어 ASC에 `UWxEffect_SkillCutscene`을 걸어 입력형 어빌리티(Attack·Skill·Ultimate·Dodge·Guard·UseItem·Sprint·LockOn·Interact)를 막는다. 피격·사망 같은 반응 어빌리티는 막지 않는다.
 
-- `AbilityDataRow`: 쿨다운 시간·충전 수·코스트 종류/양·제목·설명·아이콘의 연결점이다. 비용 종류는 Custom/SP/MP/UP다.
-- 비용 GE `UWxEffect_Cost`는 공용 Instant 효과다. MP·UP·SP에 Additive 모디파이어를 하나씩 두고, 각 MMC가 소스 어빌리티의 `AbilityDataRow`를 읽어 행이 고른 자원에만 `-CostAmount`를 낸다. 엔진 순정 CheckCost·ApplyCost를 그대로 쓰며, 순정 자원 부족 판정이 Additive 모디파이어만 보기 때문에 Additive를 쓴다.
-- 쿨다운 GE는 `UWxEffect_Cooldown` 파생 클래스를 어빌리티별로 지정하고, 파생 클래스가 부여하는 `WxGameplayTags::Cooldown_*` 태그가 순정 쿨다운 API의 식별자다. 엔진이 스택을 GE 클래스 단위로 병합하므로 공용 쿨다운 클래스를 함께 쓰면 서로 다른 능력의 충전이 섞인다.
-- 소모한 충전 하나가 쿨다운 스택 하나다. 진행 중인 회복은 새 스택으로 갱신되지 않고, 만료마다 스택 하나만 돌려주며 다음 회복을 시작하므로 충전은 직렬로 돌아온다. 충전 상한은 GE가 아니라 테이블의 MaxRecharges를 `UWxAbilityBase::CheckCooldown`이 판정한다. 지속시간은 소스 어빌리티의 쿨다운 시간에서 읽으며, 어빌리티를 거치지 않고 적용되면 경고와 함께 즉시 만료된다.
+## 몽타주 섹션
+
+어빌리티당 몽타주는 하나이고 변형은 섹션으로 고른다. `UWxAbilityBase::PlayMontage`는 없는 시작 섹션이면 경고하고 실패한다. 엔진은 그런 섹션을 무시하고 처음부터 재생한다.
+
+- 콤보·패턴: 단계 섹션 `1`, `2`, …를 두고 섹션 사이 링크는 끊는다. 단계 수와 섹션은 `GetComboStageCount`·`GetComboStageSection`이 정하고, 번호 섹션이 없으면 처음부터 한 단계다. 다음 단은 같은 몽타주를 그 섹션부터 새로 재생해 교차 블렌드를 유지한다. 콤보는 재발동으로, 패턴은 블렌드아웃 때 넘어간다. 재생 중인 인스턴스 안에서 `JumpToSection`으로 넘기지 않는다.
+- 회피: 8방향 섹션, `Backstep`, 극한 회피 `Success<방향>`. 이동 입력이 없으면 `Backstep`(없으면 `Back`), 구성되지 않은 방향은 `Forward`다.
+- 가드 반응: `GuardHit`, `GuardKnockback`, `GuardBreak`, `PerfectGuard`. 피격 반응은 반응 태그 끝 이름과 같은 섹션이 자기 몽타주에 있는 어빌리티만 반응한다([피해 처리와 전투 연출](combat-damage.md)).
+- 착지: 공중에서 도는 몽타주(공중 공격·넉업)는 `Grounded` 섹션을 둔다. `UWxCharacterMovementComponent::JumpToLandingSection`이 재생 중인 모든 몽타주 인스턴스에서 `UWxAbilityBase::LandingSectionName`을 찾아 옮긴다.
+- 처형의 짝 몽타주·피해 행과 궁극기 컷신은 몽타주 노티파이가 담는다([처형](combat-finisher.md)). 궁극기는 재생 전에 `UWxAnimNotify_SkillCutscene` 표식을 읽어 컷신 → 몽타주 순서로 재생한다.
+- 섹션 편집 주의: 0초가 아닌 섹션 시작에 놓인 노티파이는 앞 섹션 끝에서 불린다(`AnimMontage.cpp:887`). 섹션 경계를 부동소수 오차만큼 넘은 구간은 다음 섹션을 트는 새 인스턴스가 이어받는다(`AnimInstance.cpp:1890`). 몽타주 도구의 `SnapNotifyEndsToSections`·`SnapNotifyStartsToSections`로 경계를 맞춘다([편집기 도구](../references/editor-tools.md)).
+
+## 비용과 쿨다운
+
+- 비용 GE `UWxEffect_Cost`는 모든 어빌리티가 함께 쓰는 Instant 효과다(`CostGameplayEffectClass` 기본값). MP·UP·SP에 Additive 모디파이어를 하나씩 두고, 각 MMC가 소스 어빌리티 CDO(`GetAbility()`)의 `CostResource`가 자기 자원일 때만 `-CostAmount`를 낸다. 엔진 순정 CheckCost·ApplyCost를 그대로 쓰며, 순정 자원 부족 판정이 Additive 모디파이어만 보기 때문에 Additive를 쓴다.
+- 쿨다운 GE는 `UWxEffect_Cooldown` 파생 클래스를 GA_의 `CooldownGameplayEffectClass`로 고른다. 파생 클래스가 부여하는 `WxGameplayTags::Cooldown_*` 태그가 순정 쿨다운 API의 식별자다. 엔진이 스택을 GE 클래스 단위로 병합하므로 같은 클래스를 고른 어빌리티끼리 쿨다운을 나눠 쓴다.
+- 소모한 충전 하나가 쿨다운 스택 하나다. 진행 중인 회복은 새 스택으로 갱신되지 않고, 만료마다 스택 하나만 돌려주며 다음 회복을 시작하므로 충전은 직렬로 돌아온다. 충전 상한은 GE가 아니라 `MaxRecharges`를 `UWxAbilityBase::CheckCooldown`이 판정한다. 지속시간은 소스 어빌리티 CDO의 `CooldownTime`에서 읽으며, 어빌리티를 거치지 않고 적용되면 경고와 함께 즉시 만료된다.
+- `CooldownTime`이 0 이하면 `GetCooldownGameplayEffect`가 nullptr을 돌려 쿨다운이 없다. 지속시간 0인 GE는 만료 타이머가 걸리지 않기 때문이다.
 - 쿨다운 무시(`UWxEffect_IgnoreCooldowns`)는 Infinite GE다. 순정 Immunity·RemoveOther 컴포넌트가 `Cooldown` 부모 태그를 부여하는 GE를 막고 걷는다. 코스트 무시(`UWxEffect_IgnoreCosts`)는 `Effect.IgnoreCosts` 태그를 세우고 `UWxAbilityBase`가 코스트 검사·적용을 건너뛴다. 순정 CheckCost는 면역이 아니라 어트리뷰트를 보기 때문이다. 둘 다 소환물 AbilitySet이 부여한다.
 - AbilitySet의 `GrantedEffects`는 SetByCaller를 채우지 않는다. SetByCaller로 지속시간을 받는 GE를 넣으면 엔진이 경고 없이 1초로 둔다.
 - `ActivationOwnedEffects`는 발동 수명에 묶는 효과 목록이다. 지속시간이 별도인 효과를 무조건 이 목록으로 옮기지 않는다. 종료 때 각 핸들의 스택 하나만 뺀다. 스택형 GE는 다른 소유자의 적용과 한 핸들로 합쳐지기 때문이다.
-- `AbilitySet`은 최대값→현재값 초기화, 효과 적용, 어빌리티 부여 순서로 구성된다. 실제 부여 목록과 데이터 행은 에셋 내부 확인이 필요하다.
+
+## 검증
+
+에디터 검증기(`UEditorValidatorBase` 파생)는 두지 않고 `IsDataValid`만 쓴다. 블루프린트 컴파일도 CDO의 `IsDataValid`를 부른다.
+
+- GA_: 쿨다운 시간이 있으면 쿨다운 GE가 `UWxEffect_Cooldown` 파생이어야 한다(오류).
+- 패시브: 트리거는 GameplayEvent여야 하고 서로 조상 관계면 안 된다(오류). 조상과 자식을 함께 걸면 한 이벤트에 두 번 발동한다.
+- 세트: 풀리지 않는 속성 행은 오류다. 빈 칸, 같은 어빌리티 중복, 같은 입력의 발동 조건 겹침, 같은 쿨다운 GE인데 시간이나 충전 수가 다른 경우는 경고다. 엔진이 태그 조건과 쿨다운 GE를 protected로 두어 판정은 `UWxAbilityBase::IsActivationExclusive`·`SharesCooldownGroup`이 한다.
+- 타입별 몽타주 섹션 규칙은 사용자 지시로 지웠다(2026-09-25, 필요하면 재검토). 규칙과 반례 시험 결과는 [작업 기록](../../../.agents/workflow/tasks/ability-table-driven.md)의 4단계 절에 있다.
 
 ## 몽타주 구간 상태 GE
 
@@ -54,7 +89,7 @@ summary: "발동 그룹과 액션 단계는 서로 다른 계약이며, 비용·
 
 ## 변경 시 확인
 
-[AbilityBase](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp)의 활성화 조건·종료 정리와 [AbilityTableRow](../../../Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityTableRow.h)를 함께 본다. 비용·충전 규칙은 [비용 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cost.cpp)와 [쿨다운 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cooldown.cpp)에서, 구간 상태 GE는 [구간 GE 노티파이](../../../Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp)에서 본다. 애니메이션의 콤보·후딜 노티파이 시점과 네트워크 예측까지 이번 정적 조사로 검증한 것은 아니다.
+[AbilityBase](../../../Plugins/WxCombat/Source/WxCombat/Public/AbilitySystem/Ability/WxAbilityBase.h)의 프로퍼티와 [구현](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Ability/WxAbilityBase.cpp)의 활성화 조건·종료 정리·`IsDataValid`를 함께 본다. 부여와 세트 규칙은 [AbilitySet](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySet.cpp)에서, 비용·충전 규칙은 [비용 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cost.cpp)와 [쿨다운 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cooldown.cpp)에서, 구간 상태 GE는 [구간 GE 노티파이](../../../Plugins/WxCombat/Source/WxCombat/Private/AnimNotify/WxAnimNotifyState_ApplyGameplayEffect.cpp)에서 본다. GA_·세트·몽타주의 실제 값은 에셋 안에 있어 코드만으로 단정하지 않는다.
 
 ## 관련 문서
 
@@ -69,12 +104,14 @@ summary: "발동 그룹과 액션 단계는 서로 다른 계약이며, 비용·
 - [어빌리티 비용·쿨다운 GE 정적 조사](../../raw/notes/2026-09-22-current-ability-cost-cooldown.md) — 비용·쿨다운 GE 구조
 - [WxCombat 정리 네 건](../../raw/notes/2026-09-24-wxcombat-cleanup.md) — 구간 GE 노티파이의 자기 핸들 제거
 - [WxCombat 불필요한 장치 정리](../../raw/notes/2026-09-24-wxcombat-machinery-cleanup.md) — 쿨다운·코스트 무시 구조, AbilitySet의 SetByCaller 제약, 발동 실패 로그 범위
+- [어빌리티 규칙 변경과 몽타주 섹션 모델](../../raw/notes/2026-09-25-ability-montage-section-model.md) — 콤보 재시작, 늦은 노티파이 거르기, 섹션 모델, 컷신 중 입력 차단
+- [어빌리티·GE 데이터를 에셋 한 곳으로](../../raw/notes/2026-09-25-ability-data-on-ga.md) — GA_ 데이터 배치, 공격 타입 분리, 세트 부여, 검증 규칙, DT_Ability·DT_Effect 제거
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
-2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 비용·쿨다운 GE 설명은 HEAD `60c324c714b1dab10cd48d36cabad63ace232716` 기준으로 보강했다. 2026-09-24에 몽타주 구간 상태 GE 절과 발동 소유 효과의 제거 방식을 HEAD `ca84c9aac` 코드와 대조해 추가했다. 같은 날 쿨다운·코스트 무시, AbilitySet의 SetByCaller 제약, 발동 실패 로그 범위를 미커밋 작업 트리 코드와 대조해 추가했다(빌드 통과, 인게임 미검증). 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
+2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 비용·쿨다운 GE 설명은 HEAD `60c324c714b1dab10cd48d36cabad63ace232716` 기준으로 보강했다. 2026-09-24에 몽타주 구간 상태 GE 절과 발동 소유 효과의 제거 방식을 HEAD `ca84c9aac` 코드와 대조해 추가했다. 같은 날 쿨다운·코스트 무시, AbilitySet의 SetByCaller 제약, 발동 실패 로그 범위를 미커밋 작업 트리 코드와 대조해 추가했다(빌드 통과, 인게임 미검증). 2026-09-25에 타입과 GA_, 몽타주 섹션, 비용과 쿨다운, 검증 절을 HEAD `d63ce0630` 코드와 대조해 다시 썼다. GA_·세트 값과 PIE 부여 결과는 원자료의 에디터·PIE 확인을 따르며, HGTest·분신·도플갱어와 조작감은 인게임으로 확인하지 않았다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
-빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이 문서가 직접 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 
 </details>

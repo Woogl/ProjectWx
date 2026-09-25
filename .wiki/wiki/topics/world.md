@@ -9,13 +9,14 @@ sources:
   - "raw/notes/2026-09-24-device-linked-state-tag.md"
   - "raw/notes/2026-09-24-interaction-contract-options-only.md"
   - "raw/notes/2026-09-24-device-statetree-cleanup.md"
+  - "raw/notes/2026-09-25-ability-data-on-ga.md"
 created: 2026-09-22
-updated: 2026-09-24
+updated: 2026-09-25
 tags: [wx, world]
 aliases: ["WxWorld"]
 confidence: medium
 volatility: warm
-verified: 2026-09-24
+verified: 2026-09-25
 summary: "WxWorld는 장치 StateTree의 상태 동기화, 로컬 상호작용 탐색, 스포너와 체크포인트 기능을 제공한다."
 ---
 
@@ -83,7 +84,7 @@ WxCombat의 `몽타주 1회 재생`(`FWxStateTreeTask_PlayMontageOnce`)이 이 �
 
 ## 상호작용 계약
 
-로컬 컨트롤러의 스캐너가 Pawn 주변 쿼리 콜리전을 검색하고 `IWxInteractable`의 선택지를 읽는다. 선택지가 빈 대상은 지금 꺼진 것이라 행이 생기지 않는다. 기존 후보 순서를 보존하고 새 후보를 거리순으로 뒤에 붙여 목록이 매번 뒤섞이지 않게 한다. 선택 값의 의미는 대상 액터가 정의한다.
+로컬 컨트롤러의 스캐너는 스캔마다 먼저 Pawn ASC에서 에셋 태그 `Ability.Interact`를 가진 첫 스펙이 지금 발동 가능한지 본다. 발동할 수 없으면 목록과 외곽선을 비운다. 이 판정은 엔진 발동 경로(UE 5.8 `InternalTryActivateAbility`)처럼 스펙의 기본 인스턴스가 있으면 그 인스턴스로 한다(커밋 `0473e201b`). 그다음 Pawn 주변 쿼리 콜리전을 검색하고 `IWxInteractable`의 선택지를 읽는다. 선택지가 빈 대상은 지금 꺼진 것이라 행이 생기지 않는다. 기존 후보 순서를 보존하고 새 후보를 거리순으로 뒤에 붙여 목록이 매번 뒤섞이지 않게 한다. 선택 값의 의미는 대상 액터가 정의한다.
 
 목록의 행은 대상의 선택지 하나당 하나다. 스캐너는 스캔마다 대상에서 선택지 문구·값을 다시 읽고, 대상·값·문구 중 하나라도 달라졌을 때만 행을 교체한다. 같은 선택지가 남아 있으면 선택을 잇고, 선택지만 바뀌었으면 같은 대상의 첫 행을 잇는다. 행 교체와 선택 변경은 모두 `OnRowsChanged` 하나로 발행한다. 외곽선은 선택을 소유한 스캐너만 건다.
 
@@ -141,6 +142,7 @@ CheckpointSubsystem은 Standalone에서만 레벨 패키지와 위치·회전을
 - [상호작용 목록 VM과 문구 출처](../../raw/notes/2026-09-23-interaction-list-vm.md)
 - [장치 상태 태그는 루트 에셋에서만 발행](../../raw/notes/2026-09-24-device-linked-state-tag.md)
 - [장치 StateTree 정리](../../raw/notes/2026-09-24-device-statetree-cleanup.md) — 복원 판정 이동, InitialState 제약, 몽타주 태스크 WxCombat 이관, 연출 태스크
+- [어빌리티·GE 데이터를 에셋 한 곳으로](../../raw/notes/2026-09-25-ability-data-on-ga.md) — 스캐너의 상호작용 발동 판정을 스펙의 기본 인스턴스 기준으로 변경
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -156,5 +158,7 @@ CheckpointSubsystem은 Standalone에서만 레벨 패키지와 위치·회전을
 2026-09-24 refresh: 원자료 해시 대조로 장치 상태 태그 발행 범위 변경(`67d288fc5`)을 찾아 HEAD `ca84c9aac` 코드와 대조해 추가했다. 링크된 StateTree를 쓰는 장치 에셋이 있는지와 인게임 동작은 확인하지 않았다.
 
 2026-09-24 refresh(2차): 커밋 추적으로 장치 StateTree 정리 8건(`b32c1f622`~`70495c0e7`)을 찾아 HEAD `142fab5d6` 코드와 대조해 복원 판정·InitialState 제약·다른 도메인 태스크·연출 태스크를 반영했다. 빌드는 `36fbb4371`까지만 기록이 있고 인게임 동작은 확인하지 않았다.
+
+2026-09-25 refresh: 스캐너의 상호작용 발동 판정(`CanActivateInteract`, 커밋 `0473e201b`)을 HEAD `d63ce0630` 코드와 UE 5.8 `InternalTryActivateAbility`와 대조해 추가했고, 상호작용 목록의 인게임 동작은 확인하지 않았다.
 
 </details>

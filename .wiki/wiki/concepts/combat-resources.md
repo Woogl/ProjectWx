@@ -5,13 +5,14 @@ sources:
   - "raw/notes/2026-09-22-current-resources.md"
   - "raw/notes/2026-09-22-current-combat.md"
   - "raw/notes/2026-09-22-current-damage.md"
+  - "raw/notes/2026-09-25-ability-data-on-ga.md"
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-09-25
 tags: [wx, resources]
 aliases: []
 confidence: medium
 volatility: warm
-verified: 2026-09-22
+verified: 2026-09-25
 summary: "공통 자원 기획·현광 구현 보고·현재 속성 처리에는 서로 다른 적용 범위가 있다."
 ---
 
@@ -23,13 +24,13 @@ summary: "공통 자원 기획·현광 구현 보고·현재 속성 처리에는
 
 코드는 HP/SP/GP/MP/UP와 각각의 최대값을 제공한다. 속성 변경은 음수를 제한하고 현재 자원은 대응 최대값 이하로 제한한다. ASPD의 하한은 0.001이다. 최대값 변경 시에는 권위 측에서 기존 최대값이 양수인 경우 자원의 기본값을 비율로 보정한다. 지속형 보정을 기본값에 굳히지 않기 위해 현재값 대신 기본값을 사용한다.
 
-[공통 기획](../../../Docs/SystemDesign/Core_Combat_System.md)은 스킬 MP, 궁극기 UP 사용을 설명한다. 현재 어빌리티 테이블은 비용 종류를 Custom/SP/MP/UP 중 선택할 수 있다. 기획의 공통 기조, 코드의 표현 가능 범위, 각 에셋의 실제 비용은 구분해야 한다.
+[공통 기획](../../../Docs/SystemDesign/Core_Combat_System.md)은 스킬 MP, 궁극기 UP 사용을 설명한다. 어빌리티 비용은 GA_ 에셋의 `CostResource`(Custom/SP/MP/UP)와 `CostAmount`로 정하고, [비용 GE](../../../Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/Effect/WxEffect_Cost.cpp)가 고른 자원에서만 그 양을 뺀다. Custom이면 이 GE는 자원을 빼지 않는다. 2026-09-25에 비용을 담던 `DT_Ability`를 지우고 이 프로퍼티로 옮겼다. 기획의 공통 기조, 코드의 표현 가능 범위, 각 에셋의 실제 비용은 구분해야 한다.
 
 ## 현광의 보고된 예외
 
-[2026-09-19 회의자료](<../../../Docs/Meeting/2026-09-19 회의자료.md>)는 궁극기 1 비용 MP 3, 궁극기 2 비용 UP 100을 보고한다. 분신 협공마다 MP 1, 도플갱어가 있을 때 적에게 피해를 줄 때마다 UP 10 회복이라고 설명한다. 이는 회의자료의 구현 보고이며 이번에 BP·DataTable에서 추출한 값은 아니다.
+[2026-09-19 회의자료](<../../../Docs/Meeting/2026-09-19 회의자료.md>)는 궁극기 1 비용 MP 3, 궁극기 2 비용 UP 100을 보고한다. 분신 협공마다 MP 1, 도플갱어가 있을 때 적에게 피해를 줄 때마다 UP 10 회복이라고 설명한다. 이는 회의자료의 구현 보고이며 GA_ 에셋 등에서 추출한 값은 아니다.
 
-**Q-003: 현광 자원 예외를 공통화할 것인가?** 같은 자료는 고유 자원·비용 예외가 늘면 재설계를 논의하자고 제안한다. 제안만으로 공통 규칙 변경이나 테이블 비용 제거를 확정하지 않는다. 기존 미결정을 유지하며 결정자·답은 아직 확인되지 않았다.
+**Q-003: 현광 자원 예외를 공통화할 것인가?** 같은 자료는 고유 자원·비용 예외가 늘면 어빌리티 테이블에서 비용을 빼고 BP 스크립팅으로 전환하는 재설계를 논의하자고 제안한다. 제안만으로 공통 규칙 변경을 확정하지 않는다. 2026-09-25의 `DT_Ability` 제거는 데이터 배치 규칙에 따른 것이고 비용은 GA_ 프로퍼티로 남았으므로 이 제안의 답이 아니다. 기존 미결정을 유지하며 결정자·답은 아직 확인되지 않았다.
 
 ## 적용 시 주의
 
@@ -47,6 +48,7 @@ HP 회복 아이템처럼 MP/UP와 무관한 요구에 현광의 예외 논의�
 - [근거 1](../../raw/notes/2026-09-22-current-resources.md)
 - [근거 2](../../raw/notes/2026-09-22-current-combat.md)
 - [근거 3](../../raw/notes/2026-09-22-current-damage.md)
+- [어빌리티·GE 데이터를 에셋 한 곳으로](../../raw/notes/2026-09-25-ability-data-on-ga.md) — 비용을 `DT_Ability`에서 GA_ 프로퍼티로 이동
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -54,5 +56,7 @@ HP 회복 아이템처럼 MP/UP와 무관한 요구에 현광의 예외 논의�
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+
+2026-09-25: 비용 서술을 HEAD `d63ce0630`의 `UWxAbilityBase`·`UWxEffect_Cost` 코드와 대조해 테이블에서 GA_ 프로퍼티로 고쳤고, 공통 자원 절의 하한·상한·최대값 비율 보정도 같은 HEAD의 `UWxCombatAttributeSet`에서 다시 확인했으며, 현광 GA_의 실제 비용 값과 자원 회복은 AI가 확인하지 않았다.
 
 </details>
