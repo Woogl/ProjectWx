@@ -20,13 +20,14 @@ sources:
   - "raw/notes/2026-09-24-wxcore-cleanup.md"
   - "raw/notes/2026-09-25-ability-montage-section-model.md"
   - "raw/notes/2026-09-25-ability-data-on-ga.md"
+  - "raw/notes/2026-09-26-refresh-commit-trace.md"
 created: 2026-09-22
-updated: 2026-09-25
+updated: 2026-09-26
 tags: [wx, damage]
 aliases: []
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "피해는 서버 권한·적대·무적·가드 검사를 거쳐 자원에 반영되고, 그 결과로 피격 반응과 Cue를 발행한다."
 ---
 
@@ -70,7 +71,7 @@ Causer의 ASC를 출처로 쓰고, 없으면 Causer의 Owner ASC를 쓴다. 투�
 
 ## 계산과 순서의 이유
 
-피해량은 `Round(Max(ATK × CoeffATK × K / (K + DEF), 0) × 크리배율 × 가드배율)`이다. K는 DefenseConstant를 작은 양수 이상으로 제한한 값이다. 크리 배율은 `1 + CritDMG/100`, 크리 확률은 `Clamp(CritRate/100, 0, 1)`이다. 일반 가드 배율은 `1 − Clamp(GuardReductionScale, 0, 1)`이며 퍼펙트 가드는 크리·일반 가드 경감 없이 반사량을 계산한다.
+피해량은 `Round(Max(ATK × CoeffATK × K / (K + DEF), 0) × 크리배율 × 가드배율)`이다. K는 DefenseConstant를 계산에서 작은 양수(`UE_SMALL_NUMBER`) 이상으로 보정한 값이다. 설정 창에는 입력 제한 메타가 없다(2026-09-26 제거). 크리 배율은 `1 + CritDMG/100`, 크리 확률은 `Clamp(CritRate/100, 0, 1)`이다. 일반 가드 배율은 `1 − Clamp(GuardReductionScale, 0, 1)`이며 퍼펙트 가드는 크리·일반 가드 경감 없이 반사량을 계산한다.
 
 `GuardReductionScale`은 가드 어빌리티가 수명을 쥐는 `UWxEffect_GuardReduction` 파생 GE_의 가산 모디파이어가 올린다. 이 모디파이어는 C++에서 0인 `FScalableFloat`이고 값은 GE_ 에셋이 채운다. 2026-09-25에 `DT_Effect`를 지우기 전에는 테이블 행을 읽는 MMC였다. 원자료 기준 `GE_Shared_GuardReduction`은 0.5다.
 
@@ -119,6 +120,7 @@ ExecCalc가 0 피해로 출력 없이 끝난 타격(반올림 0, 완전 경감 �
 - [WxCore 정리: 쓰지 않는 태그·모듈 클래스 제거](../../raw/notes/2026-09-24-wxcore-cleanup.md) — `Damage.Guarded` 제거
 - [어빌리티 규칙 변경과 몽타주 섹션 모델](../../raw/notes/2026-09-25-ability-montage-section-model.md) — 그로기 강등 위치 이동, 피격·가드 반응 섹션 선택
 - [어빌리티·GE 데이터를 에셋 한 곳으로](../../raw/notes/2026-09-25-ability-data-on-ga.md) — 가드 경감률을 GE_ 에셋의 `FScalableFloat`로, `DT_Effect` 제거
+- [Wiki 최신화: 39f3629a4 이후 커밋 추적](../../raw/notes/2026-09-26-refresh-commit-trace.md) — DefenseConstant 입력 제한 메타 제거
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -126,6 +128,8 @@ ExecCalc가 0 피해로 출력 없이 끝난 타격(반올림 0, 완전 경감 �
 2026-09-23 커밋 `855ec2eb3` 기준으로 본문 전체(처리 순서·출처·판정·계산·결과 해석)를 코드와 대조했다. 전체 WxEditor 빌드는 통과했고, 피해 파이프라인 자동화 테스트(`Wx.Combat.Damage.Result`)는 사용자 지시로 삭제되어 이후 회귀 검증은 빌드와 플레이로만 한다. 극한 회피·히트스톱·퍼펙트 가드 되돌림·추가 효과 시점·멀티플레이 연출은 플레이 미검증이다. 근거와 남은 과제는 [작업 자료](../../../.agents/workflow/tasks/damage-pipeline-structure-review.md)에 있다.
 
 2026-09-23 `zero-damage-hitstop` 반영분(히트스톱 조건·0 피해 타격·Hit Cue 발행 주체·무적 범위)은 해당 코드와 대조했고 전체 WxEditor 빌드가 통과했다. 플레이는 미검증이다.
+
+2026-09-26 refresh: DefenseConstant의 입력 제한 메타 제거(커밋 `6adb657b9`)를 계산 절에 반영했다. 계산 보정(`FMath::Max(DefenseConstant, UE_SMALL_NUMBER)`)은 코드와 대조했고 빌드·플레이는 하지 않았다.
 
 2026-09-24 refresh: 퍼펙트 가드 Cue 통합(커밋 `ca84c9aac`)을 반응 절에 반영했다. ExecCalc 캡처 정의 통합(`74fc58853`)은 계산 동작이 같아 본문 변경이 없다. `GC_PerfectGuard`의 에셋 값과 연출은 확인하지 않았다.
 

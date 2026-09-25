@@ -13,7 +13,7 @@ tags: [wx, inventory]
 aliases: ["WxInventory"]
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "WxInventory는 서버에서 아이템 소유·소비·충전을 변경하고 인벤토리와 인스턴스를 복제한다."
 ---
 

@@ -15,7 +15,7 @@ tags: [wx, dialogue]
 aliases: ["WxDialogue"]
 confidence: medium
 volatility: warm
-verified: 2026-09-23
+verified: 2026-09-26
 summary: "대화 정의는 액터에, 진행 세션은 PlayerController에 두고 행 데이터·ASC 태그·UI를 연결한다."
 ---
 

@@ -13,7 +13,7 @@ tags: [wx, groggy]
 aliases: []
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "GP 상한은 그로기 이벤트를 발생시키며, 실제 유지·종료는 어빌리티와 서버의 GP 감소 경로가 맡는다."
 ---
 

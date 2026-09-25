@@ -10,7 +10,7 @@ tags: [wx, workflow]
 aliases: []
 confidence: medium
 volatility: warm
-verified: 2026-09-22
+verified: 2026-09-26
 summary: "프로젝트 로컬 Wiki는 최신 근거를 수집한 뒤 편찬하며, 정적 확인과 빌드·실행 검증을 구분한다."
 ---
 

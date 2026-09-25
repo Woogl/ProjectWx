@@ -14,7 +14,7 @@ tags: [wx, ai]
 aliases: ["WxAI"]
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "WxAI는 인지 결과를 Blackboard로 전달하고 Behavior Tree 노드로 이동·전투 행동을 구성한다."
 ---
 

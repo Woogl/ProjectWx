@@ -12,7 +12,7 @@ tags: [wx, resources]
 aliases: []
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "공통 자원 기획·현광 구현 보고·현재 속성 처리에는 서로 다른 적용 범위가 있다."
 ---
 

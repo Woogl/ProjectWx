@@ -12,6 +12,7 @@ Last updated: 2026-09-26
 | [공용 쿨다운 GE의 사람 확인 범위](2026-09-26-cooldown-play-acceptance.md) | 공용 쿨다운 GE의 회피 UI·소환물 쿨다운 무시·리슨 서버와 클라이언트 차례 회복 및 코드 리뷰를 사람이 통과시켰다. | wx, combat, cooldown, testing | 2026-09-26 |
 | [AnimNotify 짧은 라벨의 사람 확인 범위](2026-09-26-animnotify-label-acceptance.md) | 몽타주 타임라인의 17종 라벨 값 일치와 겹침·잘림 없는 가독성을 사람이 확인했다. | wx, animation, editor, testing | 2026-09-26 |
 | [Nameplate 로컬 표시의 사람 확인 범위](2026-09-26-nameplate-play-acceptance.md) | 교전·락온·대상 전환·사망·크기와 위치·리슨 호스트와 원격 클라이언트의 로컬 표시를 사람이 확인했다. | wx, ui, nameplate, testing | 2026-09-26 |
+| [Wiki 최신화: 39f3629a4 이후 커밋 추적](2026-09-26-refresh-commit-trace.md) | 직전 Wiki 최신화 커밋 39f3629a4 이후 bf6596012까지 19건과 작업 트리를 기사와 대조했다. 지식이 바뀐 커밋은 이미 편찬돼 있었고, 새로 반영할 것은 방어 상수 설정의 입력 제한 메타 제거(계산 보정 유지) 하나였다. 생성 목록 세 개는 스크립트 재실행 결과 바뀌지 않았다. | wx, refresh, combat | 2026-09-26 |
 | [DataTable Row 미리보기의 사람 확인 범위](2026-09-26-row-preview-acceptance.md) | 빈 하위 구조체 축약·설정값 보존·셀과 툴팁 일치를 사람이 확인했으며, 과거 자동화 테스트는 제출 전 제거된 검증 이력이다. | wx, editor, datatable, testing | 2026-09-26 |
 | [AnimNotify 공용 색상 분류와 에디터 설정](2026-09-26-animnotify-categories.md) | 17종 노티파이의 6개 색상 분류, WxCore 공용 설정과 에디터 전용 보호 및 사람 확인 범위. | wx, animation, editor, foundation | 2026-09-26 |
 | [어빌리티 비용·쿨다운 GE 정적 조사](2026-09-22-current-ability-cost-cooldown.md) | 어빌리티 비용·쿨다운 GameplayEffect의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, combat | 2026-09-22 |

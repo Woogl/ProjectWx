@@ -14,7 +14,7 @@ tags: [wx, finisher]
 aliases: []
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "피니시는 서버 상호작용에서 발동하며, 현재 구현과 원 기획서의 미결정 규칙을 구분해 관리한다."
 ---
 

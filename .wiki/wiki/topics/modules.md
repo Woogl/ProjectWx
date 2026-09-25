@@ -12,7 +12,7 @@ tags: [wx, architecture, foundation]
 aliases: ["모듈화 원칙", "플러그인 경계"]
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "Wx 플러그인은 다른 프로젝트 재사용이 아니라 이 게임 안의 도메인 경계를 지키기 위해 둔다. 코드는 책임이 속한 도메인에 두고, 여러 도메인을 엮는 책임과 도메인 없는 게임 고유 코드는 WxGame에 둔다. 경계를 넘는 정보는 성격에 맞는 통로로 받는다."
 ---
 

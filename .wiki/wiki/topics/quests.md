@@ -14,7 +14,7 @@ tags: [wx, quests]
 aliases: ["WxQuest"]
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "WxQuest는 권위 측의 단일 StateTree 러너와 제목·목표 저널을 제공하며, 실제 진행 내용은 에셋이 구성한다."
 ---
 

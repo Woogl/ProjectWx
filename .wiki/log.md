@@ -626,3 +626,11 @@ Export-Wiki.ps1로 Saved/Wiki의 Wiki·Workflow 뷰어를 각각 64개 문서로
 ## [2026-09-26] 검증 | Workflow 문서 이미지 기능 제거 Wiki 정리
 
 순정 llm-wiki lint --local은 critical·warning·suggestion 0, PASS였다. git diff --check는 공백 오류 없이 통과했다. Export-Wiki 재생성 뒤 링크 검사 오류 0건과 TestWikiViewer·TestWikiSpaces를 다시 통과했다.
+
+## [2026-09-26] refresh | 18 articles checked, 1 updated, 0 flagged, 0 retracted
+- 직전 refresh 커밋(`39f3629a4`) 이후 `bf6596012`까지 커밋 19건(병합 1건 포함)과 작업 트리를 추적했다. 결과는 raw/notes/2026-09-26-refresh-commit-trace.md에 수집했다.
+- 이미 반영: IWxUIData 제거(`c9e2efec6`), 재진입·새 게임 수정과 콤보 배열(`64fcd9285`·`519f929fb`·`b6f1e9e8c`, module-review-contracts), Exclusive 차단(`ac6db7670`), AnimNotify 색상 분류(`1689d999f`·`4c9f3934e`), Workflow·모듈 리뷰·작업 기록(`11047815a`·`33733d1bb`·`81c5e03dc`)과 작업 트리의 구 워크플로우 잔재·문서 이미지 기능 제거.
+- 반영 대상 아님: 작업 기록·테스트 소스만 바꾼 `d644364be`·`566fb1167`, 레벨 배치만 바꾼 `7da389b85`·`6eb5200de`와 병합 `ad0db6de0`, AGENTS.md 코딩 규칙 `264a71740`, 회의자료 `184a76fec`, 작업 트리의 checkpoint-savegame 기록 변경.
+- 새로 반영: `6adb657b9` DefenseConstant 입력 제한 메타 제거를 combat-damage 계산 절에 반영했다(계산 보정은 코드와 대조). 생성 목록 세 개는 Export-AbilitySystemLists.ps1 재실행 결과 unchanged였다. 점검한 기사 18개의 verified를 오늘로 맞췄고 생성 목록은 스크립트 산출물이라 손대지 않았다.
+
+## [2026-09-26] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed
