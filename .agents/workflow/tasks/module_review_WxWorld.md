@@ -1,41 +1,55 @@
 # WxWorld — 코드 리뷰
 
-> 장치 동기화(서버의 태그 변경 발행, 클라의 OnRep 시점 판단, Critical 전이 수렴)와 복원 판정, 상호작용 경로는 오늘 확정한 설계와 일치하고 권위·널 가드도 촘촘해 모듈은 전반적으로 건강하다. 남은 발견은 상태에 묶인 연출의 수명, 셀 스트리밍 경계, 복원 판정을 거치지 않는 진입 경로에 몰려 있다. 소스 52파일을 모두 읽었고, Device·Interaction·Spawnable·연출 태스크는 UE 5.8 StateTree·Niagara·오디오·시퀀서 엔진 소스까지 따라가 확인했다.
+> 장치 복제·상호작용의 권위 경계와 참조 정리는 대체로 명확하다. 체크포인트 저장 실패가 상태 실패로 이어지지 않는 문제를 새로 확인했으며, 기존 Niagara 수명·스포너 처치 기록·InitialState 복원 제약도 남아 있다. 장치·스캐너·스폰·체크포인트·이동/연출 태스크의 C++ 핵심 경로와 필요한 UE 5.8 구현을 정적으로 검토했다.
 
 ## 요약
+
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 3 |
+| 🟡 개선 | 4 |
 | 🟢 사소 | 0 |
 
 ## 결과
 
-### 1. 🟡 나이아가라 스폰: 상태를 떠나도 루프 FX가 남고, 다시 들어오면 한 벌 더 뜬다
+### 1. 🟡 체크포인트 저장 실패가 StateTree 상태의 실패 판정에서 제외된다
+
+- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SaveCheckpoint.cpp:18`
+- **범주**: 버그/정확성
+- **문제**: 생성자가 `bConsideredForCompletion=false`와 `bCanEditConsideredForCompletion=false`를 강제한다. 부활 위치 누락과 디스크 저장 실패에서는 각각 41·46행에서 `Failed`를 반환하지만, 완료 판정에서 제외된 태스크의 실패는 상태 결과에 반영되지 않는다. 따라서 저장이 실패해도 같은 상태의 다른 태스크와 정상 완료 전이는 계속 진행할 수 있고, 상태의 실패 전이로 오류를 처리할 수 없다. 로컬 UE 5.8 `StateTreeExecutionContext.cpp:3873`은 `IsConsideredForCompletion`인 경우에만 반환값을 상태 결과와 합친다. 엔진의 `FStateTreeTest_TasksCompletion_IneligibleTaskEnterStateFail`도 이러한 `EnterState` 실패를 무시하고 트리가 `Running`으로 유지되는 것을 명시한다. 현재 구현은 Task의 실패 처리 설명인 “기록 실패는 StateTree Failed”를 상태 실패까지 보장하지 않는다.
+- **제안**: 저장 태스크를 완료 판정에 포함하고, 성공 즉시 다른 병렬 태스크를 조기 완료시키지 않도록 해당 상태의 완료 정책도 함께 확인한다. 완료 판정에서 제외해야 한다면 별도 실패 이벤트/출력과 전이로 저장 실패를 명시적으로 전달한다. 저장 실패를 강제한 실행 검증에서는 이전 체크포인트가 유지되는지와 실패 경로가 선택되는지를 함께 확인한다.
+- **확신도**: 높음. 프로젝트 반환값과 엔진의 판정 구현·회귀 테스트를 대조했다. 프로젝트 StateTree 에셋의 개별 태스크 완료 디스패처 구성과 실제 저장 실패 실행은 확인하지 않았다.
+
+### 2. 🟡 상태를 떠났다 다시 들어오면 루프 Niagara가 중복 생성된다
+
 - **위치**: `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SpawnNiagara.cpp:25`
 - **범주**: 버그/정확성
-- **문제**: 중복 방지는 인스턴스 데이터 `SpawnedComponent`(`WxStateTreeTask_SpawnNiagara.h:40`)에 기댄다. 그런데 엔진은 새로 활성화되는 상태의 태스크 인스턴스 데이터를 `DefaultInstanceData`로 다시 만든다(`UE_5.8/Engine/Plugins/Runtime/StateTree/Source/StateTreeModule/Private/StateTreeExecutionContext.cpp:2682`, 공통 구간 밖은 `:2717` `ShrinkTo` 뒤에 기본값으로 다시 붙인다). 그래서 이 가드는 상태가 활성인 채 재선택될 때만 동작하고, A→B→A처럼 떠났다 돌아오면 매번 새로 스폰한다. 이 태스크에는 `ExitState`가 없어서 상태를 떠나도 루프 FX가 멈추지 않는다. 부착 대상이 없을 때 쓰는 `:44` `SpawnSystemAtLocation` 경로는 컴포넌트 outer가 WorldSettings라(`NiagaraFunctionLibrary.cpp:133`) 장치 셀이 언로드돼도 FX가 남는다. 클라가 끝난 트리를 `RestartLogic`으로 되살리는 복원 경로도 인스턴스 데이터를 새로 만들어 같은 일이 생긴다. 헤더 `:38`의 "루프 FX 는 계속 미완료라 유지되고… 다음 진입에 다시 스폰된다"는 엔진 동작과 맞지 않는다. `ST_CheckPoint`가 이 태스크로 `NS_Fire`를 띄우므로, 휴식(`Device.CheckPoint.Resting`) 뒤 `Device.CheckPoint.Lit`로 돌아올 때 이 태스크가 있는 상태가 다시 진입되면 불꽃이 쌓인다.
-- **제안**: 먼저 계약을 정한다. FX가 상태에 묶여야 하면 `ExitState`에서 `SpawnedComponent->Deactivate()`를 부르고, 인스턴스 가드는 재선택 대응용으로만 남긴다. 한 번 켠 FX를 계속 유지해야 하면 인스턴스 데이터 대신 부착 컴포넌트의 자식 중 같은 에셋을 찾아 기존 FX를 판정한다. 어느 쪽이든 헤더 주석도 고친다.
-- **확신도**: 중간(엔진 동작은 소스로 확인했다. `ST_CheckPoint`에서 이 태스크가 휴식 왕복 때 다시 진입하는 상태에 있는지는 확인하지 않았다)
+- **문제**: 중복 방지는 태스크 인스턴스의 `SpawnedComponent`만 확인하며, 태스크에 `ExitState` 정리가 없다. 엔진은 활성 경로에서 빠진 상태의 인스턴스 데이터를 제거하고 새 진입 때 기본값으로 다시 만든다(UE 5.8 `StateTreeExecutionContext.cpp:2680`, `:2717`). 따라서 루프 FX를 생성한 상태를 A→B→A로 왕복하면 이전 FX는 남고 포인터는 초기화되어 한 벌 더 생성된다. 부착하지 않는 44행 경로는 `SpawnSystemAtLocation`이 컴포넌트를 `WorldSettings` 소유로 만들므로 장치 셀 언로드만으로 정리되지도 않는다(엔진 `NiagaraFunctionLibrary.cpp:133`). 헤더 38행의 루프 FX 유지 설명을 이 인스턴스 가드만으로 보장할 수 없다.
+- **제안**: 상태 수명에 묶는 FX라면 이탈 때 정리한다. 상태를 넘어 계속 유지할 FX라면 장치 소유 컴포넌트 등 상태 인스턴스 밖에서 핸들과 수명을 관리해 기존 FX를 재사용한다. A→B→A 및 장치 언로드·재로드에서 컴포넌트 수를 확인한다.
+- **확신도**: 높음. 루프 FX를 사용하는 상태가 실제로 이탈·재진입한다는 조건의 동작을 C++와 엔진 소스로 확인했다. 특정 에셋에서 그 조건이 발생하는지는 이번 범위 밖이다.
 
-### 2. 🟡 bNeverRevive 처치 기록이 셀 스트림 아웃과 함께 사라져 보스가 되살아난다
-- **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp:86`
+### 3. 🟡 bNeverRevive의 처치 기록은 스포너 셀 재로드를 넘지 못한다
+
+- **위치**: `Plugins/WxWorld/Source/WxWorld/Public/Spawnable/WxSpawner.h:68`
 - **범주**: 설계/구조
-- **문제**: `bIsKilled`는 스포너 액터의 런타임 멤버다(`WxSpawner.h:66`). 서버에서 스포너 셀이 언로드되면 `EndPlay`(`:90`)가 스폰한 액터를 치우고 처치 기록도 함께 사라진다. 셀이 다시 로드되면 `BeginPlay`의 Auto 스폰(`:86`)이 `bIsKilled=false` 상태에서 새 인스턴스를 만든다. 그래서 `bNeverRevive` 계약(`WxSpawner.h:61` "처치 후 부활 금지(보스 등)")은 `Respawn()` 경로(`:61`)에서만 지켜지고, 스트리밍으로 다시 들어올 때는 깨진다. 같은 이유로 `스포너 처치 대기`(`WxStateTreeTask_WaitSpawnersKilled.cpp:136`)도 재로드 뒤에는 처치 전으로 판정한다. 헤더 `:65` 주석이 런타임 상태라고 밝히고 있어 일반 적이 다시 나오는 것은 의도로 보인다. 다만 보스 영구 처치와의 충돌은 어디서도 다루지 않는다. 실제로 `LV_DevCombat`(런타임 해시를 쓰는 월드 파티션 맵)에 `BP_Boss`를 스폰하는 `bNeverRevive` 스포너가 공간 로딩 해제 표시 없이 배치돼 있다.
-- **제안**: 최소한 `bNeverRevive` 스포너의 처치 기록은 셀 수명 밖에 둔다. 가장 작은 변경은 에디터에서 해당 스포너를 공간 로딩에서 빼도록(`bIsSpatiallyLoaded=false`) 강제하는 것이다. 세이브 연동은 보류 중인 IWxSavable 작업에서 함께 다룬다.
-- **확신도**: 중간(배치는 에셋 문자열로 확인했다. 그 맵의 셀 로딩 범위에서 보스 스포너가 실제로 언로드되는지는 확인하지 않았다)
+- **문제**: `bIsKilled`는 초기값이 false인 액터 런타임 멤버이며 외부 저장소가 없다. `bNeverRevive`는 `WxSpawner.cpp:88`의 `Respawn()`에서 이 값만 검사한다. 셀이 언로드되어 스포너 인스턴스가 사라지고 다시 로드되면 처치 여부가 초기화되고, Auto 모드의 `BeginPlay`(`:111`)가 다시 스폰한다. 그러므로 공개 API의 “영구 처치”(`WxSpawner.h:35`)는 동일한 스포너 인스턴스에만 유효하다. 해당 스포너를 공간 로딩에서 제외하는 강제 장치도 없다. `WaitSpawnersKilled` 역시 재로드 후에는 처치되지 않은 것으로 판정한다. 헤더가 셀 수명 제약을 명시하므로, 스트리밍을 넘는 부활 금지가 필요한 대상의 배치·보존 정책을 결정해야 한다.
+- **제안**: 영구 처치 대상은 셀 밖의 월드 상태 저장소에 안정적인 식별자로 기록하거나, 해당 스포너를 공간 로딩에서 제외하도록 검증·강제한다. 세션/디스크 영속성까지 확대할지는 별도로 정한다. 범위를 동일 인스턴스의 `Respawn()` 억제로만 유지한다면 “영구 처치” 계약을 그 범위로 명확히 제한한다.
+- **확신도**: 중간. 코드상 기록 수명과 재생성 경로는 확정적이다. 실제 보스 배치의 스트리밍 여부나 영구 처치의 게임 기획 범위는 이번에 검증하지 않았다.
 
-### 3. 🟡 다른 도메인 태스크가 서버의 InitialState 적용을 실제 진입으로 본다
+### 4. 🟡 다른 도메인 태스크는 서버의 InitialState 복원 전이를 실제 진입으로 본다 — 보류
+
 - **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp:60`
 - **범주**: 설계/구조
-- **문제**: 서버는 트리를 루트로 시작한 뒤 `InitialState` 상태로 복원 전이를 요청한다(`SynchronizeAfterStart`). 틱 밖의 전이 요청은 엔진이 루트 프레임의 활성 상태를 소스로 채우므로 `SourceStateID`가 있다. 그래서 컴포넌트의 복원 표시(`UWxDeviceStateTreeComponent::IsRestoring`)를 모르는 다른 도메인 태스크는 이 전이를 실제 진입으로 판정한다. 예를 들어 `ST_TreasureChest`의 WxInventory `보상 지급`은 `!SourceStateID.IsValid()`만 보므로, 상자를 InitialState "열림"으로 배치하면 레벨 시작 때 서버가 보상을 지급한다. `ST_CheckPoint`의 WxInventory `RefillItemCharges`도 같은 판정이다. 현재 InitialState를 쓰는 배치는 피스톤(`Device.Piston.Off`)뿐이라(`LV_DevCombat` 1개, `SiegeCannonEmplacement01` 레벨 인스턴스 12개) 발현되지 않는다. 2026-09-24 `InitialState` 필드 주석(`WxDeviceStateTreeComponent.h:74`)에 저작 규칙("그 상태에 일회성 효과를 두지 않는다")을 남겼다.
-- **제안**: 순정 해법은 트리를 `FStartParameters::SelectStateOverrideArgs`로 지정 상태에서 시작하는 것이다. 그러면 진입이 전부 `SourceStateID` 무효가 되어 모든 도메인이 같은 판정을 쓴다. 다만 `UStateTreeComponent::StartTree`가 이 인자를 넘길 길을 주지 않아 시작 루틴과 틱 깨우기 확장(`FStateTreeComponentExecutionExtension`, 모듈 밖 미공개)을 복제해야 한다. 그래서 엔진이 컴포넌트에 시작 상태 지정을 열 때까지 보류한다(2026-09-24 사용자 결정). 복원까지 재시작으로 바꾸면 공통 부모 상태가 다시 진입되어 `나이아가라 스폰` 중복(1번)이 복원마다 드러나고, 선택 실패 시 트리가 Failed로 멈춘다.
-- **확신도**: 높음(엔진 `Start`·`StartTree`·`RequestTransition` 소스와 에셋 사용처를 확인했다. 열린 상자 배치 계획은 확인하지 않았다)
+- **문제**: 서버는 루트에서 트리를 시작한 뒤 `InitialState`로 복원 전이를 요청한다. 엔진은 틱 밖 전이 요청에 활성 상태의 `SourceStateID`를 채운다(UE 5.8 `StateTreeExecutionContext.cpp:2228`). WxInventory `WxStateTreeTask_GiveRewards.cpp:23`와 `WxStateTreeTask_RefillItemCharges.cpp:23`은 `SourceStateID` 무효만 복원으로 보므로, 이런 태스크를 InitialState 목적 상태에 두면 시작 시 실제 효과를 실행할 수 있다. WxWorld 자체의 태스크는 `IsRestoring`을 보지만 다른 도메인은 이 컴포넌트의 `bRestoringState`를 알지 못한다. 특정 현행 에셋에서 보상이 지급된다고 단정하지 않는다.
+- **제안**: 현재 저작 규칙인 “그 상태에 일회성 효과를 두지 않는다”를 유지한다(`WxDeviceStateTreeComponent.h:74`). [2026-09-24 사용자 결정의 근거](../../../.wiki/raw/notes/2026-09-24-device-statetree-cleanup.md)에 따라 **엔진이 컴포넌트에 시작 상태 지정을 열 때까지 보류한다**. 순정 해결은 `FStartParameters::SelectStateOverrideArgs`로 목적 상태에서 시작하는 것이지만, 현재 `UStateTreeComponent::StartTree`는 이를 전달하지 않는다. 현시점 적용에는 시작 루틴과 공개되지 않은 `FStateTreeComponentExecutionExtension`의 복제가 필요하므로 임의로 우회하지 않는다. 컴포넌트가 시작 상태 인자를 제공하면 재개해 모든 도메인이 동일한 초기 진입 판정을 받도록 한다.
+- **확신도**: 높음. 현재 컴포넌트·소비 태스크·엔진 시작/전이 경로와 기존 보류 근거를 대조했다.
 
 ## 검토 범위
-- **깊게 본 파일**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_WaitForTrigger.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceTriggerRule.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceComponentName.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_WaitForInteraction.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_WaitSpawnersKilled.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_TriggerSpawners.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_TriggerLinkedDevices.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SpawnNiagara.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SplineMove.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_ComponentMove.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlaySound.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlayLevelSequence.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_EnablePlayerInput.cpp`와 각 헤더. 호출 측으로 `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`와 `Source/WxGame/Character/WxNpc.cpp`를 읽었다. 엔진 측으로 `UStateTreeComponent`(시작·틱·틱 예약), `FStateTreeExecutionContext`(인스턴스 데이터 재구성, 틱 밖 전이 요청), `FStateTreeWeakExecutionContext::FinishTask`, `UNiagaraFunctionLibrary`, `FAudioDevice::PlaySoundAtLocation`, `ALevelSequenceActor` 복제와 카메라 컷 핸들러를 확인했다.
-- **훑은 파일**: `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/`의 `PlayAnimation`·`ApplyGameplayEffectToInteractor`·`RecordCheckpoint`·`RespawnSpawners`, `Plugins/WxWorld/Source/WxWorld/Private/System/`의 `WxCheckpointSubsystem`·`WxSpawnerLibrary`·`WxWorldDeveloperSettings`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawnerLocatorUtils.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/WxWorldModule.cpp`, `Plugins/WxWorld/Source/WxWorld/WxWorld.Build.cs`, `Plugins/WxWorld/WxWorld.uplugin`. 저작권 첫 줄, 인라인 정의, `GetInstanceDataType()` 예외 주석은 전 파일을 확인했고 위반이 없다. 모듈 의존은 Wx 모듈 중 WxCore뿐이다.
-- **미검토 / 한계**: StateTree·BP 에셋 내부(상태 계층, 태스크 배치, 전이 구성)는 범위 밖이다. 그래서 1·2번의 실제 발생 여부는 에셋 구성과 셀 로딩 범위에 달려 있다. 에셋 사용처와 배치 값은 `Content` 바이너리 문자열 검색으로만 확인했다. 빌드, 멀티플레이 실행, 인게임 동작은 검증하지 않았다.
+
+- **깊게 본 파일**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDevice.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxStateTreeTask_WaitForTrigger.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceTriggerRule.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxStateTreeTask_WaitForInteraction.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawner.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_WaitSpawnersKilled.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/System/WxCheckpointSaveGame.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SaveCheckpoint.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SpawnNiagara.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_ComponentMove.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_SplineMove.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlayLevelSequence.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_EnablePlayerInput.cpp`. 공개 계약은 대응 헤더를 필요한 범위에서 확인했다.
+- **훑은 파일**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceComponentName.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxSpawnerLocatorUtils.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/Spawnable/WxStateTreeTask_TriggerSpawners.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_TriggerLinkedDevices.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlayAnimation.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_PlaySound.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_ApplyGameplayEffectToInteractor.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/StateTreeTask/WxStateTreeTask_RespawnSpawners.cpp`, `Plugins/WxWorld/Source/WxWorld/Private/System/WxWorldDeveloperSettings.cpp`, `Plugins/WxWorld/Source/WxWorld/WxWorld.Build.cs`, `Plugins/WxWorld/WxWorld.uplugin`. 전체 소스의 저작권 첫 줄과 헤더의 인라인 정의를 검색했다.
+- **외부 근거**: `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`의 서버 거리·선택지 검증과 WxInventory 두 태스크의 초기 진입 가드를 확인했다. 로컬 UE 5.8의 `StateTreeExecutionContext`(태스크 완료 판정·인스턴스 재구성·전이 소스), `StateTreeComponent::StartTree`, `NiagaraFunctionLibrary::SpawnSystemAtLocationWithParams`, `StateTreeTaskStateTest`의 완료 제외 태스크 실패 테스트를 대조했다. 엔진 테스트는 읽었으며 실행하지 않았다.
+- **미검토 / 한계**: BP/WBP·StateTree·Niagara 에셋 내부 및 실제 배치·셀 로딩 범위, 멀티플레이·저장 실패·인게임 동작은 검증하지 않았다. 빌드는 실행하지 않았으며 과거 사용자 체크포인트 정상 경로 확인을 이번 실패 경로의 검증으로 확장하지 않는다. 전체 소스 파일 수는 50개지만 모든 헤더를 통독한 리뷰는 아니다.
 
 ---
-*문서 기준 커밋 `36fbb4371` · 리뷰일 2026-09-24 · 소스 52파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `39f3629a4` · 리뷰일 2026-09-25 · 소스 50파일 — `/module-review`로 갱신*

@@ -48,57 +48,28 @@
 & "C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat" WxEditor Win64 Development "-Project=C:\Wx\Wx.uproject" -WaitMutex -NoHotReloadFromIDE
 ```
 
-## 최초 리뷰 이력
+## 현재 정적 리뷰
 
-아래는 사용자 지정 커밋 `39f3629a4`의 원래 지적이며, 현재 수정 상태는 위 기록과 테스트 체크리스트를 따른다.
-
-<details>
-<summary>수정 전 정적 리뷰 원문 — 심각 1·개선 2</summary>
-
-> 캐릭터·컨트롤러·도메인 연결은 비교적 명확하나, 동일 캐릭터가 레벨 가시성 전환으로 재초기화되는 경로에서 어빌리티 소실과 구독 누적이 남아 있다. 캐릭터 수명, 같은 월드 부활·새 게임 실패 경로, 보스·인벤토리·대화·퀘스트 VM 연결을 중심으로 검토했다.
+캐릭터 재초기화·사망 통지·새 게임 선택과 UI 조립 경로를 현재 소스로 대조했다. 아래 검토 범위에서는 새로운 확정적 결함을 찾지 못했다. 위 승인 원문과 사람 확인 대기 항목은 유지하며, 과거 빌드·회귀 결과를 이번 실행 결과로 간주하지 않는다.
 
 ## 요약
 
 | 심각도 | 개수 |
 | --- | --- |
-| 🔴 심각 | 1 |
-| 🟡 개선 | 2 |
+| 🔴 심각 | 0 |
+| 🟡 개선 | 0 |
 | 🟢 사소 | 0 |
 
 ## 결과
 
-### 1. 🔴 숨겼다가 다시 표시한 레벨의 적이 어빌리티를 잃는다
-
-- **위치**: `Source/WxGame/Character/WxCharacterBase.cpp:210`, `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp:49`
-- **범주**: 버그/정확성
-- **문제**: 스트리밍 레벨을 로드된 상태로 유지하면서 가시성만 껐다 켜면 같은 캐릭터와 ASC가 재사용된다. UE 5.8은 숨길 때 ASC의 `OnUnregister` → `DestroyActiveState`에서 서버의 `ClearAllAbilities()`를 호출한다. 다시 표시할 때 적은 `PostInitializeComponents`에서 새 AIController에 빙의되고 `InitAbilitySystem`이 다시 실행되지만, ASC의 `bAbilitySetsGranted`가 여전히 `true`여서 부여를 건너뛴다. 결과적으로 적은 이동할 수 있어도 공격·피격·사망 어빌리티가 사라진다. `Event.Death`에 반응할 스펙도 없어 처치·보상 흐름까지 끊어진다. 객체를 실제 언로드·수거한 뒤 새로 생성하는 경우는 이 재현 조건에 포함하지 않는다.
-- **제안**: 수정 주체는 WxCombat의 ASC 부여 상태이다. 일반 재빙의의 중복 부여 방지는 유지하면서, 엔진이 활성 상태와 스펙을 제거한 뒤 재등록되는 경우 필요한 스펙·효과를 복원하도록 상태를 구분한다. 단순히 bool을 내리고 AbilitySet 전체를 다시 적용하면 속성 초기화·남은 GE 중복이 생길 수 있으므로 기존 속성·효과의 보존 계약도 함께 정한다. 로드 유지 → 숨김 → 재표시 후 공격과 사망을 검증한다.
-- **확신도**: 높음
-
-### 2. 🟡 캐릭터 재초기화마다 사망·래그돌 콜백이 추가된다
-
-- **위치**: `Source/WxGame/Character/WxCharacterBase.cpp:58`, `Source/WxGame/Character/WxCharacterBase.cpp:63`
-- **범주**: 버그/정확성
-- **문제**: `PostInitializeComponents`에서 두 태그 이벤트에 무조건 `AddUObject`를 호출하고 대응 해제나 중복 검사가 없다. UE 5.8은 레벨 제거 시 `bActorInitialized`를 내리고 동일 객체 재표시 시 이 함수를 다시 호출한다. ASC의 등록 해제·재초기화는 이 태그 델리게이트를 지우지 않는다. 따라서 위 1번과 같은 가시성 왕복마다 구독이 누적되고, 이후 해당 태그가 0에서 양수로 바뀌면 `HandleDeath`·`EnterRagdoll`이 여러 번 실행된다. 사망 콜백은 `OnDeath.Broadcast`를 거쳐 권위 측 `HandleOwnerDeath`의 처치 통지와 보상 지급까지 반복한다(`WxCharacterBase.cpp:283`, `WxEnemyCharacter.cpp:140`). 다만 현재 일반 서버 경로에서는 1번의 사망 스펙 소실이 먼저 발생할 수 있어, 가시성 왕복 뒤 평범한 공격만으로 보상이 반드시 두 배 된다고 단정하지 않는다.
-- **제안**: SPD 구독처럼 객체별 중복 검사를 하거나, 델리게이트 핸들을 보관하여 등록·해제를 대칭으로 만든다. 사망의 일회 처리도 명시한다. 같은 객체에서 가시성을 두 번 왕복한 뒤 태그를 한 번 전이시켜 콜백·처치 통지가 한 번인지 확인한다.
-- **확신도**: 높음
-
-### 3. 🟡 선택한 캐릭터를 로드할 수 없어도 체크포인트를 먼저 삭제한다
-
-- **위치**: `Source/WxGame/FrontEnd/WxGameFlowSubsystem.cpp:43`, `Source/WxGame/FrontEnd/WxGameFlowSubsystem.cpp:50`
-- **범주**: 버그/정확성
-- **문제**: 캐릭터 선택은 소프트 경로의 `IsNull()`만 검사한다. 설정에 남은 잘못된 클래스 경로나 생성할 수 없는 추상 Pawn 클래스도 통과하여 기존 체크포인트 슬롯을 삭제하고 레벨 이동을 성공으로 접수한다. 실제 클래스 로드는 목적지의 `GetSelectedPawnClass`에서야 일어나며(`WxGameFlowSubsystem.cpp:79`), 로드 실패 시 GameMode는 선택 실패를 알리는 대신 기본 Pawn으로 진행한다(`WxGameMode.cpp:19`). 사용자는 잘못된 캐릭터로 시작하거나 Pawn 생성에 실패하면서 이전 체크포인트도 잃는다. 현재 설정의 두 캐릭터 에셋이 깨졌다는 주장은 아니며, 공개 새 게임 API의 실패 처리 결함이다.
-- **제안**: 슬롯 삭제 전에 선택 클래스를 로드하고 Pawn 상속과 생성 가능 여부를 검사한다. 실패하면 상태 문구를 반환하고 요청을 거절한다. 유효한 선택으로 수락한 뒤 클래스 로드 실패를 기본 Pawn으로 조용히 대체하는 경로도 구분한다.
-- **확신도**: 높음
+현재 미해결로 유지할 코드 지적은 없다. 기존 세 지적은 위 수정 내용과 현재 소스를 대조해 해소를 확인했으므로 이전 정적 리뷰 원문을 제거한다. 코드 리뷰와 실제 레벨 재표시·새 게임 진입의 사람 검증은 여전히 필요하다.
 
 ## 검토 범위
 
-- **깊게 본 파일**: `Source/WxGame/Character/WxCharacterBase.h`, `Source/WxGame/Character/WxCharacterBase.cpp`, `Source/WxGame/Character/WxEnemyCharacter.h`, `Source/WxGame/Character/WxEnemyCharacter.cpp`, `Source/WxGame/Character/WxPlayerCharacter.cpp`, `Source/WxGame/Controller/WxAIController.cpp`, `Source/WxGame/Controller/WxNameplateManagerComponent.h`, `Source/WxGame/Controller/WxNameplateManagerComponent.cpp`, `Source/WxGame/Framework/WxRespawnLibrary.cpp`, `Source/WxGame/Framework/WxGameMode.cpp`, `Source/WxGame/FrontEnd/WxGameFlowSubsystem.cpp`, `Source/WxGame/FrontEnd/WxFrontEndLibrary.cpp`, `Source/WxGame/FrontEnd/WxFrontEndDeveloperSettings.cpp`, `Source/WxGame/MVVM/WxViewModel_Inventory.h`, `Source/WxGame/MVVM/WxViewModel_Inventory.cpp`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_Quest.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_Dialogue.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.cpp`, `Source/WxGame/Battle/WxBattleSubsystem.cpp`이다.
-- **훑은 파일**: `Source/WxGame/WxGame.Build.cs`, `Source/WxGame/Controller/WxPlayerController.cpp`, `Source/WxGame/Framework/WxGameState.cpp`, `Source/WxGame/Character/WxNpc.cpp`, `Source/WxGame/Character/Component/WxCharacterMovementComponent.cpp`, `Source/WxGame/Character/Component/WxMetaHumanComponent.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp`, `Source/WxGame/Cheat/WxCheatManager.cpp`, `Source/WxGame/FrontEnd/WxFrontEndDeveloperSettings.h`이다. 나머지 헤더는 명명·인라인 정의를 검색했다.
-- **교차 근거**: WxCombat의 ASC·사망 어빌리티, WxUI의 기본·캐릭터 VM과 PlayerLayout, WxWorld의 CheckpointSaveGame을 호출 경로 확인에 한해 읽었다. 로컬 UE 5.8 `Engine/Source/Runtime/Engine/Private/LevelStreaming.cpp:744`·`:1138`의 로드 유지와 가시성 전환, `World.cpp:4199`·`:4284`와 `Level.cpp:1606`의 등록 해제, `Actor.cpp:3238`·`Level.cpp:3876`의 재초기화, `Pawn.cpp:134`·`:556`의 재빙의 경로를 대조했다. GAS는 `Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/AbilitySystemComponent.cpp:236`, `AbilitySystemComponent_Abilities.cpp:109`·`:1386`을 확인했다.
-- **미검토 / 한계**: 기준 커밋 `39f3629a4`에 대한 정적 리뷰이다. 검토 중 다른 작업이 수정한 캐릭터·UIData 코드와 새 Ability 리졸버는 제외했고, 캐릭터 파일은 해당 커밋 원문으로 재대조했다. 소스 55개는 기준 커밋의 생성물 제외 `.h`·`.cpp` 개수이며 전 파일 정밀 검토를 의미하지 않는다. 빌드·게임 실행, BP/WBP·BT·StateTree 내부와 멀티플레이 실행을 검증하지 않았다. Wiki의 기존 재초기화 설명은 참고 후 엔진 소스로 재검증했으며, 사망·보상 중복의 조건은 위 2번으로 한정한다.
+- **깊게 본 파일**: `Source/WxGame/Character/WxCharacterBase.h`, `Source/WxGame/Character/WxCharacterBase.cpp`, `Source/WxGame/Character/WxEnemyCharacter.h`, `Source/WxGame/Character/WxEnemyCharacter.cpp`, `Source/WxGame/Character/WxPlayerCharacter.cpp`, `Source/WxGame/Controller/WxAIController.cpp`, `Source/WxGame/Controller/WxNameplateManagerComponent.h`, `Source/WxGame/Controller/WxNameplateManagerComponent.cpp`, `Source/WxGame/Framework/WxRespawnLibrary.cpp`, `Source/WxGame/Framework/WxGameMode.cpp`, `Source/WxGame/FrontEnd/WxGameFlowSubsystem.h`, `Source/WxGame/FrontEnd/WxGameFlowSubsystem.cpp`, `Source/WxGame/Battle/WxBattleSubsystem.cpp`, `Source/WxGame/MVVM/WxViewModel_Inventory.cpp`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_Ability.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_AbilitySystem.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_PlayerCharacter.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_Dialogue.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_Quest.cpp`이다.
+- **훑은 파일**: `Source/WxGame/WxGame.Build.cs`, `Source/WxGame/Controller/WxPlayerController.cpp`, `Source/WxGame/Character/Component/WxCharacterMovementComponent.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp`이다. 헤더의 인라인 정의를 검색했다.
+- **교차 근거**: 기존 재등록 지적의 해결 여부 확인에 한해 `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp:48`과 `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySet.cpp:58`의 최초 속성·GE 초기화와 누락 스펙 부여 분리를 대조했다.
+- **미검토 / 한계**: 2026-09-26 작업 트리의 정적 리뷰이다. 소스 61개는 생성물 제외 `.h`·`.cpp` 개수이며 전 파일 정밀 검토를 뜻하지 않는다. 이번 리뷰에서 빌드·자동화 테스트·게임 실행을 다시 수행하지 않았으며, BP/WBP·DataTable·BT·StateTree 내부 및 멀티플레이 동작은 검증하지 않았다. 상단 테스트 결과는 이전 구현 작업의 검증 이력이다.
 
 ---
-*문서 기준 커밋 `39f3629a4` · 리뷰일 2026-09-25 · 소스 55파일 — `/module-review`로 갱신*
-
-</details>
+*문서 기준 커밋 `ad0db6de0` · 리뷰일 2026-09-26 · 소스 61파일 — `/module-review`로 갱신*
