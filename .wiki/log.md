@@ -362,6 +362,10 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 
 ## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
 
+## [2026-09-25] ingest + compile | 작업 테스트 결과의 AI 접수
+
+사용자가 제안한 이상 없음/이상 있음 선택과 문제 기록 전달을 raw/notes/2026-09-25-workflow-test-feedback.md에 수집하고 wiki-workflow에 입력·접수·수정/정리·재확인·복구·기록 갱신 경로를 통합했다. Workflow 사용 안내와 테스트·완료 절차도 연결했다. 새 서비스·화면 테스트와 기존 저장/실행 회귀 8개가 통과했으며 실제 AI·브라우저 육안·게임 실행 검증은 별도다.
+
 ## [2026-09-25] compile | 어빌리티·이펙트·캐릭터 목록 기사(references/ability-list·effect-list·character-list) 추가. BatchFiles/ExportAbilitySystemLists.bat(.agents/scripts/Export-AbilitySystemLists.ps1)이 GA_·ABS_·GE_·AM_·BT_·DT_·캐릭터 BP 등 에셋의 저장값·참조(몽타주 섹션·노티파이, 속성 초기값, 피해 행과 행 참조 포함)와 C++ 소스를 에디터 없이 읽어 생성하고, OpenWiki.bat이 위키를 열 때 다시 만든다. combat-abilities에 관련 링크 추가. 게임 실행 검증 아님.
 
 - 2026-09-25: 체크포인트 SaveGame 전환 원자료를 수집하고 world 기사의 저장·조회·초기화 계약과 진입점을 갱신했다. 정적 확인이며 인게임 검증은 별도다.
@@ -376,18 +380,60 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 
 - 2026-09-25: ST_CheckPoint 리세이브 후 구조체 리다이렉트 두 항목을 제거하고 별도 프로세스의 로드·StateTree 컴파일·저장 성공을 원자료와 world에 반영했다.
 
+## [2026-09-25] ingest + compile | Workflow 작업 기록 현황
+
+기존 웹 화면을 선호한 사용자 답변과 구현 관찰을 raw/notes/2026-09-25-workflow-task-records.md에 수집하고 wiki-workflow에 표시 원본·분류·갱신 절차·승인 경계를 통합했다. 작업별 상태와 승인 원문은 Workflow에 유지한다. 브라우저 육안 확인은 로컬 파일 URL 보안 정책으로 수행하지 못했으며 모의 DOM·저장·실행 회귀 결과와 구분한다.
+
 ## [2026-09-25] compile | 어빌리티·이펙트 목록 표기 정정
 
 Export-AbilitySystemLists.ps1을 고쳐 목록을 다시 생성했다. 빈 칸이 "없음"이 아니라 부모 기본값임을 명시하고 어빌리티 타입 칸·GE_ 부모 칸을 C++ 생성자 파일로 링크했다. GE_ 기타 칸에서 엔진이 컴포넌트 값을 되써 두는 5.3 폐기 필드(`UGameplayEffect::PreSave`)를 뺐다. 몽타주 섹션은 시작 시각 순이고 노티파이 `{}` 값은 인스턴스·섹션 대응이 없는 모음임을 정정했다. config.md에 세 목록이 스크립트로만 갱신하는 생성물임을 적었다. 게임 실행 검증 아님.
+
 
 ## [2026-09-25] ingest + compile | 쿨다운 GE 통합
 
 사용자 결정(쿨다운 클래스 통합, CooldownTags 컨테이너 유지, SharesCooldownGroup 미도입, Pattern 번호 태그 유지)과 구현·검증 관찰을 raw/notes/2026-09-25-cooldown-single-ge.md에 수집하고 combat-abilities의 타입과 GA_·비용과 쿨다운·검증 절에 반영했다. 설계 때 놓친 엔진 순정 쿨다운 태그 규칙과 그 보정을 적었다. 어빌리티 목록은 생성기에 CooldownTags 칸을 더해 다시 만들었다. 빌드·데이터 검증 커맨드릿 통과, 인게임 미검증.
 
+## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
+## [2026-09-25] ingest | 체크포인트 SaveGame 검증 범위
+
+raw/notes/2026-09-25-checkpoint-validation-scope.md에 사용자 제출 범위와 적용 버전·기존 근거의 경계를 수집했다. Task SHA-256과 문서 제외 코드 식별값은 접수 값과 일치했다. 사람의 결과 원문·승인 정본과 AI report는 Workflow 서버가 원래 Task에 기록하며, 이 작업은 Task·목차·접수 JSON을 직접 수정하지 않는다.
+
+## [2026-09-25] compile | 체크포인트 검증 범위와 디스크 복원 설명 정리
+
+기존 world·game 기사에 사용자 확인 범위, 예외·슬롯 공유 검증과 코드 리뷰 수용의 미해결 경계, 체크포인트 한 개의 디스크 유지와 전체 게임 상태 복원의 차이를 반영했다. 재접속의 세부 절차는 추정하지 않았으며, 이전 원자료는 변경하지 않았다. 게임 코드·에셋 수정이나 새 플레이 검증이 아니고 작업 전체 완료도 아니다. 원자료 색인·통계와 루트 탐색을 갱신했다.
+
+## [2026-09-25] lint | 체크포인트 문서 정리 검증
+
+순정 llm-wiki lint --local --json 결과 critical·warning·suggestion 0건, 수정 0건. 변경 문서 6개의 상대 링크 170개를 확인했고 누락은 없었다. 실제 파일 수는 원자료 78개·기사 21개이며 기존 루트 색인의 기사 수 20을 21로 맞췄다. git diff --check는 변경한 추적 Wiki 파일에서 통과했다. 게임 플레이·신규 빌드·사람 코드 리뷰의 검증 결과가 아니다.
+
+## [2026-09-25] compile | 체크포인트 사용자 확인의 적용 버전 명시
+
+마무리 해시 비교 중 이 정리 작업이 수정하지 않은 Workflow 스크립트(Wiki-AI.cjs, Workflow-Execution.cjs, Workflow-TestFeedback.cjs, wiki-viewer/test-feedback.js, Wiki-AI-Providers.cjs)의 동시 변경을 관측했다. Task 해시는 접수 값과 같지만 문서 제외 코드 식별값은 e939b31ed877673e1a3d957abbdd3938208cb82762548711572da2ec83df1a31에서 c5f50d478d2cb6a6a6803b2e3a54be0b869086144b9c3315299d3a90c35599f0으로 달라졌다. world의 확인 설명을 정리 시작 시 대조한 제출 버전에 한정했고 기존 raw는 그 시점의 불변 근거로 보존했다. 변경 후 버전 수용은 blocker로 보고하며 다른 작업의 변경은 건드리지 않는다.
+
+## [2026-09-25] ingest + compile | 테스트 결과 처리 AI 선택
+
+사용자의 다른 AI 지원 요청과 구현·CLI 옵션·검증을 raw/notes/2026-09-25-workflow-feedback-providers.md에 수집하고 wiki-workflow에 제공자 선택·변경 재시도·이력·권한 경계를 통합했다. 검토의 읽기 전용과 테스트 결과 실행을 구분한다. 모의 제공자·HTTP·DOM 및 기존 실행 회귀 7개를 통과했고 실제 제공자 AI 요청·브라우저 육안 검증은 별도다.
+
+## [2026-09-25] ingest + compile | 쿨다운 1회 사용 4초 결함 수정
+
+사용자 보고(회피 1회에 쿨다운 4초, UI 진행률 이상)의 원인과 수정을 raw/notes/2026-09-25-cooldown-single-ge.md에 더하고 combat-abilities의 비용과 쿨다운 절을 고쳤다. 엔진이 GE를 활성 목록에 넣은 뒤 지속시간을 재계산해 대기열 MMC가 자기 자신을 셌고, 대기열 계산을 ApplyCooldown의 SetByCaller로 옮겼다. 임시 자동화 테스트로 지속시간을 확인했고 인게임은 미검증.
+
 ## [2026-09-25] lint | 어빌리티·이펙트·캐릭터 목록 교차 검증
 
 헤드리스 커맨드릿의 T3D 내보내기와 Python 속성 조회로 세 목록을 스크립트 파서와 독립적으로 대조했다. GA_ 40개(타입·WxAbilitySet·저장값 칸), 몽타주 34개(섹션 순서, 노티파이 클래스·개수·저장값), WxAbilitySet·캐릭터 구성, DT_Damage·DT_CharacterAttribute 행 값, GE_ 6개, C++ 클래스 에셋 사용처, 표에 없는 행 참조 3건이 일치했다. 노티파이의 벡터·트랜스폼 값(`LocalSpawnOffset`)을 적지 않는다는 점이 문서에 없어 머리말에 보강했다. 게임 실행 검증 아님.
 
+## [2026-09-25] ingest + compile | 쿨다운 수정 사용자 확인
+
+수정 뒤 사용자의 인게임 확인("잘 되네요", 회피 쿨다운·UI 진행률)을 raw/notes/2026-09-25-cooldown-single-ge.md와 combat-abilities 검증 메모에 반영했다. 소환물 쿨다운 무시·네트워크 복제는 미확인으로 남긴다.
+
 ## [2026-09-25] compile | 어빌리티·이펙트 목록의 C++ 링크 제거
 
 사용자 결정으로 어빌리티 타입 칸과 GE_ 부모 칸의 C++ 생성자 파일 링크를 빼고 클래스 이름만 남겼다. 링크는 해당 클래스 하나의 파일만 가리켜 상위 클래스 기본값을 놓치게 하고 어빌리티 목록의 16%를 차지했다. "빈 칸은 부모 기본값이며 기본값은 C++ 클래스와 상위 클래스의 생성자·헤더 초기값에 있다"는 머리말은 유지했다. 게임 실행 검증 아님.
+
+
+## [2026-09-25] ingest + compile | refresh: 프로젝트 기본 설정 3건
+
+마지막 Wiki 반영(5c66bfaf9) 이후 미반영 커밋 be1c832e4·fbf8d89e9·ccf16da7b를 raw/notes/2026-09-25-performance-config-defaults.md에 수집했다. 38d4dde08(에셋 리세이브)는 지식 변화가 없어 제외했다. ui에 위젯 속성 바인딩 Prevent를, foundation에 기본 충돌 복잡도 Simple as Complex와 에디터 스케일러빌리티 High 기본값을 반영했다. 설정 의미는 UE 5.8 엔진 소스와 대조했고 WBP_·EUW_ 레거시 바인딩 0건과 C++ complex 트레이스 0건을 재확인했다. 메시 38개 분류는 적용 당시 에디터 조회 결과이며, 에셋 쪽 쿼리·게임 실행·프레임 측정은 검증하지 않았다.
+
+## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed

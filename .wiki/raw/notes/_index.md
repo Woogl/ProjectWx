@@ -74,12 +74,17 @@ Last updated: 2026-09-25
 | [어빌리티·GE 데이터를 에셋 한 곳으로: 테이블 구동 시도 후 GA_ 복귀, DT_Ability·DT_Effect 제거](2026-09-25-ability-data-on-ga.md) | 어빌리티 테이블 구동을 구현했다가 AI 작업 편의를 최우선 기준으로 삼아 어빌리티별 데이터 전용 GA_로 돌아갔다. 행이 에셋과 1:1인 데이터는 그 에셋에 두고, 테이블은 여러 곳이 골라 쓰는 정의(DT_Damage)와 레벨 곡선에만 쓴다. DT_Ability·DT_Effect를 지우고, 비용·쿨다운·표시·몽타주는 GA_ 프로퍼티, 발동 조건·쿨다운 그룹·BT 번호 태그·패시브 트리거는 엔진 칸, GE 표시는 UWxEffectComponent_UIData에 둔다. | wx, combat, ui, architecture, decision | 2026-09-25 |
 | [어빌리티 규칙 변경과 몽타주 섹션 모델(테이블 구동 전환 1-1·1-2단계)](2026-09-25-ability-montage-section-model.md) | 콤보 창이 닫히면 첫 단부터, 늦은 노티파이는 몽타주 인스턴스 ID로 거름, 착지 섹션은 재생 중인 모든 몽타주에서 찾음, 그로기 강등은 대미지 반응 컴포넌트, 시체 수명은 캐릭터, 컷신 중 입력형 어빌리티 차단, 소비 아이템은 인벤토리가 고름. 콤보·패턴·회피·가드 반응·피격 반응은 한 몽타주의 섹션으로 고르고, 처형은 한 벌로 합쳐 짝 몽타주·피해 행을 노티파이가 담으며, 궁극기 컷신은 몽타주의 표식 노티파이에서 읽는다. | wx, combat, animation, inventory, editor | 2026-09-25 |
 | [AnimNotify 타임라인 이름 축약 규칙](2026-09-25-animnotify-labels.md) | 17종 Notify의 라벨을 종류와 대표 값 하나로 통일한 사용자 합의와 구현 근거. | wx, animation, editor | 2026-09-25 |
-| [쿨다운 GE를 하나로: 어빌리티 CooldownTags와 MMC 대기열](2026-09-25-cooldown-single-ge.md) | 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 없애고 공용 UWxEffect_Cooldown 하나로 합쳤다. 쿨다운 식별자는 어빌리티의 CooldownTags이고 스펙의 DynamicGrantedTags로 붙인다. 쌓지 않고 충전 하나당 GE 하나를 걸며, 지속시간 MMC가 같은 태그의 남은 시간 뒤로 줄을 세워 충전이 차례로 돌아온다. | wx, combat, ui, decision | 2026-09-25 |
+| [체크포인트 구조체 리다이렉트 제거](2026-09-25-checkpoint-redirect-cleanup.md) | ST_CheckPoint를 SaveCheckpoint 구조체로 리세이브하고 CoreRedirects 두 항목을 제거한 뒤 별도 프로세스에서 재로드·컴파일·저장을 검증했다. | wx, world, savegame | 2026-09-25 |
+| [체크포인트 SaveGame 전환](2026-09-25-checkpoint-savegame.md) | CheckpointSubsystem을 제거하고 체크포인트 기록·부활 조회·새 게임 초기화를 USaveGame 디스크 슬롯으로 전환했다. | wx, world, savegame | 2026-09-25 |
+| [체크포인트 단일 슬롯 결정](2026-09-25-checkpoint-single-slot.md) | 사용자 결정에 따라 PIE와 일반 플레이가 WxCheckpoint 슬롯을 공유한다. 슬롯 세분화는 추후 진행한다. | wx, world, savegame | 2026-09-25 |
+| [체크포인트 SaveGame 검증 범위](2026-09-25-checkpoint-validation-scope.md) | 저장 후 사망·부활, 재접속, 새 게임 초기화의 사용자 확인 범위와 아직 증거가 없는 예외·슬롯 공유 검증을 구분한다. | wx, world, savegame | 2026-09-25 |
+| [쿨다운 GE를 하나로: 어빌리티 CooldownTags와 차례 회복](2026-09-25-cooldown-single-ge.md) | 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 없애고 공용 UWxEffect_Cooldown 하나로 합쳤다. 쿨다운 식별자는 어빌리티의 CooldownTags이고 스펙의 DynamicGrantedTags로 붙인다. 쌓지 않고 충전 하나당 GE 하나를 걸며, ApplyCooldown이 같은 태그의 남은 시간 뒤로 줄을 세운 지속시간을 SetByCaller로 넘겨 충전이 차례로 돌아온다. | wx, combat, ui, decision | 2026-09-25 |
+| [60FPS 강연 검토 후 적용한 프로젝트 기본 설정 3건](2026-09-25-performance-config-defaults.md) | 위젯 속성 바인딩 Prevent, 스태틱 메시 기본 충돌 복잡도 Simple as Complex, 에디터 스케일러빌리티 High 세 가지만 적용했다. 나머지 강연 권장은 미결정이다. | wx, config, ui, foundation, decision | 2026-09-25 |
 | [Row 미리보기의 기본 구조체 축약](2026-09-25-row-preview-empty-struct.md) | Row 미리보기에서 초기 기본값과 같은 구조체를 {}로 표시하고 원문은 툴팁에 유지한다. | wx, editor, datatable | 2026-09-25 |
 | [Row 미리보기의 빈 하위 구조체 축약](2026-09-25-row-preview-nested.md) | 값이 있는 부모 구조체 안에서도 기본값과 같은 하위 JSON 객체를 각각 {}로 축약한다. | wx, editor, datatable | 2026-09-25 |
 | [Row 미리보기와 툴팁 표시 통일](2026-09-25-row-preview-tooltip.md) | 사용자 후속 요청으로 축약된 셀과 툴팁에 같은 텍스트를 표시한다. | wx, editor, datatable | 2026-09-25 |
-| [체크포인트 SaveGame 전환](2026-09-25-checkpoint-savegame.md) | 체크포인트 디스크 저장·부활 조회·새 게임 초기화 | wx, world, savegame | 2026-09-25 |
-| [체크포인트 저장 명칭 통일](2026-09-25-save-checkpoint-rename.md) | SaveCheckpoint API·태스크 이름과 에셋 호환 리다이렉트 | wx, world, savegame | 2026-09-25 |
-| [SpawnerLibrary 제거와 C++ 일괄 재생성](2026-09-25-spawner-library-removal.md) | AWxSpawner C++ API로 부활·StateTree 재생성 연결 | wx, world, spawner | 2026-09-25 |
-| [체크포인트 단일 슬롯 결정](2026-09-25-checkpoint-single-slot.md) | PIE와 일반 플레이가 WxCheckpoint 슬롯 공유 | wx, world, savegame | 2026-09-25 |
-| [체크포인트 구조체 리다이렉트 제거](2026-09-25-checkpoint-redirect-cleanup.md) | ST_CheckPoint 리세이브와 리다이렉트 없이 재로드·컴파일 확인 | wx, world, savegame | 2026-09-25 |
+| [체크포인트 저장 명칭 통일](2026-09-25-save-checkpoint-rename.md) | 사용자 요청으로 RecordCheckpoint API와 StateTree 태스크를 SaveCheckpoint로 변경하고 기존 에셋의 구조체 경로를 리다이렉트했다. | wx, world, savegame | 2026-09-25 |
+| [SpawnerLibrary 제거와 C++ 일괄 재생성](2026-09-25-spawner-library-removal.md) | UWxSpawnerLibrary를 제거하고 AWxSpawner::RespawnAll C++ 전용 함수로 부활·StateTree 호출을 연결했다. | wx, world, spawner | 2026-09-25 |
+| [테스트 결과 처리 AI 선택](2026-09-25-workflow-feedback-providers.md) | 테스트 결과의 처리 AI를 Codex·Claude Code·Gemini CLI에서 선택하고 재시도 이력을 보존하는 변경 | wx, workflow | 2026-09-25 |
+| [Workflow 작업 기록 현황 표시](2026-09-25-workflow-task-records.md) | 기존 Workflow 대시보드에서 대화 작업의 확인 범위와 다음 행동을 분류별로 조회하는 변경 | wx, workflow | 2026-09-25 |
+| [Workflow 작업 테스트 결과 접수](2026-09-25-workflow-test-feedback.md) | 기존 작업에서 사람의 테스트 결과를 AI에게 전달하고 수정·정리·재확인을 이어가는 경로 | wx, workflow | 2026-09-25 |

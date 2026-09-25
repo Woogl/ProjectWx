@@ -8,13 +8,14 @@ sources:
   - "raw/notes/2026-09-22-current-ui.md"
   - "raw/notes/2026-09-24-wxcore-cleanup.md"
   - "raw/notes/2026-09-24-interaction-contract-options-only.md"
+  - "raw/notes/2026-09-25-performance-config-defaults.md"
 created: 2026-09-22
-updated: 2026-09-24
+updated: 2026-09-25
 tags: [wx, foundation]
 aliases: ["WxCore"]
 confidence: medium
 volatility: warm
-verified: 2026-09-24
+verified: 2026-09-25
 summary: "WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰·표시 계약을 제공한다."
 ---
 
@@ -44,6 +45,10 @@ WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에
 
 `DefaultGame.ini`는 `UWxAbilitySystemGlobals`와 GameplayCue 탐색 경로를 등록한다. 아이템은 `WxItemDefinition` PrimaryAssetType으로 `/Game/Item`을 탐색한다. 경로 설정 존재와 개별 에셋의 유효성·쿠킹 성공은 별개다.
 
+`DefaultEngine.ini`의 `DefaultShapeComplexity`는 `CTF_UseSimpleAsComplex`다(2026-09-25). 충돌 복잡도가 Project Default인 메시는 단순 도형만 만들고 complex 쿼리도 단순 도형으로 판정한다. 그래서 단순 충돌이 없는 Project Default 메시는 complex 트레이스에 맞지 않는다. 새 메시에 트레이스용 정밀 충돌이 필요하면 에셋에서 복잡도를 명시한다. 적용 시점에 해당 메시 38개는 샘플·미참조·데모 에셋이었다. C++에는 complex 트레이스가 없으나 PCG·애님 노드 등 에셋 쪽 쿼리는 확인하지 않았다.
+
+`DefaultEditorSettings.ini`는 에디터(PIE 포함) 스케일러빌리티 기본값을 High(`sg.*=2`)로 둔다. 개인 PC에 저장된 품질 값이 있으면 그 값이 우선하고, 에디터 밖 게임은 이 파일을 쓰지 않는다. 해상도 품질은 디바이스 프로필에서 정할 값이라 넣지 않았고, 디바이스 프로필은 미결정이다.
+
 ## 변경 진입점
 
 - [태그 선언](../../../Plugins/WxCore/Source/WxCore/Public/WxGameplayTags.h): 새 태그는 짝 cpp 정의까지 변경한다.
@@ -70,11 +75,12 @@ WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에
 - [게임 조립·새 게임·부활 정적 조사](../../raw/notes/2026-09-22-current-game.md) — 캐릭터 충돌 응답
 - [레이어·대화 화면·HUD·속성 표시 수명 조사](../../raw/notes/2026-09-22-current-ui.md) — `IWxUIData`
 - [WxCore 정리: 쓰지 않는 태그·모듈 클래스 제거](../../raw/notes/2026-09-24-wxcore-cleanup.md) — 순수 정의 원칙·`FDefaultModuleImpl`
+- [60FPS 강연 검토 후 적용한 프로젝트 기본 설정 3건](../../raw/notes/2026-09-25-performance-config-defaults.md) — 기본 충돌 복잡도, 에디터 스케일러빌리티
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
 
-2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 태그 정의부·로케이터·픽업 설명은 HEAD `60c324c714b1dab10cd48d36cabad63ace232716` 기준으로 보강했다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다. 2026-09-24 refresh에서 충돌 채널·프리셋·`DefaultGame.ini` 등록·공용 계약 헤더를 HEAD `d76e48717`의 설정·코드와 다시 대조했다.
+2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 태그 정의부·로케이터·픽업 설명은 HEAD `60c324c714b1dab10cd48d36cabad63ace232716` 기준으로 보강했다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다. 2026-09-24 refresh에서 충돌 채널·프리셋·`DefaultGame.ini` 등록·공용 계약 헤더를 HEAD `d76e48717`의 설정·코드와 다시 대조했다. 2026-09-25 refresh에서 기본 충돌 복잡도(`fbf8d89e9`)와 에디터 스케일러빌리티 기본값(`ccf16da7b`)을 HEAD `14f948cb1`의 설정과 UE 5.8 `BodySetupEnums.h`·`PhysicsSettingsCore.cpp`·`Scalability.cpp`로 대조해 추가했다. 메시 38개 분류는 적용 당시 에디터 조회 결과이며 다시 조회하지 않았다.
 
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 

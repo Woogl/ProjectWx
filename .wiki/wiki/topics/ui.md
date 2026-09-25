@@ -18,6 +18,7 @@ sources:
   - "raw/notes/2026-09-24-nameplate-manager-wxgame.md"
   - "raw/notes/2026-09-24-wxui-review-followups.md"
   - "raw/notes/2026-09-25-ability-data-on-ga.md"
+  - "raw/notes/2026-09-25-performance-config-defaults.md"
 created: 2026-09-22
 updated: 2026-09-25
 tags: [wx, ui]
@@ -90,6 +91,8 @@ Quest·QuestObjective VM도 WxUI의 표시 데이터다. 퀘스트 추적기(`WB
 
 MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거나 `UBlueprintFunctionLibrary`의 정적 Pure 함수여야 한다(UE 5.8 엔진 제약). VM 클래스의 정적 함수는 엔진이 거부한다. MVVM 암시적 변환기는 enum을 다루지 않으므로, enum을 숫자로 바꿔 넘기면 표시 VM에 의미 없는 숫자 필드가 생긴다. 바인딩을 도구로 편집하는 방법은 [편집기 도구](../references/editor-tools.md)의 MVVM 절에 있다.
 
+위젯 속성 바인딩(레거시 Bind)은 새로 만들 수 없다. 2026-09-25 `DefaultEditor.ini`에서 UMG와 에디터 유틸리티 위젯의 `PropertyBindingRule`을 Lyra와 같은 `Prevent`로 바꿨다. 표시 값은 MVVM 바인딩으로 연결한다. `Prevent`는 새 바인딩만 막고 기존 바인딩은 경고 없이 컴파일된다. 적용 시점 WBP_·EUW_ 41개에서 레거시 바인딩은 문자열 검색으로 찾지 못했다.
+
 ## 머리 위 Nameplate와 락온 Reticle
 
 적 머리 위 Nameplate와 락온 Reticle은 보는 사람마다 다른 로컬 표시다. 커밋 `aaf557a09`에서 도입했고, 2026-09-24에 NameplateManager를 WxGame으로 옮겼다. Lyra처럼 게임 쪽 NameplateManager가 붙이고 뗀다.
@@ -158,6 +161,7 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 - [NameplateManager를 WxGame으로](../../raw/notes/2026-09-24-nameplate-manager-wxgame.md)
 - [WxUI 리뷰 후속](../../raw/notes/2026-09-24-wxui-review-followups.md) — 일시정지 해제 규칙, Effect VM 월드 타이머
 - [어빌리티·GE 데이터를 에셋 한 곳으로](../../raw/notes/2026-09-25-ability-data-on-ga.md) — 슬롯 VM의 기본 인스턴스 판정, GE 표시 데이터 컴포넌트
+- [60FPS 강연 검토 후 적용한 프로젝트 기본 설정 3건](../../raw/notes/2026-09-25-performance-config-defaults.md) — 위젯 속성 바인딩 `Prevent`
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
@@ -167,5 +171,7 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 2026-09-23에 보스 표시 세 층 구조 원자료(커밋 `4352e9100`)를 편찬해 추가했다. 같은 날 refresh에서 원자료 해시 대조로 누락을 찾아 아이템 VM 단일화(`ba396fc16`)·상호작용 목록 VM(`f98eef471`)·MVVM 변환 함수 제약을 HEAD `7d2a20408` 기준으로 추가하고, 표시 VM 절을 규칙→사례→예외 순으로 재배치했다. 이어서 대화·퀘스트 화면 클래스 제거 원자료(커밋 `570e72562`·`6daf3f804`)를 편찬해 연결 주체를 리졸버로 바꾸고 VM 명령 전달 규칙을 추가했다. 2026-09-24 refresh에서 NameplateManager 원자료(커밋 `aaf557a09`)를 편찬해 머리 위 표시 절을 추가하고, 이 절은 HEAD `ca84c9aac` 코드와 대조했다. 같은 날 두 번째 refresh에서 WxUI 리뷰 후속 원자료(커밋 `1b15a61ff`·`eb92e99a7`)를 편찬해 일시정지 해제 규칙과 Effect VM 갱신 주기를 HEAD `d76e48717` 코드·UE 5.8 엔진 소스와 대조해 추가했다(인게임 미검증). 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
 
 2026-09-25 refresh: 슬롯 VM의 기본 인스턴스 판정(`0473e201b`)과 버프 목록의 GE 표시 데이터 조회(`7c52ce0ce`)를 HEAD `d63ce0630`의 `WxViewModel_Ability.cpp`·`WxViewModel_AbilitySystem.cpp`·`WxEffectComponent_UIData.h`와 대조해 추가했고, 슬롯·버프 목록의 인게임 표시와 GE_ 에셋의 아이콘 값은 확인하지 않았다.
+
+2026-09-25 두 번째 refresh: 위젯 속성 바인딩 `Prevent`(`be1c832e4`)를 `Config/DefaultEditor.ini`와 UE 5.8 `WidgetEditingProjectSettings.h`로 대조해 추가했다. 레거시 바인딩 0건은 uasset 문자열 검색 결과이며 에디터에서 위젯을 열어 확인하지 않았다.
 
 </details>
