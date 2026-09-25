@@ -13,4 +13,4 @@ Last updated: 2026-09-26
 | [이펙트 목록](effect-list.md) | GE_ 에셋의 모디파이어·컴포넌트 저장값, 에셋이 참조하는 C++ 이펙트·컴포넌트·계산 클래스, 피해 행(DT_Damage) 값을 에셋 사용처와 함께 보인다. | wx, combat | 2026-09-25 |
 | [편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer](editor-tools.md) | 네 편집기 모듈은 속성 편집·썸네일·시각화·에셋 도구와 DataTable 행 참조 갱신을 제공하며 런타임 게임 기능과 구분된다. | wx, editor, datatable | 2026-09-26 |
 | [WX Wiki 운영과 재생성](wiki-operation.md) | 프로젝트 로컬 Wiki는 최신 근거를 수집한 뒤 편찬하며, 정적 확인과 빌드·실행 검증을 구분한다. | wx, workflow | 2026-09-22 |
-| [Wiki·Workflow 도구 구조](wiki-workflow.md) | Wiki는 프로젝트 지식의 정본이고 Workflow는 작업 절차와 사람의 판단·작업 상태의 정본이다. 정하기·만들기·확인하기 3단계와 코드 리뷰를 포함한 AI·사람 담당 테스트 체크리스트로 진행하고, 작업 현황은 기록 상태 줄에서 만들며, 작업은 대시보드(새 작업·작업 진행)나 AI 대화에서 시작하고 이어간다. | wx, workflow | 2026-09-26 |
+| [Wiki·Workflow 도구 구조](wiki-workflow.md) | Wiki는 프로젝트 지식의 정본이고, 작업 절차·기록 형식·상태 규칙의 정본은 작업 절차 문서 한 장이다. 규칙은 다시 적지 않고 Workflow 도구(대시보드·로컬 서버·실행기·처리 프롬프트)의 구조와 동작, 결정 이유를 다룬다. | wx, workflow | 2026-09-26 |

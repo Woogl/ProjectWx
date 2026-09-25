@@ -8,13 +8,6 @@ Last updated: 2026-09-26
 
 | File | Summary | Tags | Updated |
 |------|---------|------|---------|
-| [상호작용 목록과 엘리베이터 버튼의 사람 확인 범위](2026-09-26-interaction-list-play-acceptance.md) | 목록·휠 선택·범위 이탈과 리스폰·행 문구·엘리베이터 버튼 잠금 및 코드 리뷰를 사람이 통과시켰다. | wx, world, ui, interaction, testing | 2026-09-26 |
-| [공용 쿨다운 GE의 사람 확인 범위](2026-09-26-cooldown-play-acceptance.md) | 공용 쿨다운 GE의 회피 UI·소환물 쿨다운 무시·리슨 서버와 클라이언트 차례 회복 및 코드 리뷰를 사람이 통과시켰다. | wx, combat, cooldown, testing | 2026-09-26 |
-| [AnimNotify 짧은 라벨의 사람 확인 범위](2026-09-26-animnotify-label-acceptance.md) | 몽타주 타임라인의 17종 라벨 값 일치와 겹침·잘림 없는 가독성을 사람이 확인했다. | wx, animation, editor, testing | 2026-09-26 |
-| [Nameplate 로컬 표시의 사람 확인 범위](2026-09-26-nameplate-play-acceptance.md) | 교전·락온·대상 전환·사망·크기와 위치·리슨 호스트와 원격 클라이언트의 로컬 표시를 사람이 확인했다. | wx, ui, nameplate, testing | 2026-09-26 |
-| [Wiki 최신화: 39f3629a4 이후 커밋 추적](2026-09-26-refresh-commit-trace.md) | 직전 Wiki 최신화 커밋 39f3629a4 이후 bf6596012까지 19건과 작업 트리를 기사와 대조했다. 지식이 바뀐 커밋은 이미 편찬돼 있었고, 새로 반영할 것은 방어 상수 설정의 입력 제한 메타 제거(계산 보정 유지) 하나였다. 생성 목록 세 개는 스크립트 재실행 결과 바뀌지 않았다. | wx, refresh, combat | 2026-09-26 |
-| [DataTable Row 미리보기의 사람 확인 범위](2026-09-26-row-preview-acceptance.md) | 빈 하위 구조체 축약·설정값 보존·셀과 툴팁 일치를 사람이 확인했으며, 과거 자동화 테스트는 제출 전 제거된 검증 이력이다. | wx, editor, datatable, testing | 2026-09-26 |
-| [AnimNotify 공용 색상 분류와 에디터 설정](2026-09-26-animnotify-categories.md) | 17종 노티파이의 6개 색상 분류, WxCore 공용 설정과 에디터 전용 보호 및 사람 확인 범위. | wx, animation, editor, foundation | 2026-09-26 |
 | [어빌리티 비용·쿨다운 GE 정적 조사](2026-09-22-current-ability-cost-cooldown.md) | 어빌리티 비용·쿨다운 GameplayEffect의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, combat | 2026-09-22 |
 | [AI 인지·Blackboard·락온 수명 정적 조사](2026-09-22-current-ai.md) | AI 인지·Blackboard·락온 수명 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, ai | 2026-09-22 |
 | [GAS 부여·어빌리티 계약 정적 조사](2026-09-22-current-combat.md) | GAS 부여·어빌리티 계약 정적 조사의 저장소 원문 발췌와 파일별 SHA-256. 정적 확인 범위이며 실행 검증이 아니다. | wx, static-review, combat | 2026-09-22 |
@@ -105,6 +98,16 @@ Last updated: 2026-09-26
 | [Workflow 3단계 단순화와 테스트 체크리스트](2026-09-25-workflow-simplification.md) | 사용자 승인으로 Workflow를 정하기·만들기·확인하기 3단계와 상태 3개로 줄이고 웹 새 작업 경로를 폐지했다. 정하기는 추가 질문이 없을 때 사람의 구현 승인으로 끝나고, 확인하기는 AI·사람 담당을 나눈 테스트 체크리스트로 진행한다. | wx, workflow | 2026-09-25 |
 | [Workflow 작업 기록 현황 표시](2026-09-25-workflow-task-records.md) | 기존 Workflow 대시보드에서 대화 작업의 확인 범위와 다음 행동을 분류별로 조회하는 변경 | wx, workflow | 2026-09-25 |
 | [Workflow 작업 테스트 결과 접수](2026-09-25-workflow-test-feedback.md) | 기존 작업에서 사람의 테스트 결과를 AI에게 전달하고 수정·정리·재확인을 이어가는 경로 | wx, workflow | 2026-09-25 |
+| [GA_ 유지 결정과 사람 플레이 확인 범위](2026-09-26-ability-ga-play-acceptance.md) | 테이블 전환을 철회하고 GA_를 유지한 최종 결정과 HGTest·소환물·조작감·GE·락온의 사람 테스트 7개 통과 범위. | wx, combat, testing | 2026-09-26 |
+| [AnimNotify 공용 색상 분류와 에디터 설정](2026-09-26-animnotify-categories.md) | 17종 노티파이의 6개 색상 분류, WxCore 공용 설정과 에디터 전용 보호 및 사람 확인 범위. | wx, animation, editor, foundation | 2026-09-26 |
+| [AnimNotify 짧은 라벨의 사람 확인 범위](2026-09-26-animnotify-label-acceptance.md) | 몽타주 타임라인의 17종 라벨 값 일치와 겹침·잘림 없는 가독성을 사람이 확인했다. | wx, animation, editor, testing | 2026-09-26 |
+| [공용 쿨다운 GE의 사람 확인 범위](2026-09-26-cooldown-play-acceptance.md) | 공용 쿨다운 GE의 회피 UI·소환물 쿨다운 무시·리슨 서버와 클라이언트 차례 회복 및 코드 리뷰를 사람이 통과시켰다. | wx, combat, cooldown, testing | 2026-09-26 |
+| [상호작용 목록과 엘리베이터 버튼의 사람 확인 범위](2026-09-26-interaction-list-play-acceptance.md) | 목록·휠 선택·범위 이탈과 리스폰·행 문구·엘리베이터 버튼 잠금 및 코드 리뷰를 사람이 통과시켰다. | wx, world, ui, interaction, testing | 2026-09-26 |
+| [모듈 리뷰의 재등록 수정과 콤보 배열 계약 확인](2026-09-26-module-review-contracts.md) | ad0db6de0 작업 트리에서 확인한 콤보 몽타주 배열, AbilitySet 재부여, 캐릭터 일회성 처리와 새 게임 선택 검사 범위. | wx, game, combat, static-review | 2026-09-26 |
+| [Nameplate 로컬 표시의 사람 확인 범위](2026-09-26-nameplate-play-acceptance.md) | 교전·락온·대상 전환·사망·크기와 위치·리슨 호스트와 원격 클라이언트의 로컬 표시를 사람이 확인했다. | wx, ui, nameplate, testing | 2026-09-26 |
+| [Wiki 최신화: 39f3629a4 이후 커밋 추적](2026-09-26-refresh-commit-trace.md) | 직전 Wiki 최신화 커밋 39f3629a4 이후 bf6596012까지 19건과 작업 트리를 기사와 대조했다. 지식이 바뀐 커밋은 이미 편찬돼 있었고, 새로 반영할 것은 방어 상수 설정의 입력 제한 메타 제거(계산 보정 유지) 하나였다. 생성 목록 세 개는 스크립트 재실행 결과 바뀌지 않았다. | wx, refresh, combat | 2026-09-26 |
+| [DataTable Row 미리보기의 사람 확인 범위](2026-09-26-row-preview-acceptance.md) | 빈 하위 구조체 축약·설정값 보존·셀과 툴팁 일치를 사람이 확인했으며, 과거 자동화 테스트는 제출 전 제거된 검증 이력이다. | wx, editor, datatable, testing | 2026-09-26 |
+| [UI 데이터 인터페이스 제거 후 표시 확인 범위](2026-09-26-ui-data-display-acceptance.md) | 사람이 코드 리뷰와 HUD·버프·보스·이름표 표시를 플레이로 확인했다. 원격 클라이언트 스펙 복제 후 재매칭 문제는 별도 미해결 사항이다. | wx, ui, testing | 2026-09-26 |
 | [Workflow 대시보드 분류별 기록 버튼](2026-09-26-workflow-dashboard-row-actions.md) | 사용자 결정으로 확인 대기 기록에는 작업 진행만, 진행 중에는 기록 열기와 작업 진행, 완료와 리뷰·참고에는 기록 열기만 둔다. 완료 작업의 새 문제는 새 작업으로 요청한다. | wx, workflow | 2026-09-26 |
 | [Workflow 웹 처리 첫 실제 실행과 무관한 경고 처리 규칙](2026-09-26-workflow-first-real-run.md) | 웹 작업 진행으로 보낸 테스트 결과를 Codex가 터미널 창에서 처음 끝까지 처리했다. 다른 세션 원자료의 일시적 lint 경고를 blocker로 보고해 완료가 막혀, 처리 지시에 실패 검사·blocker는 그 작업의 문제에만 쓰고 무관한 문제는 요약에만 적는 규칙을 넣었다. | wx, workflow | 2026-09-26 |
 | [Workflow 문서 이미지 기능 제거](2026-09-26-workflow-image-removal.md) | 구 워크플로우의 4단계 그림을 지운 뒤 쓰는 곳이 없던 문서 이미지 기능(PNG 묶기·Markdown 이미지 표시)을 사용자 결정으로 없앴다. 화면은 Markdown 이미지를 그리지 않고, 도식은 Mermaid로 그린다. 옛 목차 제목을 건너뛰던 생성 코드도 지웠다. | wx, workflow | 2026-09-26 |
@@ -113,10 +116,7 @@ Last updated: 2026-09-26
 | [Workflow 작업 절차 도식 교체와 서버 동작 점검](2026-09-26-workflow-process-diagram.md) | 작업 절차 도식을 단계 상자(정하기·만들기·확인하기) 배치로 바꾸고 서버·화면 코드와 대조했다. 답변마다 AI가 읽기 전용으로 다시 조사하고, AI 항목 실패는 추가 요청을 기다리며, 명확한 지시를 승인으로 보는 지름길은 AI 대화에서만 동작한다. 정하기 중 추가 요청의 모든 명령 허용과 완료 직후 추가 요청 재활성은 미결이다. | wx, workflow | 2026-09-26 |
 | [Workflow AI 결과의 질문·계획은 정하기·추가 요청에서만 받는다](2026-09-26-workflow-result-fields-by-kind.md) | 첫 실제 처리에서 Codex가 테스트 결과 처리 결과의 plan 칸에 완료 문장을 적었고 서버가 승인 없는 구현 계획 절로 기록했다. 서버가 질문·새 계획을 정하기·추가 요청 결과에서만 받도록 고쳤고, 완료·리뷰·참고 목록에는 AI 처리 상태 배지를 표시하지 않는다. | wx, workflow | 2026-09-26 |
 | [Workflow 대시보드 행 버튼 최종 결정과 표시 정리](2026-09-26-workflow-row-actions-final.md) | 사용자 결정으로 진행 중 기록에서도 기록 열기를 빼, 확인 대기·진행 중은 작업 진행만, 완료·리뷰·참고는 기록 열기만 둔다. 상태 배지가 있는 행의 버튼 줄 어긋남을 고정 너비 버튼 칸으로 고쳤고, 사이드바 소개 문구를 뺐다. | wx, workflow | 2026-09-26 |
+| [Workflow 규칙 사본 정리: 처리 프롬프트와 Wiki는 정본을 가리킨다](2026-09-26-workflow-ssot-copies.md) | 사용자가 워크플로우 SSoT를 엄격하게 지키기로 해, 작업 절차 문서 밖의 규칙 사본을 정리했다. 처리 프롬프트는 이번 처리의 단계·결과 칸·권한 제한만 적고 규칙은 작업 절차를 따르게 했으며, Wiki는 절차 규칙을 다시 적지 않고 정본을 가리킨다. 정본에는 명확한 지시를 구현 승인으로 보는 것이 AI 대화에만 해당한다는 구절을 넣었다. | wx, workflow | 2026-09-26 |
 | [Workflow 상태는 질문·계획·체크리스트에서만 정한다](2026-09-26-workflow-state-from-record-only.md) | 첫 실제 웹 처리의 두 결함 뒤 사용자 승인으로 Workflow를 다듬었다. AI가 사람에게 넘기는 것을 질문·구현 계획·테스트 체크리스트로 한정하고 단계마다 AI 결과 칸을 제한했다. 완료는 체크리스트 전부 통과로 즉시 판정하고 Wiki 정리는 완료 뒤 상태를 바꾸지 않는 처리로 옮겼다. | wx, workflow | 2026-09-26 |
 | [Workflow 기록 작성 규칙 링크와 tasks 안내 문서 삭제](2026-09-26-workflow-tasks-guide-removed.md) | 사용자 요청으로 대시보드 머리의 기록 작성 규칙 링크를 없애고, 그 링크만 가리키던 기록 폴더 안내 문서 tasks/index.md를 삭제했다. 규칙은 작업 절차 한 장에만 있다. | wx, workflow | 2026-09-26 |
 | [Workflow 웹 새 작업·이어하기와 터미널 창 실행](2026-09-26-workflow-web-tasks.md) | 대시보드에서 새 작업을 시작하고 질문 답변·구현 승인·추가 요청·테스트 결과 전달·터미널 이어하기로 기존 작업을 잇는다. 정하기는 읽기 전용, 구현·수정은 사용자 결정으로 모든 명령 허용이며 모든 AI 처리는 터미널 창에서 보이며 실행된다. | wx, workflow | 2026-09-26 |
-| [모듈 리뷰의 재등록 수정과 콤보 배열 계약 확인](2026-09-26-module-review-contracts.md) | 콤보 배열·방향 섹션과 재등록·새 게임 검증의 현재 C++ 계약. | wx, game, combat, static-review | 2026-09-26 |
-| [UI 데이터 인터페이스 제거 후 표시 확인 범위](2026-09-26-ui-data-display-acceptance.md) | 코드 리뷰와 HUD·버프·보스·이름표 표시의 사람 확인 및 원격 복제 미해결 범위. | wx, ui, testing | 2026-09-26 |
-
-| [GA_ 유지 결정과 사람 플레이 확인 범위](2026-09-26-ability-ga-play-acceptance.md) | GA_ 유지 최종 결정과 사람 테스트 7개 통과 범위. | wx, combat, testing | 2026-09-26 |

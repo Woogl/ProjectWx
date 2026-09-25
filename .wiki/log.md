@@ -634,3 +634,9 @@ Export-Wiki.ps1로 Saved/Wiki의 Wiki·Workflow 뷰어를 각각 64개 문서로
 - 새로 반영: `6adb657b9` DefenseConstant 입력 제한 메타 제거를 combat-damage 계산 절에 반영했다(계산 보정은 코드와 대조). 생성 목록 세 개는 Export-AbilitySystemLists.ps1 재실행 결과 unchanged였다. 점검한 기사 18개의 verified를 오늘로 맞췄고 생성 목록은 스크립트 산출물이라 손대지 않았다.
 
 ## [2026-09-26] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed
+
+## [2026-09-26] ingest + compile | Workflow 규칙 사본 정리 (raw/notes/2026-09-26-workflow-ssot-copies.md)
+
+사용자가 워크플로우 SSoT를 엄격하게 지키기로 해, 처리 프롬프트와 이 Wiki의 규칙 사본을 정리한 경위를 수집했다. wiki-workflow의 요약·첫 문단은 규칙 정본이 작업 절차 한 장이라는 설명으로 바꿨다. 단계 표와 구현 승인·기록 형식·체크리스트 작성 규칙은 정본 링크로 대체했다. 「절차 정본과 처리 프롬프트」 절에는 프롬프트가 남기는 네 가지(단계·결과 칸·권한 제한·웹 전용 약속)와 서버 코드가 강제하는 규칙을 적었다. 도구 구조·판정 순서·결정 이유는 유지했다. 프롬프트 테스트 두 개는 통과했고, 실제 AI 처리 재검증은 하지 않았다.
+
+## [2026-09-26] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed

@@ -265,17 +265,17 @@ function fixture(providers=['codex'],content=taskText){
 
   // AI에게 주는 지시: 정하기는 읽기 전용, 나머지는 사용자 결정대로 권한 확인 없이 실행한다. 사람에게는 질문·계획·체크리스트로만 넘긴다.
   const prompt=kind=>taskPrompt({action:'x',kind,taskPath,taskHash:'h',actor:'테스터',at:'t',answers:[{id:'Q1',answer:'A안'}],message:'추가 요청 원문',checks:[{item:'저장 후 복원',result:'실패',note:'재현: 저장 → 종료 → 재개'}]});
-  assert.match(prompt('plan'),/파일을 수정하지 말고/);assert.doesNotMatch(prompt('plan'),/권한 확인 없이/);assert.match(prompt('plan'),/이미 답한 질문은 다시 묻지/);assert.doesNotMatch(prompt('plan'),/checklist는 전체 체크리스트/);
+  assert.match(prompt('plan'),/파일을 수정하지 말고/);assert.doesNotMatch(prompt('plan'),/권한 확인 없이/);assert.match(prompt('plan'),/겹치지 않는 Q번호/);assert.doesNotMatch(prompt('plan'),/checklist는 전체 체크리스트/);
   assert.match(prompt('implement'),/구현 계획대로 구현/);assert.match(prompt('implement'),/questions로 물으세요/);
   assert.match(prompt('request'),/추가 요청/);assert.ok(prompt('request').includes('"message":"추가 요청 원문"'));assert.ok(prompt('plan').includes('"answers":[{"id":"Q1","answer":"A안"}]'));
   assert.match(prompt('fix'),/실패 원인을 조사/);assert.ok(prompt('fix').includes('재현: 저장 → 종료 → 재개'));
   assert.match(prompt('cleanup'),/작업 상태를 바꾸지 않습니다/);assert.doesNotMatch(prompt('cleanup'),/질문으로 물으세요/);
   for(const kind of ['implement','request','fix','cleanup'])assert.match(prompt(kind),/권한 확인 없이 명령을 실행/,kind);
-  for(const kind of ['implement','request','fix'])assert.match(prompt(kind),/AI가 직접 실행할 수 없는 항목은 담당을 사람으로/,kind);
+  for(const kind of ['implement','request','fix'])assert.match(prompt(kind),/작업 절차의 테스트 체크리스트 절을 따르세요/,kind);
   for(const kind of ['plan','implement','request','fix','cleanup']){
     const text=prompt(kind);
     assert.match(text,/관리자 정책과 CLI 설정을 바꾸지/,kind);assert.match(text,/Git 커밋·푸시/,kind);assert.doesNotMatch(text,/blockers/,kind);
-    assert.match(text,/이 작업과 무관하게 발견한 문제.*summary에 한 줄로만/,kind);assert.match(text,/다른 작업의 변경 때문으로 보이는 실패는 고치지 말고/,kind);
+    assert.match(text,/AGENTS\.md와 \.agents\/workflow\/process\/index\.md를 따르고/,kind);
   }
 
   // 터미널 창 실행기: 작업 파일을 넘기고 결과 파일을 기다린다. 모드와 결과 모양은 단계에서 정한다.
@@ -321,7 +321,7 @@ function fixture(providers=['codex'],content=taskText){
   const sessionPath='.agents/workflow/tasks/보스-체력바.md';
   openSession({root:'C:\\Wx',command:{file:'claude.exe',args:[]},provider:'claude',taskPath:sessionPath,title:'보스',open:capture});
   assert.equal(session.title,'Wx AI · 보스');assert.equal(session.argv.length,2);assert.equal(session.argv[0],'claude.exe');
-  assert.equal(session.argv[1],`Continue the Wx task recorded in ${sessionPath}. Follow AGENTS.md and .agents/workflow/process/index.md, read the record head, request, questions, plan and test checklist first, and reply in Korean.`);
+  assert.equal(session.argv[1],`Continue the Wx task recorded in ${sessionPath}. Follow AGENTS.md and .agents/workflow/process/index.md, and reply in Korean.`);
   openSession({root:'C:\\Wx',command:{file:'node.exe',args:['gemini.js']},provider:'gemini',taskPath:sessionPath,title:'보스',open:capture});assert.deepEqual(session.argv.slice(0,3),['node.exe','gemini.js','-i']);
   assert.throws(()=>openSession({root:'C:\\Wx',command:null,provider:'codex',taskPath:sessionPath,title:'보스',open:capture}),/Codex CLI/);
 
