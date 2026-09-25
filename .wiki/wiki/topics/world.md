@@ -2,6 +2,7 @@
 title: "WxWorld — 장치와 상호작용"
 category: topic
 sources:
+  - "raw/notes/2026-09-26-refresh-commit-trace-e96fc67.md"
   - "raw/notes/2026-09-26-interaction-list-play-acceptance.md"
   - "raw/notes/2026-09-25-checkpoint-task-completion.md"
   - "raw/notes/2026-09-25-checkpoint-validation-scope.md"
@@ -140,7 +141,7 @@ UWxCheckpointSaveGame은 Standalone에서 레벨 패키지와 위치·회전을 
 
 2026-09-25 사용자 확인은 저장 후 사망·부활, 재접속, 새 게임 초기화에 한정한다. 정리 시작 시 접수 Task·코드 식별값을 대조한 제출 버전의 확인이며 상세 근거는 [검증 범위 원자료](../../raw/notes/2026-09-25-checkpoint-validation-scope.md)에 있다. 이후 변경 버전의 수용으로 이어받지 않는다. “재접속”이 프로세스 완전 종료·재시작 후 같은 맵 부활까지 포함했는지는 제출문만으로 단정하지 않는다.
 
-저장·조회·삭제 실패 경로와 PIE·일반 플레이 간 슬롯 공유는 이번 제출 범위 밖이며 실행 검증이 남아 있다. 사람의 코드 리뷰 수용도 별도로 남아 있다. 작업 상태·승인 원문은 [Workflow Task](../../../.agents/workflow/tasks/checkpoint-savegame.md)를 따르며, 이 확인을 다른 장치 동작이나 전체 게임 상태 저장의 검증으로 확대하지 않는다.
+저장·조회·삭제 실패 경로와 PIE·일반 플레이 간 슬롯 공유는 이번 제출 범위 밖이며 실행 검증이 남아 있다. `UWxCheckpointSaveGame`·SaveCheckpoint 태스크·부활·새 게임 호출부의 코드 리뷰는 이우성이 2026-09-25 통과시켰다(체크리스트 2/5). 이 통과는 재시작 뒤 부활·슬롯 공유·실패 경로의 실행 검증을 대신하지 않는다([근거](../../raw/notes/2026-09-26-refresh-commit-trace-e96fc67.md)). 작업 상태·승인 원문은 [Workflow Task](../../../.agents/workflow/tasks/checkpoint-savegame.md)를 따르며, 이 확인을 다른 장치 동작이나 전체 게임 상태 저장의 검증으로 확대하지 않는다.
 
 ## 관련 문서
 
@@ -156,6 +157,7 @@ UWxCheckpointSaveGame은 Standalone에서 레벨 패키지와 위치·회전을 
 
 ## Sources
 
+- [Wiki 최신화: e96fc67 이후 커밋 추적](../../raw/notes/2026-09-26-refresh-commit-trace-e96fc67.md) — 체크포인트 코드 리뷰 사람 통과와 남은 체크리스트
 - [상호작용 목록과 엘리베이터 버튼의 사람 확인 범위](../../raw/notes/2026-09-26-interaction-list-play-acceptance.md) — 목록·선택·리스폰·문구·버튼 잠금과 코드 리뷰 통과
 - [체크포인트 태스크의 실패 집계 제약](../../raw/notes/2026-09-25-checkpoint-task-completion.md) — Failed 반환과 상태 실패 전이의 구분
 - [체크포인트 SaveGame 전환](../../raw/notes/2026-09-25-checkpoint-savegame.md)

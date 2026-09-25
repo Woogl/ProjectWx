@@ -2,6 +2,7 @@
 title: "WxAI — AI 인지와 행동"
 category: topic
 sources:
+  - "raw/notes/2026-09-26-doppelganger-rule-proposal.md"
   - "raw/notes/2026-09-25-exclusive-tag-blocking.md"
   - "raw/notes/2026-09-22-current-ai.md"
   - "raw/notes/2026-09-22-current-foundation.md"
@@ -9,7 +10,7 @@ sources:
   - "raw/notes/2026-09-24-ai-brain-control-single-owner.md"
   - "raw/notes/2026-09-25-ability-data-on-ga.md"
 created: 2026-09-22
-updated: 2026-09-25
+updated: 2026-09-26
 tags: [wx, ai]
 aliases: ["WxAI"]
 confidence: medium
@@ -58,6 +59,12 @@ Blackboard의 SelfActor·HomeLocation·Master와 TargetActor·TargetDistance·Pa
 
 곱연산이 아니라 덮어쓰기인 이유는 따라 쓴 Sprint가 AI에서 입력 해제를 받지 못해 끝나지 않기 때문이다. 자기 SPD 효과를 살리면 ×1.5가 남는다. 앉은 속도는 SPD가 다루지 않아 Mirror가 직접 쓰고 종료 시 클래스 기본값으로 되돌린다. 도플갱어에 남는 Sprint의 `Ability.Sprint` 태그와 SP 소모가 속도 외에 미치는 영향은 확인하지 않았다.
 
+### 도플갱어 동작 규칙 변경안(미확정)
+
+2026-09-26 기획 문서 [도플갱어 동작 규칙 변경안](<../../../Docs/CombatDesign/도플갱어 동작 규칙 변경안.md>)은 위의 GA 복사(미러링) 방식을 버리자고 제안한다. 단차 지형에서 도플갱어가 떨어지고 떨어진 위치에서 혼자 공격하는 문제가 이유다. 제안은 등 뒤 공중 부양 추종(낙차 무시), 적 타격 발생 시 1초 재사용 대기의 공격, 캐릭터 GA가 아닌 도플갱어 전용 스킬 사용, 대상과 멀면 대상 뒤로 순간이동 후 공격이며, 캐릭터가 1초 이상 행동하지 않으면 옆으로 이동하는 기존 규칙은 유지한다.
+
+**Q-004: 도플갱어를 추종·타격 반응·전용 스킬 방식으로 바꿀 것인가?** 이 문서는 제안이며 결정자·승인 기록이 없고 코드·BT·GA_ 에셋은 바뀌지 않았다. 현재 구현은 위 미러링 계약이다. 전용 스킬, 순간이동 거리 기준, 타격 판정 기준, 기존 Skill.3 순간이동·속도 추종의 존폐와 [[combat-resources|현광의 UP 회복 보고]] ([전투 자원](../concepts/combat-resources.md))와의 관계는 원문이 정하지 않는다([제안 원자료](../../raw/notes/2026-09-26-doppelganger-rule-proposal.md)).
+
 ## 확장과 확인 범위
 
 [Blackboard 계약](../../../Plugins/WxAI/Source/WxAI/Public/WxBlackboardKeys.h), [타겟 서비스](../../../Plugins/WxAI/Source/WxAI/Private/WxBTService_UpdateTargetActor.cpp), [AIController](../../../Source/WxGame/Controller/WxAIController.cpp) 순서로 추적한다. 도플갱어 미러링은 [이동 서비스](../../../Plugins/WxAI/Source/WxAI/Private/WxBTService_MirrorMovement.cpp)와 [어빌리티 태스크](../../../Plugins/WxAI/Source/WxAI/Private/WxBTTask_MirrorAbility.cpp)에서 시작한다. 순찰·배회·어빌리티 발동 노드도 제공하지만 개별 BT 조합은 이번 조사로 보증하지 않는다. 도플갱어의 속도 추종은 2026-09-23 사용자가 인게임에서 확인했다. 번호 태그를 GA_ 에셋으로 옮긴 뒤(2026-09-25)의 도플갱어 `Skill.3` 반응과 HGTest·분신 BT는 확인하지 않았다.
@@ -66,12 +73,14 @@ Blackboard의 SelfActor·HomeLocation·Master와 TargetActor·TargetDistance·Pa
 
 - [[combat-abilities|전투 어빌리티와 이펙트]] ([전투 어빌리티와 이펙트](../concepts/combat-abilities.md))
 - [[combat-groggy|그로기]] ([그로기](../concepts/combat-groggy.md))
+- [[combat-resources|전투 자원]] ([전투 자원](../concepts/combat-resources.md))
 - [[foundation|WxCore — 공용 계약과 설정]] ([WxCore — 공용 계약과 설정](../topics/foundation.md))
 - [[game|WxGame — 게임 조립과 실행 흐름]] ([WxGame — 게임 조립과 실행 흐름](../topics/game.md))
 - [[world|WxWorld — 장치와 상호작용]] ([WxWorld — 장치와 상호작용](../topics/world.md))
 
 ## Sources
 
+- [도플갱어 동작 규칙 변경안(기획 제안)](../../raw/notes/2026-09-26-doppelganger-rule-proposal.md) — 추종·타격 반응·전용 스킬 제안과 미결정
 - [Exclusive 태그 차단과 도플갱어 발동 조건 면제](../../raw/notes/2026-09-25-exclusive-tag-blocking.md) — 효과 면제 범위와 기존 미러링 재시도 계약
 
 - [근거 1](../../raw/notes/2026-09-22-current-ai.md)
@@ -94,5 +103,7 @@ Blackboard의 SelfActor·HomeLocation·Master와 TargetActor·TargetDistance·Pa
 2026-09-25: IgnoreAbilityActivationTags의 소유자 조건 면제와 기존 MirrorAbility의 0.4초 재시도 계약을 코드와 대조했다. 새 효과의 GAS 차단 유지와 에셋 참조 재로드는 자동 검증했고, 실제 도플갱어 BT 재시도 타이밍과 네트워크는 확인하지 않았다.
 
 그 밖의 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+
+2026-09-26: 도플갱어 동작 규칙 변경안(`d707ceb`)을 기획 제안으로 수집해 미결정 Q-004로 적었다. 코드 변경이 없어 현재 미러링 설명은 그대로이며 실행 검증을 하지 않았다.
 
 </details>

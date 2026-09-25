@@ -644,3 +644,18 @@ Export-Wiki.ps1로 Saved/Wiki의 Wiki·Workflow 뷰어를 각각 64개 문서로
 ## [2026-09-26] ingest + compile — Workflow 사람 테스트 확인 범위
 
 workflow-review의 SHA-256과 사람 결과 원문을 새 원자료에 수집하고 wiki-workflow의 현재 확인 범위에 편찬했다. 실제 웹 흐름·대시보드·도식·기록 반영·터미널 이어하기·코드 리뷰·SSoT의 사람 확인을 과거 모의 실행과 구분했다. 제공자별 전수 검증이나 기존 미결 사항 해결로 확대하지 않았다. 작업 기록·접수 JSON·작업 상태는 수정하지 않았다.
+
+## [2026-09-26] refresh | 3 articles checked, 3 updated, 0 flagged, 0 retracted
+- 직전 최신화 커밋 `e96fc67` 이후 `6a6f0b1`까지 커밋 9건을 추적했다. 결과는 raw/notes/2026-09-26-refresh-commit-trace-e96fc67.md에 수집했다.
+- 이미 반영: `9472d67`·`af15cb6`(wiki-workflow). 반영 대상 아님: 주석 정리 루틴 커밋 `5a7e9ec`·`b6a0075`·`6a6f0b1`, 회의자료 문구 수정 `c07b5df`·`e40e2e6`.
+- 새로 반영: `42477f3` 체크포인트 코드 리뷰 사람 통과, `d707ceb` 도플갱어 동작 규칙 변경안(기획 제안). 생성 목록은 이 환경에 pwsh·에셋 추출 환경이 없어 스크립트를 실행하지 않았고, 추적 범위에 에셋 변경이 없어 그대로 둔다.
+
+## [2026-09-26] ingest | 도플갱어 동작 규칙 변경안(기획 제안) (raw/notes/2026-09-26-doppelganger-rule-proposal.md)
+
+## [2026-09-26] ingest | Wiki 최신화: e96fc67 이후 커밋 추적 (raw/notes/2026-09-26-refresh-commit-trace-e96fc67.md)
+
+## [2026-09-26] compile | 2 sources → 0 new articles, 3 updated (ai, world, combat-resources)
+
+ai에 도플갱어 동작 규칙 변경안을 미확정 제안 Q-004로 적고 현재 미러링 설명은 유지했다. world의 체크포인트 검증 범위에 코드 리뷰 사람 통과(체크리스트 2/5)를 반영하고 남은 실행 검증은 그대로 두었다. combat-resources에는 변경안이 UP 회복 보고를 다루지 않는다는 점과 ai 상호 링크를 추가했다. 빌드·게임 실행 검증은 하지 않았다.
+
+## [2026-09-26] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed

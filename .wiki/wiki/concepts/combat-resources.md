@@ -2,12 +2,13 @@
 title: "전투 자원과 현광의 예외"
 category: concept
 sources:
+  - "raw/notes/2026-09-26-doppelganger-rule-proposal.md"
   - "raw/notes/2026-09-22-current-resources.md"
   - "raw/notes/2026-09-22-current-combat.md"
   - "raw/notes/2026-09-22-current-damage.md"
   - "raw/notes/2026-09-25-ability-data-on-ga.md"
 created: 2026-09-22
-updated: 2026-09-25
+updated: 2026-09-26
 tags: [wx, resources]
 aliases: []
 confidence: medium
@@ -28,7 +29,7 @@ summary: "공통 자원 기획·현광 구현 보고·현재 속성 처리에는
 
 ## 현광의 보고된 예외
 
-[2026-09-19 회의자료](<../../../Docs/Meeting/2026-09-19 회의자료.md>)는 궁극기 1 비용 MP 3, 궁극기 2 비용 UP 100을 보고한다. 분신 협공마다 MP 1, 도플갱어가 있을 때 적에게 피해를 줄 때마다 UP 10 회복이라고 설명한다. 이는 회의자료의 구현 보고이며 GA_ 에셋 등에서 추출한 값은 아니다.
+[2026-09-19 회의자료](<../../../Docs/Meeting/2026-09-19 회의자료.md>)는 궁극기 1 비용 MP 3, 궁극기 2 비용 UP 100을 보고한다. 분신 협공마다 MP 1, 도플갱어가 있을 때 적에게 피해를 줄 때마다 UP 10 회복이라고 설명한다. 이는 회의자료의 구현 보고이며 GA_ 에셋 등에서 추출한 값은 아니다. 2026-09-26 도플갱어 동작 규칙 변경안(미확정, [[ai|WxAI]]의 Q-004)은 이 UP 회복을 다루지 않는다.
 
 **Q-003: 현광 자원 예외를 공통화할 것인가?** 같은 자료는 고유 자원·비용 예외가 늘면 어빌리티 테이블에서 비용을 빼고 BP 스크립팅으로 전환하는 재설계를 논의하자고 제안한다. 제안만으로 공통 규칙 변경을 확정하지 않는다. 2026-09-25의 `DT_Ability` 제거는 데이터 배치 규칙에 따른 것이고 비용은 GA_ 프로퍼티로 남았으므로 이 제안의 답이 아니다. 기존 미결정을 유지하며 결정자·답은 아직 확인되지 않았다.
 
@@ -38,6 +39,7 @@ HP 회복 아이템처럼 MP/UP와 무관한 요구에 현광의 예외 논의�
 
 ## 관련 문서
 
+- [[ai|WxAI — AI 인지와 행동]] ([WxAI — AI 인지와 행동](../topics/ai.md))
 - [[combat|WxCombat — 전투 시스템]] ([WxCombat — 전투 시스템](../topics/combat.md))
 - [[combat-abilities|전투 어빌리티와 이펙트]] ([전투 어빌리티와 이펙트](../concepts/combat-abilities.md))
 - [[combat-damage|피해 처리와 전투 연출]] ([피해 처리와 전투 연출](../concepts/combat-damage.md))
@@ -45,6 +47,7 @@ HP 회복 아이템처럼 MP/UP와 무관한 요구에 현광의 예외 논의�
 
 ## Sources
 
+- [도플갱어 동작 규칙 변경안(기획 제안)](../../raw/notes/2026-09-26-doppelganger-rule-proposal.md) — UP 회복 보고와 무관한 미확정 제안
 - [근거 1](../../raw/notes/2026-09-22-current-resources.md)
 - [근거 2](../../raw/notes/2026-09-22-current-combat.md)
 - [근거 3](../../raw/notes/2026-09-22-current-damage.md)

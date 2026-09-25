@@ -121,3 +121,5 @@ Last updated: 2026-09-26
 | [Workflow 기록 작성 규칙 링크와 tasks 안내 문서 삭제](2026-09-26-workflow-tasks-guide-removed.md) | 사용자 요청으로 대시보드 머리의 기록 작성 규칙 링크를 없애고, 그 링크만 가리키던 기록 폴더 안내 문서 tasks/index.md를 삭제했다. 규칙은 작업 절차 한 장에만 있다. | wx, workflow | 2026-09-26 |
 | [Workflow 웹 새 작업·이어하기와 터미널 창 실행](2026-09-26-workflow-web-tasks.md) | 대시보드에서 새 작업을 시작하고 질문 답변·구현 승인·추가 요청·테스트 결과 전달·터미널 이어하기로 기존 작업을 잇는다. 정하기는 읽기 전용, 구현·수정은 사용자 결정으로 모든 명령 허용이며 모든 AI 처리는 터미널 창에서 보이며 실행된다. | wx, workflow | 2026-09-26 |
 | [Workflow 사람 테스트 확인 범위](2026-09-26-workflow-human-verification.md) | 이우성의 사람 항목 7개 통과와 실제 웹 흐름·화면 확인 범위 및 검증 한계. | wx, workflow, verification | 2026-09-26 |
+| [도플갱어 동작 규칙 변경안(기획 제안)](2026-09-26-doppelganger-rule-proposal.md) | d707ceb에 추가된 기획 문서가 도플갱어를 GA 복사 방식에서 추종·타격 반응·전용 스킬 방식으로 바꾸자고 제안한다. 제안 문서이며 구현·확정 결정이 아니다. | wx, ai, combat, design-proposal | 2026-09-26 |
+| [Wiki 최신화: e96fc67 이후 커밋 추적](2026-09-26-refresh-commit-trace-e96fc67.md) | 직전 Wiki 최신화 커밋 e96fc67 이후 6a6f0b1까지 9건을 기사와 대조했다. 새로 반영할 것은 체크포인트 코드 리뷰의 사람 통과와 도플갱어 동작 규칙 변경안(제안) 두 가지였다. | wx, refresh, world, ai | 2026-09-26 |
