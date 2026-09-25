@@ -373,3 +373,7 @@ Quest·QuestObjective 이전의 사용자 결정과 구현 계약을 원자료�
 - 2026-09-25: 사용자 결정으로 체크포인트 슬롯을 WxCheckpoint 하나로 통일하고 world의 PIE 분리 설명을 갱신했다. 세분화는 추후 진행한다.
 
 - 2026-09-25: ST_CheckPoint 리세이브 후 구조체 리다이렉트 두 항목을 제거하고 별도 프로세스의 로드·StateTree 컴파일·저장 성공을 원자료와 world에 반영했다.
+
+## [2026-09-25] ingest + compile | 쿨다운 GE 통합
+
+사용자 결정(쿨다운 클래스 통합, CooldownTags 컨테이너 유지, SharesCooldownGroup 미도입, Pattern 번호 태그 유지)과 구현·검증 관찰을 raw/notes/2026-09-25-cooldown-single-ge.md에 수집하고 combat-abilities의 타입과 GA_·비용과 쿨다운·검증 절에 반영했다. 설계 때 놓친 엔진 순정 쿨다운 태그 규칙과 그 보정을 적었다. 어빌리티 목록은 생성기에 CooldownTags 칸을 더해 다시 만들었다. 빌드·데이터 검증 커맨드릿 통과, 인게임 미검증.

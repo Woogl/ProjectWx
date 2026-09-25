@@ -26,7 +26,7 @@ struct FGameplayEffectSpec;
  * 무는 대상은 스펙의 기본 인스턴스다 — 엔진 발동 경로(InternalTryActivateAbility)처럼 인스턴스로 판정한다.
  *
  * 쿨다운은 어빌리티의 GetCooldownTags() 로 식별하고, 쿨다운 중에는 월드 타이머로 매 프레임 남은 시간·충전 수를 갱신한다.
- * 쿨다운 GE 는 소모한 충전 하나를 스택 하나로 쌓으므로, 남은 시간·진행률은 지금 회복 중인 충전 1개 기준이 된다.
+ * 소모한 충전 하나가 쿨다운 GE 하나이고 충전은 차례로 돌아오므로, 남은 시간·진행률은 가장 먼저 끝나는 쿨다운(다음 충전) 기준이다.
  *
  * CanActivate·CheckCost 는 ASC 태그·발동 조건 이벤트/비용 어트리뷰트/쿨다운 적용·충전 수 변화 시점에 재평가된다.
  * 태그 변경과 발동 조건 이벤트는 한 프레임 분을 모아 다음 월드 타이머 틱에 한 번 판정한다.
@@ -155,8 +155,9 @@ private:
 	void StopCooldownTimer();
 
 	/**
-	 * 쿨다운 태그를 부여하는 활성 GE 하나를 찾아 소모된 충전 수(스택 수)를 반환하고, 다음 충전까지의 잔여·회복 시간을 낸다.
-	 * 순정 조회 API 는 스택 수를 함께 주지 않는 데다 호출마다 배열을 새로 할당하므로, 매 프레임 도는 이 경로에서는 컨테이너를 직접 한 번만 훑는다.
+	 * 쿨다운 태그를 부여하는 활성 GE 수(소모된 충전 수)를 반환하고, 다음 충전까지의 잔여·회복 시간을 낸다.
+	 * 순정 조회 API 는 호출마다 배열을 새로 할당하므로, 매 프레임 도는 이 경로에서는 컨테이너를 직접 한 번만 훑는다.
+	 * 뒤 쿨다운은 앞 쿨다운을 기다린 시간까지 지속시간에 품고 있어, 회복 시간은 GE 지속시간이 아니라 충전 하나의 회복 시간이다.
 	 */
 	int32 QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining, float& OutDuration) const;
 
@@ -180,8 +181,11 @@ private:
 	/** 이 슬롯이 가리키는 어빌리티 에셋 태그. Asset Tags 가 이것을 모두 포함하는(HasAll) 어빌리티를 문다. */
 	FGameplayTagContainer AbilityTags;
 
-	/** 어빌리티의 쿨다운 GE 가 부여하는 태그. 비어 있으면 쿨다운이 없는 어빌리티다. */
+	/** 어빌리티의 쿨다운 태그. 비어 있으면 쿨다운이 없는 어빌리티다. */
 	FGameplayTagContainer CachedCooldownTags;
+
+	/** 충전 하나의 회복 시간. 진행률의 분모다. */
+	float CachedCooldownTime = 0.f;
 
 	/** 비용 GE가 깎는 자원 어트리뷰트와 그 최대치. 값 변경 델리게이트 등록/해제용 */
 	FGameplayAttribute CostAttribute;

@@ -130,9 +130,9 @@ EDataValidationResult UWxAbilitySet::IsDataValid(FDataValidationContext& Context
 					*Ability.GetClass()->GetName(), *Other.GetClass()->GetName(), *Ability.ActivationInputAction->GetName())));
 			}
 
-			if (Ability.SharesCooldownGroup(Other) && (Ability.GetCooldownTime() != Other.GetCooldownTime() || Ability.GetMaxRecharges() != Other.GetMaxRecharges()))
+			if (Ability.GetCooldownTags()->HasAnyExact(*Other.GetCooldownTags()) && (Ability.GetCooldownTime() != Other.GetCooldownTime() || Ability.GetMaxRecharges() != Other.GetMaxRecharges()))
 			{
-				Context.AddWarning(FText::FromString(FString::Printf(TEXT("%s와 %s가 같은 쿨다운 GE를 쓰는데 쿨다운 시간이나 충전 수가 다르다."),
+				Context.AddWarning(FText::FromString(FString::Printf(TEXT("%s와 %s가 같은 쿨다운 태그를 쓰는데 쿨다운 시간이나 충전 수가 다르다."),
 					*Ability.GetClass()->GetName(), *Other.GetClass()->GetName())));
 			}
 		}

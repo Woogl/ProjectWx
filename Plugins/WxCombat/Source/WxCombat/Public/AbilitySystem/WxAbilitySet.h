@@ -29,7 +29,7 @@ public:
 	/**
 	 * 어빌리티 사이의 규칙을 이 세트 안에서만 본다. 어빌리티 하나의 규칙은 GA_가 본다.
 	 * 풀리지 않는 속성 행은 오류다.
-	 * 빈 칸, 같은 어빌리티 중복, 같은 입력의 어빌리티끼리 겹치는 조건, 같은 쿨다운 GE의 다른 값은 경고다.
+	 * 빈 칸, 같은 어빌리티 중복, 같은 입력의 어빌리티끼리 겹치는 조건, 같은 쿨다운 태그의 다른 값은 경고다.
 	 */
 	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 #endif

@@ -4,96 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "GameplayEffect.h"
-#include "GameplayModMagnitudeCalculation.h"
 #include "WxEffect_Cooldown.generated.h"
 
-struct FGameplayTag;
-
 /**
- * 충전형 쿨다운의 베이스.
- * 지속시간은 UWxMMC_CooldownDuration이 소스 어빌리티의 CooldownTime에서 읽으므로, 엔진 순정 ApplyCooldown/쿨다운 조회 API를 그대로 쓴다.
+ * 모든 어빌리티가 함께 쓰는 쿨다운 GE. UWxAbilityBase의 CooldownGameplayEffectClass 기본값이다.
+ * 쿨다운의 식별자는 어빌리티의 CooldownTags이고, 어빌리티가 적용할 때 스펙에 붙인다. 같은 태그를 고른 어빌리티끼리 쿨다운을 나눠 쓴다.
  *
- * 소모한 충전 하나가 스택 하나다.
- * 스택이 더 쌓여도 진행 중인 회복은 건드리지 않고(NeverRefresh), 만료마다 스택 하나만 돌려주며 다음 회복을 시작한다(RemoveSingleStackAndRefreshDuration) — 충전이 직렬로 돌아온다.
+ * 엔진은 스택을 GE 클래스 단위로 합치므로 쌓지 않는다. 소모한 충전 하나가 이 GE 하나다.
  * 충전 상한은 GE가 아니라 어빌리티의 MaxRecharges이며 UWxAbilityBase::CheckCooldown이 판정한다.
- *
- * 엔진은 스택을 GE 클래스 단위로 병합한다.
- * 그래서 쿨다운을 따로 굴리는 단위마다 파생 클래스를 하나씩 두고, 어빌리티가 CooldownGameplayEffectClass로 그중 하나를 지정한다. 같은 GE를 지정한 어빌리티끼리 쿨다운을 나눠 쓴다.
- * 파생 클래스가 부여하는 태그가 순정 쿨다운 API의 식별자다.
+ * 지속시간은 SetByCaller.Duration이며 UWxAbilityBase::ApplyCooldown이 채운다.
  */
-UCLASS(Abstract)
+UCLASS()
 class WXCOMBAT_API UWxEffect_Cooldown : public UGameplayEffect
 {
 	GENERATED_BODY()
 
 public:
 	UWxEffect_Cooldown();
-
-protected:
-	void GrantCooldownTag(const FGameplayTag& CooldownTag);
-};
-
-UCLASS()
-class WXCOMBAT_API UWxMMC_CooldownDuration : public UGameplayModMagnitudeCalculation
-{
-	GENERATED_BODY()
-
-public:
-	virtual float CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const override;
-};
-
-/** 이름은 쿨다운을 굴리는 단위(어빌리티 식별 태그 Ability.X 또는 슬롯)를 따른다. */
-
-UCLASS()
-class WXCOMBAT_API UWxEffect_Cooldown_Dodge : public UWxEffect_Cooldown
-{
-	GENERATED_BODY()
-
-public:
-	UWxEffect_Cooldown_Dodge();
-};
-
-UCLASS()
-class WXCOMBAT_API UWxEffect_Cooldown_Skill_1 : public UWxEffect_Cooldown
-{
-	GENERATED_BODY()
-
-public:
-	UWxEffect_Cooldown_Skill_1();
-};
-
-UCLASS()
-class WXCOMBAT_API UWxEffect_Cooldown_Skill_2 : public UWxEffect_Cooldown
-{
-	GENERATED_BODY()
-
-public:
-	UWxEffect_Cooldown_Skill_2();
-};
-
-UCLASS()
-class WXCOMBAT_API UWxEffect_Cooldown_Skill_3 : public UWxEffect_Cooldown
-{
-	GENERATED_BODY()
-
-public:
-	UWxEffect_Cooldown_Skill_3();
-};
-
-UCLASS()
-class WXCOMBAT_API UWxEffect_Cooldown_Skill_4 : public UWxEffect_Cooldown
-{
-	GENERATED_BODY()
-
-public:
-	UWxEffect_Cooldown_Skill_4();
-};
-
-UCLASS()
-class WXCOMBAT_API UWxEffect_Cooldown_Ultimate : public UWxEffect_Cooldown
-{
-	GENERATED_BODY()
-
-public:
-	UWxEffect_Cooldown_Ultimate();
 };

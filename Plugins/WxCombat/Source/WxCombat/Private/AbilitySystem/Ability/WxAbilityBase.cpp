@@ -23,9 +23,9 @@ UWxAbilityBase::UWxAbilityBase()
 	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 
-	// 쿨다운 GE는 각 어빌리티가 지정한다 — 엔진이 스택을 GE 클래스 단위로 병합해서, 여기에 공용 기본값을 두면 어빌리티끼리 쿨다운이 섞인다.
-	// 코스트는 Instant라 병합될 것이 없어 공용 GE 하나로 충분하다.
+	// 쿨다운 GE도 공용이다 — 쌓지 않고 어빌리티의 CooldownTags로 구분하므로 어빌리티끼리 섞이지 않는다.
 	CostGameplayEffectClass = UWxEffect_Cost::StaticClass();
+	CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
 }
 
 FText UWxAbilityBase::GetTitle() const
@@ -388,12 +388,17 @@ UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 
 bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
+	// 쿨다운 태그가 없으면 쿨다운도 없다. 순정 판정은 이때 공용 쿨다운 GE가 지정돼 있다고 경고만 낸다.
+	if (CooldownTags.IsEmpty())
+	{
+		return true;
+	}
+
 	// 순정 판정은 쿨다운 태그가 붙어 있기만 하면 막는다.
 	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	const FGameplayTagContainer* CooldownTags = GetCooldownTags();
-	if (ASC && CooldownTags && !CooldownTags->IsEmpty())
+	if (ASC)
 	{
-		const FGameplayEffectQuery CooldownQuery = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(*CooldownTags);
+		const FGameplayEffectQuery CooldownQuery = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldownTags);
 		if (ASC->GetAggregatedStackCount(CooldownQuery) < GetMaxRecharges())
 		{
 			return true;
@@ -402,6 +407,41 @@ bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, cons
 
 	// 실패 사유 태그를 채워 NotifyAbilityFailed 파이프라인에 전달하는 것까지 순정에 맡긴다.
 	return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
+}
+
+const FGameplayTagContainer* UWxAbilityBase::GetCooldownTags() const
+{
+	return &CooldownTags;
+}
+
+void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	const UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
+	if (!CooldownGE)
+	{
+		return;
+	}
+
+	const FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, CooldownGE->GetClass(), GetAbilityLevel(Handle, ActorInfo));
+	if (!SpecHandle.IsValid())
+	{
+		return;
+	}
+
+	// 같은 쿨다운 태그의 쿨다운이 남아 있으면 그 끝부터 회복을 시작해 충전이 차례로 돌아온다.
+	// 엔진은 GE를 활성 목록에 넣은 뒤 지속시간을 다시 계산하므로, 목록을 보는 계산은 적용 전에 끝내 값으로 넘긴다.
+	float QueuedTime = 0.f;
+	if (const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
+	{
+		for (const float TimeRemaining : ASC->GetActiveEffectsTimeRemaining(FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldownTags)))
+		{
+			QueuedTime = FMath::Max(QueuedTime, TimeRemaining);
+		}
+	}
+
+	SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, QueuedTime + GetCooldownTime());
+	SpecHandle.Data->DynamicGrantedTags.AppendTags(CooldownTags);
+	ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 }
 
 bool UWxAbilityBase::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
@@ -433,9 +473,9 @@ EDataValidationResult UWxAbilityBase::IsDataValid(FDataValidationContext& Contex
 	const uint32 NumErrors = Context.GetNumErrors();
 
 	// 쿨다운 태그가 없으면 순정 판정이 통과시켜 쿨다운이 조용히 사라진다.
-	if (CooldownTime > 0.f && !(CooldownGameplayEffectClass && CooldownGameplayEffectClass->IsChildOf<UWxEffect_Cooldown>()))
+	if (CooldownTime > 0.f && CooldownTags.IsEmpty())
 	{
-		Context.AddError(INVTEXT("쿨다운 시간이 있는데 쿨다운 GE가 UWxEffect_Cooldown 파생이 아니라 쿨다운이 걸리지 않는다."));
+		Context.AddError(INVTEXT("쿨다운 시간이 있는데 쿨다운 태그가 없어 쿨다운이 걸리지 않는다."));
 	}
 
 	return CombineDataValidationResults(Result, Context.GetNumErrors() > NumErrors ? EDataValidationResult::Invalid : EDataValidationResult::Valid);
@@ -445,10 +485,5 @@ bool UWxAbilityBase::IsActivationExclusive(const UWxAbilityBase& Other) const
 {
 	// 요구한 태그를 가지면 그 태그나 부모를 막는 쪽은 발동할 수 없다.
 	return ActivationRequiredTags.HasAny(Other.ActivationBlockedTags) || Other.ActivationRequiredTags.HasAny(ActivationBlockedTags);
-}
-
-bool UWxAbilityBase::SharesCooldownGroup(const UWxAbilityBase& Other) const
-{
-	return CooldownGameplayEffectClass && CooldownGameplayEffectClass == Other.CooldownGameplayEffectClass;
 }
 #endif

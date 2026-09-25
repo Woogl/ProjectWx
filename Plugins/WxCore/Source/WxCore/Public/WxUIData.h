@@ -32,4 +32,7 @@ public:
 
 	/** 충전 개념이 없는 구현체는 기본값 1. */
 	virtual int32 GetMaxRecharges() const;
+
+	/** 충전 하나의 회복 시간(초). 쿨다운이 없는 구현체는 기본값 0. */
+	virtual float GetCooldownTime() const;
 };

@@ -74,14 +74,11 @@ public:
 	static const FName LandingSectionName;
 
 #if WITH_EDITOR
-	/** 쿨다운 시간에 쿨다운 GE가 있는지 본다. GA_를 저장할 때 엔진이 CDO에 대고 부른다. */
+	/** 쿨다운 시간에 쿨다운 태그가 있는지 본다. GA_를 저장할 때 엔진이 CDO에 대고 부른다. */
 	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
 
 	/** 같은 입력을 쓰는 두 어빌리티가 함께 발동 조건을 만족할 수 없는지. 한쪽이 요구하는 태그를 다른 쪽이 막으면 배타적이다. 엔진이 태그 조건을 protected로 두어 판정을 여기서 한다. */
 	bool IsActivationExclusive(const UWxAbilityBase& Other) const;
-
-	/** 같은 쿨다운 GE를 쓰는지. 엔진이 쿨다운 GE를 protected로 두어 판정을 여기서 한다. */
-	bool SharesCooldownGroup(const UWxAbilityBase& Other) const;
 #endif
 
 	/** AI·이벤트로만 발동하면 비운다. 같은 입력의 어빌리티가 여럿이면 세트 순서대로 시도해 처음 성공한 것을 쓴다. */
@@ -113,10 +110,8 @@ public:
 	virtual FText GetDescription() const override;
 	virtual TSoftObjectPtr<UObject> GetIcon() const override;
 	virtual int32 GetMaxRecharges() const override;
+	virtual float GetCooldownTime() const override;
 	//~ End IWxUIData
-
-	/** 충전 1개의 회복 시간(초). */
-	float GetCooldownTime() const;
 
 	/** 변형은 섹션으로 나눈다. */
 	UAnimMontage* GetMontage() const;
@@ -148,11 +143,17 @@ public:
 
 	virtual bool CanBeCanceled() const override;
 
-	/** UWxEffect_Cooldown 파생 GE는 쿨다운 시간이 없으면 nullptr — 호출자들이 이것을 "쿨다운 없음" 게이트로 쓴다. */
+	/** UWxEffect_Cooldown은 쿨다운 시간이 없으면 nullptr — 호출자들이 이것을 "쿨다운 없음" 게이트로 쓴다. */
 	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
 
 	/** 남은 충전이 있으면 쿨다운 태그가 붙어 있어도 통과시킨다. (MaxRecharges) */
 	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+
+	/** 쿨다운 GE가 아니라 어빌리티의 CooldownTags가 쿨다운의 식별자다. */
+	virtual const FGameplayTagContainer* GetCooldownTags() const override;
+
+	/** 공용 쿨다운 GE의 스펙에 CooldownTags를 붙여 적용한다. */
+	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 	/** 소유자에게 Effect.IgnoreCosts가 있으면 무조건 통과한다. */
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
@@ -191,9 +192,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TObjectPtr<UAnimMontage> AbilityMontage;
 
-	/** 0 이하이면 쿨다운 미적용. 쿨다운 GE(CooldownGameplayEffectClass)는 UWxEffect_Cooldown 파생이어야 한다. 같은 GE를 쓰는 어빌리티끼리 쿨다운을 나눠 쓴다. */
+	/** 0 이하이면 쿨다운 미적용. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cooldown")
 	float CooldownTime = 0.f;
+
+	/** 쿨다운의 식별자. 같은 태그를 고른 어빌리티끼리 쿨다운을 나눠 쓴다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cooldown", meta = (Categories = "Cooldown"))
+	FGameplayTagContainer CooldownTags;
 
 	/** 1이면 단일 쿨다운 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cooldown")

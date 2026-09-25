@@ -9,7 +9,7 @@ UWxEffect_IgnoreCooldowns::UWxEffect_IgnoreCooldowns()
 {
 	DurationPolicy = EGameplayEffectDurationType::Infinite;
 
-	// EffectDefinition 쿼리는 CDO 정확 일치라 어빌리티별 파생 쿨다운 GE를 놓친다. 부여 태그의 부모로 한 번에 잡는다.
+	// 공용 쿨다운 GE가 부모 태그를 부여하므로 부모 태그로 한 번에 잡는다.
 	const FGameplayEffectQuery CooldownQuery = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(FGameplayTagContainer(WxGameplayTags::Cooldown));
 
 	URemoveOtherGameplayEffectComponent* RemoveComp = CreateDefaultSubobject<URemoveOtherGameplayEffectComponent>(TEXT("RemoveCooldowns"));

@@ -10,6 +10,8 @@
 
 ## 작업 인계
 
+- [쿨다운 GE 통합](cooldown-unification.md)
+
 - [SpawnerLibrary 제거](spawner-library-removal.md)
 
 - [체크포인트 SaveGame 전환](checkpoint-savegame.md)

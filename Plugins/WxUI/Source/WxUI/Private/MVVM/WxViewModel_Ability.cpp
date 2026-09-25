@@ -86,12 +86,14 @@ void UWxViewModel_Ability::HandleCooldownTimer()
 int32 UWxViewModel_Ability::QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining, float& OutDuration) const
 {
 	OutRemaining = 0.f;
-	OutDuration = 0.f;
+	OutDuration = CachedCooldownTime;
 
+	int32 ConsumedCharges = 0;
 	for (auto It = ASC.GetActiveGameplayEffects().CreateConstIterator(); It; ++It)
 	{
+		// 쿨다운 태그는 어빌리티가 공용 쿨다운 GE의 스펙에 붙이는 동적 태그다.
 		const FActiveGameplayEffect& ActiveGE = *It;
-		if (!ActiveGE.Spec.Def || !ActiveGE.Spec.Def->GetGrantedTags().HasAny(CachedCooldownTags))
+		if (!ActiveGE.Spec.DynamicGrantedTags.HasAny(CachedCooldownTags))
 		{
 			continue;
 		}
@@ -104,12 +106,12 @@ int32 UWxViewModel_Ability::QueryCooldownStacks(const UAbilitySystemComponent& A
 
 		// 회복 시점이 지나도 제거 복제가 올 때까지는 소모된 상태 그대로 둔다.
 		// 발동 판정도 같은 복제 값을 보므로, 여기서 미리 돌려주면 표시만 앞서가 "게이지는 찼는데 안 나가는" 구간이 생긴다.
-		OutRemaining = FMath::Max((ActiveGE.StartWorldTime + Duration) - WorldTime, 0.f);
-		OutDuration = Duration;
-		return ActiveGE.Spec.GetStackCount();
+		const float Remaining = FMath::Max((ActiveGE.StartWorldTime + Duration) - WorldTime, 0.f);
+		OutRemaining = ConsumedCharges == 0 ? Remaining : FMath::Min(OutRemaining, Remaining);
+		++ConsumedCharges;
 	}
 
-	return 0;
+	return ConsumedCharges;
 }
 
 void UWxViewModel_Ability::Deinitialize()
@@ -136,6 +138,7 @@ void UWxViewModel_Ability::Deinitialize()
 	CachedAbility.Reset();
 	AbilityTags.Reset();
 	CachedCooldownTags.Reset();
+	CachedCooldownTime = 0.f;
 
 	Super::Deinitialize();
 	if (!HasAnyFlags(RF_BeginDestroyed))
@@ -214,6 +217,7 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 
 	CachedAbility = MatchedAbility;
 	CachedCooldownTags.Reset();
+	CachedCooldownTime = 0.f;
 	SetCooldownDuration(0.f);
 	SetCooldownRemaining(0.f);
 	SetCooldownPercent(0.f);
@@ -239,6 +243,7 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 		SetTitle(UIData->GetTitle());
 		SetDescription(UIData->GetDescription());
 		NewMaxRecharges = UIData->GetMaxRecharges();
+		CachedCooldownTime = UIData->GetCooldownTime();
 
 		// 전투 중 동기 로드 히치를 피한다.
 		RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Ability, Icon), UIData->GetIcon());
@@ -415,7 +420,7 @@ void UWxViewModel_Ability::ApplyLoadedImage(FName FieldName, UObject* LoadedImag
 
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
 {
-	if (CachedCooldownTags.IsEmpty() || !SpecApplied.Def || !SpecApplied.Def->GetGrantedTags().HasAny(CachedCooldownTags))
+	if (CachedCooldownTags.IsEmpty() || !SpecApplied.DynamicGrantedTags.HasAny(CachedCooldownTags))
 	{
 		return;
 	}
@@ -495,7 +500,7 @@ bool UWxViewModel_Ability::UpdateCooldownState()
 	SetIsOnCooldown(true);
 	SetCooldownDuration(ChargeDuration);
 	SetCooldownRemaining(ChargeRemaining);
-	SetCooldownPercent(ChargeRemaining / ChargeDuration);
+	SetCooldownPercent(ChargeDuration > 0.f ? ChargeRemaining / ChargeDuration : 0.f);
 
 	// 충전 회복은 별도 이벤트가 없다. 남은 시간과 달리 발동 가능 여부는 충전 수가 실제로 바뀔 때만 달라지므로 그때만 재평가한다.
 	const int32 NewCharges = FMath::Max(0, MaxRecharges - ConsumedCharges);
