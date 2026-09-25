@@ -2,6 +2,8 @@
 title: "WxGame — 게임 조립과 실행 흐름"
 category: topic
 sources:
+  - "raw/notes/2026-09-26-module-review-contracts.md"
+  - "raw/notes/2026-09-25-runtime-lifecycle-review.md"
   - "raw/notes/2026-09-25-checkpoint-single-slot.md"
   - "raw/notes/2026-09-25-checkpoint-savegame.md"
   - "raw/notes/2026-09-22-current-game.md"
@@ -12,12 +14,12 @@ sources:
   - "raw/notes/2026-09-24-ragdoll-physics-asset.md"
   - "raw/notes/2026-09-25-ability-montage-section-model.md"
 created: 2026-09-22
-updated: 2026-09-25
+updated: 2026-09-26
 tags: [wx, game]
 aliases: ["WxGame"]
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "WxGame은 캐릭터·컨트롤러·GameState에 도메인 기능을 배치하고 새 게임·부활·표시 연결을 조립한다."
 ---
 
@@ -46,7 +48,7 @@ ASC는 PlayerState가 아니라 캐릭터의 기본 서브오브젝트다. 사�
 
 래그돌은 캐릭터 메시의 PhysicsAsset으로 시뮬레이션한다. 마네킹 메시 네 개(`SKM_Manny`·`SKM_Manny_Simple`·`SKM_Quinn`·`SKM_Quinn_Simple`)는 모두 `/Game/NiagaraExamples/Gallery/SkeletalMesh/Mannequins/Rigs/PA_Mannequin`을 쓴다. `/Game/Mannequins/Rigs/PA_Mannequin`은 쓰지 않는다. 기본 자세부터 겹치는 바디 쌍(pelvis–spine_03, spine_05–upperarm_l)의 충돌이 켜져 있어 래그돌이 떨리기 때문이다. 정본 PA가 예제 폴더에 있으므로 예제 콘텐츠를 지우면 PA 참조가 끊긴다.
 
-**알려진 미수정 문제 (2026-09-23 리뷰)**: 레벨 스트리밍으로 숨겼다 다시 보이면 `PostInitializeComponents`가 다시 실행된다(UE 5.8 `Actor.cpp` RouteEndPlay·`Level.cpp` 재초기화). 그러면 사망·래그돌 구독이 중복되어, 사망 시 `OnDeath`와 보상 지급이 두 번 일어날 수 있다.
+동일 객체의 재등록에서는 ASC가 누락된 어빌리티 스펙만 보충하고 최초 속성·GE 초기화는 반복하지 않는다. 사망·래그돌·SPD 구독은 중복을 막으며, `bDeathHandled`와 `bDeathNotified`로 사망 처리·처치 통지를 객체 수명당 한 번으로 제한한다. 이전 리뷰의 어빌리티 소실·구독 누적은 현재 코드에서 수정 경로를 확인했다(`ad0db6de0`, 2026-09-26 정적 검토). 실제 레벨 가시성 왕복의 공격·연출과 사람 코드 리뷰는 [작업 기록](../../../.agents/workflow/tasks/module_review_WxGame.md)에서 여전히 대기다([근거와 검증 범위](../../raw/notes/2026-09-26-module-review-contracts.md)).
 
 ## 보스전 상태
 
@@ -65,7 +67,7 @@ ASC는 PlayerState가 아니라 캐릭터의 기본 서브오브젝트다. 사�
 
 ## 새 게임
 
-`UWxGameFlowSubsystem::RequestNewGame`은 Standalone·유효한 캐릭터/레벨 선택·중복 요청 조건을 검사한다. 체크포인트 SaveGame 슬롯을 삭제하고, 성공하면 선택을 저장한 뒤 레벨을 연다. 삭제 실패 시 상태 문구를 표시하고 이동하지 않는다. GameMode는 목적지 월드에서 선택 Pawn 클래스를 사용한다. 다른 월드가 열리거나 이동이 실패하면 선택을 정리한다.
+`UWxGameFlowSubsystem::RequestNewGame`은 Standalone·캐릭터/레벨 선택 경로의 null 여부·중복 요청 조건을 검사한다. 체크포인트 삭제 전에 선택 클래스를 동기 로드하고 Pawn 상속과 Abstract·Deprecated·NewerVersionExists 플래그를 검사한다. 실패하면 상태 문구를 표시하고 저장을 유지한다. 검증을 통과하면 체크포인트 SaveGame 슬롯을 삭제하고, 성공한 경우 선택 클래스를 `UPROPERTY TSubclassOf<APawn>`으로 유지한 뒤 레벨을 연다. 삭제 실패 시 이동하지 않는다. GameMode는 목적지 월드에서 유지된 선택 클래스를 사용한다. 다른 월드가 열리거나 이동이 실패하면 선택을 정리한다. 실제 목적지 진입의 사람 테스트는 아직 대기다.
 
 목적지 로드 뒤 카메라 위치를 갱신하고 레벨 스트리밍 완료를 기다려 첫 틱 전에 지형을 준비한다. 선택 목록은 `WxFrontEndDeveloperSettings`와 DefaultGame.ini에 있다. 파일 경로 등록만으로 모든 맵의 실제 로딩을 검증한 것은 아니다.
 
@@ -94,6 +96,9 @@ ASC는 PlayerState가 아니라 캐릭터의 기본 서브오브젝트다. 사�
 
 ## Sources
 
+- [재등록 수정과 콤보 배열 계약 확인](../../raw/notes/2026-09-26-module-review-contracts.md) — 현재 수정 경로의 정적 대조, 기존 사람 테스트 대기 보존
+
+- [캐릭터·화면 수명 정적 재검토](../../raw/notes/2026-09-25-runtime-lifecycle-review.md) — 어빌리티 소실과 구독 누적의 조건, 새 게임 선택 검사 범위
 - [체크포인트 SaveGame 전환](../../raw/notes/2026-09-25-checkpoint-savegame.md) — 부활 조회·새 게임 초기화와 저장 범위
 - [체크포인트 단일 슬롯 결정](../../raw/notes/2026-09-25-checkpoint-single-slot.md) — PIE·일반 플레이의 공용 슬롯
 - [근거 1](../../raw/notes/2026-09-22-current-game.md)
@@ -110,5 +115,7 @@ ASC는 PlayerState가 아니라 캐릭터의 기본 서브오브젝트다. 사�
 2026-09-22 현재 작업 트리 정적 조사·재편찬. 기준 HEAD `fe8c943f49401326e1007fedd78a937c9e66db47`에 미커밋 문서·도구 변경을 포함하며, 정확한 입력은 출처의 파일별 SHA-256과 발췌 범위로 식별한다. 문서의 `confidence: medium`은 제한된 정적 근거에 대한 표시다. `verified`는 순정 규칙에 따른 편찬일이다.
 
 빌드·게임 실행·멀티플레이·BP/WBP·DataTable·BT/StateTree 바이너리 내부는 이번에 검증하지 않았다. 2026-09-23에 보스전 상태·식별 태그·재초기화 문제(커밋 `4352e9100`, UE 5.8 소스 확인)를 편찬해 추가했다. 2026-09-24에 NameplateManager 부착과 `LockOnTargetQuery` 연결(커밋 `aaf557a09`)을 HEAD `ca84c9aac` 코드와 대조해 추가했다. 같은 날 래그돌 PhysicsAsset 절을 에셋 값(메시의 PhysicsAsset, PA 바디·컨스트레인트·충돌 비활성 표)과 대조해 추가했다(인게임 미검증). 2026-09-25에 시체 수명(`CorpseLifeSpan`·`HandleDeath`)과 착지 섹션 탐색(`JumpToLandingSection`)을 HEAD `d63ce0630` 코드와 대조해 추가했고, `BP_Minion` 값과 착지·시체 제거의 인게임 동작은 원자료 기록에만 기대며 직접 검증하지 않았다. 기획·회의 보고·확정 판단·코드 관찰을 서로 대체하지 않는다.
+
+2026-09-26: ad0db6de0 작업 트리의 재등록·태그 구독·사망 일회성·새 게임 선택 검사만 정적으로 재대조해 반영했다. 과거 실행 결과와 미완료 사람 검증은 작업 기록에 보존한다.
 
 </details>

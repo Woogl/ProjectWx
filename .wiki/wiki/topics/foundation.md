@@ -2,6 +2,7 @@
 title: "WxCore — 공용 계약과 설정"
 category: topic
 sources:
+  - "raw/notes/2026-09-26-animnotify-categories.md"
   - "raw/notes/2026-09-25-ui-data-interface-removal.md"
   - "raw/notes/2026-09-22-current-foundation.md"
   - "raw/notes/2026-09-22-current-core-support.md"
@@ -11,12 +12,12 @@ sources:
   - "raw/notes/2026-09-24-interaction-contract-options-only.md"
   - "raw/notes/2026-09-25-performance-config-defaults.md"
 created: 2026-09-22
-updated: 2026-09-25
+updated: 2026-09-26
 tags: [wx, foundation]
 aliases: ["WxCore"]
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "WxCore는 도메인들이 함께 사용하는 태그·상호작용·스폰 계약을 제공한다."
 ---
 
@@ -40,6 +41,12 @@ WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에
 태그를 `WxGameplayTags.h/.cpp`에 모으는 규칙은 기존 Wiki에 2026-09-21 사용자 확정으로 기록되어 있었으며, 현재 헤더의 명시 규칙과도 일치한다. 이번 재편찬으로 새 결정을 만든 것은 아니다.
 
 `IWxUIData`는 2026-09-25 제거했다. 표시 데이터는 각 도메인에 두고 WxGame 리졸버가 WxUI VM에 전달한다. 충전 수·회복 시간도 공용 UI 계약이 아닌 어빌리티 데이터다.
+
+## AnimNotify 공용 색상 설정
+
+`UWxAnimNotifySettings`는 여러 도메인의 노티파이가 공유하는 표시 설정이다. 프로젝트 설정의 Wx → Wx Anim Notify Settings에서 6개 색상을 조정하며 `Config=Editor, DefaultConfig`로 `DefaultEditor.ini`에 저장한다. 색상 분류와 17종 매핑은 [[editor-tools|편집기 도구]] ([편집기 도구](../references/editor-tools.md))의 AnimNotify 절에 있다.
+
+팔레트 HEX는 sRGB이므로 `FLinearColor::FromSRGBColor`로 변환한다. 색상 필드·초기화는 `WITH_EDITORONLY_DATA`, 노티파이의 `GetEditorColor` 선언·정의와 설정 include는 `WITH_EDITOR`로 보호한다. 공용 설정을 WxCore에 두므로 WxAI·WxInventory가 색상을 얻기 위해 WxCombat에 의존할 필요가 없다. `WxCombatDeveloperSettings`의 기존 색상은 제거했지만 실제 피해 계산이 사용하는 `DefenseConstant`는 유지한다. 패키지 빌드는 이 작업의 검증 범위에 포함하지 않았다.
 
 ## 설정과 실제 적용의 구분
 
@@ -71,6 +78,8 @@ WxGame은 여러 도메인 플러그인을 조립한다. WxCore는 그 아래에
 - [[world|WxWorld — 장치와 상호작용]] ([WxWorld — 장치와 상호작용](../topics/world.md))
 
 ## Sources
+
+- [AnimNotify 공용 색상 분류와 에디터 설정](../../raw/notes/2026-09-26-animnotify-categories.md) — 설정 계약과 사람 확인 범위
 
 - [UI 데이터 인터페이스 제거와 리졸버 연결](../../raw/notes/2026-09-25-ui-data-interface-removal.md) — 2026-09-25 사용자 합의와 구현
 

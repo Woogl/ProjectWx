@@ -16,5 +16,5 @@ See [notes/_index.md](notes/_index.md)
 See [data/_index.md](data/_index.md)
 
 ## Stats
-- Total sources: 85
-- Last updated: 2026-09-25
+- Total sources: 108
+- Last updated: 2026-09-26

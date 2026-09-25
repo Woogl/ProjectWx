@@ -438,6 +438,16 @@ raw/notes/2026-09-25-checkpoint-validation-scope.md에 사용자 제출 범위�
 
 ## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
 
+## [2026-09-25] ingest + compile | 모듈 리뷰의 검증 범위 정정
+
+사용자가 지정한 `39f3629a4` 기준으로 `raw/notes/2026-09-25-checkpoint-task-completion.md`와 `raw/notes/2026-09-25-runtime-lifecycle-review.md`를 수집했다. world에는 체크포인트 태스크의 Failed 반환과 상태 실패 집계의 차이를, game에는 동일 객체 재표시 시 어빌리티 소실·구독 누적의 조건과 새 게임 선택 검사의 한계를, ui에는 컴포넌트 소유 요청과 HUD 내부 메뉴 요청의 정리 범위를 반영했다. 수정 판단은 모듈별 Workflow 리뷰에 유지한다. 이후 외부 작업의 미커밋 코드 변경은 포함하지 않았으며, 기존 사용자 성공 경로 확인을 저장 실패 실행 검증으로 확대하지 않는다. 게임 코드 수정·빌드·PIE 실행은 하지 않았다.
+
+## [2026-09-25] ingest + compile | 퀘스트 전환 예약의 수명
+
+`raw/notes/2026-09-25-quest-transition-lifetime.md`를 근거로 quests에 다음 틱 예약과 새 수주의 수명 조건을 추가했다. 기준은 사용자 지정 `39f3629a4`이며 StateTree 호출 스택의 재진입 회피가 이전 실행의 예약 취소까지 보장하는 것은 아님을 명시했다. 수정 판단은 WxQuest 리뷰에 남긴다. 게임 실행 검증은 하지 않았다.
+
+검증: 순정 llm-wiki lint는 critical·warning·suggestion 0건, CheckWikiLinks는 64문서에서 오류 0건이다. 리뷰 6문서의 기준 커밋·소스 수·발견 개수·근거 행 범위를 확인했고 diff --check를 통과했다. Wiki/Workflow 뷰어를 각각 62문서로 다시 내보냈다.
+
 ## [2026-09-25] ingest + compile | UI 데이터 인터페이스 제거
 
 사용자 합의와 구현 관찰을 raw/notes/2026-09-25-ui-data-interface-removal.md에 수집하고 ui·foundation·modules·combat-abilities·editor-tools에 통합했다. WxGame 리졸버의 데이터 전달, WxUI GAS 공통 갱신, 캐릭터 VM 공유 수명, 에디터 썸네일 의존성을 반영했다. 실행 검증과 인간 플레이 수용은 Workflow 작업 기록에서 구분한다.
@@ -450,14 +460,153 @@ raw/notes/2026-09-25-checkpoint-validation-scope.md에 사용자 제출 범위�
 
 ## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
 
+## [2026-09-25] ingest + compile | Workflow 3단계 단순화와 테스트 체크리스트 (raw/notes/2026-09-25-workflow-simplification.md)
+
+사용자 승인(제안 1~5)과 추가 요청(추가 질문이 없을 때의 구현 승인, AI·사람 담당 테스트 체크리스트)을 수집하고 references/wiki-workflow에 통합했다. 판단과 실행·대시보드·테스트 결과 전달·로컬 서비스 경계를 현재 구조로 바꾸고 폐지한 웹 새 작업 경로는 이전 구조로 줄였다. 기준 HEAD `c9e2efec6`에 미커밋 변경을 포함하며 실제 AI 처리 요청과 사람의 화면 확인은 포함하지 않는다.
+
+## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed
+
 ## [2026-09-25] ingest + compile | Exclusive 태그 차단과 도플갱어 발동 조건 면제
 
 사용자 결정·구현 관찰·검증 근거를 raw/notes/2026-09-25-exclusive-tag-blocking.md에 수집하고 combat-abilities·ai에 통합했다. 차단 태그 선언, 콤보 자기 기여 제외, Recovery 수명, IgnoreAbilityActivationTags 이름·면제 범위, 미러링 재시도 제한을 반영했다. 빌드·GAS 회귀 2개·GA 40개의 1,600개 차단 관계·리다이렉트 없는 효과 참조 로드는 통과했고, 사람의 코드 리뷰·플레이·네트워크는 미확인이다.
+
+## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
+## [2026-09-25] ingest + compile | Workflow 편의 점검과 기록 기반 작업 현황 (raw/notes/2026-09-25-workflow-convenience-review.md)
+
+AI·사람 관점 점검 근거와 사용자가 승인한 네 개선을 수집하고 references/wiki-workflow에 통합했다. 작업 현황은 각 기록 제목 아래 상태 줄에서 만들고, 코드 리뷰는 테스트 체크리스트 사람 항목이며, 저장소 전체 코드 식별값 검사는 없앴다. 기준 HEAD `c9e2efec6`에 미커밋 변경을 포함하며 실제 AI 처리 요청과 사람의 화면 확인은 포함하지 않는다.
+
+## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed
 
 ## [2026-09-25] ingest + compile | 어빌리티 공통 차단의 ASC 통합 (raw/notes/2026-09-25-ability-block-policy-centralization.md)
 
 자식 공통 차단 제거와 향후 클래스 축소 방향을 수집하고 combat-abilities에 통합했다. GetAbilityBlockTags가 그룹·태그와 명시 선언을 합치고 ASC의 순정 ApplyAbilityBlockAndCancelTags와 콤보 조회가 같은 목록을 사용한다. 빌드·GAS 회귀 3개·GA 40개 차단 관계 1,600건·점프 40건을 확인했다. 코드 리뷰·실제 플레이·네트워크는 사람 확인 대기로 구분한다.
 
+## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
 ## [2026-09-25] ingest + compile | 차단 테스트 정리와 주석 정정 (raw/notes/2026-09-25-exclusive-submission-cleanup.md)
 
 사용자의 테스트 제거·주석 정정·제출 요청에 따라 임시 C++ 테스트 2개, 전용 friend, GA 검증 Python 2개를 제거했다. combat-abilities에 테스트가 제출 전 제거됐음을 명시하고 이전 회귀 결과는 실행 당시 근거로 보존했다. 차단 관련 주석 점검 대상 12개 파일에서 주석을 제외한 코드 해시가 동일함을 확인했다. 플레이·네트워크 확인 대기는 유지한다.
+
+## [2026-09-25] lint | local command: 0 critical, 0 warnings, 0 suggestions, 1 auto-fixed
+
+## [2026-09-26] ingest + compile | Workflow 웹 새 작업·이어하기와 터미널 창 실행 (raw/notes/2026-09-26-workflow-web-tasks.md)
+
+사용자 결정(웹 안에서 처리, AI 대화는 터미널만, 웹에서 맡긴 구현은 모든 명령 허용, 진행 과정은 터미널 창 표시)에 따른 웹 새 작업·질문 답변·구현 승인·추가 요청·터미널 이어하기를 수집하고 wiki-workflow에 통합했다. 정하기는 읽기 전용, 구현·추가 요청·테스트 결과 처리는 모든 명령 허용이며 AI 처리는 터미널 창 실행기로 돌린다. 자동화 테스트 5개·링크 검사·가짜 AI 실제 창 확인·헤드리스 Edge 캡처를 통과했고 실제 AI 요청과 사람 확인은 대기다.
+
+## [2026-09-26] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed
+
+## [2026-09-26] ingest + compile | Workflow 웹 새 작업의 한글 기록 이름 (raw/notes/2026-09-26-workflow-korean-record-names.md)
+
+사용자 질문(해시 말고 한글로 추적)에 따라 웹 새 작업의 기록 이름을 접수 식별자 해시 대신 한글 제목으로 바꾼 내용을 수집하고 wiki-workflow에 통합했다. 같은 이름은 -2를 붙이고 같은 접수의 재전송은 처리 이력에서 찾는다. 서버 테스트와 실제 cmd start 창의 한글 경로 전달을 확인했다.
+
+## [2026-09-26] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed
+
+## [2026-09-26] ingest + compile | Workflow 대시보드 분류별 기록 버튼 (raw/notes/2026-09-26-workflow-dashboard-row-actions.md)
+
+사용자 결정(확인 대기에는 기록 열기 없음, 완료에는 작업 진행 없음)을 수집하고 wiki-workflow의 대시보드 설명에 반영했다. TestWikiViewer로 분류별 버튼 구성을 확인했다.
+
+## [2026-09-26] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed
+
+## [2026-09-26] ingest + compile | Workflow 대시보드 행 버튼 최종 결정과 표시 정리 (raw/notes/2026-09-26-workflow-row-actions-final.md)
+
+사용자 결정으로 진행 중 기록에서도 기록 열기를 빼 확인 대기·진행 중은 작업 진행만, 완료·리뷰·참고는 기록 열기만 두는 기준을 wiki-workflow에 반영했다. 배지가 있는 행의 버튼 줄 어긋남 수정과 사이드바 소개 문구 제거는 원자료에만 남겼다.
+
+## [2026-09-26] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed
+
+## [2026-09-26] ingest + compile | AnimNotify 색상 분류 정리 (raw/notes/2026-09-26-animnotify-categories.md)
+
+접수 해시와 일치하는 작업 기록의 전체 체크리스트 통과를 확인하고 editor-tools와 foundation에 6개 색상·17종 매핑·Editor config·전처리 보호·사람 확인 범위를 반영했다. 작업 기록과 접수 JSON은 수정하지 않았다. 게임 코드·에셋 수정 및 빌드·플레이 재실행은 없으며 패키지 빌드 미실행 범위를 유지한다.
+
+## [2026-09-26] 검증 | AnimNotify 문서 정리
+
+순정 llm-wiki lint --local --json에서 이번 원자료·기사 관련 지적은 없었다. 전체 결과는 범위 밖 raw/notes/2026-09-26-module-review-contracts.md의 색인 누락 경고 1개·미편찬 제안 1개로 실패했으며 해당 자료는 수정하지 않았다. 대상 문서 3개의 로컬 링크 53개와 UTF-8 읽기, 접수 SHA-256과 작업 기록 일치를 확인했다. Export-Wiki.ps1로 Wiki·Workflow 뷰어 65개 문서를 재생성했다.
+
+## [2026-09-26] ingest + compile | 모듈 리뷰의 재등록 수정과 콤보 배열 계약 (raw/notes/2026-09-26-module-review-contracts.md)
+
+7개 런타임 모듈의 점진 리뷰에서 확인한 C++ 계약을 game·combat·combat-abilities의 해당 문단에만 반영했다. 해결된 재등록·새 게임 지적과 콤보 배열·방향 섹션을 구분하고 이전 승인·사람 테스트 대기는 보존했다. 소스 수정·빌드·게임 실행 검증은 수행하지 않았다.
+
+## [2026-09-26] ingest + compile | Workflow 웹 처리 첫 실제 실행과 무관한 경고 처리 규칙 (raw/notes/2026-09-26-workflow-first-real-run.md)
+
+웹 작업 진행으로 보낸 AnimNotify 테스트 결과를 Codex가 터미널 창에서 처음 끝까지 처리한 관찰과, 다른 세션 원자료의 일시적 lint 경고가 완료를 막은 원인·처리 지시 변경을 wiki-workflow에 반영했다.
+
+## [2026-09-26] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed
+
+## [2026-09-26] ingest + compile | Workflow AI 결과의 질문·계획은 정하기·추가 요청에서만 받는다 (raw/notes/2026-09-26-workflow-result-fields-by-kind.md)
+
+첫 실제 처리에서 AI가 테스트 결과 처리 결과의 계획 칸에 완료 문장을 넣어 승인 없는 계획 절이 생긴 결함과, 질문·새 계획을 정하기·추가 요청 결과에서만 받도록 한 서버 수정, 완료 목록의 AI 상태 배지 제거를 wiki-workflow에 반영했다.
+
+## [2026-09-26] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed
+
+## [2026-09-26] ingest + compile | Workflow 상태는 질문·계획·체크리스트에서만 정한다 (raw/notes/2026-09-26-workflow-state-from-record-only.md)
+
+사용자 승인으로 AI가 사람에게 넘기는 것을 질문·구현 계획·체크리스트로 한정하고, 단계별 AI 결과 칸 제한·체크리스트 전부 통과 시 즉시 완료·완료 뒤 정리 분리·미실행 항목의 사람 넘김·기록 충돌 규칙을 wiki-workflow에 반영했다.
+
+## [2026-09-26] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed
+
+## [2026-09-26] ingest + compile | Workflow 기록 작성 규칙 링크와 tasks 안내 문서 삭제 (raw/notes/2026-09-26-workflow-tasks-guide-removed.md)
+
+사용자 요청으로 대시보드의 기록 작성 규칙 링크와 기록 폴더 안내 문서 tasks/index.md를 없앤 내용을 wiki-workflow에 반영했다.
+
+## [2026-09-26] lint | local command: 0 critical, 0 warnings, 0 suggestions, 0 auto-fixed
+
+## [2026-09-26] ingest + compile | IWxUIData 제거 후 사람의 표시 확인 범위
+
+작업 기록의 테스트 결과를 raw/notes/2026-09-26-ui-data-display-acceptance.md로 수집하고 ui 기사에 코드 리뷰·HUD·버프·보스·이름표 표시 확인 범위를 반영했다. 원격 복제 후 재매칭은 별도 미해결로 유지한다. 과거 raw는 수정하지 않았으며 게임 코드·에셋·작업 기록·접수 JSON·작업 상태를 변경하지 않았다.
+
+## [2026-09-26] ingest + compile | GA_ 유지 결정과 사람 플레이 확인 범위
+
+작업 기록의 최종 결정과 사람 테스트 7개 통과 범위를 raw/notes/2026-09-26-ability-ga-play-acceptance.md로 수집하고 combat-abilities 기사와 색인에 반영했다. 과거 원자료는 보존했고 GA_ 복귀의 플레이 미확인 설명만 갱신했다. 후속 변경·네트워크 검증으로 확대하지 않았으며 게임 코드·에셋·작업 기록·접수 JSON·작업 상태를 변경하지 않았다.
+
+
+## [2026-09-26] ingest + compile | DataTable Row 미리보기 사람 확인 범위
+
+접수 해시와 일치하는 작업 기록의 사람 테스트 3개 통과를 raw/notes/2026-09-26-row-preview-acceptance.md로 수집하고 editor-tools에 빈 하위 구조체 축약·설정값 보존·셀과 툴팁 일치의 확인 범위를 반영했다. 제출 전 제거된 회귀 테스트 성공은 과거 검증 이력으로 구분했다. 원자료 색인과 루트 통계를 갱신했으며 기존 원자료·게임 코드·에셋·작업 기록·접수 JSON·작업 상태는 수정하지 않았다.
+
+## [2026-09-26] 검증 | DataTable Row 미리보기 Wiki 정리
+
+순정 llm-wiki lint --local --json은 critical·warning·suggestion 0, pass였다. git diff --check -- .wiki는 공백 오류 없이 통과했다. 새 원자료와 editor-tools의 로컬 링크 30개 및 UTF-8 읽기를 확인했고 작업 기록 SHA-256은 접수 해시와 동일했다. Export-Wiki.ps1은 Saved/Wiki의 Wiki·Workflow 뷰어를 각각 64개 문서로 갱신했다. 빌드·자동화·화면 검증 재실행은 하지 않았다.
+
+## [2026-09-26] ingest + compile — Nameplate 로컬 표시의 사람 확인 범위
+
+접수 해시와 일치하는 nameplate-manager 작업 기록에서 사람 테스트 6개 통과를 raw/notes/2026-09-26-nameplate-play-acceptance.md로 수집했다. ui의 인게임 미검증 설명을 해당 범위에서 갱신하고 락온 대상 거리 예외를 유지했다. 원자료 색인과 루트 통계를 갱신했다. 과거 raw·게임 코드·에셋·작업 기록·접수 JSON·작업 상태는 수정하지 않았다.
+
+## [2026-09-26] 검증 — Nameplate Wiki 정리
+
+순정 llm-wiki lint --local --json은 critical·warning·suggestion 0, pass였다. git diff --check -- .wiki는 종료 코드 0으로 공백 검사를 통과했다. 새 원자료와 ui의 로컬 링크 45개 및 UTF-8 읽기를 확인했다. 작업 기록 SHA-256은 접수 해시와 동일했다. Export-Wiki.ps1은 Saved/Wiki의 Wiki·Workflow 뷰어를 각각 64개 문서로 갱신했다. 빌드·게임·멀티플레이 재실행은 하지 않았다.
+
+## [2026-09-26] ingest + compile | Workflow 작업 절차 도식 교체와 서버 동작 점검 (raw/notes/2026-09-26-workflow-process-diagram.md)
+
+사용자 요청으로 바꾼 작업 절차 도식(단계 상자 배치)과 서버·화면 코드 대조 결과를 raw/notes/2026-09-26-workflow-process-diagram.md로 수집했다. references/wiki-workflow의 판단과 실행·웹 새 작업·테스트 체크리스트 절과 출처에 편찬했다. 명확한 지시를 승인으로 보는 지름길이 AI 대화에서만 동작한다는 점과 미결 두 가지(정하기 중 추가 요청의 권한, 완료 직후 추가 요청 재활성)를 적었다. raw 색인 총계를 실제 원자료 수 105로 맞췄다.
+
+## [2026-09-26] 검증 | Workflow 작업 절차 도식 교체 Wiki 정리
+
+순정 llm-wiki lint --local은 critical·warning·suggestion 0, PASS였다. git diff --check -- .wiki는 공백 오류 없이 통과했다. 새 원자료와 wiki-workflow의 출처 링크를 확인했고, Export-Wiki 재생성 뒤 링크 검사와 TestWikiViewer를 다시 통과했다.
+
+
+## [2026-09-26] ingest + compile — AnimNotify 라벨 사람 확인 범위
+
+접수 해시와 일치하는 animnotify-labels 작업 기록의 사람 테스트 두 항목 통과를 raw/notes/2026-09-26-animnotify-label-acceptance.md로 수집하고 editor-tools에 17종 라벨 값 일치와 가독성의 확인 범위를 반영했다. 원자료 색인과 루트 통계를 갱신했다. 과거 raw와 기존 사용자 변경을 보존했으며 게임 코드·에셋·작업 기록·접수 JSON·작업 상태는 수정하지 않았다.
+
+## [2026-09-26] 검증 — AnimNotify 라벨 Wiki 정리
+
+순정 llm-wiki lint --local --json은 critical·warning·suggestion 0으로 pass였다. git diff --check -- .wiki에서 공백 오류가 없었고, 새 원자료와 editor-tools의 로컬 링크 33개 및 UTF-8 읽기를 확인했다. 작업 기록 SHA-256은 접수 해시와 동일했다. Export-Wiki.ps1은 Saved/Wiki의 Wiki·Workflow 뷰어를 각각 64개 문서로 갱신했다. 빌드·에디터 화면 테스트는 재실행하지 않았다.
+
+
+## [2026-09-26] ingest + compile — 공용 쿨다운 GE 사람 확인 범위
+
+접수 해시와 일치하는 cooldown-unification 작업 기록의 사람 테스트 4개 통과를 raw/notes/2026-09-26-cooldown-play-acceptance.md로 수집했다. combat-abilities에 회피 UI·소환물 쿨다운 무시·리슨 서버와 클라이언트 차례 회복 및 코드 리뷰 확인 범위를 반영하고, 과거 소환물·네트워크 미확인 설명을 해당 범위에서 갱신했다. 원자료 색인과 루트 통계를 갱신했다. 기존 raw·사용자 변경·게임 코드·에셋·작업 기록·접수 JSON·작업 상태는 변경하지 않았다.
+
+## [2026-09-26] 검증 — 공용 쿨다운 GE Wiki 정리
+
+순정 llm-wiki lint --local --json은 critical·warning·suggestion 0으로 pass였다. git diff --check -- .wiki에서 공백 오류가 없었고, 새 원자료와 combat-abilities의 로컬 링크 39개 및 UTF-8 읽기를 확인했다. 원자료는 107개로 색인 통계와 일치하며 작업 기록 SHA-256은 접수 해시와 동일했다. Export-Wiki.ps1은 Saved/Wiki의 Wiki·Workflow 뷰어를 각각 64개 문서로 갱신했다. 빌드·자동화·PIE 테스트를 재실행하지 않았다.
+
+## [2026-09-26] ingest + compile — 상호작용 목록과 엘리베이터 사람 확인 범위
+
+접수 해시와 일치하는 interaction-list-vm-simplification 작업 기록의 사람 테스트 6개 통과를 raw/notes/2026-09-26-interaction-list-play-acceptance.md로 수집했다. world에 목록·선택·범위 이탈과 리스폰·행 문구·버튼 잠금 및 코드 리뷰의 확인 범위를 반영했다. 현재 층 호출 잠금과 비활성 상태의 깨우기 예외를 구분하고, 과거 인게임 미검증 설명을 해당 범위에서 보완했다. 원자료·주제 색인과 루트 통계를 갱신했다. 과거 raw와 기존 사용자 변경을 보존하고 게임 코드·에셋·작업 기록·접수 JSON·작업 상태는 수정하지 않았다.
+
+## [2026-09-26] 검증 — 상호작용 목록 Wiki 정리
+
+순정 llm-wiki lint --local --json은 critical·warning·suggestion·info 0으로 pass였다. CheckWikiLinks.ps1은 66개 문서에서 오류 0이었고 git diff --check -- .wiki에서 공백 오류가 없었다. 새 원자료와 world의 UTF-8 및 로컬 링크를 확인했고 원자료 108개가 색인 통계와 일치했다. 작업 기록 SHA-256은 접수 해시와 동일했다. 빌드·BP 컴파일·게임·에셋 저장은 재실행하지 않았다.
+
+Export-Wiki.ps1로 Saved/Wiki의 Wiki·Workflow 뷰어를 각각 64개 문서로 갱신했다. 루트 탐색에도 사람 확인 범위 링크를 추가하고 뷰어에 반영했다.

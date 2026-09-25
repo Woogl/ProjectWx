@@ -2,18 +2,19 @@
 title: "WxQuest — 퀘스트 실행과 저널"
 category: topic
 sources:
+  - "raw/notes/2026-09-25-quest-transition-lifetime.md"
   - "raw/notes/2026-09-23-screen-classes-to-resolvers.md"
   - "raw/notes/2026-09-23-quest-presentation-vm.md"
   - "raw/notes/2026-09-22-current-quests.md"
   - "raw/notes/2026-09-22-current-quest-tasks.md"
   - "raw/notes/2026-09-22-current-game.md"
 created: 2026-09-22
-updated: 2026-09-23
+updated: 2026-09-25
 tags: [wx, quests]
 aliases: ["WxQuest"]
 confidence: medium
 volatility: warm
-verified: 2026-09-23
+verified: 2026-09-25
 summary: "WxQuest는 권위 측의 단일 StateTree 러너와 제목·목표 저널을 제공하며, 실제 진행 내용은 에셋이 구성한다."
 ---
 
@@ -28,6 +29,8 @@ WxQuest는 권위 측의 단일 StateTree 러너와 제목·목표 저널을 제
 퀘스트 1개는 StateTree 에셋 1개이고 컴포넌트는 어떤 퀘스트 에셋도 알지 않는다. 수주는 레벨에 배치한 트리거 볼륨 등이 `UWxQuestLibrary::StartQuest`로 에셋을 넘기고, 체인은 `StartNextQuest` 태스크의 소프트 참조가 정한다. 러너가 권위에만 있으므로 비권위에서의 호출은 무시된다.
 
 태스크 안에서 다음 퀘스트로 넘어갈 때는 `RequestActivateQuest`로 다음 틱을 예약한다. 현재 러너 콜스택 중 교체를 피하고, 예약 동안 에셋 수명이 달라져도 실행 시점에 소프트 참조를 다시 로드한다.
+
+이 예약은 이전 러너를 정지하거나 다른 퀘스트를 새로 수주해도 취소되지 않는다. A가 B를 예약한 뒤 콜백 전에 C를 시작하면 남아 있던 예약이 C를 B로 교체할 수 있다. 같은 호출 스택의 재진입 회피와 이전 실행의 예약 무효화는 서로 다른 조건이다(`39f3629a4` [정적 확인](../../raw/notes/2026-09-25-quest-transition-lifetime.md), PIE 미검증).
 
 ## 저널과 종료
 
@@ -51,6 +54,7 @@ WxGame의 GameState가 퀘스트 컴포넌트를 기본 서브오브젝트로 �
 
 ## Sources
 
+- [퀘스트 전환 예약의 수명](../../raw/notes/2026-09-25-quest-transition-lifetime.md) — 다음 틱 예약과 새 수주 간 교체 조건
 - [대화·퀘스트 화면 클래스 제거와 리졸버 연결](../../raw/notes/2026-09-23-screen-classes-to-resolvers.md) — 현재 저널 연결(리졸버·네이티브 델리게이트)
 - [Quest 표시 VM 분리](../../raw/notes/2026-09-23-quest-presentation-vm.md) — 이력: VM의 WxUI 이전. QuestTracker가 구독하던 방식은 위 원자료가 대체한다.
 

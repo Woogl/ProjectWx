@@ -2,6 +2,8 @@
 title: "WxWorld — 장치와 상호작용"
 category: topic
 sources:
+  - "raw/notes/2026-09-26-interaction-list-play-acceptance.md"
+  - "raw/notes/2026-09-25-checkpoint-task-completion.md"
   - "raw/notes/2026-09-25-checkpoint-validation-scope.md"
   - "raw/notes/2026-09-25-checkpoint-redirect-cleanup.md"
   - "raw/notes/2026-09-25-checkpoint-single-slot.md"
@@ -17,12 +19,12 @@ sources:
   - "raw/notes/2026-09-25-ability-data-on-ga.md"
   - "raw/notes/2026-09-25-checkpoint-savegame.md"
 created: 2026-09-22
-updated: 2026-09-25
+updated: 2026-09-26
 tags: [wx, world]
 aliases: ["WxWorld"]
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "WxWorld는 장치 StateTree의 상태 동기화, 로컬 상호작용 탐색, 스포너와 체크포인트 기능을 제공한다."
 ---
 
@@ -79,6 +81,8 @@ WxCombat의 `몽타주 1회 재생`(`FWxStateTreeTask_PlayMontageOnce`)이 이 �
 
 `ST_Elevator`의 두 작동 대기 노드에는 `StopPrompt`로 `Floor {0}`이 StateTree 값으로 입력되어 있다.
 
+2026-09-25 사람 테스트에서 비활성 상태의 탑승칸 버튼 잠금, 대기 상태의 다른 층만 표시, 현재 층 호출 버튼 잠금과 `Floor N` 표시를 확인했다. 현재 층 호출 잠금은 대기 상태의 규칙이며, 비활성 상태에서 밖 호출로 깨우는 예외를 없애지 않는다. [사람 확인 근거](../../raw/notes/2026-09-26-interaction-list-play-acceptance.md).
+
 ### 규칙 구조체의 문구 필드에는 C++ 기본값을 두지 않는다
 
 수락 규칙처럼 StateTree 노드 안의 인스턴스 구조체에 담기는 `FText`에 C++ 기본값을 두면, 에셋의 값이 그 기본값과 같을 때 저장이 `Unexpected custom version "FortniteMain"` 오류로 중단된다.
@@ -105,7 +109,7 @@ WxGame의 `UWxViewModel_InteractionList`가 스캐너를 구독한다. 신호가
 
 리졸버는 위젯 소유 PC에서 `FindComponentByClass`로 스캐너를 찾아 목록 VM에 넘기고, `DestroyInstance`에서 구독을 끊는다. 엔진 Create Instance는 `NewObject`만 호출하므로 리졸버 없이는 스캐너를 넘기지도, VM을 정리하지도 못한다. 이 연결은 스캐너가 `AWxPlayerController` 생성자 컴포넌트라 위젯보다 먼저 있다는 전제에 기댄다. 스캐너를 Experience 등에서 나중에 주입하는 구조로 바꾸면 늦은 도착 처리가 다시 필요하다. 예전 `OnAnyScannerReady` 관찰이 그 용도였고 이번에 제거했다.
 
-빌드와 `WBP_InteractionList`·`WBP_Interaction` 컴파일은 확인했다. 목록 표시·휠 선택·선택지 실행·리스폰 후 동작은 인게임에서 확인하지 않았다.
+기존 작업 기록에는 빌드와 대상 WBP 컴파일 성공이 남아 있다. 2026-09-25 사람 테스트에서는 겹친 대상 목록과 다중 선택지 행 표시, 휠 선택 표시·외곽선 동기화와 선택지 실행, 범위 이탈 시 목록 제거, 리스폰 뒤 동작을 확인했고 코드 리뷰도 통과했다. 이는 [사람 확인 원자료](../../raw/notes/2026-09-26-interaction-list-play-acceptance.md)에 기록된 범위이며, 네트워크 모드·테스트 맵과 늦은 스캐너 주입·선택 전환 애니메이션의 검증으로 확대하지 않는다.
 
 ### 상호작용 문구의 출처
 
@@ -120,11 +124,13 @@ WxGame의 `UWxViewModel_InteractionList`가 스캐너를 구독한다. 신호가
 
 문구에 키 표기(`[F]` 등)를 넣지 않는다. 키 아이콘은 `WBP_Interaction`의 `CommonActionWidget`이 입력 액션 데이터(`DT_InputActions`의 `Interact` 행)로 표시한다.
 
+2026-09-25 사람 테스트에서 픽업 행의 키 아이콘과 이름이 한 번씩만 표시되는 것을 확인했다([사람 확인 근거](../../raw/notes/2026-09-26-interaction-list-play-acceptance.md)).
+
 ## 스폰과 체크포인트
 
 스포너는 별도 Spawnable 경로와 공용 `IWxSpawnable` 처치 통지를 사용한다. 일괄 재생성은 C++ 전용 `AWxSpawner::RespawnAll`이 맡고 플레이어 부활 성공 후와 StateTree 태스크에서 직접 호출한다. 현재 로드된 스포너만 대상으로 하며 Manual 모드는 제외한다. 별도 BP 라이브러리 호출은 필요하지 않다. 순찰 경로와 스폰/빙의 초기화는 WxAI·WxGame과 함께 확인한다.
 
-UWxCheckpointSaveGame은 Standalone에서 레벨 패키지와 위치·회전을 디스크에 저장한다. PIE와 일반 플레이 모두 `WxCheckpoint` 슬롯을 사용하며 사용자 인덱스는 0이다. 슬롯 세분화는 추후 진행한다. `ST_CheckPoint`는 `SaveCheckpoint` 구조체로 리세이브했으며, 이전 `RecordCheckpoint` 구조체의 CoreRedirects는 제거했다. 리다이렉트 없는 새 프로세스에서 로드·StateTree 컴파일·저장을 확인했다. PIE 접두사를 제거해 같은 레벨인지 검사한다. 저장 없음·로드 실패·다른 맵·유효하지 않은 Transform은 기존 PlayerStart 부활로 돌아간다. 기록 실패는 StateTree 태스크의 Failed로 전달하며, 새 게임 시작 시 슬롯 삭제에 실패하면 맵 이동을 중단한다. 부활과 스포너 재생성 조립은 WxGame에 있다. 체크포인트 외 게임 상태와 이어하기 UI는 포함하지 않는다.
+UWxCheckpointSaveGame은 Standalone에서 레벨 패키지와 위치·회전을 디스크에 저장한다. PIE와 일반 플레이 모두 `WxCheckpoint` 슬롯을 사용하며 사용자 인덱스는 0이다. 슬롯 세분화는 추후 진행한다. `ST_CheckPoint`는 `SaveCheckpoint` 구조체로 리세이브했으며, 이전 `RecordCheckpoint` 구조체의 CoreRedirects는 제거했다. 리다이렉트 없는 새 프로세스에서 로드·StateTree 컴파일·저장을 확인했다. PIE 접두사를 제거해 같은 레벨인지 검사한다. 저장 없음·로드 실패·다른 맵·유효하지 않은 Transform은 기존 PlayerStart 부활로 돌아간다. 기록 실패 시 태스크는 Failed를 반환하지만, 현재 `bConsideredForCompletion=false` 설정으로 그 결과가 상태 실패 판정에 합산되지 않는다. 따라서 실패 전이가 실행된다고 보장할 수 없다([정적 확인 근거](../../raw/notes/2026-09-25-checkpoint-task-completion.md)). 새 게임 시작 시 슬롯 삭제에 실패하면 맵 이동을 중단한다. 부활과 스포너 재생성 조립은 WxGame에 있다. 체크포인트 외 게임 상태와 이어하기 UI는 포함하지 않는다.
 
 진입점: [장치 동기화](../../../Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp), [상호작용 스캐너](../../../Plugins/WxWorld/Source/WxWorld/Private/Interaction/WxInteractionScannerComponent.cpp), [상호작용 목록 VM](../../../Source/WxGame/MVVM/WxViewModel_InteractionList.cpp), [체크포인트](../../../Plugins/WxWorld/Source/WxWorld/Private/System/WxCheckpointSaveGame.cpp).
 
@@ -150,6 +156,8 @@ UWxCheckpointSaveGame은 Standalone에서 레벨 패키지와 위치·회전을 
 
 ## Sources
 
+- [상호작용 목록과 엘리베이터 버튼의 사람 확인 범위](../../raw/notes/2026-09-26-interaction-list-play-acceptance.md) — 목록·선택·리스폰·문구·버튼 잠금과 코드 리뷰 통과
+- [체크포인트 태스크의 실패 집계 제약](../../raw/notes/2026-09-25-checkpoint-task-completion.md) — Failed 반환과 상태 실패 전이의 구분
 - [체크포인트 SaveGame 전환](../../raw/notes/2026-09-25-checkpoint-savegame.md)
 - [체크포인트 저장 명칭 통일](../../raw/notes/2026-09-25-save-checkpoint-rename.md) — SaveCheckpoint 명칭으로의 변경
 - [체크포인트 단일 슬롯 결정](../../raw/notes/2026-09-25-checkpoint-single-slot.md) — 현재 슬롯과 이전 PIE 파일 처리 범위
@@ -180,5 +188,7 @@ UWxCheckpointSaveGame은 Standalone에서 레벨 패키지와 위치·회전을 
 2026-09-24 refresh(2차): 커밋 추적으로 장치 StateTree 정리 8건(`b32c1f622`~`70495c0e7`)을 찾아 HEAD `142fab5d6` 코드와 대조해 복원 판정·InitialState 제약·다른 도메인 태스크·연출 태스크를 반영했다. 빌드는 `36fbb4371`까지만 기록이 있고 인게임 동작은 확인하지 않았다.
 
 2026-09-25 refresh: 스캐너의 상호작용 발동 판정(`CanActivateInteract`, 커밋 `0473e201b`)을 HEAD `d63ce0630` 코드와 UE 5.8 `InternalTryActivateAbility`와 대조해 추가했고, 상호작용 목록의 인게임 동작은 확인하지 않았다.
+
+2026-09-26 편찬: 이우성의 2026-09-25 사람 테스트 6개 통과를 반영했다. 위 과거 편찬 이력의 상호작용 목록·엘리베이터 버튼 인게임 미검증 설명은 해당 체크리스트 범위에서 보완한다. 이번 편찬에서 빌드·게임·에셋 저장을 재실행하지 않았다.
 
 </details>

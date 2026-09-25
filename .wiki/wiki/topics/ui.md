@@ -2,8 +2,11 @@
 title: "WxUI — 화면 레이어와 표시 수명"
 category: topic
 sources:
+  - "raw/notes/2026-09-26-nameplate-play-acceptance.md"
+  - "raw/notes/2026-09-26-ui-data-display-acceptance.md"
   - "raw/notes/2026-09-25-ui-presentation-verification.md"
   - "raw/notes/2026-09-25-ui-data-interface-removal.md"
+  - "raw/notes/2026-09-25-runtime-lifecycle-review.md"
   - "raw/notes/2026-09-23-screen-classes-to-resolvers.md"
   - "raw/notes/2026-09-23-quest-presentation-vm.md"
   - "raw/notes/2026-09-22-current-ui.md"
@@ -22,12 +25,12 @@ sources:
   - "raw/notes/2026-09-25-ability-data-on-ga.md"
   - "raw/notes/2026-09-25-performance-config-defaults.md"
 created: 2026-09-22
-updated: 2026-09-25
+updated: 2026-09-26
 tags: [wx, ui]
 aliases: ["WxUI"]
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "WxUI는 CommonUI 레이어와 MVVM 표시를 관리하고, 공용 태그·GAS를 관찰하며 도메인 고유 표시 값은 WxGame 리졸버에서 받는다."
 ---
 
@@ -43,7 +46,7 @@ WxUI는 CommonUI 레이어와 MVVM 표시를 관리하고, 도메인 상태는 �
 
 ## 폰 교체와 구독 해제
 
-PlayerController의 `UWxPlayerLayoutComponent`는 로컬 컨트롤러에서만 화면을 만든다. 폰 교체 때 기존 HUD와 비동기 요청을 정리하고 새 폰 기준으로 다시 생성한다. ViewModel이 생성 당시 Pawn의 ASC를 참조하므로 폰만 바꾸고 HUD를 남겨서는 안 된다.
+PlayerController의 `UWxPlayerLayoutComponent`는 로컬 컨트롤러에서만 화면을 만든다. 폰 교체 때 자신이 직접 소유한 HUD 생성 요청과 기존 HUD를 정리하고 새 폰 기준으로 다시 생성한다. 이 정리 범위가 HUD 내부에서 요청한 비동기 메뉴까지 포함하는 것은 아니다. ViewModel이 생성 당시 Pawn의 ASC를 참조하므로 폰만 바꾸고 HUD를 남겨서는 안 된다.
 
 폰 교체 때 태그 관찰도 새 폰으로 갈아타며, 대화 창은 닫지만 사망 화면은 닫지 않는다. 부활이 폰을 교체하고, 사망 화면은 부활 요청이 완료될 때 스스로 비활성화되기 때문이다.
 
@@ -70,13 +73,13 @@ HUD 보스 바(`WBP_Nameplate_Boss`)가 이 규칙을 처음 적용한 사례다
 - WxGame의 `UWxViewModelResolver_BossCharacter`가 위젯마다 WxUI `UWxViewModel_Character`를 만들고, [게임 조립](game.md)의 `UWxBattleSubsystem`이 정한 현재 보스를 싣는다.
 - 보스가 없으면 VM을 비우고, 그러면 가시성 바인딩이 바를 숨긴다.
 - UIManager와 머리 위 Nameplate(`UWxNameplateManagerComponent`)는 보스를 모른다.
-- WBP 로드·컴파일은 확인했지만 인게임 표시는 검증하지 않았다.
+- WBP 로드·컴파일에 더해, IWxUIData 제거 후 보스 표시는 아래 사람 확인 범위에 포함된다.
 
 `UWxViewModelResolver_Ability`는 WxGame에 있다. 위젯 소유 Pawn의 ASC에서 AbilityTags에 대응하는 공유 슬롯 VM을 얻고, VM의 `FWxOnBoundAbilityChanged`를 리졸버 cpp의 정적 전달 함수로 연결한다. 슬롯 VM은 스펙의 기본 인스턴스 중 태그 조건을 충족하는 후보를 선택하고, 선택이 바뀌면 표시 값을 비운 뒤 제목·설명·아이콘·최대 충전 수·충전 한 칸의 시간을 받는다. 최초 매칭 전에 연결하며 충전·쿨다운 계산은 값을 받은 뒤 수행한다. 발동·비용 판정과 `TryActivateAbility`는 기존 GAS 경로를 유지한다. GA_ 프로퍼티는 WxCombat의 `UWxAbilityBase`가 소유한다([전투 어빌리티](../concepts/combat-abilities.md)).
 
 `UWxViewModelResolver_PlayerCharacter`도 WxGame에 있다. Character VM에는 구체 캐릭터 대신 이름·초상화와 연결된 AbilitySystem VM을 전달한다. 캐릭터 공유본은 AS VM을 Outer로 삼으며, 재조회 시 초기화나 이미지 요청을 반복하지 않는다. 보스 리졸버의 위젯별 VM과 NameplateManager도 같은 값 전달 경로를 쓴다.
 
-슬롯의 마지막 어빌리티를 회수하면 엔진이 인스턴스를 Garbage로 표시한다. 따라서 후보와 `CachedAbility.Get()`이 모두 null이어도 이전 표시를 정리해야 한다. `IsExplicitlyNull()`로 처음부터 빈 슬롯과 무효화된 참조를 구분한다. 2026-09-25 회귀 테스트 3개(슬롯 재연결·효과의 늦은 연결·캐릭터 공유)를 통과했고, 이동한 리졸버를 쓰는 위젯을 포함한 Blueprint 97개가 리다이렉트 없이 컴파일됐다. 실제 플레이·원격 복제는 별도 확인 범위다.
+슬롯의 마지막 어빌리티를 회수하면 엔진이 인스턴스를 Garbage로 표시한다. 따라서 후보와 `CachedAbility.Get()`이 모두 null이어도 이전 표시를 정리해야 한다. `IsExplicitlyNull()`로 처음부터 빈 슬롯과 무효화된 참조를 구분한다. 2026-09-25 회귀 테스트 3개(슬롯 재연결·효과의 늦은 연결·캐릭터 공유)를 통과했고, 이동한 리졸버를 쓰는 위젯을 포함한 Blueprint 97개가 리다이렉트 없이 컴파일됐다. 사람의 표시 확인 범위와 원격 복제의 남은 제약은 아래에 구분한다.
 
 대화 창(`WBP_DialogueScreen`, 부모 `UWxActivatableWidget`)은 WxGame `UWxViewModelResolver_Dialogue`가 만든 WxUI `UWxViewModel_Dialogue`로 구동된다. VM은 Speaker·LineText·HasSpeaker와 SetLine, 진행 명령 `RequestAdvance`만 가진다. 리졸버가 세션 대사를 VM에 걸고, VM의 `OnAdvanceRequested`를 세션 `Advance`에 잇는다. 진행 버튼의 MVVM 이벤트 목적지는 `WxViewModel_Dialogue.RequestAdvance`다. 2026-09-23 이전의 `UWxDialogueScreen`(활성화 수명으로 연결)은 제거했다. 구독 수명과 인게임 확인은 [대화](dialogue.md)의 수명과 연출에 있다.
 
@@ -125,7 +128,9 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 | 수명 | 위젯 컴포넌트는 대상 액터 소유로 만들어 대상 파괴 때 함께 사라진다. NameplateManager의 EndPlay에서도 직접 뗀다. |
 | VM | 대상 AS VM의 `UWxViewModel_Character` 공유본을 MVVM View에 넣는다. 공유본 수명은 View가 유지한다. |
 
-마커 컴포넌트를 지우면서 적 BP 5종과 `LV_DevCombat` 배치 액터 1개를 다시 저장해 옛 데이터를 없앴다. 빌드, 관련 BP 컴파일, 레벨 재로드 시 경고 0건은 확인했다. 인게임 표시와 리슨 서버·원격 클라이언트에서 각자 자기 락온만 보이는지는 검증하지 않았다. 확인 항목은 [작업 자료](../../../.agents/workflow/tasks/nameplate-manager.md)에 있다.
+마커 컴포넌트를 지우면서 적 BP 5종과 `LV_DevCombat` 배치 액터 1개를 다시 저장해 옛 데이터를 없앴다. 빌드, 관련 BP 컴파일, 레벨 재로드 시 경고 0건은 당시 확인했다.
+
+이우성의 2026-09-25 사람 테스트로 여섯 표시 항목을 확인했다. 교전 시작·추적 종료에 따른 표시와 숨김, 비교전 적의 락온 표시 및 해제 시 교전 상태에 따른 유지, 대상 전환 시 Reticle의 새 부위 이동, 락온 중 사망한 적의 Nameplate 제거가 통과했다. 거리별 크기 변화·3000cm 밖 숨김과 캡슐 윗면 약 90cm의 모션에 흔들리지 않는 위치도 확인했다. 거리 숨김은 위의 락온 대상 예외를 유지하며 해석한다. 리슨 호스트와 원격 클라이언트가 각자 자기 락온 표시를 보는 항목도 통과했다. [사람 확인 근거](../../raw/notes/2026-09-26-nameplate-play-acceptance.md)는 이 여섯 항목의 확인 범위이며, 이번 Wiki 편찬에서 게임을 다시 실행한 결과는 아니다. 판단 정본은 [작업 기록](../../../.agents/workflow/tasks/nameplate-manager.md)에 있다.
 
 ## 일시정지와 제약
 
@@ -136,6 +141,12 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 레이아웃과 추적 PC는 단수이므로 현재 구조는 로컬 플레이어 하나를 전제로 하며 스플릿스크린 지원으로 해석하지 않는다.
 
 진입점: [UIManager](../../../Plugins/WxUI/Source/WxUI/Private/System/WxUIManagerSubsystem.cpp), [HUD·사망·대화 화면 수명](../../../Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp), [NameplateManager](../../../Source/WxGame/Controller/WxNameplateManagerComponent.cpp), [설정](../../../Config/DefaultGame.ini). 화면 클래스 값은 `BP_PlayerController`에 있다. 사망·부활·대화 화면 동작은 2026-09-23 사용자가 인게임에서 확인했고, 그 밖의 WBP 바인딩과 화면 품질은 에디터·실행 확인이 필요하다.
+
+## IWxUIData 제거 후 표시 확인 범위
+
+2026-09-25 사용자 테스트 결과에서 코드 리뷰와 HUD·버프·보스·이름표 표시의 플레이 확인이 통과했다. 이는 WxGame 리졸버가 도메인 표시 값을 WxUI VM에 전달하는 경로의 사람 확인 근거다. 위의 과거 작업별 미검증 설명 중 이번 표시 범위는 이 결과로 갱신한다. 확인 원문과 출처는 [표시 확인 원자료](../../raw/notes/2026-09-26-ui-data-display-acceptance.md)에 있다.
+
+원격 클라이언트의 스펙 복제 후 슬롯 재매칭 신호 누락은 별도 미해결 사항이다. 이 결과는 네트워크 복제나 클라이언트별 락온 표시 독립성까지 통과했다는 뜻이 아니다. 기존 빌드·Blueprint 97개 컴파일·회귀 테스트 3개 결과는 당시 검증 기록이며, 이번 Wiki 정리에서 재실행하지 않았다.
 
 ## 관련 문서
 
@@ -150,9 +161,14 @@ MVVM 변환 함수는 위젯 블루프린트 자신의 Pure·const 함수이거�
 
 ## Sources
 
+- [Nameplate 로컬 표시의 사람 확인 범위](../../raw/notes/2026-09-26-nameplate-play-acceptance.md) — 교전·락온·사망·위치와 리슨 호스트·원격 클라이언트 표시
+
+- [UI 데이터 인터페이스 제거 후 표시 확인 범위](../../raw/notes/2026-09-26-ui-data-display-acceptance.md) — 사람의 표시 확인과 원격 복제 미해결 범위
+
 - [UI 표시 연결 회귀 검증과 제거된 슬롯 정리](../../raw/notes/2026-09-25-ui-presentation-verification.md) — 자동화·에셋 검증 범위, 무효화된 약한 참조의 빈 슬롯 정리
 - [UI 데이터 인터페이스 제거와 리졸버 연결](../../raw/notes/2026-09-25-ui-data-interface-removal.md) — 2026-09-25 사용자 합의와 구현
 
+- [캐릭터·화면 수명 정적 재검토](../../raw/notes/2026-09-25-runtime-lifecycle-review.md) — 폰 교체 시 컴포넌트 소유 요청과 HUD 내부 메뉴 요청의 정리 범위
 - [대화·퀘스트 화면 클래스 제거와 리졸버 연결](../../raw/notes/2026-09-23-screen-classes-to-resolvers.md) — 화면 클래스 제거, VM 명령 델리게이트
 - [Quest 표시 VM 분리](../../raw/notes/2026-09-23-quest-presentation-vm.md)
 

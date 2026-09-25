@@ -2,6 +2,9 @@
 title: "편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer"
 category: reference
 sources:
+  - "raw/notes/2026-09-26-animnotify-label-acceptance.md"
+  - "raw/notes/2026-09-26-row-preview-acceptance.md"
+  - "raw/notes/2026-09-26-animnotify-categories.md"
   - "raw/notes/2026-09-25-ui-data-interface-removal.md"
   - "raw/notes/2026-09-25-animnotify-labels.md"
   - "raw/notes/2026-09-25-row-preview-nested.md"
@@ -16,12 +19,12 @@ sources:
   - "raw/notes/2026-09-25-ability-montage-section-model.md"
   - "raw/notes/2026-09-25-ability-data-on-ga.md"
 created: 2026-09-22
-updated: 2026-09-25
+updated: 2026-09-26
 tags: [wx, editor, datatable]
 aliases: ["WxEditor", "WxToolset", "DataTableRowFixup", "BoxComponentVisualizerEditor"]
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "네 편집기 모듈은 속성 편집·썸네일·시각화·에셋 도구와 DataTable 행 참조 갱신을 제공하며 런타임 게임 기능과 구분된다."
 ---
 
@@ -53,6 +56,8 @@ DataTableRowFixup은 모듈 시작 시 DataTable 변경 리스너를 만들고 �
 Row 미리보기는 값이 있는 부모 안의 빈 하위 구조체도 각각 축약한다. 엔진이 내보낸 현재 값과 초기 기본값 JSON의 같은 이름 객체를 재귀 비교하므로 `IgnoreTags`가 설정되어 있어도 빈 `RequireTags`·`TagQuery`는 `{}`가 된다. 파싱 실패·고정 배열은 원문을 유지하며 컨테이너 요소 내부의 재귀 축약은 지원하지 않는다. [중첩 처리 수정 근거](../../raw/notes/2026-09-25-row-preview-nested.md).
 
 `WxPreviewRow` 메타데이터의 Row 핸들 미리보기는 구조체가 생성자 초기 기본값과 같으면 셀을 `{}`로 축약한다. 기본값과 다른 구조체는 기존 전체 텍스트를 표시한다. 툴팁도 셀과 같은 텍스트를 표시하고 실제 Row 데이터는 변경하지 않는다. 생성자에 지정된 0이 아닌 기본값도 축약될 수 있다. [표시 기준과 검증 범위](../../raw/notes/2026-09-25-row-preview-empty-struct.md), [툴팁 후속 변경](../../raw/notes/2026-09-25-row-preview-tooltip.md).
+
+사람이 빈 하위 구조체 축약·설정된 태그와 컨테이너 값 보존·셀과 툴팁 일치의 세 항목을 통과로 제출했다(이우성, 2026-09-25). 이전 화면 미확인 설명은 이 범위에서 대체한다. 기록의 빌드·`Wx.Editor.RowPreview.NestedEmptyStructs` 성공은 당시 검증 이력이며, 회귀 테스트 코드는 제출 전 사용자 요청으로 제거됐다. 이번 Wiki 정리에서는 빌드·자동화·화면 검증을 재실행하지 않았다. [사람 확인 범위와 검증 이력](../../raw/notes/2026-09-26-row-preview-acceptance.md).
 
 엔진의 `FDataTableEditorUtils::RenameRow`는 테이블 키만 바꾸고 행 이름 리다이렉트도 없어, 행 이름을 바꾸면 그 행을 쓰던 에셋의 참조가 조용히 끊긴다. DataTableRowFixup은 이 참조를 새 이름으로 고친다. 켜고 끄는 것은 Editor Preferences > Wx > DataTable Row Fixup의 개인 설정이며 기본값은 켜짐이다.
 
@@ -100,7 +105,22 @@ WBP의 C++ 부모 클래스를 없앨 때는 클래스를 남긴 채 빌드 → 
 
 `Slow: x0.40`, `Noise: 300cm`는 핵심 수치를 보여준다. Rush는 `LockOn/Master/Minion`, Snap은 `Move/Turn/Move+Turn/Off`, Camera는 `Follow/Fixed`로 동작을 구분한다. 설정 없는 표식은 `Recovery`, `Combo Window`, `Use Item`으로 고정한다. 소켓·타겟팅 프리셋·오프셋·정지 거리·FOV는 Details에 남겨 라벨 길이를 제한한다. 이는 표시 규칙이며 실행 동작은 바꾸지 않는다.
 
-[사용자 합의와 코드 근거](../../raw/notes/2026-09-25-animnotify-labels.md). 에디터 화면의 실제 가독성은 미검증이다.
+[라벨 규칙의 사용자 합의와 코드 근거](../../raw/notes/2026-09-25-animnotify-labels.md). 사람이 몽타주 타임라인에서 17종 라벨 값의 설정 일치와 겹침·잘림 없는 가독성 두 항목을 통과로 제출했다(이우성, 2026-09-25). 이전 화면 미검증 설명은 이 범위에서 대체하며, 모든 몽타주·화면 배율·임의 길이의 이름까지 보장하는 결과는 아니다. [라벨의 사람 확인 범위](../../raw/notes/2026-09-26-animnotify-label-acceptance.md).
+
+후속 색상 정리 작업에서 에디터 재시작 후 6개 색상과 라벨 가독성, 설정 변경의 `DefaultEditor.ini` 저장·재로드를 사람이 통과로 제출했다. 확인 정본은 [색상 작업 기록](../../../.agents/workflow/tasks/animnotify-categories.md)이며 이번 문서 정리에서 화면 검증을 재실행하지 않았다.
+
+색상은 [[foundation|WxCore 공용 설정]] ([WxCore 공용 설정](../topics/foundation.md))의 `UWxAnimNotifySettings`로 통합한다. 아래 HEX는 기본 sRGB 값이다.
+
+| 분류 | 기본 색상 | 노티파이 |
+|---|---|---|
+| Attack | #E86666 | WeaponAttack, AreaDamage, SpawnProjectile, FinisherDamage |
+| AbilityFlow | #E8BE55 | ComboWindow, StartRecovery, FinisherVictim |
+| Effect | #B58AE6 | ApplyGameplayEffect, UseItem |
+| Movement | #62A9E8 | Rush, SnapToTarget |
+| Presentation | #63C49A | CameraMove, SlowTime, SkillCutscene |
+| Misc | #929DAA | SpawnMinion, DespawnMinion, ReportNoise |
+
+AreaDamage·SnapToTarget의 미리보기도 공용 색상을 사용한다. 색상 분류는 타임라인 표시를 위한 것이며 라벨·Details 속성 분류·실행 로직을 변경하지 않는다.
 
 ## 확인 범위와 진입점
 
@@ -120,6 +140,12 @@ WBP의 C++ 부모 클래스를 없앨 때는 클래스를 남긴 채 빌드 → 
 - [[world|WxWorld — 장치와 상호작용]] ([WxWorld — 장치와 상호작용](../topics/world.md))
 
 ## Sources
+
+- [AnimNotify 짧은 라벨의 사람 확인 범위](../../raw/notes/2026-09-26-animnotify-label-acceptance.md) — 17종 값 일치와 타임라인 가독성 확인
+
+- [DataTable Row 미리보기의 사람 확인 범위](../../raw/notes/2026-09-26-row-preview-acceptance.md) — 표시 세 항목 통과와 제거된 회귀 테스트의 검증 경계
+
+- [AnimNotify 공용 색상 분류와 에디터 설정](../../raw/notes/2026-09-26-animnotify-categories.md) — 설정 계약과 사람 확인 범위
 
 - [UI 데이터 인터페이스 제거와 리졸버 연결](../../raw/notes/2026-09-25-ui-data-interface-removal.md) — 2026-09-25 사용자 합의와 구현
 

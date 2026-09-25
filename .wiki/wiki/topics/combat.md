@@ -2,6 +2,7 @@
 title: "WxCombat — 전투 시스템"
 category: topic
 sources:
+  - "raw/notes/2026-09-26-module-review-contracts.md"
   - "raw/notes/2026-09-22-current-combat.md"
   - "raw/notes/2026-09-22-current-foundation.md"
   - "raw/notes/2026-09-23-damage-forward-flow.md"
@@ -15,12 +16,12 @@ sources:
   - "raw/notes/2026-09-25-ability-montage-section-model.md"
   - "raw/notes/2026-09-25-ability-data-on-ga.md"
 created: 2026-09-22
-updated: 2026-09-25
+updated: 2026-09-26
 tags: [wx, combat]
 aliases: ["WxCombat"]
 confidence: medium
 volatility: warm
-verified: 2026-09-25
+verified: 2026-09-26
 summary: "WxCombat은 GAS의 어빌리티·자원·피해 처리와 전투 연출을 제공하고, 캐릭터 조립은 WxGame이 맡는다."
 ---
 
@@ -48,7 +49,7 @@ flowchart LR
   F --> G["자원 변경·반응·Cue"]
 ```
 
-ASC의 `GiveAbilitySets`는 재빙의로 같은 AbilitySet이 중복 부여되지 않도록 플래그를 둔다. `UWxAbilitySet`은 `GrantedAbilities`의 클래스마다 `FGameplayAbilitySpec(클래스, 1)`을 준다. ASC에 같은 클래스가 이미 있으면 경고하고 건너뛴다. 세트 사이에 같은 어빌리티가 겹치면 이벤트로 도는 어빌리티가 한 이벤트에 두 번 반응하기 때문이다. 초기 속성은 최대값을 먼저, 현재값을 나중에 기록한다. 반대 순서는 현재값 클램프와 최대값 비례 조정 때문에 초기값을 왜곡할 수 있다.
+ASC의 `GiveAbilitySets`는 등록된 권위 ASC에서만 실행된다. 최초에는 속성·GE와 능력을 부여하고, 이후에는 누락된 능력만 보충한다. 플래그는 속성·GE 초기화를 한 번으로 제한한다. `UWxAbilitySet`은 `GrantedAbilities`의 클래스마다 `FGameplayAbilitySpec(클래스, 1)`을 준다. ASC에 같은 클래스가 이미 있으면 런타임에서 조용히 건너뛴다. 중복 경고는 에디터 `IsDataValid`에서 제공한다. 세트 사이에 같은 어빌리티가 겹치면 이벤트로 도는 어빌리티가 한 이벤트에 두 번 반응하기 때문이다. 초기 속성은 최대값을 먼저, 현재값을 나중에 기록한다. 반대 순서는 현재값 클램프와 최대값 비례 조정 때문에 초기값을 왜곡할 수 있다.
 
 ## 수정 위치
 
@@ -61,7 +62,7 @@ ASC의 `GiveAbilitySets`는 재빙의로 같은 AbilitySet이 중복 부여되�
 | 방어 판정·피해 계산 | `UWxEffect_Damage`, `UWxExecCalc_Damage` |
 | 피격 반응(그로기 중 넉 계열 → `HitReact.Normal` 강등 포함)·퍼펙트 가드·히트스톱·추가 효과 | `UWxEffectComponent_DamageReaction`·`_PerfectGuard`·`_HitStop`·`_AdditionalEffects` |
 | GE 표시(제목·설명·아이콘) | `UWxEffectComponent_UIData` |
-| 몽타주 섹션 선택(콤보·패턴 단계, 회피·가드 반응·피격 반응) | `UWxAbilityBase::PlayMontage`·`GetComboStageCount`·`GetComboStageSection`, 각 타입의 섹션 상수 |
+| 콤보·패턴 단계와 방향·반응 섹션 선택 | `UWxAbility_Combo::ComboMontages`·`ComboIndex`·`GetMontage`, `UWxAbilityBase::PlayMontage`, 각 타입의 섹션 상수 |
 | 공중 몽타주의 착지 섹션 | WxGame `UWxCharacterMovementComponent::JumpToLandingSection`(재생 중인 모든 몽타주 인스턴스에서 `UWxAbilityBase::LandingSectionName`을 찾음) |
 | 회피(극한 회피) | `UWxEffect_Invincible`의 Immunity 차단 통지를 구독하는 `UWxAbility_Dodge` |
 | 몽타주 구간 상태 GE(무적·퍼펙트 가드) | `UWxAnimNotifyState_ApplyGameplayEffect`, `UWxCombatLibrary::ApplyEffect` |
@@ -88,6 +89,8 @@ ASC의 `GiveAbilitySets`는 재빙의로 같은 AbilitySet이 중복 부여되�
 
 ## Sources
 
+- [재등록 수정과 콤보 배열 계약 확인](../../raw/notes/2026-09-26-module-review-contracts.md) — 누락 능력 재부여와 콤보 배열 진입점
+
 - [근거 1](../../raw/notes/2026-09-22-current-combat.md)
 - [근거 2](../../raw/notes/2026-09-22-current-foundation.md)
 - [Damage 정방향 흐름](../../raw/notes/2026-09-23-damage-forward-flow.md)
@@ -113,5 +116,7 @@ ASC의 `GiveAbilitySets`는 재빙의로 같은 AbilitySet이 중복 부여되�
 2026-09-24: 락온 표시 경계와 수정 위치 표의 구간 GE·처형 피해·락온 행을 HEAD `ca84c9aac` 코드와 대조해 추가했다. 같은 날 락온 대상 소유와 사망 시 BT 정지 주체를 미커밋 작업 트리 코드와 대조해 추가했다(빌드 통과, 인게임 미검증). 두 번째 refresh에서 소환 상한·주인 태그 행을 HEAD `d76e48717` 코드와 대조해 추가했다(커밋 `c4dee8382`의 태그 이름 변경, 인게임 미검증). 이어 AI 트리 제어 주체를 컨트롤러 단독으로 넓힌 작업 트리 코드와 대조해 경계 문장을 고쳤다(빌드 통과, 사용자 인게임 확인). 세 번째 refresh에서 WxWorld에서 옮겨 온 몽타주 1회 재생 태스크 행과 StateTree 의존을 HEAD `142fab5d6` 코드와 대조해 추가했다(커밋 `f6b4af9d4`, 인게임 미검증).
 
 2026-09-25: 어빌리티 데이터 배치·AbilitySet 중복 건너뜀·수정 위치 표(삭제된 `FWxAbilityTableRow` 제거와 그로기 강등·GE 표시·섹션 선택·착지·처형 노티파이·궁극기 컷신과 입력 차단·시체 수명 행)를 HEAD `d63ce0630` 코드와 대조했고(`DT_Ability`·`DT_Effect` 부재는 파일 목록으로만 확인), GA_·GE_·몽타주 에셋 내부 값과 인게임 동작은 원자료 기록에만 기대며 직접 검증하지 않았다.
+
+2026-09-26: ad0db6de0 작업 트리의 AbilitySet 최초 초기화·후속 능력 보충과 콤보 몽타주 배열 진입점만 정적으로 재대조했다. 실행 검증은 추가하지 않았다.
 
 </details>
