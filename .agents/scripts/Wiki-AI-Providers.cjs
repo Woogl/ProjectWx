@@ -62,7 +62,7 @@ function runProvider({ provider, command, prompt, repo, output, schema, mode = '
   // Claude Code의 최종 메시지(단일 JSON 또는 스트림의 result 이벤트)에서 응답을 꺼낸다.
   const finish = stdout => {
     const result = parseResponse(provider, stdout, output);
-    if (provider === 'claude' && JSON.parse(stdout).permission_denials?.length && Array.isArray(result.blockers)) result.blockers.push('Claude Code에서 도구 실행 권한이 거부되었습니다. 거부된 검증·정리 범위를 확인하세요.');
+    if (provider === 'claude' && JSON.parse(stdout).permission_denials?.length && Array.isArray(result.evidence)) result.evidence.push('Claude Code에서 도구 실행 권한이 거부되었습니다. 거부된 검증·정리 범위를 확인하세요.');
     return result;
   };
   return new Promise((resolve, reject) => {

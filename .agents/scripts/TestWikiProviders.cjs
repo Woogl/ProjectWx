@@ -5,7 +5,7 @@ const path = require('node:path');
 const os = require('node:os');
 const { EventEmitter } = require('node:events');
 const { invocation, parseResponse, runProvider } = require('./Wiki-AI-Providers.cjs');
-const sample = { summary:'처리', changes:[], checks:[{ name:'검사', status:'passed', evidence:'exit 0' }], humanChecks:[], blockers:[] };
+const sample = { summary:'처리', evidence:['exit 0'], changes:[], questions:[], checklist:[] };
 (async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wx-providers-'));
   try {
@@ -51,8 +51,8 @@ const sample = { summary:'처리', changes:[], checks:[{ name:'검사', status:'
       execute:(_file,_args,_options,done)=>({stdin:{on(){},end(){done({killed:true});}}})}), /초과/);
     assert.throws(() => runProvider({provider:'claude',command:null,prompt:'x',repo:dir,output,schema}), /Claude Code/);
     const denied = await runProvider({provider:'claude',command:{file:'claude'},prompt:'x',repo:dir,output,schema,
-      execute:(_file,_args,_options,done)=>({stdin:{on(){},end(){done(null,JSON.stringify({structured_output:{...sample,blockers:[]},permission_denials:[{tool_name:'Bash'}]}));}}})});
-    assert.match(denied.blockers[0], /권한이 거부/, 'denied tools cannot produce completion');
+      execute:(_file,_args,_options,done)=>({stdin:{on(){},end(){done(null,JSON.stringify({structured_output:sample,permission_denials:[{tool_name:'Bash'}]}));}}})});
+    assert.match(denied.evidence.at(-1), /권한이 거부/, 'denied tools are reported as evidence');
     // Gemini는 plan에서 쓰기·셸 도구를 빼고, 관리자 설정은 그대로 둔 채 이 실행의 도구만 좁힌다.
     for (const [mode, writable] of [['plan', false], ['work', true]]) {
       await runProvider({provider:'gemini',command:{file:'gemini'},prompt:'x',repo:dir,output,schema,mode,execute:(_file,_args,options,done)=>{

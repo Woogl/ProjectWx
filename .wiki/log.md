@@ -610,3 +610,19 @@ AI·사람 관점 점검 근거와 사용자가 승인한 네 개선을 수집�
 순정 llm-wiki lint --local --json은 critical·warning·suggestion·info 0으로 pass였다. CheckWikiLinks.ps1은 66개 문서에서 오류 0이었고 git diff --check -- .wiki에서 공백 오류가 없었다. 새 원자료와 world의 UTF-8 및 로컬 링크를 확인했고 원자료 108개가 색인 통계와 일치했다. 작업 기록 SHA-256은 접수 해시와 동일했다. 빌드·BP 컴파일·게임·에셋 저장은 재실행하지 않았다.
 
 Export-Wiki.ps1로 Saved/Wiki의 Wiki·Workflow 뷰어를 각각 64개 문서로 갱신했다. 루트 탐색에도 사람 확인 범위 링크를 추가하고 뷰어에 반영했다.
+
+## [2026-09-26] ingest + compile | Workflow 구 AI 워크플로우 잔재 제거 (raw/notes/2026-09-26-workflow-legacy-removal.md)
+
+사용자 요청으로 지운 옛 웹 경로 파일·테스트, 옛 절차 문서·4단계 그림 19개와 현재 코드에서 없앤 옛 결과 형식 표시·옛 대시보드 CSS를 raw/notes/2026-09-26-workflow-legacy-removal.md로 수집했다. references/wiki-workflow의 이전 구조·권한 문단과 출처에 편찬했다. Claude 권한 거부 알림이 처리 근거에 남는다는 현재 동작과, 잔재로 보지 않고 남긴 것(회귀 테스트, 절 없는 기록 처리, 워크플로우 문서 PNG 묶기)을 적었다.
+
+## [2026-09-26] 검증 | Workflow 구 AI 워크플로우 잔재 제거 Wiki 정리
+
+순정 llm-wiki lint --local은 critical·warning·suggestion 0, PASS였다. git diff --check -- .wiki는 공백 오류 없이 통과했다. Export-Wiki 재생성 뒤 링크 검사 오류 0건(61문서)과 TestWikiViewer·TestWikiSpaces를 다시 통과했다.
+
+## [2026-09-26] ingest + compile | Workflow 문서 이미지 기능 제거 (raw/notes/2026-09-26-workflow-image-removal.md)
+
+사용자 결정("지금 안쓰면 지웁시다")으로 없앤 문서 이미지 기능(PNG 묶기·Markdown 이미지 표시)과 옛 목차 제목 건너뛰기를 raw/notes/2026-09-26-workflow-image-removal.md로 수집했다. references/wiki-workflow의 파일과 화면·이전 구조 절과 출처에 편찬했다. 화면이 Markdown 이미지를 그리지 않으므로 그림은 Mermaid 도식으로 쓴다는 점을 적었다.
+
+## [2026-09-26] 검증 | Workflow 문서 이미지 기능 제거 Wiki 정리
+
+순정 llm-wiki lint --local은 critical·warning·suggestion 0, PASS였다. git diff --check는 공백 오류 없이 통과했다. Export-Wiki 재생성 뒤 링크 검사 오류 0건과 TestWikiViewer·TestWikiSpaces를 다시 통과했다.

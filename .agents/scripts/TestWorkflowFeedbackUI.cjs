@@ -132,10 +132,10 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   assert.ok(!['answers','checks','message'].some(key=>Object.hasOwn(savedRequest,key)),'approval sends no other input');
 
   // 추가 요청과 터미널 이어하기, 할 일이 없는 단계.
-  t.plan={...t.plan,approval:'테스터 2026-09-25'};t.latest={...t.latest,status:'blocked',report:{summary:'확인 필요',changes:[],checks:[],checklist:[],blockers:['범위 확인']}};t.revision++;
+  t.plan={...t.plan,approval:'테스터 2026-09-25'};t.latest={...t.latest,status:'empty',report:{summary:'설명만 필요한 요청이었습니다.',changes:[],evidence:['읽은 파일']}};t.revision++;
   await run('loadTaskJobs()');
   assert.equal(byId('test-feedback-submit').hidden,true);assert.match(text('task-phase'),/지금 답하거나 확인할 항목이 없습니다/);
-  assert.match(text('test-feedback-result'),/남은 확인 · 범위 확인/,'old results still show their remarks');
+  assert.match(text('test-feedback-result'),/처리 결과 확인/);assert.match(text('test-feedback-result'),/설명만 필요한 요청이었습니다/,'the latest result shows its summary');
   await button('추가 요청 전달').onclick();assert.match(message(),/추가 요청을 입력/);
   type('추가 요청','모든 적에게도 적용');await button('추가 요청 전달').onclick();
   assert.equal(savedRequest.action,'request');assert.equal(savedRequest.message,'모든 적에게도 적용');assert.equal(run('taskDraft(item.path).message'),'');

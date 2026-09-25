@@ -1,7 +1,7 @@
 # Workflow 개선
 
-상태: 확인 대기 · 작업 절차 도식 교체, AI 항목 통과
-다음 행동: 코드 리뷰와 작업 절차 도식·웹 새 작업·작업 진행 화면·터미널 창을 확인하고, 삭제 대기 파일의 삭제를 승인한다.
+상태: 확인 대기 · 구 워크플로우 잔재 제거, AI 항목 통과
+다음 행동: 코드 리뷰와 작업 절차 도식·웹 새 작업·작업 진행 화면·터미널 창을 확인한다.
 
 ## 테스트 체크리스트
 
@@ -10,15 +10,16 @@
 | 테스트 결과 서버·기록 상태 줄 | node .agents/scripts/TestWorkflowTestFeedback.cjs (단계별 결과 칸, 즉시 완료와 상태를 못 바꾸는 정리, 일부 통과 기록만, 실패 수정, 미실행 항목 넘김, 기록 충돌, 새 작업·한글 기록 이름, 가짜 Codex로 실제 실행기까지) | AI | 통과 | exit 0 · 2026-09-26 |
 | 체크리스트 입력 화면 | node .agents/scripts/TestWorkflowFeedbackUI.cjs (작업 진행 패널의 체크리스트·질문·승인·완료·빈 단계, 즉시 완료·결과 기록 안내, 새 작업 폼) | AI | 통과 | exit 0 · 2026-09-26 |
 | 생성 화면·네 분류·기록에서 만든 목록 | Export-Wiki.ps1 실행 후 TestWikiViewer.cjs·TestWikiSpaces.cjs | AI | 통과 | exit 0 · 새 작업·작업 진행 버튼 포함 · 2026-09-26 |
-| AI 실행 인자·응답 처리 | node .agents/scripts/TestWikiProviders.cjs (읽기 전용/모든 명령 허용 인자, Codex 출력 표시, Claude 진행 이벤트) | AI | 통과 | exit 0 · 2026-09-26 |
-| 저장소 링크 | CheckWikiLinks.ps1 | AI | 통과 | 오류 0건 · 66문서 · 2026-09-26 (작업 절차 도식 교체 뒤 재실행) |
+| AI 실행 인자·응답 처리 | node .agents/scripts/TestWikiProviders.cjs (읽기 전용/모든 명령 허용 인자, Codex 출력 표시, Claude 진행 이벤트, Claude 권한 거부를 근거로 기록) | AI | 통과 | exit 0 · 2026-09-26 |
+| 저장소 링크 | CheckWikiLinks.ps1 | AI | 통과 | 오류 0건 · 61문서 · 2026-09-26 (구 워크플로우 잔재 제거 뒤 재실행) |
+| 구 워크플로우 잔재 | 저장소 전체에서 삭제 파일 이름·옛 절차 용어·옛 결과 칸을 검색하고, 삭제 뒤 Export-Wiki와 Workflow 테스트 5개를 다시 실행 | AI | 통과 | 현재 코드·문서·스킬·설정의 참조 0(로그·출처 메모·기록 이력만 남음), 테스트 5개 exit 0, Workflow 59문서 · 2026-09-26, 문서 이미지 기능 제거 뒤 테스트 5개 exit 0·생성 HTML에 이미지 데이터 없음 · 2026-09-26 |
 | 로컬 서버 재시작 | Start-WikiAI.ps1 실행 후 /health 조회 | AI | 통과 | protocol 4·재시작 판단 파일 7개(Workflow-Runner.cjs 추가), 한글 기록 이름 코드로 재시작해 파일 해시 일치 · 2026-09-26 |
 | 기록 이관 | 작업 현황 표와 기록 상태 줄을 행마다 대조 | AI | 통과 | 의도한 6건(모듈 리뷰 5·Ability Resolver)만 리뷰·참고로 옮겨지고 나머지 일치 · 2026-09-25 |
 | 화면 표시 | 헤드리스 Edge로 대시보드 머리·새 작업 폼·작업 진행(체크리스트, 화면 상태만 바꾼 질문·승인 단계)을 1440px·420px로 캡처 | AI | 통과 | 새 작업 버튼·단계별 전달 버튼(테스트 결과 전달·답변 전달·구현 승인) 확인, 서버 요청은 list·read뿐 · 2026-09-26 |
-| 작업 절차 도식 표시 | Export-Wiki.ps1 후 헤드리스 Edge로 Workflow 화면의 작업 절차 페이지를 1440px·420px로 열어 도식 이미지·오류 표시·원문 확인 | AI | 통과 | 도식 1개가 이미지로 그려지고 오류 표시 0, 원문이 단계 상자 도식 · 2026-09-26 |
+| 작업 절차 도식 표시 | Export-Wiki.ps1 후 헤드리스 Edge로 Workflow 화면의 작업 절차 페이지를 1440px·420px로 열어 도식 이미지·오류 표시·원문 확인 | AI | 통과 | 도식 1개가 이미지로 그려지고 오류 표시 0, 원문이 단계 상자 도식 · 2026-09-26, 이미지 CSS 정리 뒤 Workflow·Wiki 두 화면의 도식이 block 이미지로 좌우 여백이 같게 그려짐 · 2026-09-26 |
 | 실제 터미널 창 | 가짜 Codex·인자 기록 스크립트로 실행기와 터미널 이어하기를 실제 cmd start로 실행(실제 AI 호출 없음) | AI | 통과 | 창 Wx AI · 창 확인 visible=True, 결과 수신, 이어하기 요청문이 인자 1개로 전달·작업 폴더에서 실행, 종료 후 남은 창 없음 · 2026-09-25, 한글 기록 경로(보스-체력바-지연-감소.md)도 그대로 전달 · 2026-09-26 |
 | 모든 명령 허용 인자 수용 | Claude Code를 연결 불가 주소로 실행해 초기화 이벤트만 확인, codex exec --help 대조 | AI | 통과 | permissionMode bypassPermissions로 초기화, Codex --sandbox danger-full-access·read-only 유효, 실제 AI 호출 없음 · 2026-09-25 |
-| 코드 리뷰 | Workflow-TestFeedback.cjs(상태 판정 stateOf, 단계별 결과 칸 schemaFor·validateReport, 테스트 결과 분기와 완료 뒤 정리, 미실행 항목 넘김, 새 작업·질문·승인·추가 요청·터미널 동작), Workflow-Runner.cjs(신규), Wiki-AI-Providers.cjs(plan/work 권한·진행 표시), wiki-viewer의 task-records.js·workflow.js·test-feedback.js·index.html, Wiki-AI.cjs·Start-WikiAI.ps1 연결 | 사람 | 대기 |  |
+| 코드 리뷰 | Workflow-TestFeedback.cjs(상태 판정 stateOf, 단계별 결과 칸 schemaFor·validateReport, 테스트 결과 분기와 완료 뒤 정리, 미실행 항목 넘김, 새 작업·질문·승인·추가 요청·터미널 동작), Workflow-Runner.cjs(신규), Wiki-AI-Providers.cjs(plan/work 권한·진행 표시), wiki-viewer의 task-records.js·workflow.js·test-feedback.js·index.html, Wiki-AI.cjs·Start-WikiAI.ps1 연결, 구 워크플로우 잔재 제거(파일 19개 삭제, test-feedback.js의 옛 결과 형식·확인 범위 표시와 index.html의 옛 대시보드 CSS 제거, Wiki-AI-Providers.cjs의 Claude 권한 거부를 근거로 기록), 문서 이미지 기능 제거(Export-Wiki.ps1의 PNG 묶기·목차 제목 건너뛰기, index.html의 wikiImageSource·IMG 허용·article img 규칙) | 사람 | 대기 |  |
 | 대시보드 | OpenWorkflow.bat 실행. 네 분류와 체크리스트 n/m, 새 작업 버튼이 보이고 할 일이 한눈에 들어온다. 확인 대기·진행 중 행에는 작업 진행만, 완료·리뷰·참고 행에는 기록 열기만 있고, 배지가 있는 행도 버튼 줄이 맞는다. | 사람 | 대기 |  |
 | 작업 절차 한 장 | 왼쪽 메뉴의 작업 절차. 단계 상자 도식(정하기·만들기·확인하기)과 규칙이 한눈에 이해되고, 도식의 화살표가 실제로 겪는 흐름과 맞다. | 사람 | 대기 |  |
 | 체크리스트 전달 | 이 작업의 작업 진행에서 사람 항목 결과를 고르고 테스트 결과 전달. 결과가 체크리스트와 기록 맨 위 상태에 반영된다. | 사람 | 대기 |  |
@@ -26,13 +27,16 @@
 | 터미널에서 이어하기 | 작업 진행의 터미널에서 이어하기. 고른 AI의 대화 창이 열리고 기록을 읽고 이어간다. | 사람 | 대기 |  |
 | 워크플로우 SSoT | AGENTS.md의 AI 워크플로우 절과 workflow/index.md에 규칙 사본 없이(tasks/index.md는 2026-09-26 사용자 요청으로 삭제) 작업 절차 링크만 남았고, 옮긴 규칙(자동 백업 금지·모듈 리뷰 재대조)이 작업 절차에 있다. | 사람 | 대기 |  |
 
-## 삭제 대기
+## 구 워크플로우 잔재 제거 · 2026-09-26
 
-자동 모드 권한 검사가 파일 삭제를 막아 남아 있다. 모두 Git에 기록되어 있어 삭제 뒤에도 복구할 수 있고, 남은 코드는 이 파일들을 참조하지 않는다.
-
-- 웹 새 작업 경로: `.agents/scripts/`의 `Wiki-Tasks.cjs`, `Workflow-Execution.cjs`, `Wiki-Import.cjs`, `Wiki-Import.py`, `wiki-checklist.schema.json`, `wiki-gemini-policy.toml`, `wiki-viewer/workflow-model.js`, `wiki-viewer/execution.js`
-- 위 경로의 테스트(제거한 함수를 불러 실패한다): `TestWikiAI.cjs`, `TestWikiTasks.cjs`, `TestWikiRecovery.cjs`, `TestWikiImport.cjs`, `TestWorkflowExecution.cjs`
-- 한 장으로 합친 옛 절차 문서: `.agents/workflow/process/`의 `design_review.md`, `implementation.md`, `testing.md`, `completion.md`와 `.agents/workflow/usage.md`, `.agents/workflow/assets/ai-workflow.png`(4단계 그림)
+- 요청: "구 AI 워크플로우의 잔재가 남아있다면 제거합시다." 삭제 대기 목록의 삭제 승인을 겸한다.
+- 삭제(`git rm`): 옛 웹 작업 경로 스크립트 8개(`Wiki-Tasks.cjs`, `Workflow-Execution.cjs`, `Wiki-Import.cjs`, `Wiki-Import.py`, `wiki-checklist.schema.json`, `wiki-gemini-policy.toml`, `wiki-viewer/workflow-model.js`, `wiki-viewer/execution.js`), 그 테스트 5개(`TestWikiAI.cjs`, `TestWikiTasks.cjs`, `TestWikiRecovery.cjs`, `TestWikiImport.cjs`, `TestWorkflowExecution.cjs`), 옛 절차 문서 5개(`process/`의 `design_review.md`·`implementation.md`·`testing.md`·`completion.md`, `usage.md`)와 4단계 그림 `assets/ai-workflow.png`.
+- 조사: 저장소 전체 검색에서 현재 코드·문서·스킬·배치 파일·에이전트 설정은 삭제 대상을 참조하지 않았고, 참조는 로그·출처 메모·기록 이력뿐이었다.
+- 현재 코드 정리: 작업 진행 화면의 옛 처리 상태 `blocked`("AI 확인 요청") 문구와 옛 보고서의 남은 확인·검사 목록·확인 범위(`scope`) 표시, 서버 작업 요약의 `scope`를 없앴다. Claude 권한 거부 알림은 현재 결과 형식에 없는 `blockers` 대신 처리 근거(`evidence`)에 남기도록 옮겼다(새 형식에서 버려지고 있었다). 뷰어 CSS에서 옛 대시보드의 통계 카드·상태 배지 규칙 9개를 지웠다. 테스트 3개(TestWikiProviders·TestWorkflowFeedbackUI·TestWikiViewer)의 옛 형식 예시를 현재 형식으로 바꿨다.
+- 남긴 것: 옛 결과 칸을 버리는지·폐지한 웹 경로가 돌아오지 않는지 확인하는 회귀 테스트, 절이 없는 기록(모듈 리뷰 등)의 사람 항목 처리와 자유 형식 상태 줄의 리뷰·참고 분류.
+- 문서 이미지 기능: 4단계 그림을 지운 뒤 쓰는 곳이 없어 사용자에게 물었고, 사용자가 "네, 이미지 기능도 지워주세요." 뒤 "이미지 기능은 나중에 다시 쓸 가능성이 있으니 유지합시다. 아니다, 지금 안쓰면 지웁시다"로 결정했다. `Export-Wiki.ps1`의 PNG 묶기와 뷰어의 문서 이미지 해석(`wikiImageSource`)·`IMG` 허용·`article img` 규칙을 지우고, 다이어그램 가운데 정렬에 필요한 `display:block`은 `.wiki-diagram img`로 옮겼다. 다이어그램용 CSP `img-src data:`는 남겼다. 옛 목차 제목 `## 한줄 요약`을 건너뛰던 생성 코드도 지웠다. `raw/notes/2026-09-26-workflow-image-removal.md`로 Wiki에 반영했다.
+- 로컬 서버는 사용 중인 대시보드를 끊지 않도록 재시작하지 않았다. 다음 OpenWorkflow.bat 실행 때 코드 해시 차이로 새로 뜬다.
+- Wiki: `raw/notes/2026-09-26-workflow-legacy-removal.md`를 수집해 `references/wiki-workflow`에 편찬했고 lint PASS였다. 커밋은 하지 않았다.
 
 ## 작업 절차 도식 교체 · 2026-09-26
 

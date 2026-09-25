@@ -37,18 +37,6 @@ $documents = @(
 )
 $connectionPath = Join-Path $repo 'Saved/Wiki/ai-connection.json'
 $ai = if (Test-Path -LiteralPath $connectionPath) { Get-Content -LiteralPath $connectionPath -Raw | ConvertFrom-Json -AsHashtable } else { $null }
-# Bundle Wiki PNG assets so the file viewer needs no external image access.
-$images = @{}
-$assetRoot = Join-Path $repo '.agents/workflow/assets'
-if (Test-Path -LiteralPath $assetRoot) {
-    foreach ($asset in (Get-ChildItem -LiteralPath $assetRoot -File -Filter '*.png')) {
-        if ($asset.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
-        $bytes = [IO.File]::ReadAllBytes($asset.FullName)
-        if ($bytes.Length -lt 8 -or [Convert]::ToHexString($bytes[0..7]) -ne '89504E470D0A1A0A') { throw "Invalid PNG asset: $($asset.Name)" }
-        $key = [IO.Path]::GetRelativePath($repo, $asset.FullName).Replace('\', '/')
-        $images[$key] = 'data:image/png;base64,' + [Convert]::ToBase64String($bytes)
-    }
-}
 $template = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/index.html'))
 $diagramScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/diagrams.js'))
 $mermaidVendor = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/vendor/mermaid-11.12.0.min.js')).Replace('</script', '<\/script')
@@ -58,7 +46,6 @@ foreach ($mode in @('Wiki', 'Workflow')) {
     $navigation = @()
     $group = $null
     foreach ($line in (Get-Content -LiteralPath $indexPath)) {
-        if ($line -eq '## 한줄 요약') { continue }
         if ($line -match '^## (.+)$') {
             $group = [ordered]@{ title = $Matches[1]; items = @() }
             $navigation += $group
@@ -68,7 +55,7 @@ foreach ($mode in @('Wiki', 'Workflow')) {
         }
     }
     $connection = if ($mode -eq 'Workflow') { $ai } else { $null }
-    $payload = @{ mode = $mode; ai = $connection; images = $images; generated = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'); documents = $documents; navigation = $navigation } | ConvertTo-Json -Depth 8 -Compress
+    $payload = @{ mode = $mode; ai = $connection; generated = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'); documents = $documents; navigation = $navigation } | ConvertTo-Json -Depth 8 -Compress
     $payload = $payload.Replace('<', '\u003c').Replace('>', '\u003e').Replace('&', '\u0026')
     $script = if ($mode -eq 'Workflow') { $workflowScript } else { 'function renderWorkSummary() {}' }
     $page = $template.Replace('__WX_WORKFLOW_SCRIPT__', $script).Replace('__WX_WIKI_DATA__', $payload).Replace('__WX_DIAGRAM_SCRIPT__', $diagramScript).Replace('__WX_MERMAID_VENDOR__', $mermaidVendor)

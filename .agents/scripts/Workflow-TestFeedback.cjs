@@ -221,7 +221,7 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
   }
   function view(record){
     const latest=record.requests.at(-1);
-    return {taskPath:record.taskPath,revision:record.revision,latest:latest?{operationId:latest.operationId,action:latest.action||'submit',kind:kindOf(latest),provider:latest.provider||'codex',actor:latest.actor,at:latest.at,startedAt:latest.startedAt||latest.at,checks:latest.checks||null,answers:latest.answers||null,message:latest.message||'',scope:latest.scope,status:latest.status,error:latest.error||'',report:latest.report||null}:null};
+    return {taskPath:record.taskPath,revision:record.revision,latest:latest?{operationId:latest.operationId,action:latest.action||'submit',kind:kindOf(latest),provider:latest.provider||'codex',actor:latest.actor,at:latest.at,startedAt:latest.startedAt||latest.at,checks:latest.checks||null,answers:latest.answers||null,message:latest.message||'',status:latest.status,error:latest.error||'',report:latest.report||null}:null};
   }
   const providerList=()=>providers.map(id=>({id,label:labels[id]}));
   function list(){

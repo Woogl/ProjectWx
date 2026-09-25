@@ -48,28 +48,15 @@ const context = vm.createContext({
   location: { hash: '' }, window: { addEventListener() {}, scrollTo() {} },
 });
 vm.runInContext(script, context);
-// Every PNG under the workflow assets folder is bundled; documents resolve them relatively.
-const assetRoot = path.join(root, '.agents/workflow/assets');
-for (const name of fs.existsSync(assetRoot) ? fs.readdirSync(assetRoot).filter(file => file.endsWith('.png')) : [])
-  assert.equal(data.images['.agents/workflow/assets/' + name], 'data:image/png;base64,' + fs.readFileSync(path.join(assetRoot, name)).toString('base64'));
-const fixture = 'data:image/png;base64,iVBORw0KGgo=';
-vm.runInContext(`data.images={'.agents/workflow/assets/fixture.png':${JSON.stringify(fixture)}}`, context);
-assert.equal(vm.runInContext("wikiImageSource('.agents/workflow/process/index.md', '../assets/fixture.png')", context), fixture);
-for (const source of ['https://example.com/a.png', '//example.com/a.png', 'file:///C:/a.png', 'data:image/svg+xml,test', '../assets/missing.png', '%invalid']) {
-  context.testImageSource = source;
-  assert.equal(vm.runInContext("wikiImageSource('.agents/workflow/process/index.md', testImageSource)", context), null);
-}
-const imageAttributes = new Map([['src', '../assets/fixture.png'], ['alt', '워크플로우'], ['onload', 'bad()'], ['srcset', 'https://example.com/a.png']]);
-const imageNode = { tagName: 'IMG', get attributes() { return [...imageAttributes.keys()].map(name => ({ name })); },
-  getAttribute: key => imageAttributes.get(key), removeAttribute: key => imageAttributes.delete(key), setAttribute: (key, value) => imageAttributes.set(key, value) };
+// Markdown images are not shown; generated diagrams are the only data: images.
+let removedImage = false;
+const imageNode = { tagName: 'IMG', remove: () => { removedImage = true; } };
 context.DOMParser = class { parseFromString() { return { body: { querySelectorAll: () => [imageNode] } }; } };
-vm.runInContext("safeFragment('', '.agents/workflow/process/index.md')", context);
-assert.equal(imageAttributes.get('src'), fixture);
-assert.equal(imageAttributes.get('alt'), '워크플로우');
-assert.equal(imageAttributes.size, 2, 'image handlers and srcset must be removed');
-assert.ok(html.includes('img-src data:'));
-assert.ok(html.includes('article img{display:block;max-width:100%;height:auto;'));
-console.log('PASS bundled PNG assets, relative image resolution, external image rejection and sanitized responsive rendering');
+vm.runInContext("safeFragment('')", context);
+assert.ok(removedImage, 'markdown images must be removed');
+assert.ok(html.includes('img-src data:'), 'diagram images stay allowed');
+assert.ok(html.includes('.wiki-diagram img{display:block;'), 'diagram images stay centered');
+console.log('PASS markdown image removal and diagram image policy');
 // Work records are listed from their own state lines without the local server, including records without a state.
 assert.equal(vm.runInContext("taskRecordGroups().map(g=>g.title).join(',')", context), '확인 대기,진행 중,완료,리뷰·참고');
 const indexedPaths = Array.from(vm.runInContext('taskRecordGroups().flatMap(g=>g.items.map(item=>item.path))', context));
@@ -99,13 +86,13 @@ assert.ok(html.includes('id="test-feedback-panel"'), 'generated page includes th
 const rowActions = (filter, title) => {
   vm.runInContext(String.raw`{
    data.documents.push({path:'.agents/workflow/tasks/zz-waiting.md',text:'# 대기 작업\n\n상태: 확인 대기 · 질문 1개\n다음 행동: 질문에 답한다.\n',modified:'9999'},{path:'.agents/workflow/tasks/zz-running.md',text:'# 처리 작업\n\n상태: 진행 중 · AI 구현 중\n다음 행동: 기다린다.\n',modified:'9999'},{path:'.agents/workflow/tasks/zz-done.md',text:'# 끝난 작업\n\n상태: 완료 · 체크리스트 1/1 통과\n다음 행동: 참고한다.\n',modified:'9999'});
-   for(const name of ['zz-waiting','zz-done'])taskJobs['.agents/workflow/tasks/'+name+'.md']={latest:{status:'blocked'}};
+   for(const name of ['zz-waiting','zz-done'])taskJobs['.agents/workflow/tasks/'+name+'.md']={latest:{status:'questions'}};
    try{recordFilters()[${filter}].onclick();}finally{data.documents.splice(-3,3);taskJobs=Object.create(null);}
   }`, Object.assign(context, { recordFilters }));
   const row = byId('task-records').children.at(-1).children.find(n => n.className === 'record-item' && n.children[0].children[0].textContent === title);
   return row.children.find(c => c.className === 'record-actions').children.map(c => c.tagName + ':' + c.textContent);
 };
-assert.deepEqual(rowActions(0, '대기 작업'), ['BUTTON:작업 진행', 'SPAN:AI 확인 요청'], 'waiting records are handled in the task panel with their AI status');
+assert.deepEqual(rowActions(0, '대기 작업'), ['BUTTON:작업 진행', 'SPAN:질문 답변 필요'], 'waiting records are handled in the task panel with their AI status');
 assert.deepEqual(rowActions(1, '처리 작업'), ['BUTTON:작업 진행'], 'running records are followed in the task panel');
 assert.deepEqual(rowActions(2, '끝난 작업'), ['A:기록 열기 →'], 'completed records show no AI status');
 recordFilters()[0].onclick();
@@ -134,7 +121,7 @@ assert.equal(byId('other-space-row').hidden, true);
 // The retired web task path must not come back through the generated page.
 for (const removed of ['/analyze', '/handoff', '/execution', "'/tasks'", '새 작업 만들기', '기존 작업 이어하기']) assert.ok(!script.includes(removed), removed);
 assert.equal(vm.runInContext("resolvePath('.wiki/wiki/topics/ai.md', '../concepts/combat-groggy.md')", context), '.wiki/wiki/concepts/combat-groggy.md');
-assert.equal(vm.runInContext("resolvePath('.wiki/_index.md', '../.agents/workflow/tasks/index.md')", context), '.agents/workflow/tasks/index.md');
+assert.equal(vm.runInContext("resolvePath('.wiki/_index.md', '../.agents/workflow/process/index.md')", context), '.agents/workflow/process/index.md');
 assert.equal(vm.runInContext("route('.wiki/wiki/topics/한글 문서.md','절 제목')", context), '#' + encodeURIComponent('.wiki/wiki/topics/한글 문서.md') + '!' + encodeURIComponent('절 제목'));
 context.location.hash = '#missing-document';
 vm.runInContext('readRoute()', context);

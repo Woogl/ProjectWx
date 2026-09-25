@@ -9,7 +9,7 @@ function taskKey(suffix,taskPath=''){return workflowKey+':test-feedback:'+suffix
 function storageGet(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch{return null;}}
 function storageSet(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{return false;}}
 function storageRemove(key){try{localStorage.removeItem(key);}catch{}}
-function taskStatusText(status){return ({running:'AI 처리 중',questions:'질문 답변 필요',approval:'구현 승인 필요',issues:'실패 확인 필요',retest:'사람 확인 필요',recorded:'테스트 결과 기록',complete:'완료',empty:'처리 결과 확인',conflict:'기록 충돌',failed:'AI 처리 실패',interrupted:'AI 처리 중단',blocked:'AI 확인 요청'})[status]||'아직 AI에게 맡긴 일 없음';}
+function taskStatusText(status){return ({running:'AI 처리 중',questions:'질문 답변 필요',approval:'구현 승인 필요',issues:'실패 확인 필요',retest:'사람 확인 필요',recorded:'테스트 결과 기록',complete:'완료',empty:'처리 결과 확인',conflict:'기록 충돌',failed:'AI 처리 실패',interrupted:'AI 처리 중단'})[status]||'아직 AI에게 맡긴 일 없음';}
 function showTaskMessage(text){$('test-feedback-message').textContent=text;}
 // 입력 중인 선택·답변·요청은 항목 이름과 질문 ID로 보존해 기록이 갱신돼도 다른 칸에 옮겨 붙지 않는다.
 function taskDraft(taskPath){
@@ -227,13 +227,10 @@ function renderTaskStatus(){
     if(latest.checks)for(const check of latest.checks)panel.append(el('p',check.result+' · '+check.item+(check.note?': '+check.note:'')));
     if(latest.answers)for(const answer of latest.answers)panel.append(el('p',answer.id+' 답변 · '+answer.answer));
     if(latest.message)panel.append(el('p','추가 요청 · '+latest.message));
-    if(latest.scope)panel.append(el('p','확인한 항목 · '+latest.scope));
     if(latest.error)panel.append(el('p',latest.error,'notice'));
     if(latest.report){
-      // 옛 처리 결과의 남은 확인·검사 목록도 그대로 보여준다.
-      const changes=latest.report.changes||[],evidence=latest.report.evidence||(latest.report.checks||[]).map(check=>check.name+': '+check.evidence);
+      const changes=latest.report.changes||[],evidence=latest.report.evidence||[];
       panel.append(el('p',latest.report.summary));
-      for(const item of latest.report.blockers||[])panel.append(el('p','남은 확인 · '+item,'notice'));
       const detail=el('details');detail.append(el('summary','AI 처리 근거 · 변경 '+changes.length+' · 근거 '+evidence.length));
       for(const change of changes)detail.append(el('p',change));
       for(const item of evidence)detail.append(el('pre',item,'plan-preview'));

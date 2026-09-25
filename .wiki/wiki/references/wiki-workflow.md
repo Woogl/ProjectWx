@@ -2,6 +2,8 @@
 title: "Wiki·Workflow 도구 구조"
 category: reference
 sources:
+  - "raw/notes/2026-09-26-workflow-image-removal.md"
+  - "raw/notes/2026-09-26-workflow-legacy-removal.md"
   - "raw/notes/2026-09-26-workflow-process-diagram.md"
   - "raw/notes/2026-09-26-workflow-tasks-guide-removed.md"
   - "raw/notes/2026-09-26-workflow-state-from-record-only.md"
@@ -42,7 +44,7 @@ Wiki는 프로젝트 지식의 정본이고 Workflow는 작업 절차와 사람�
 | 작업 절차·기록·판단 | `.agents/workflow/process/index.md`와 `.agents/workflow/tasks/` | Workflow 화면 Saved/Wiki/index.html |
 | AI 연결·런타임 파일 | Saved/Wiki의 로컬 파일 | OpenWorkflow.bat와 로컬 서버 |
 
-생성 HTML은 정본이 아니다. Wiki 뷰어는 편찬 문서·안내·색인을 표시하고 raw 자료와 개인 런타임 상태를 독서 목록에서 제외한다. Wiki 내용을 다시 작성하려면 원자료 수집·편찬 작업이 필요하며 HTML 재생성만으로 지식이 최신화되지는 않는다.
+생성 HTML은 정본이 아니다. Wiki 뷰어는 편찬 문서·안내·색인을 표시하고 raw 자료와 개인 런타임 상태를 독서 목록에서 제외한다. Wiki 내용을 다시 작성하려면 원자료 수집·편찬 작업이 필요하며 HTML 재생성만으로 지식이 최신화되지는 않는다. 화면은 문서의 Markdown 이미지를 그리지 않으므로 그림이 필요하면 Mermaid 도식으로 쓴다.
 
 ## 판단과 실행
 
@@ -79,7 +81,7 @@ Wiki는 프로젝트 지식의 정본이고 Workflow는 작업 절차와 사람�
 | 추가 요청 | 범위 안이면 고치고, 범위를 바꾸면 질문·새 계획으로 답한다 | 모든 명령 허용 |
 | 테스트 결과 | 실패가 있으면 고친 뒤 재확인 항목을 돌려준다. 실패 없이 일부만 통과면 AI를 부르지 않고, 모두 통과면 즉시 완료한 뒤 Wiki를 정리한다 | 모든 명령 허용 |
 
-권한은 사용자 결정(2026-09-25)이다. 읽기 전용은 Codex `--sandbox read-only`, Claude Code `--tools Read,Glob,Grep`(dontAsk), Gemini CLI 쓰기·셸 도구 제외다. 모든 명령 허용은 Codex `danger-full-access`, Claude Code `bypassPermissions`, Gemini CLI `yolo`다. 커밋·푸시·관리자 정책과 CLI 설정 변경, 작업 기록 직접 수정은 처리 지시로 막는다.
+권한은 사용자 결정(2026-09-25)이다. 읽기 전용은 Codex `--sandbox read-only`, Claude Code `--tools Read,Glob,Grep`(dontAsk), Gemini CLI 쓰기·셸 도구 제외다. 모든 명령 허용은 Codex `danger-full-access`, Claude Code `bypassPermissions`, Gemini CLI `yolo`다. 커밋·푸시·관리자 정책과 CLI 설정 변경, 작업 기록 직접 수정은 처리 지시로 막는다. Claude Code가 도구 권한을 거부당하면 그 사실을 처리 근거에 한 줄로 남긴다.
 
 2026-09-26 점검에서 미결 두 가지를 확인했다. 정하기 중(미답변 질문이나 미승인 계획)에 보낸 추가 요청도 모든 명령 허용으로 실행되므로, 승인 전 구현 금지는 처리 지시에만 기댄다. 완료 직후 열려 있는 작업 진행 패널에서는 완료 뒤 정리가 끝나면 추가 요청 전달이 다시 켜진다. 대시보드는 완료 행에 작업 진행을 주지 않는다. 조치는 사용자가 정하지 않았다.
 
@@ -130,7 +132,7 @@ sequenceDiagram
 
 ## 이전 구조
 
-2026-09-25까지 Workflow에는 웹 화면에서 기획서 검토→설계→구현→코드 리뷰→테스트→정리 대기→완료를 버튼으로 확정하는 새 작업 경로가 있었다. 승인 버전 대조·정리 완료 분리·승인자 기록도 이 경로의 기능이었다. 저장 파일이 한 건도 없고 모든 작업이 대화로 진행돼 사용자 결정으로 폐지했다. 경로 전용 파일 일부는 삭제 승인을 기다리며 남아 있지만 현재 코드는 참조하지 않는다. 같은 날 사용자 요청으로 웹 새 작업을 다시 넣었지만, 옛 경로의 단계별 승인 화면이 아니라 3단계 절차의 요청·질문·계획·체크리스트를 작업 기록 절로 주고받는 방식이다. 테스트 결과 처리 권한은 그 전까지 한 가지(Codex workspace-write, Claude acceptEdits, Gemini auto_edit)였다.
+2026-09-25까지 Workflow에는 웹 화면에서 기획서 검토→설계→구현→코드 리뷰→테스트→정리 대기→완료를 버튼으로 확정하는 새 작업 경로가 있었다. 승인 버전 대조·정리 완료 분리·승인자 기록도 이 경로의 기능이었다. 저장 파일이 한 건도 없고 모든 작업이 대화로 진행돼 사용자 결정으로 폐지했다. 2026-09-26 사용자 요청으로 경로 전용 파일·테스트와, 작업 절차 한 장으로 합친 옛 절차 문서(기획서 검토·구현·테스트·정리, 사용 안내, 4단계 그림)를 삭제했다. 현재 코드의 옛 결과 형식(남은 확인·검사 목록·확인 범위·AI 확인 요청 상태) 표시와 옛 대시보드의 통계 카드·상태 배지 CSS도 함께 없앴다. 쓰는 이미지가 없어진 문서 이미지 기능(PNG 묶기·Markdown 이미지 표시)도 사용자 결정으로 없앴다. 같은 날 사용자 요청으로 웹 새 작업을 다시 넣었지만, 옛 경로의 단계별 승인 화면이 아니라 3단계 절차의 요청·질문·계획·체크리스트를 작업 기록 절로 주고받는 방식이다. 테스트 결과 처리 권한은 그 전까지 한 가지(Codex workspace-write, Claude acceptEdits, Gemini auto_edit)였다.
 
 ## 관련 문서
 
@@ -138,6 +140,10 @@ sequenceDiagram
 - [[wiki-operation|WX Wiki 운영과 재생성]] ([WX Wiki 운영과 재생성](../references/wiki-operation.md))
 
 ## Sources
+
+- [문서 이미지 기능 제거](../../raw/notes/2026-09-26-workflow-image-removal.md) — PNG 묶기·Markdown 이미지 표시 제거와 다이어그램 이미지 정책
+
+- [구 AI 워크플로우 잔재 제거](../../raw/notes/2026-09-26-workflow-legacy-removal.md) — 삭제한 파일 19개·없앤 옛 결과 형식 표시·남긴 것
 
 - [작업 절차 도식 교체와 서버 동작 점검](../../raw/notes/2026-09-26-workflow-process-diagram.md) — 도식 구조·Mermaid 배치·명확한 지시 지름길의 채널·미결 두 가지
 
@@ -176,6 +182,10 @@ sequenceDiagram
 
 <details id="document-notes">
 <summary>출처·검증 및 참고 정보</summary>
+
+2026-09-26 사용자 결정으로 문서 이미지 기능을 없앤 내용을 편찬했다. Export-Wiki 뒤 Workflow 테스트 5개와 링크 검사를 통과했고, 헤드리스 Edge로 두 화면의 도식이 가운데 이미지로 그려지는 것을 확인했다.
+
+2026-09-26 사용자 요청으로 구 AI 워크플로우 잔재(옛 웹 경로 파일·테스트, 옛 절차 문서·그림, 옛 결과 형식 표시, 옛 대시보드 CSS)를 제거한 내용을 편찬했다. Export-Wiki 뒤 Workflow 테스트 5개와 링크 검사를 통과했다. 로컬 서버는 재시작하지 않았다.
 
 2026-09-26 사용자 요청으로 작업 절차 도식을 단계 상자 배치로 바꾸고, 서버·화면 코드와 대조한 점검 결과를 편찬했다. 점검 결과는 답변마다 정하기 재실행, AI 항목 실패는 추가 요청 대기, 명확한 지시 지름길은 AI 대화 전용, 미결 두 가지다. Export-Wiki 뒤 TestWikiViewer·TestWikiSpaces와 링크 검사를 통과했고, 헤드리스 Edge로 Workflow 화면의 작업 절차 도식을 1440px·420px로 확인했다. 사람의 화면 확인은 하지 않았다.
 
