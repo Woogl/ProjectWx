@@ -1,6 +1,6 @@
 {
   "taskPath": ".agents/workflow/tasks/checkpoint-savegame.md",
-  "revision": 8,
+  "revision": 10,
   "requests": [
     {
       "operationId": "request-b19e39f0-456d-450f-8b76-526941908a5f",
@@ -155,6 +155,49 @@
           }
         ]
       }
+    },
+    {
+      "operationId": "request-e4608759-fa55-47a2-b5bf-ff9e6ef94281",
+      "digest": "a487610324fb713c4e01ccc4a474651a5320ed224ff1c9392532ae94316a1fe9",
+      "action": "submit",
+      "kind": "record",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/checkpoint-savegame.md",
+      "title": "체크포인트 SaveGame 전환",
+      "actor": "이우성",
+      "at": "2026-09-25T17:34:37.620Z",
+      "checks": [
+        {
+          "item": "사망·부활·새 게임",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "코드 리뷰",
+          "result": "통과",
+          "note": ""
+        }
+      ],
+      "status": "recorded"
+    },
+    {
+      "operationId": "request-b38d4c19-1f56-4c43-a827-492d1b0324da",
+      "digest": "eba71e9a422a86c29a6c284a992df20b5dfc48d40ca8065616fdf6230b41164b",
+      "action": "submit",
+      "kind": "record",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/checkpoint-savegame.md",
+      "title": "체크포인트 SaveGame 전환",
+      "actor": "이우성",
+      "at": "2026-09-25T17:34:44.877Z",
+      "checks": [
+        {
+          "item": "코드 리뷰",
+          "result": "통과",
+          "note": ""
+        }
+      ],
+      "status": "recorded"
     }
   ]
 }
