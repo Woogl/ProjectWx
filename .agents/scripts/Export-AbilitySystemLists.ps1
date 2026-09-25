@@ -859,10 +859,11 @@ function Get-AbilityBody($Abilities, $Montages) {
     $lines.Add('- 값은 에셋에 저장된 값이다. 빈 칸은 "없음"이 아니라 저장된 값이 없어 부모 기본값을 따른다는 뜻이다. 기본값은 타입 칸의 C++ 클래스와 그 상위 클래스의 생성자·헤더 초기값에 있다.')
     $lines.Add('- 발동 조건의 Required·Blocked는 `ActivationRequiredTags`·`ActivationBlockedTags`다. `ActivationOwnedTags`는 AbilityTags와 같으면 적지 않는다.')
     $lines.Add('- WxAbilitySet 칸의 에셋을 받는 캐릭터와 그 구성은 [캐릭터 목록](../references/character-list.md)에 있다.')
+    $lines.Add('- 콤보 몽타주는 `ComboMontages` 배열 순서대로 표시한다. 각 몽타주의 방향 섹션은 콤보 단계와 별개다.')
     $lines.Add('')
 
     # Properties that have their own column; everything else goes to 기타 in serialized order.
-    $columnProps = @('ActivationInputAction', 'AbilityMontage', 'AbilityTags', 'ActivationRequiredTags', 'ActivationBlockedTags', 'CooldownTags', 'CooldownTime', 'MaxRecharges', 'CooldownGameplayEffectClass', 'CostResource', 'CostAmount', 'Title', 'Description')
+    $columnProps = @('ActivationInputAction', 'AbilityMontage', 'ComboMontages', 'AbilityTags', 'ActivationRequiredTags', 'ActivationBlockedTags', 'CooldownTags', 'CooldownTime', 'MaxRecharges', 'CooldownGameplayEffectClass', 'CostResource', 'CostAmount', 'Title', 'Description')
     $lines.Add('## 어빌리티')
     $group = $null
     foreach ($a in (Sort-Ordinal $Abilities.Values { param($r) $r.File })) {
@@ -897,8 +898,12 @@ function Get-AbilityBody($Abilities, $Montages) {
         if ($p.Contains('ActivationOwnedTags') -and $p.Contains('AbilityTags') -and (Format-Value $p['ActivationOwnedTags']) -eq (Format-Value $p['AbilityTags'])) { $skip += 'ActivationOwnedTags' }
         $setCell = '—'
         if ($a.Sets.Count) { $setCell = @($a.Sets) -join ', ' }
+        $montageCell = Format-Value $p['AbilityMontage']
+        if ($p.Contains('ComboMontages')) {
+            $montageCell = (@(foreach ($path in $p['ComboMontages']) { Format-Value $path }) -join ' → ')
+        }
         $lines.Add((Format-Row @(
-            $a.Display, $a.Type, $setCell, (Format-Value $p['ActivationInputAction']), (Format-Value $p['AbilityMontage']),
+            $a.Display, $a.Type, $setCell, (Format-Value $p['ActivationInputAction']), $montageCell,
             (Format-Value $p['AbilityTags']), ($conditions -join '; '), ($cooldown -join ', '), ($cost -join ' '), ($text -join ' — '), (Format-Others $p $skip))))
     }
     $lines.Add('')
@@ -1088,12 +1093,14 @@ try {
     # Montages used by abilities, plus montages those montages reference (a finisher's victim montage).
     $pending = New-Object System.Collections.Queue
     foreach ($ability in (Sort-Ordinal $abilities.Values { param($r) $r.File })) {
-        $path = Get-Field $ability.Props 'AbilityMontage'
-        if (-not $path) { continue }
-        $montage = $montages[$path.Split('.')[0]]
-        if ($null -eq $montage) { continue }
-        if ($null -eq $montage.Users) { $montage.Users = New-Object System.Collections.ArrayList; $pending.Enqueue($montage) }
-        [void]$montage.Users.Add($ability.Display)
+        $paths = @((Get-Field $ability.Props 'AbilityMontage')) + @((Get-Field $ability.Props 'ComboMontages'))
+        foreach ($path in $paths) {
+            if (-not $path) { continue }
+            $montage = $montages[$path.Split('.')[0]]
+            if ($null -eq $montage) { continue }
+            if ($null -eq $montage.Users) { $montage.Users = New-Object System.Collections.ArrayList; $pending.Enqueue($montage) }
+            if (-not $montage.Users.Contains($ability.Display)) { [void]$montage.Users.Add($ability.Display) }
+        }
     }
     $usedMontages = New-Object System.Collections.ArrayList
     while ($pending.Count) {

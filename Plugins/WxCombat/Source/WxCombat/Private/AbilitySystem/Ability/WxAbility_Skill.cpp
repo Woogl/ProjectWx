@@ -28,10 +28,9 @@ void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		return;
 	}
 
-	UAnimMontage* ComboMontage = GetMontage();
-	ComboIndex = ComboIndex + 1 < GetComboStageCount(ComboMontage) ? ComboIndex + 1 : 0;
+	ComboIndex = ComboMontages.IsValidIndex(ComboIndex + 1) ? ComboIndex + 1 : 0;
 
-	if (!PlayMontage(ComboMontage, GetComboStageSection(ComboMontage, ComboIndex)))
+	if (!PlayMontage(GetMontage()))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}

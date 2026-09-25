@@ -21,6 +21,7 @@ summary: "GA_·AM_ 에셋에서 생성한 표로, 어빌리티마다 타입·WxA
 - 값은 에셋에 저장된 값이다. 빈 칸은 "없음"이 아니라 저장된 값이 없어 부모 기본값을 따른다는 뜻이다. 기본값은 타입 칸의 C++ 클래스와 그 상위 클래스의 생성자·헤더 초기값에 있다.
 - 발동 조건의 Required·Blocked는 `ActivationRequiredTags`·`ActivationBlockedTags`다. `ActivationOwnedTags`는 AbilityTags와 같으면 적지 않는다.
 - WxAbilitySet 칸의 에셋을 받는 캐릭터와 그 구성은 [캐릭터 목록](../references/character-list.md)에 있다.
+- 콤보 몽타주는 `ComboMontages` 배열 순서대로 표시한다. 각 몽타주의 방향 섹션은 콤보 단계와 별개다.
 
 ## 어빌리티
 
@@ -29,11 +30,11 @@ summary: "GA_·AM_ 에셋에서 생성한 표로, 어빌리티마다 타입·WxA
 | 어빌리티 | 타입 | WxAbilitySet | 입력 | 몽타주 | AbilityTags | 발동 조건 | 쿨다운 | 비용 | 설명 | 기타 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | GA_HGTest_Attack_Air | UWxAbility_Attack_Air | ABS_HGTest | IA_Attack_Light | AM_HGTest_Attack_L_Air |  |  |  |  |  | Icon: T_HG_Attack_01 |
-| GA_HGTest_Attack_DodgeCounter | UWxAbility_Attack_DodgeCounter | ABS_HGTest | IA_Attack_Light | AM_HGTest_Attack_DodgeCounter |  |  |  |  |  | Icon: T_HG_Attack_01 |
+| GA_HGTest_Attack_DodgeCounter | UWxAbility_Attack_DodgeCounter | ABS_HGTest | IA_Attack_Light | AM_HGTest_Attack_DodgeCounter1 → AM_HGTest_Attack_DodgeCounter2 |  |  |  |  |  | Icon: T_HG_Attack_01 |
 | GA_HGTest_Attack_Heavy_1 | UWxAbility_Attack_Heavy | ABS_HGTest | IA_Attack_Heavy | AM_HGTest_Attack_Heavy_1 |  | Blocked: Movement.InAir, Ability.Dodge, Master.Minion |  | SP 20 |  | Icon: T_HG_Attack_01 |
 | GA_HGTest_Attack_Heavy_2 | UWxAbility_Attack_Heavy | ABS_HGTest | IA_Attack_Heavy | AM_HGTest_Attack_Heavy_2 |  | Required: Master.Minion |  |  |  | ActivationOwnedEffects: GE_HGTest_Attack_Heavy_2; Icon: T_HG_Attack_01 |
-| GA_HGTest_Attack_Light_1 | UWxAbility_Attack_Light | ABS_HGTest | IA_Attack_Light | AM_HGTest_Attack_Light_1 |  | Blocked: Movement.InAir, Ability.Dodge, Master.Doppelganger |  |  |  | Icon: T_HG_Attack_01 |
-| GA_HGTest_Attack_Light_2 | UWxAbility_Attack_Light | ABS_HGTest | IA_Attack_Light | AM_HGTest_Attack_Light_2 |  | Required: Master.Doppelganger; Blocked: Movement.InAir, Ability.Dodge, Master.Minion |  |  |  | Icon: T_HG_Attack_01 |
+| GA_HGTest_Attack_Light_1 | UWxAbility_Attack_Light | ABS_HGTest | IA_Attack_Light | AM_HGTest_Attack_1_L → AM_HGTest_Attack_1_LL → AM_HGTest_Attack_1_LLL → AM_HGTest_Attack_1_LLLL |  | Blocked: Movement.InAir, Ability.Dodge, Master.Doppelganger |  |  |  | Icon: T_HG_Attack_01 |
+| GA_HGTest_Attack_Light_2 | UWxAbility_Attack_Light | ABS_HGTest | IA_Attack_Light | AM_HGTest_Attack_2_L → AM_HGTest_Attack_2_LL → AM_HGTest_Attack_2_LLL → AM_HGTest_Attack_2_LLLL |  | Required: Master.Doppelganger; Blocked: Movement.InAir, Ability.Dodge, Master.Minion |  |  |  | Icon: T_HG_Attack_01 |
 | GA_HGTest_Passive | UWxAbility_Passive | ABS_HGTest |  |  |  |  |  |  |  | TriggeredEffects: GE_HGTest_AddUP; AbilityTriggers: {TriggerTag=Event.DamageDealt, TriggerSource=GameplayEvent} |
 | GA_HGTest_Skill_1 | UWxAbility_Skill | ABS_HGTest | IA_Skill | AM_HGTest_Skill_1 | Ability.Skill, Ability.Skill.1 | Blocked: Master.Minion, Master.Doppelganger | Cooldown.Skill.1, 5초 |  | 분신 강공 협공 | Icon: T_HG_SkillE_01 |
 | GA_HGTest_Skill_2 | UWxAbility_Skill | ABS_HGTest | IA_Skill | AM_HGTest_Skill_2 | Ability.Skill, Ability.Skill.2 | Required: Master.Minion |  |  | 분신 스킬 협공 | ActivationOwnedEffects: GE_HGTest_Skill_2; Icon: T_HG_SkillE_02 |
@@ -53,15 +54,15 @@ summary: "GA_·AM_ 에셋에서 생성한 표로, 어빌리티마다 타입·WxA
 
 | 어빌리티 | 타입 | WxAbilitySet | 입력 | 몽타주 | AbilityTags | 발동 조건 | 쿨다운 | 비용 | 설명 | 기타 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| GA_Soldier_Pattern_1 | UWxAbility_Pattern | ABS_Soldier |  | AM_Soldier_Pattern_1 | Ability.Pattern, Ability.Pattern.1 |  |  |  |  |  |
-| GA_Soldier_Pattern_2 | UWxAbility_Pattern | ABS_Soldier |  | AM_Soldier_Pattern_2 | Ability.Pattern, Ability.Pattern.2 |  |  |  |  |  |
-| GA_Soldier_Pattern_3 | UWxAbility_Pattern | ABS_Soldier |  | AM_Soldier_Pattern_3 | Ability.Pattern, Ability.Pattern.3 |  |  |  |  |  |
+| GA_Soldier_Pattern_1 | UWxAbility_Pattern | ABS_Soldier |  | AM_Soldier_Pattern_1_1 → AM_Soldier_Pattern_1_2 → AM_Soldier_Pattern_1_3 → AM_Soldier_Pattern_1_4 | Ability.Pattern, Ability.Pattern.1 |  |  |  |  |  |
+| GA_Soldier_Pattern_2 | UWxAbility_Pattern | ABS_Soldier |  | AM_Soldier_Pattern_2_1 → AM_Soldier_Pattern_2_2 → AM_Soldier_Pattern_2_3 | Ability.Pattern, Ability.Pattern.2 |  |  |  |  |  |
+| GA_Soldier_Pattern_3 | UWxAbility_Pattern | ABS_Soldier |  | AM_Soldier_Pattern_3_1 → AM_Soldier_Pattern_3_2 | Ability.Pattern, Ability.Pattern.3 |  |  |  |  |  |
 
 ### Content/Character/Template/Enemy
 
 | 어빌리티 | 타입 | WxAbilitySet | 입력 | 몽타주 | AbilityTags | 발동 조건 | 쿨다운 | 비용 | 설명 | 기타 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| GA_Template_Pattern_1 | UWxAbility_Pattern | Enemy/ABS_Template |  | AM_Template_Pattern_1 | Ability.Pattern, Ability.Pattern.1 |  |  |  |  |  |
+| GA_Template_Pattern_1 | UWxAbility_Pattern | Enemy/ABS_Template |  | AM_Template_Pattern_1_1 → AM_Template_Pattern_1_2 → AM_Template_Pattern_1_3 → AM_Template_Pattern_1_4 | Ability.Pattern, Ability.Pattern.1 |  |  |  |  |  |
 | GA_Template_Pattern_2 | UWxAbility_Pattern | Enemy/ABS_Template |  | AM_Template_Pattern_2 | Ability.Pattern, Ability.Pattern.2 |  |  |  |  |  |
 
 ### Content/Character/Template/Player
@@ -69,9 +70,9 @@ summary: "GA_·AM_ 에셋에서 생성한 표로, 어빌리티마다 타입·WxA
 | 어빌리티 | 타입 | WxAbilitySet | 입력 | 몽타주 | AbilityTags | 발동 조건 | 쿨다운 | 비용 | 설명 | 기타 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | GA_Template_Attack_Air | UWxAbility_Attack_Air | Player/ABS_Template | IA_Attack_Light | AM_Template_Attack_L_Air |  |  |  |  |  | Icon: T_UI_Sword |
-| GA_Template_Attack_DodgeCounter | UWxAbility_Attack_DodgeCounter | Player/ABS_Template | IA_Attack_Light | AM_Template_Attack_DodgeCounter |  |  |  |  |  | Icon: T_UI_Sword |
+| GA_Template_Attack_DodgeCounter | UWxAbility_Attack_DodgeCounter | Player/ABS_Template | IA_Attack_Light | AM_Template_DodgeCounter_1 → AM_Template_DodgeCounter_2 |  |  |  |  |  | Icon: T_UI_Sword |
 | GA_Template_Attack_Heavy | UWxAbility_Attack_Heavy | Player/ABS_Template | IA_Attack_Heavy | AM_Template_Attack_H |  |  |  | SP 20 |  | Icon: T_UI_Sword |
-| GA_Template_Attack_Light | UWxAbility_Attack_Light | Player/ABS_Template | IA_Attack_Light | AM_Template_Attack_Light |  |  |  |  |  | Icon: T_UI_Sword |
+| GA_Template_Attack_Light | UWxAbility_Attack_Light | Player/ABS_Template | IA_Attack_Light | AM_Template_Attack_L → AM_Template_Attack_LL → AM_Template_Attack_LLL → AM_Template_Attack_LLLL |  |  |  |  |  | Icon: T_UI_Sword |
 | GA_Template_Passive | UWxAbility_Passive | Player/ABS_Template |  |  |  |  |  |  |  | TriggeredEffects: GE_Template_Passive_AddUP; AbilityTriggers: {TriggerTag=Event.DamageDealt, TriggerSource=GameplayEvent} |
 | GA_Template_Skill | UWxAbility_Skill | Player/ABS_Template | IA_Skill | AM_Template_Skill |  |  | Cooldown.Skill.1, 5초 | MP 10 |  | Icon: MI_UI_Slot_1 |
 | GA_Template_Ultimate | UWxAbility_Ultimate | Player/ABS_Template | IA_Ultimate | AM_Template_Ultimate |  |  | Cooldown.Ultimate, 5초 | UP 100 |  | Icon: Wx_192 |
@@ -101,11 +102,18 @@ GA_가 쓰는 몽타주와 그 몽타주가 참조하는 몽타주다. 섹션은
 | 몽타주 | 쓰는 곳 | 섹션 | 노티파이 |
 |---|---|---|---|
 | AM_HGTest_Attack_L_Air | GA_HGTest_Attack_Air | Default, Loop, Grounded | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Attack_Air} |
-| AM_HGTest_Attack_DodgeCounter | GA_HGTest_Attack_DodgeCounter | 1, 2 | WxAnimNotifyState_SnapToTarget×2{TargetingPreset=TP_Attack_500; bSnapLocation=true}; WxAnimNotifyState_WeaponAttack×2{DamageDataRow=DT_Damage.AM_HGTest_Attack_DodgeCounter, DT_Damage.AM_Attack_LLLL}; WxAnimNotifyState_ComboWindow×2; WxAnimNotify_StartRecovery×2; WxAnimNotify_SpawnMinion{MinionClass=BP_Minion} |
+| AM_HGTest_Attack_DodgeCounter1 | GA_HGTest_Attack_DodgeCounter | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_500; bSnapLocation=true}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Attack_DodgeCounter}; WxAnimNotifyState_ComboWindow; WxAnimNotify_StartRecovery |
+| AM_HGTest_Attack_DodgeCounter2 | GA_HGTest_Attack_DodgeCounter | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_500; bSnapLocation=true}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Attack_LLLL}; WxAnimNotify_SpawnMinion{MinionClass=BP_Minion}; WxAnimNotify_StartRecovery; WxAnimNotifyState_ComboWindow |
 | AM_HGTest_Attack_Heavy_1 | GA_HGTest_Attack_Heavy_1, GA_Minion_Attack_Heavy | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_500; bSnapLocation=true}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Attack_Heavy}; WxAnimNotify_StartRecovery |
 | AM_HGTest_Attack_Heavy_2 | GA_HGTest_Attack_Heavy_2 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_500; bSnapLocation=true}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Attack_Heavy}; WxAnimNotify_StartRecovery |
-| AM_HGTest_Attack_Light_1 | GA_HGTest_Attack_Light_1 | 1, 2, 3, 4 | WxAnimNotifyState_SnapToTarget×4{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack×4{DamageDataRow=DT_Damage.AM_HGTest_Attack_Light_1}; WxAnimNotifyState_ComboWindow×4; WxAnimNotify_StartRecovery×4; WxAnimNotify_SpawnMinion{MinionClass=BP_Minion} |
-| AM_HGTest_Attack_Light_2 | GA_HGTest_Attack_Light_2 | 1, 2, 3, 4 | WxAnimNotifyState_SnapToTarget×4{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack×4{DamageDataRow=DT_Damage.AM_HGTest_Attack_Light_2}; WxAnimNotifyState_ComboWindow×4; WxAnimNotify_StartRecovery×4 |
+| AM_HGTest_Attack_1_L | GA_HGTest_Attack_Light_1 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Attack_Light_1}; WxAnimNotifyState_ComboWindow; WxAnimNotify_StartRecovery |
+| AM_HGTest_Attack_1_LL | GA_HGTest_Attack_Light_1 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Attack_Light_1}; WxAnimNotifyState_ComboWindow; WxAnimNotify_StartRecovery |
+| AM_HGTest_Attack_1_LLL | GA_HGTest_Attack_Light_1 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Attack_Light_1}; WxAnimNotifyState_ComboWindow; WxAnimNotify_StartRecovery |
+| AM_HGTest_Attack_1_LLLL | GA_HGTest_Attack_Light_1 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Attack_Light_1}; WxAnimNotify_SpawnMinion{MinionClass=BP_Minion}; WxAnimNotifyState_ComboWindow; WxAnimNotify_StartRecovery |
+| AM_HGTest_Attack_2_L | GA_HGTest_Attack_Light_2 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Attack_Light_2}; WxAnimNotifyState_ComboWindow; WxAnimNotify_StartRecovery |
+| AM_HGTest_Attack_2_LL | GA_HGTest_Attack_Light_2 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Attack_Light_2}; WxAnimNotifyState_ComboWindow; WxAnimNotify_StartRecovery |
+| AM_HGTest_Attack_2_LLL | GA_HGTest_Attack_Light_2 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Attack_Light_2}; WxAnimNotifyState_ComboWindow; WxAnimNotify_StartRecovery |
+| AM_HGTest_Attack_2_LLLL | GA_HGTest_Attack_Light_2 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Attack_Light_2}; WxAnimNotify_StartRecovery; WxAnimNotifyState_ComboWindow |
 | AM_HGTest_Skill_1 | GA_HGTest_Skill_1 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_500}; WxAnimNotify_SpawnMinion{MinionClass=BP_Minion}; WxAnimNotify_StartRecovery |
 | AM_HGTest_Skill_2 | GA_HGTest_Skill_2 | Default | WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Skill_2}; WxAnimNotifyState_Rush{TargetSource=Minion; IgnoreCollisions=ObjectTypeQuery6, ObjectTypeQuery3, ObjectTypeQuery4, ObjectTypeQuery5, ObjectTypeQuery2, ObjectTypeQuery7}; WxAnimNotify_StartRecovery |
 | AM_HGTest_Skill_3 | GA_HGTest_Skill_3 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_500; bSnapLocation=true}; WxAnimNotifyState_WeaponAttack×3{DamageDataRow=DT_Damage.AM_HGTest_Skill_3}; WxAnimNotify_AreaDamage{TargetingPreset=TP_Attack_100}; WxAnimNotify_StartRecovery |
@@ -113,15 +121,28 @@ GA_가 쓰는 몽타주와 그 몽타주가 참조하는 몽타주다. 섹션은
 | AM_HGTest_Ultimate_2 | GA_HGTest_Ultimate_2 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotify_SkillCutscene{Sequence=LS_HGTest_Ultimate_2}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_HGTest_Ultimate_2}; WxAnimNotify_DespawnMinion{MinionClass=BP_Doppelganger}; WxAnimNotify_StartRecovery |
 | AM_Minion_Skill_1 | GA_Minion_Skill_1 | Default | WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Minion_Skill_1}; WxAnimNotify_StartRecovery |
 | AM_Minion_Skill_2 | GA_Minion_Skill_2 | Default | WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Minion_Skill_2}; WxAnimNotifyState_Rush{TargetSource=Master; IgnoreCollisions=ObjectTypeQuery6, ObjectTypeQuery3, ObjectTypeQuery4, ObjectTypeQuery5, ObjectTypeQuery2, ObjectTypeQuery7}; WxAnimNotify_StartRecovery |
-| AM_Soldier_Pattern_1 | GA_Soldier_Pattern_1 | 1, 2, 3, 4 | WxAnimNotifyState_SnapToTarget×4{TargetingPreset=TP_Attack_250, TP_Attack_1000}; AnimNotify_GameplayCueState{GameplayCue=GameplayCue.AttackTelegraph.Red}; WxAnimNotifyState_ComboWindow; WxAnimNotifyState_WeaponAttack×3{DamageDataRow=DT_Damage.AM_Template_Pattern_1_1, DT_Damage.AM_Template_Pattern_1_2, DT_Damage.AM_Template_Pattern_1_3} |
-| AM_Soldier_Pattern_2 | GA_Soldier_Pattern_2 | 1, 2, 3 | WxAnimNotifyState_SnapToTarget×3{TargetingPreset=TP_Attack_250, TP_Attack_1000; bSnapLocation=true}; AnimNotify_GameplayCueState{GameplayCue=GameplayCue.AttackTelegraph.Red}; WxAnimNotifyState_WeaponAttack×2{DamageDataRow=DT_Damage.AM_Template_Pattern_1_1, DT_Damage.AM_Template_Pattern_1_2} |
-| AM_Soldier_Pattern_3 | GA_Soldier_Pattern_3 | 1, 2 | WxAnimNotifyState_SnapToTarget×2{TargetingPreset=TP_Attack_250, TP_Attack_1000}; AnimNotify_GameplayCueState{GameplayCue=GameplayCue.AttackTelegraph.Red}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Pattern_1_1} |
-| AM_Template_Pattern_1 | GA_Template_Pattern_1 | 1, 2, 3, 4 | AnimNotify_GameplayCueState×4{GameplayCue=GameplayCue.AttackTelegraph.Red}; WxAnimNotifyState_SnapToTarget×4{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack×4{DamageDataRow=DT_Damage.AM_Template_Pattern_1_1, DT_Damage.AM_Template_Pattern_1_2, DT_Damage.AM_Template_Pattern_1_3, DT_Damage.AM_Template_Pattern_1_4} |
+| AM_Soldier_Pattern_1_1 | GA_Soldier_Pattern_1 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; AnimNotify_GameplayCueState{GameplayCue=GameplayCue.AttackTelegraph.Red}; WxAnimNotifyState_ComboWindow |
+| AM_Soldier_Pattern_1_2 | GA_Soldier_Pattern_1 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_1000}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Pattern_1_1} |
+| AM_Soldier_Pattern_1_3 | GA_Soldier_Pattern_1 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_1000}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Pattern_1_2} |
+| AM_Soldier_Pattern_1_4 | GA_Soldier_Pattern_1 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_1000}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Pattern_1_3} |
+| AM_Soldier_Pattern_2_1 | GA_Soldier_Pattern_2 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; AnimNotify_GameplayCueState{GameplayCue=GameplayCue.AttackTelegraph.Red} |
+| AM_Soldier_Pattern_2_2 | GA_Soldier_Pattern_2 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_1000; bSnapLocation=true}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Pattern_1_1} |
+| AM_Soldier_Pattern_2_3 | GA_Soldier_Pattern_2 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_1000; bSnapLocation=true}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Pattern_1_2} |
+| AM_Soldier_Pattern_3_1 | GA_Soldier_Pattern_3 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; AnimNotify_GameplayCueState{GameplayCue=GameplayCue.AttackTelegraph.Red} |
+| AM_Soldier_Pattern_3_2 | GA_Soldier_Pattern_3 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_1000}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Pattern_1_1} |
+| AM_Template_Pattern_1_1 | GA_Template_Pattern_1 | Default | AnimNotify_GameplayCueState{GameplayCue=GameplayCue.AttackTelegraph.Red}; WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Pattern_1_1} |
+| AM_Template_Pattern_1_2 | GA_Template_Pattern_1 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; AnimNotify_GameplayCueState{GameplayCue=GameplayCue.AttackTelegraph.Red}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Pattern_1_2} |
+| AM_Template_Pattern_1_3 | GA_Template_Pattern_1 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; AnimNotify_GameplayCueState{GameplayCue=GameplayCue.AttackTelegraph.Red}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Pattern_1_3} |
+| AM_Template_Pattern_1_4 | GA_Template_Pattern_1 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; AnimNotify_GameplayCueState{GameplayCue=GameplayCue.AttackTelegraph.Red}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Pattern_1_4} |
 | AM_Template_Pattern_2 | GA_Template_Pattern_2 | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_10000}; AnimNotify_GameplayCueState{GameplayCue=GameplayCue.AttackTelegraph.Red}; WxAnimNotify_SpawnProjectile{ProjectileClass=BP_Template_Projectile} |
 | AM_Template_Attack_L_Air | GA_Template_Attack_Air | Default, Loop, Grounded | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Attack_Air} |
-| AM_Template_Attack_DodgeCounter | GA_Template_Attack_DodgeCounter | 1, 2 | WxAnimNotifyState_SnapToTarget×2{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack×2{DamageDataRow=DT_Damage.AM_Template_Attack_DodgeCounter_1, DT_Damage.AM_Template_Attack_DodgeCounter_2}; WxAnimNotifyState_ComboWindow×2; WxAnimNotify_StartRecovery×2 |
+| AM_Template_DodgeCounter_1 | GA_Template_Attack_DodgeCounter | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Attack_DodgeCounter_1}; WxAnimNotifyState_ComboWindow; WxAnimNotify_StartRecovery |
+| AM_Template_DodgeCounter_2 | GA_Template_Attack_DodgeCounter | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Attack_DodgeCounter_2}; WxAnimNotify_StartRecovery; WxAnimNotifyState_ComboWindow |
 | AM_Template_Attack_H | GA_Template_Attack_Heavy | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Attack_H}; WxAnimNotify_StartRecovery |
-| AM_Template_Attack_Light | GA_Template_Attack_Light | 1, 2, 3, 4 | WxAnimNotifyState_SnapToTarget×4{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack×4{DamageDataRow=DT_Damage.AM_Template_Attack_L, DT_Damage.AM_Template_Attack_LL, DT_Damage.AM_Template_Attack_LLL, DT_Damage.AM_Template_Attack_LLLL}; WxAnimNotifyState_ComboWindow×4; WxAnimNotify_StartRecovery×4 |
+| AM_Template_Attack_L | GA_Template_Attack_Light | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Attack_L}; WxAnimNotifyState_ComboWindow; WxAnimNotify_StartRecovery |
+| AM_Template_Attack_LL | GA_Template_Attack_Light | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Attack_LL}; WxAnimNotifyState_ComboWindow; WxAnimNotify_StartRecovery |
+| AM_Template_Attack_LLL | GA_Template_Attack_Light | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Attack_LLL}; WxAnimNotifyState_ComboWindow; WxAnimNotify_StartRecovery |
+| AM_Template_Attack_LLLL | GA_Template_Attack_Light | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Attack_LLLL}; WxAnimNotify_StartRecovery; WxAnimNotifyState_ComboWindow |
 | AM_Template_Skill | GA_Template_Skill | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotifyState_WeaponAttack{DamageDataRow=DT_Damage.AM_Template_Skill}; WxAnimNotify_StartRecovery |
 | AM_Template_Ultimate | GA_Template_Ultimate | Default | WxAnimNotifyState_SnapToTarget{TargetingPreset=TP_Attack_250}; WxAnimNotify_SkillCutscene{Sequence=LS_Template_Ultimate}; WxAnimNotify_AreaDamage{TargetingPreset=TP_Attack_250; DamageDataRow=DT_Damage.AM_Template_Ultimate} |
 | AM_Shared_Dodge | GA_Shared_Dodge | Forward, ForwardRight, Right, BackRight, Back, BackLeft, Left, ForwardLeft, Backstep, SuccessForward, SuccessForwardRight, SuccessRight, SuccessBackRight, SuccessBack, SuccessBackLeft, SuccessLeft, SuccessForwardLeft | WxAnimNotifyState_ApplyGameplayEffect×17{EffectClass=WxEffect_Invincible}; WxAnimNotify_StartRecovery×16; AnimNotify_GameplayCue×8{GameplayCue=GameplayCue.GhostTrail}; WxAnimNotifyState_SlowTime×8 |

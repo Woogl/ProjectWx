@@ -60,35 +60,35 @@ summary: "GE_ 에셋의 모디파이어·컴포넌트 저장값, 에셋이 참�
 
 | 행 | CoeffATK | HitReactTag | bCanCritical | bCanGuard | bCanParry | AdditionalEffects | 사용처 |
 |---|---|---|---|---|---|---|---|
-| AM_Template_Attack_L | 1 | HitReact.Normal | true | true | true |  | AM_Template_Attack_Light |
-| AM_Template_Attack_LL | 1 | HitReact.Normal | true | true | true |  | AM_Template_Attack_Light |
-| AM_Template_Attack_LLL | 1 | HitReact.Normal | true | true | true |  | AM_Template_Attack_Light |
-| AM_Template_Attack_LLLL | 1.2 | HitReact.Normal | true | true | true |  | AM_Template_Attack_Light |
+| AM_Template_Attack_L | 1 | HitReact.Normal | true | true | true |  | AM_Template_Attack_L, AM_Template_Attack_Light |
+| AM_Template_Attack_LL | 1 | HitReact.Normal | true | true | true |  | AM_Template_Attack_LL, AM_Template_Attack_Light |
+| AM_Template_Attack_LLL | 1 | HitReact.Normal | true | true | true |  | AM_Template_Attack_LLL, AM_Template_Attack_Light |
+| AM_Template_Attack_LLLL | 1.2 | HitReact.Normal | true | true | true |  | AM_Template_Attack_LLLL, AM_Template_Attack_Light |
 | AM_Template_Attack_H | 1 | HitReact.Normal | true | true | true |  | AM_Template_Attack_H |
 | AM_Template_Attack_Air | 2 | HitReact.Normal | true | true | true |  | AM_Template_Attack_L_Air |
-| AM_Template_Attack_DodgeCounter_1 | 1 | HitReact.Normal | true | true | true |  | AM_Template_Attack_DodgeCounter |
-| AM_Template_Attack_DodgeCounter_2 | 1 | HitReact.Normal | true | true | true |  | AM_Template_Attack_DodgeCounter |
+| AM_Template_Attack_DodgeCounter_1 | 1 | HitReact.Normal | true | true | true |  | AM_Template_Attack_DodgeCounter, AM_Template_DodgeCounter_1 |
+| AM_Template_Attack_DodgeCounter_2 | 1 | HitReact.Normal | true | true | true |  | AM_Template_Attack_DodgeCounter, AM_Template_DodgeCounter_2 |
 | AM_Template_Skill | 2 | HitReact.KnockUp | true | true | true |  | AM_Template_Skill |
 | AM_Template_Ultimate | 3 | HitReact.KnockBack | true | false | false |  | AM_Template_Ultimate |
 | AM_Shared_Finisher | 3 |  | false | false | false |  | AM_Shared_Finisher |
-| AM_Template_Pattern_1_1 | 1 | HitReact.Normal | true | true | false |  | AM_Soldier_Pattern_1, AM_Soldier_Pattern_2, AM_Soldier_Pattern_3, AM_Template_Pattern_1 |
-| AM_Template_Pattern_1_2 | 1 | HitReact.Normal | true | true | false |  | AM_Soldier_Pattern_1, AM_Soldier_Pattern_2, AM_Template_Pattern_1 |
-| AM_Template_Pattern_1_3 | 1 | HitReact.Normal | true | true | false |  | AM_Soldier_Pattern_1, AM_Template_Pattern_1 |
-| AM_Template_Pattern_1_4 | 1 | HitReact.Normal | true | true | true |  | AM_Template_Pattern_1 |
+| AM_Template_Pattern_1_1 | 1 | HitReact.Normal | true | true | false |  | AM_Soldier_Pattern_1, AM_Soldier_Pattern_1_2, AM_Soldier_Pattern_2, AM_Soldier_Pattern_2_2, AM_Soldier_Pattern_3, AM_Soldier_Pattern_3_2, AM_Template_Pattern_1, AM_Template_Pattern_1_1 |
+| AM_Template_Pattern_1_2 | 1 | HitReact.Normal | true | true | false |  | AM_Soldier_Pattern_1, AM_Soldier_Pattern_1_3, AM_Soldier_Pattern_2, AM_Soldier_Pattern_2_3, AM_Template_Pattern_1, AM_Template_Pattern_1_2 |
+| AM_Template_Pattern_1_3 | 1 | HitReact.Normal | true | true | false |  | AM_Soldier_Pattern_1, AM_Soldier_Pattern_1_4, AM_Template_Pattern_1, AM_Template_Pattern_1_3 |
+| AM_Template_Pattern_1_4 | 1 | HitReact.Normal | true | true | true |  | AM_Template_Pattern_1, AM_Template_Pattern_1_4 |
 | BP_Template_Projectile | 0.5 | HitReact.Normal | true | true | false |  | BP_Template_Projectile |
 | AM_Minion_Skill_1 | 1 | HitReact.Normal | true | true | true |  | AM_Minion_Skill_1 |
 | AM_Minion_Skill_2 | 1 | HitReact.Normal | true | true | true |  | AM_Minion_Skill_2 |
-| AM_HGTest_Attack_Light_1 | 1 | HitReact.Normal | true | true | true |  | AM_HGTest_Attack_Light_1 |
-| AM_HGTest_Attack_Light_2 | 1 | HitReact.Normal | true | true | true |  | AM_HGTest_Attack_Light_2 |
+| AM_HGTest_Attack_Light_1 | 1 | HitReact.Normal | true | true | true |  | AM_HGTest_Attack_1_L, AM_HGTest_Attack_1_LL, AM_HGTest_Attack_1_LLL, AM_HGTest_Attack_1_LLLL, AM_HGTest_Attack_Light_1 |
+| AM_HGTest_Attack_Light_2 | 1 | HitReact.Normal | true | true | true |  | AM_HGTest_Attack_2_L, AM_HGTest_Attack_2_LL, AM_HGTest_Attack_2_LLL, AM_HGTest_Attack_2_LLLL, AM_HGTest_Attack_Light_2 |
 | AM_HGTest_Attack_Heavy | 1 | HitReact.Normal | true | true | true |  | AM_HGTest_Attack_Heavy_1, AM_HGTest_Attack_Heavy_2 |
 | AM_HGTest_Attack_Air | 1 | HitReact.Normal | true | true | true |  | AM_HGTest_Attack_L_Air |
-| AM_HGTest_Attack_DodgeCounter | 1 | HitReact.Normal | true | true | true |  | AM_HGTest_Attack_DodgeCounter |
+| AM_HGTest_Attack_DodgeCounter | 1 | HitReact.Normal | true | true | true |  | AM_HGTest_Attack_DodgeCounter, AM_HGTest_Attack_DodgeCounter1 |
 | AM_HGTest_Ultimate_1 | 0.5 | HitReact.Normal | true | true | true |  | AM_HGTest_Ultimate_1 |
 | AM_HGTest_Ultimate_2 | 3 | HitReact.KnockDown | true | true | true |  | AM_HGTest_Ultimate_2 |
 | AM_HGTest_Skill_2 | 1 | HitReact.Normal | true | true | true |  | AM_HGTest_Skill_2 |
 | AM_HGTest_Skill_3 | 1 | HitReact.Normal | true | true | true |  | AM_HGTest_Skill_3 |
 
-표에 없는 행을 가리키는 참조: `AM_Attack_LLLL` ← AM_HGTest_Attack_DodgeCounter; `AM_Attack_H` ← AM_Minion_Attack_Heavy; `BP_Projectile` ← BP_Soldier_Projectile
+표에 없는 행을 가리키는 참조: `AM_Attack_LLLL` ← AM_HGTest_Attack_DodgeCounter, AM_HGTest_Attack_DodgeCounter2; `AM_Attack_H` ← AM_Minion_Attack_Heavy; `BP_Projectile` ← BP_Soldier_Projectile
 
 ## 관련 문서
 

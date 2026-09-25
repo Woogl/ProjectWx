@@ -3,6 +3,7 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/Effect/WxEffect_Cost.h"
+#include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/Effect/WxEffect_IgnoreAbilityTags.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxInputBufferComponent.h"
@@ -12,6 +13,8 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "GameplayEffect.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Misc/DataValidation.h"
 #include "WxCombatModule.h"
 #include "WxGameplayTags.h"
@@ -56,6 +59,53 @@ float UWxAbilityBase::GetCooldownTime() const
 UAnimMontage* UWxAbilityBase::GetMontage() const
 {
 	return AbilityMontage;
+}
+
+EWxAbilityDirection UWxAbilityBase::ResolveDirection(const FVector& LocalDirection, EWxAbilityDirection DefaultDirection)
+{
+	const FVector Local = LocalDirection.GetSafeNormal2D();
+	if (Local.IsNearlyZero())
+	{
+		return DefaultDirection;
+	}
+
+	const float AngleDeg = FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X));
+	const int32 Octant = ((FMath::RoundToInt(AngleDeg / 45.f) % 8) + 8) % 8;
+	return static_cast<EWxAbilityDirection>(Octant);
+}
+
+FName UWxAbilityBase::SelectDirectionalSection(const FVector& LocalDirection, const FString& Prefix, EWxAbilityDirection DefaultDirection) const
+{
+	return SelectDirectionalSection(GetMontage(), LocalDirection, Prefix, DefaultDirection);
+}
+
+FName UWxAbilityBase::SelectDirectionalSection(const UAnimMontage* Montage, const FVector& LocalDirection, const FString& Prefix, EWxAbilityDirection DefaultDirection)
+{
+	if (!Montage)
+	{
+		return NAME_None;
+	}
+
+	const EWxAbilityDirection Direction = ResolveDirection(LocalDirection, DefaultDirection);
+	const FName SectionName(Prefix + StaticEnum<EWxAbilityDirection>()->GetNameStringByValue(static_cast<int64>(Direction)));
+	if (Montage->IsValidSectionName(SectionName))
+	{
+		return SectionName;
+	}
+
+	const FName ForwardSection(Prefix + StaticEnum<EWxAbilityDirection>()->GetNameStringByValue(static_cast<int64>(EWxAbilityDirection::Forward)));
+	if (Montage->IsValidSectionName(ForwardSection))
+	{
+		return ForwardSection;
+	}
+
+	return NAME_None;
+}
+
+bool UWxAbilityBase::HasMontageSection(const UAnimMontage* Montage, FName SectionName)
+{
+	const FString Prefix = SectionName.IsNone() ? FString() : SectionName.ToString();
+	return Montage && (Montage->IsValidSectionName(SectionName) || Montage->IsValidSectionName(FName(Prefix + TEXT("Forward"))));
 }
 
 float UWxAbilityBase::GetMontagePlayRate() const
@@ -250,6 +300,8 @@ bool UWxAbilityBase::CanBeCanceled() const
 
 void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
+	bHasMontageInputDirection = false;
+	MontageInputDirection = FVector::ZeroVector;
 	// 직전 활성화가 재사용 인스턴스에 남긴 캔슬 창을 닫는다.
 	SetActionPhase(EWxAbilityActionPhase::Blocking);
 
@@ -282,6 +334,7 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 
 void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	ClearPendingDirectionalMontage();
 	// 태스크를 여기서 끝내면 안 된다 — 엔진 EndAbility가 소유자 종료로 끝내는 경로만 재생 중인 몽타주를 멈추므로, 미리 끊으면 루핑 가드 몽타주처럼 스스로 끝나지 않는 것이 종료 후에도 계속 돈다.
 	MontageTask = nullptr;
 
@@ -308,12 +361,58 @@ bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
 		return false;
 	}
 
+	// 이미 고른 방향·Backstep은 그대로 쓴다. Forward는 자동 선택의 진입점이자 누락 방향의 대체 섹션이다.
+	const FString Prefix = StartSection.IsNone() ? FString() : StartSection.ToString();
+	const bool bSelectDirection = (StartSection.IsNone() || !Montage->IsValidSectionName(StartSection))
+		&& Montage->IsValidSectionName(FName(Prefix + TEXT("Forward")));
+	if (bSelectDirection)
+	{
+		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+		const bool bSharesClientDirection = NetExecutionPolicy == EGameplayAbilityNetExecutionPolicy::LocalPredicted
+			|| NetExecutionPolicy == EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+		if (!bHasMontageInputDirection && ASC && bSharesClientDirection && HasAuthority(&CurrentActivationInfo)
+			&& CurrentActorInfo && CurrentActorInfo->PlayerController.IsValid() && !IsLocallyControlled())
+		{
+			PendingDirectionalMontage = Montage;
+			PendingDirectionalSection = StartSection;
+			if (!MontageDirectionHandle.IsValid())
+			{
+				MontageDirectionHandle = ASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey())
+					.AddUObject(this, &UWxAbilityBase::HandleMontageDirectionReceived);
+			}
+			ASC->CallReplicatedTargetDataDelegatesIfSet(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
+			return IsActive();
+		}
+
+		if (!bHasMontageInputDirection)
+		{
+			MontageInputDirection = GetLocalMontageInputDirection();
+			bHasMontageInputDirection = true;
+			if (ASC && bSharesClientDirection && IsLocallyControlled() && !HasAuthority(&CurrentActivationInfo))
+			{
+				FGameplayAbilityTargetDataHandle DataHandle;
+				FWxAbilityTargetData_Direction* DirectionData = new FWxAbilityTargetData_Direction();
+				DirectionData->Direction = MontageInputDirection;
+				DataHandle.Add(DirectionData);
+				ASC->CallServerSetReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey(), DataHandle, FGameplayTag(), ASC->ScopedPredictionKey);
+			}
+		}
+		StartSection = SelectDirectionalSection(Montage, MontageInputDirection, Prefix);
+	}
+
+	// 대기 중 다른 섹션으로 교체됐으면 늦게 온 방향 데이터로 앞 요청을 재생하지 않는다.
+	ClearPendingDirectionalMontage();
 	if (!StartSection.IsNone() && !Montage->IsValidSectionName(StartSection))
 	{
 		UE_LOG(LogWxCombat, Warning, TEXT("%s: 몽타주 %s에 섹션 %s가 없다."), *GetName(), *Montage->GetName(), *StartSection.ToString());
 		return false;
 	}
 
+	return PlayMontageInternal(Montage, StartSection);
+}
+
+bool UWxAbilityBase::PlayMontageInternal(UAnimMontage* Montage, FName StartSection)
+{
 	// EndTask가 구 태스크를 가비지로 표시하므로, 바인딩은 남아도 약참조가 끊겨 후속 이벤트는 발송되지 않는다.
 	if (MontageTask)
 	{
@@ -333,25 +432,65 @@ bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
 	return true;
 }
 
-int32 UWxAbilityBase::GetComboStageCount(const UAnimMontage* Montage)
+FVector UWxAbilityBase::GetLocalMontageInputDirection() const
 {
-	if (!Montage)
+	const APawn* Pawn = Cast<APawn>(GetAvatarActorFromActorInfo());
+	if (!Pawn)
 	{
-		return 0;
+		return FVector::ZeroVector;
 	}
 
-	int32 StageCount = 0;
-	while (Montage->IsValidSectionName(FName(*FString::FromInt(StageCount + 1))))
+	FVector WorldDirection = Pawn->GetLastMovementInputVector();
+	// 직접 제어하지 않는 캐릭터는 마지막 입력 벡터 대신 이동 컴포넌트가 받은 가속도를 사용한다.
+	if (!Pawn->IsLocallyControlled())
 	{
-		++StageCount;
+		if (const ACharacter* Character = Cast<ACharacter>(Pawn))
+		{
+			WorldDirection = Character->GetCharacterMovement()->GetCurrentAcceleration();
+		}
 	}
-	return FMath::Max(StageCount, 1);
+	return Pawn->GetActorTransform().InverseTransformVectorNoScale(WorldDirection).GetSafeNormal2D();
 }
 
-FName UWxAbilityBase::GetComboStageSection(const UAnimMontage* Montage, int32 StageIndex)
+void UWxAbilityBase::HandleMontageDirectionReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ApplicationTag)
 {
-	const FName SectionName(*FString::FromInt(StageIndex + 1));
-	return Montage && Montage->IsValidSectionName(SectionName) ? SectionName : NAME_None;
+	MontageInputDirection = FVector::ZeroVector;
+	const FGameplayAbilityTargetData* Data = DataHandle.Get(0);
+	if (Data && Data->GetScriptStruct() == FWxAbilityTargetData_Direction::StaticStruct())
+	{
+		const FVector Direction = static_cast<const FWxAbilityTargetData_Direction*>(Data)->Direction;
+		if (!Direction.ContainsNaN())
+		{
+			MontageInputDirection = Direction.GetSafeNormal2D();
+		}
+	}
+	bHasMontageInputDirection = true;
+
+	UAnimMontage* Montage = PendingDirectionalMontage;
+	const FName StartSection = PendingDirectionalSection;
+	ClearPendingDirectionalMontage();
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
+	}
+	if (IsActive() && Montage && !PlayMontage(Montage, StartSection))
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	}
+}
+
+void UWxAbilityBase::ClearPendingDirectionalMontage()
+{
+	if (MontageDirectionHandle.IsValid())
+	{
+		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+		{
+			ASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).Remove(MontageDirectionHandle);
+		}
+		MontageDirectionHandle.Reset();
+	}
+	PendingDirectionalMontage = nullptr;
+	PendingDirectionalSection = NAME_None;
 }
 
 void UWxAbilityBase::HandleMontageCompleted()

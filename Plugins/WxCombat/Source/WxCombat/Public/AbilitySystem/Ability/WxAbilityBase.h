@@ -12,6 +12,21 @@ class UAbilityTask_PlayMontageAndWait;
 class UAnimMontage;
 class UGameplayEffect;
 class UInputAction;
+struct FGameplayAbilityTargetDataHandle;
+
+/** 로컬 +X(정면)에서 +Y(오른쪽)으로 45도씩 나눈 8방향. 항목명이 몽타주 섹션 이름이다. */
+UENUM(BlueprintType)
+enum class EWxAbilityDirection : uint8
+{
+	Forward,
+	ForwardRight,
+	Right,
+	BackRight,
+	Back,
+	BackLeft,
+	Left,
+	ForwardLeft
+};
 
 UENUM(BlueprintType)
 enum class EWxAbilityCostResource : uint8
@@ -110,8 +125,23 @@ public:
 	int32 GetMaxRecharges() const;
 	float GetCooldownTime() const;
 
-	/** 변형은 섹션으로 나눈다. */
-	UAnimMontage* GetMontage() const;
+	/** 방향별 변형은 각 몽타주의 섹션으로 나눈다. */
+	virtual UAnimMontage* GetMontage() const;
+
+	/** 로컬 XY 방향을 8방향으로 나눈다. 수평 입력이 없으면 DefaultDirection을 쓴다. */
+	static EWxAbilityDirection ResolveDirection(const FVector& LocalDirection, EWxAbilityDirection DefaultDirection = EWxAbilityDirection::Forward);
+
+	/**
+	 * GetMontage() 또는 전달받은 몽타주에서 Prefix + EWxAbilityDirection 항목명을 찾는다.
+	 * 해당 섹션이 없으면 같은 Prefix의 Forward, 그것도 없거나 몽타주가 없으면 NAME_None을 반환한다.
+	 * 섹션 이름만 선택하며 입력 수집·좌표 변환·방향 동기화·재생을 수행하지 않는다.
+	 * 방향 섹션 간 자동 연결은 변경하지 않는다.
+	 */
+	FName SelectDirectionalSection(const FVector& LocalDirection, const FString& Prefix = TEXT(""), EWxAbilityDirection DefaultDirection = EWxAbilityDirection::Forward) const;
+	static FName SelectDirectionalSection(const UAnimMontage* Montage, const FVector& LocalDirection, const FString& Prefix = TEXT(""), EWxAbilityDirection DefaultDirection = EWxAbilityDirection::Forward);
+
+	/** 정확한 SectionName 또는 접두사 SectionName에 Forward를 붙인 섹션이 있는지 검사한다. NAME_None은 빈 접두사다. */
+	static bool HasMontageSection(const UAnimMontage* Montage, FName SectionName);
 
 	/** 일반적으로는 ASPD가 반영된 몽타주 재생 속도 사용. */
 	virtual float GetMontagePlayRate() const;
@@ -162,14 +192,16 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	/** 몽타주에 없는 시작 섹션이면 경고하고 실패한다. 엔진은 그런 섹션을 무시하고 처음부터 재생한다. */
+	/**
+	 * StartSection이 비었거나 존재하지 않고 [StartSection]Forward가 있으면 이동 입력의 방향 섹션을 자동 선택한다.
+	 * 자동 선택에 쓰는 입력은 활성화마다 처음 한 번 로컬 XY 방향으로 확정해 재사용한다.
+	 * LocalPredicted·ServerInitiated에서는 로컬 클라이언트가 방향을 보내고 원격 플레이어의 서버 실행은 수신을 기다린다.
+	 * 원격 플레이어의 방향 수신을 기다리는 동안에도 true(요청 접수)를 반환한다. 나중에 재생이 실패하면 어빌리티를 취소한다.
+	 */
 	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
 
-	/** 콤보·패턴의 단계는 번호 섹션(1, 2, …)이다. 번호 섹션이 없는 몽타주는 처음부터 한 단계로 본다. */
-	static int32 GetComboStageCount(const UAnimMontage* Montage);
-
-	/** 번호 섹션이 없는 몽타주면 처음부터 재생하도록 NAME_None을 돌려준다. */
-	static FName GetComboStageSection(const UAnimMontage* Montage, int32 StageIndex);
+	/** 방향 선택 이후의 재생 수명. 그로기는 태스크 종료 대신 GP와 폴링으로 수명을 관리한다. */
+	virtual bool PlayMontageInternal(UAnimMontage* Montage, FName StartSection);
 
 	/** 창이 닫힌 뒤의 발동은 첫 단부터 시작해야 한다. */
 	virtual void OnComboWindowClosed();
@@ -186,7 +218,7 @@ protected:
 	UFUNCTION()
 	virtual void HandleMontageCancelled();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|Montage")
 	TObjectPtr<UAnimMontage> AbilityMontage;
 
 	/** 0 이하이면 쿨다운 미적용. */
@@ -215,6 +247,18 @@ private:
 	EWxAbilityActionPhase ActionPhase = EWxAbilityActionPhase::Blocking;
 
 	bool IsPlayingMontageInstance(int32 MontageInstanceID) const;
+	FVector GetLocalMontageInputDirection() const;
+	void HandleMontageDirectionReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ApplicationTag);
+	void ClearPendingDirectionalMontage();
+
+	// 한 활성화의 첫 방향 재생에서 확정해 후속 섹션도 서버와 같은 로컬 좌표를 사용한다.
+	FVector MontageInputDirection = FVector::ZeroVector;
+	bool bHasMontageInputDirection = false;
+	FDelegateHandle MontageDirectionHandle;
+	FName PendingDirectionalSection;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimMontage> PendingDirectionalMontage;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAbilityTask_PlayMontageAndWait> MontageTask;
