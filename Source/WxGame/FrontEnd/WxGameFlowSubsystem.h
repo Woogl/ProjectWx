@@ -40,7 +40,7 @@ private:
 	bool IsWorldPackage(const UWorld* World, const TSoftObjectPtr<UWorld>& Map) const;
 
 	UPROPERTY(Transient)
-	TSoftClassPtr<APawn> PendingPawnClass;
+	TSubclassOf<APawn> PendingPawnClass;
 
 	UPROPERTY(Transient)
 	TSoftObjectPtr<UWorld> PendingLevel;
