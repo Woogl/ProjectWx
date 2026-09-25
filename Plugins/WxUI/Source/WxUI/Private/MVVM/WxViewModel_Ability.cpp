@@ -158,21 +158,13 @@ void UWxViewModel_Ability::Deinitialize()
 bool UWxViewModel_Ability::TryActivateAbility()
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
-	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
-	if (!ASC || !AbilityCDO)
+	const UGameplayAbility* Ability = CachedAbility.Get();
+	if (!ASC || !Ability)
 	{
 		return false;
 	}
 
-	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
-	{
-		if (Spec.Ability.Get() == AbilityCDO)
-		{
-			return ASC->TryActivateAbility(Spec.Handle);
-		}
-	}
-
-	return false;
+	return ASC->TryActivateAbility(Ability->GetCurrentAbilitySpecHandle());
 }
 
 void UWxViewModel_Ability::RefreshBoundAbility()
@@ -188,21 +180,22 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 	const UGameplayAbility* FallbackAbility = nullptr;
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
-		if (!Spec.Ability || !Spec.Ability->GetAssetTags().HasAll(AbilityTags))
+		const UGameplayAbility* Ability = Spec.GetPrimaryInstance();
+		if (!Ability || !Ability->GetAssetTags().HasAll(AbilityTags))
 		{
 			continue;
 		}
 
-		if (Spec.Ability->DoesAbilitySatisfyTagRequirements(*ASC))
+		if (Ability->DoesAbilitySatisfyTagRequirements(*ASC))
 		{
-			MatchedAbility = Spec.Ability;
+			MatchedAbility = Ability;
 			break;
 		}
 
 		// 사망처럼 후보가 전부 막히는 구간에는 보던 얼굴을 유지한다.
-		if (!FallbackAbility || Spec.Ability.Get() == CachedAbility.Get())
+		if (!FallbackAbility || Ability == CachedAbility.Get())
 		{
-			FallbackAbility = Spec.Ability;
+			FallbackAbility = Ability;
 		}
 	}
 
@@ -530,34 +523,19 @@ void UWxViewModel_Ability::FlushActivationRefresh()
 void UWxViewModel_Ability::RefreshActivationState()
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
-	const UGameplayAbility* AbilityCDO = CachedAbility.Get();
-	if (!ASC || !AbilityCDO)
+	const UGameplayAbility* Ability = CachedAbility.Get();
+	const FGameplayAbilitySpecHandle Handle = Ability ? Ability->GetCurrentAbilitySpecHandle() : FGameplayAbilitySpecHandle();
+	if (!ASC || !ASC->FindAbilitySpecFromHandle(Handle))
 	{
 		SetCanActivate(false);
 		SetCheckCost(false);
 		return;
 	}
 
-	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
-	{
-		if (Spec.Ability.Get() != AbilityCDO)
-		{
-			continue;
-		}
-
-		// 엔진 InternalTryActivateAbility와 동일하게, 인스턴스가 있으면 인스턴스 기준으로 판정한다
-		const UGameplayAbility* PrimaryInstance = Spec.GetPrimaryInstance();
-		const UGameplayAbility* CanActivateSource = PrimaryInstance ? PrimaryInstance : AbilityCDO;
-
-		// 발동 가능이면 엔진이 그 안에서 비용도 이미 통과시켰다. 막혔을 때만 원인이 비용인지 따로 묻는다.
-		const bool bCanActivate = CanActivateSource->CanActivateAbility(Spec.Handle, ASC->AbilityActorInfo.Get());
-		SetCanActivate(bCanActivate);
-		SetCheckCost(bCanActivate || CanActivateSource->CheckCost(Spec.Handle, ASC->AbilityActorInfo.Get()));
-		return;
-	}
-
-	SetCanActivate(false);
-	SetCheckCost(false);
+	// 발동 가능이면 엔진이 그 안에서 비용도 이미 통과시켰다. 막혔을 때만 원인이 비용인지 따로 묻는다.
+	const bool bCanActivate = Ability->CanActivateAbility(Handle, ASC->AbilityActorInfo.Get());
+	SetCanActivate(bCanActivate);
+	SetCheckCost(bCanActivate || Ability->CheckCost(Handle, ASC->AbilityActorInfo.Get()));
 }
 
 float UWxViewModel_Ability::QueryCost(const UAbilitySystemComponent& ASC, const UGameplayAbility& Ability, FGameplayAttribute& OutCostAttribute) const
@@ -570,21 +548,11 @@ float UWxViewModel_Ability::QueryCost(const UAbilitySystemComponent& ASC, const 
 		return 0.f;
 	}
 
-	float AbilityLevel = 1.f;
-	for (const FGameplayAbilitySpec& Spec : ASC.GetActivatableAbilities())
-	{
-		if (Spec.Ability.Get() == &Ability)
-		{
-			AbilityLevel = Spec.Level;
-			break;
-		}
-	}
-
 	// 비용 계산은 소스 어빌리티에서 수치를 읽으므로 컨텍스트에 어빌리티를 실어야 한다.
 	FGameplayEffectContextHandle CostContext = ASC.MakeEffectContext();
 	CostContext.SetAbility(&Ability);
 
-	FGameplayEffectSpec CostSpec(CostGE, CostContext, AbilityLevel);
+	FGameplayEffectSpec CostSpec(CostGE, CostContext, Ability.GetAbilityLevel());
 	CostSpec.CalculateModifierMagnitudes();
 
 	for (int32 ModifierIndex = 0; ModifierIndex < CostGE->Modifiers.Num(); ++ModifierIndex)

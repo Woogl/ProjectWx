@@ -313,7 +313,9 @@ bool UWxInteractionScannerComponent::CanActivateInteract(const UAbilitySystemCom
 	{
 		if (Spec.Ability && Spec.Ability->GetAssetTags().HasTag(WxGameplayTags::Ability_Interact))
 		{
-			return Spec.Ability->CanActivateAbility(Spec.Handle, ActorInfo);
+			// 발동 경로(InternalTryActivateAbility)처럼 인스턴스가 있으면 인스턴스로 판정한다.
+			const UGameplayAbility* Ability = Spec.GetPrimaryInstance() ? Spec.GetPrimaryInstance() : Spec.Ability.Get();
+			return Ability->CanActivateAbility(Spec.Handle, ActorInfo);
 		}
 	}
 
