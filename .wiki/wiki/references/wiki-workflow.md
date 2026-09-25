@@ -2,6 +2,7 @@
 title: "Wiki·Workflow 도구 구조"
 category: reference
 sources:
+  - "raw/notes/2026-09-26-workflow-human-verification.md"
   - "raw/notes/2026-09-26-workflow-ssot-copies.md"
   - "raw/notes/2026-09-26-workflow-image-removal.md"
   - "raw/notes/2026-09-26-workflow-legacy-removal.md"
@@ -134,12 +135,20 @@ sequenceDiagram
 
 2026-09-25까지 Workflow에는 웹 화면에서 기획서 검토→설계→구현→코드 리뷰→테스트→정리 대기→완료를 버튼으로 확정하는 새 작업 경로가 있었다. 승인 버전 대조·정리 완료 분리·승인자 기록도 이 경로의 기능이었다. 저장 파일이 한 건도 없고 모든 작업이 대화로 진행돼 사용자 결정으로 폐지했다. 2026-09-26 사용자 요청으로 경로 전용 파일·테스트와, 작업 절차 한 장으로 합친 옛 절차 문서(기획서 검토·구현·테스트·정리, 사용 안내, 4단계 그림)를 삭제했다. 현재 코드의 옛 결과 형식(남은 확인·검사 목록·확인 범위·AI 확인 요청 상태) 표시와 옛 대시보드의 통계 카드·상태 배지 CSS도 함께 없앴다. 쓰는 이미지가 없어진 문서 이미지 기능(PNG 묶기·Markdown 이미지 표시)도 사용자 결정으로 없앴다. 같은 날 사용자 요청으로 웹 새 작업을 다시 넣었지만, 옛 경로의 단계별 승인 화면이 아니라 3단계 절차의 요청·질문·계획·체크리스트를 작업 기록 절로 주고받는 방식이다. 테스트 결과 처리 권한은 그 전까지 한 가지(Codex workspace-write, Claude acceptEdits, Gemini auto_edit)였다.
 
+## 현재 확인 범위
+
+2026-09-26 한국 시각에 접수된 이우성의 사람 테스트 결과로, 대시보드의 분류·행 버튼·정렬, 작업 절차 도식의 가독성, 체크리스트 결과의 기록 반영, 웹 새 작업의 요청부터 질문·승인·구현 후 체크리스트까지의 실제 흐름, 선택한 AI의 터미널 이어하기가 확인됐다. 코드 리뷰와 워크플로우 SSoT 항목도 통과했다([확인 범위와 원문](../../raw/notes/2026-09-26-workflow-human-verification.md)). 이 결과는 아래 과거 검증 이력의 실제 웹 흐름·사람 화면 미확인을 보완한다.
+
+결과에는 사용한 AI 제공자·모델이 특정되어 있지 않아 세 제공자 각각의 전체 흐름 통과를 뜻하지 않는다. 아래 점검에서 남긴 미결 두 사항의 조치 결정이나 수정 근거도 아니므로 그대로 구분한다. 기존 자동 검증과 이번 사람 확인은 서로 다른 근거이며, 이번 Wiki 정리에서 실행 검증을 반복하지 않았다. 승인과 항목별 결과의 정본은 [작업 기록](../../../.agents/workflow/tasks/workflow-review.md)에 있다.
+
 ## 관련 문서
 
 - [[editor-tools|편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer]] ([편집기 도구 — WxEditor·WxToolset·DataTableRowFixup·BoxComponentVisualizer](../references/editor-tools.md))
 - [[wiki-operation|WX Wiki 운영과 재생성]] ([WX Wiki 운영과 재생성](../references/wiki-operation.md))
 
 ## Sources
+
+- [Workflow 사람 테스트 확인 범위](../../raw/notes/2026-09-26-workflow-human-verification.md) — 실제 웹 흐름·화면·터미널 이어하기의 사람 확인과 검증 한계
 
 - [Workflow 규칙 사본 정리](../../raw/notes/2026-09-26-workflow-ssot-copies.md) — 처리 프롬프트와 Wiki는 정본을 가리키고, 명확한 지시의 승인 지름길은 AI 대화로 한정
 

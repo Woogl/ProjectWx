@@ -1,31 +1,39 @@
 # Workflow 개선
 
-상태: 확인 대기 · 구 워크플로우 잔재 제거, AI 항목 통과
-다음 행동: 코드 리뷰와 작업 절차 도식·웹 새 작업·작업 진행 화면·터미널 창을 확인한다.
+상태: 완료 · 체크리스트 19/19 통과
+다음 행동: 변경 시 기록된 테스트 범위와 제약을 참고한다.
 
 ## 테스트 체크리스트
 
 | 항목 | 확인 방법 | 담당 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
-| 테스트 결과 서버·기록 상태 줄 | node .agents/scripts/TestWorkflowTestFeedback.cjs (단계별 결과 칸, 즉시 완료와 상태를 못 바꾸는 정리, 일부 통과 기록만, 실패 수정, 미실행 항목 넘김, 기록 충돌, 새 작업·한글 기록 이름, 가짜 Codex로 실제 실행기까지) | AI | 통과 | exit 0 · 2026-09-26 |
+| 테스트 결과 서버·기록 상태 줄 | node .agents/scripts/TestWorkflowTestFeedback.cjs (단계별 결과 칸, 즉시 완료와 상태를 못 바꾸는 정리, 일부 통과 기록만, 실패 수정, 미실행 항목 넘김, 기록 충돌, 새 작업·한글 기록 이름, 가짜 Codex로 실제 실행기까지, 규칙을 다시 적지 않는 처리 프롬프트) | AI | 통과 | exit 0 · 2026-09-26 (규칙 사본 정리 뒤 재실행) |
 | 체크리스트 입력 화면 | node .agents/scripts/TestWorkflowFeedbackUI.cjs (작업 진행 패널의 체크리스트·질문·승인·완료·빈 단계, 즉시 완료·결과 기록 안내, 새 작업 폼) | AI | 통과 | exit 0 · 2026-09-26 |
 | 생성 화면·네 분류·기록에서 만든 목록 | Export-Wiki.ps1 실행 후 TestWikiViewer.cjs·TestWikiSpaces.cjs | AI | 통과 | exit 0 · 새 작업·작업 진행 버튼 포함 · 2026-09-26 |
 | AI 실행 인자·응답 처리 | node .agents/scripts/TestWikiProviders.cjs (읽기 전용/모든 명령 허용 인자, Codex 출력 표시, Claude 진행 이벤트, Claude 권한 거부를 근거로 기록) | AI | 통과 | exit 0 · 2026-09-26 |
-| 저장소 링크 | CheckWikiLinks.ps1 | AI | 통과 | 오류 0건 · 61문서 · 2026-09-26 (구 워크플로우 잔재 제거 뒤 재실행) |
+| 저장소 링크 | CheckWikiLinks.ps1 | AI | 통과 | 오류 0건 · 61문서 · 2026-09-26 (규칙 사본 정리 뒤 재실행, 순정 llm-wiki lint PASS, Export-Wiki 뒤 TestWikiViewer·TestWikiSpaces·TestWorkflowFeedbackUI·TestWikiProviders exit 0) |
 | 구 워크플로우 잔재 | 저장소 전체에서 삭제 파일 이름·옛 절차 용어·옛 결과 칸을 검색하고, 삭제 뒤 Export-Wiki와 Workflow 테스트 5개를 다시 실행 | AI | 통과 | 현재 코드·문서·스킬·설정의 참조 0(로그·출처 메모·기록 이력만 남음), 테스트 5개 exit 0, Workflow 59문서 · 2026-09-26, 문서 이미지 기능 제거 뒤 테스트 5개 exit 0·생성 HTML에 이미지 데이터 없음 · 2026-09-26 |
-| 로컬 서버 재시작 | Start-WikiAI.ps1 실행 후 /health 조회 | AI | 통과 | protocol 4·재시작 판단 파일 7개(Workflow-Runner.cjs 추가), 한글 기록 이름 코드로 재시작해 파일 해시 일치 · 2026-09-26 |
+| 로컬 서버 재시작 | Start-WikiAI.ps1 실행 후 /health 조회 | AI | 통과 | protocol 4·재시작 판단 파일 7개(Workflow-Runner.cjs 추가), 한글 기록 이름 코드로 재시작해 파일 해시 일치 · 2026-09-26, 처리 프롬프트 정리 뒤 busy=false에서 재시작해 revision에 새 Workflow-TestFeedback.cjs 해시 포함 · 2026-09-26 |
 | 기록 이관 | 작업 현황 표와 기록 상태 줄을 행마다 대조 | AI | 통과 | 의도한 6건(모듈 리뷰 5·Ability Resolver)만 리뷰·참고로 옮겨지고 나머지 일치 · 2026-09-25 |
 | 화면 표시 | 헤드리스 Edge로 대시보드 머리·새 작업 폼·작업 진행(체크리스트, 화면 상태만 바꾼 질문·승인 단계)을 1440px·420px로 캡처 | AI | 통과 | 새 작업 버튼·단계별 전달 버튼(테스트 결과 전달·답변 전달·구현 승인) 확인, 서버 요청은 list·read뿐 · 2026-09-26 |
 | 작업 절차 도식 표시 | Export-Wiki.ps1 후 헤드리스 Edge로 Workflow 화면의 작업 절차 페이지를 1440px·420px로 열어 도식 이미지·오류 표시·원문 확인 | AI | 통과 | 도식 1개가 이미지로 그려지고 오류 표시 0, 원문이 단계 상자 도식 · 2026-09-26, 이미지 CSS 정리 뒤 Workflow·Wiki 두 화면의 도식이 block 이미지로 좌우 여백이 같게 그려짐 · 2026-09-26 |
 | 실제 터미널 창 | 가짜 Codex·인자 기록 스크립트로 실행기와 터미널 이어하기를 실제 cmd start로 실행(실제 AI 호출 없음) | AI | 통과 | 창 Wx AI · 창 확인 visible=True, 결과 수신, 이어하기 요청문이 인자 1개로 전달·작업 폴더에서 실행, 종료 후 남은 창 없음 · 2026-09-25, 한글 기록 경로(보스-체력바-지연-감소.md)도 그대로 전달 · 2026-09-26 |
 | 모든 명령 허용 인자 수용 | Claude Code를 연결 불가 주소로 실행해 초기화 이벤트만 확인, codex exec --help 대조 | AI | 통과 | permissionMode bypassPermissions로 초기화, Codex --sandbox danger-full-access·read-only 유효, 실제 AI 호출 없음 · 2026-09-25 |
-| 코드 리뷰 | Workflow-TestFeedback.cjs(상태 판정 stateOf, 단계별 결과 칸 schemaFor·validateReport, 테스트 결과 분기와 완료 뒤 정리, 미실행 항목 넘김, 새 작업·질문·승인·추가 요청·터미널 동작), Workflow-Runner.cjs(신규), Wiki-AI-Providers.cjs(plan/work 권한·진행 표시), wiki-viewer의 task-records.js·workflow.js·test-feedback.js·index.html, Wiki-AI.cjs·Start-WikiAI.ps1 연결, 구 워크플로우 잔재 제거(파일 19개 삭제, test-feedback.js의 옛 결과 형식·확인 범위 표시와 index.html의 옛 대시보드 CSS 제거, Wiki-AI-Providers.cjs의 Claude 권한 거부를 근거로 기록), 문서 이미지 기능 제거(Export-Wiki.ps1의 PNG 묶기·목차 제목 건너뛰기, index.html의 wikiImageSource·IMG 허용·article img 규칙) | 사람 | 대기 |  |
-| 대시보드 | OpenWorkflow.bat 실행. 네 분류와 체크리스트 n/m, 새 작업 버튼이 보이고 할 일이 한눈에 들어온다. 확인 대기·진행 중 행에는 작업 진행만, 완료·리뷰·참고 행에는 기록 열기만 있고, 배지가 있는 행도 버튼 줄이 맞는다. | 사람 | 대기 |  |
-| 작업 절차 한 장 | 왼쪽 메뉴의 작업 절차. 단계 상자 도식(정하기·만들기·확인하기)과 규칙이 한눈에 이해되고, 도식의 화살표가 실제로 겪는 흐름과 맞다. | 사람 | 대기 |  |
-| 체크리스트 전달 | 이 작업의 작업 진행에서 사람 항목 결과를 고르고 테스트 결과 전달. 결과가 체크리스트와 기록 맨 위 상태에 반영된다. | 사람 | 대기 |  |
-| 웹 새 작업 실제 흐름 | 새 작업에 작은 요청을 전달 → 터미널 창에 조사 과정이 보이고 질문이나 구현 계획이 작업 진행에 나타난다 → 답변·구현 승인 → 구현 뒤 테스트 체크리스트가 나온다. | 사람 | 대기 |  |
-| 터미널에서 이어하기 | 작업 진행의 터미널에서 이어하기. 고른 AI의 대화 창이 열리고 기록을 읽고 이어간다. | 사람 | 대기 |  |
-| 워크플로우 SSoT | AGENTS.md의 AI 워크플로우 절과 workflow/index.md에 규칙 사본 없이(tasks/index.md는 2026-09-26 사용자 요청으로 삭제) 작업 절차 링크만 남았고, 옮긴 규칙(자동 백업 금지·모듈 리뷰 재대조)이 작업 절차에 있다. | 사람 | 대기 |  |
+| 코드 리뷰 | Workflow-TestFeedback.cjs(규칙 문장을 뺀 taskPrompt·터미널 이어하기 요청문, 상태 판정 stateOf, 단계별 결과 칸 schemaFor·validateReport, 테스트 결과 분기와 완료 뒤 정리, 미실행 항목 넘김, 새 작업·질문·승인·추가 요청·터미널 동작), Workflow-Runner.cjs(신규), Wiki-AI-Providers.cjs(plan/work 권한·진행 표시), wiki-viewer의 task-records.js·workflow.js·test-feedback.js·index.html, Wiki-AI.cjs·Start-WikiAI.ps1 연결, 구 워크플로우 잔재 제거(파일 19개 삭제, test-feedback.js의 옛 결과 형식·확인 범위 표시와 index.html의 옛 대시보드 CSS 제거, Wiki-AI-Providers.cjs의 Claude 권한 거부를 근거로 기록), 문서 이미지 기능 제거(Export-Wiki.ps1의 PNG 묶기·목차 제목 건너뛰기, index.html의 wikiImageSource·IMG 허용·article img 규칙) | 사람 | 통과 | 이우성 2026-09-25 |
+| 대시보드 | OpenWorkflow.bat 실행. 네 분류와 체크리스트 n/m, 새 작업 버튼이 보이고 할 일이 한눈에 들어온다. 확인 대기·진행 중 행에는 작업 진행만, 완료·리뷰·참고 행에는 기록 열기만 있고, 배지가 있는 행도 버튼 줄이 맞는다. | 사람 | 통과 | 이우성 2026-09-25 |
+| 작업 절차 한 장 | 왼쪽 메뉴의 작업 절차. 단계 상자 도식(정하기·만들기·확인하기)과 규칙이 한눈에 이해되고, 도식의 화살표가 실제로 겪는 흐름과 맞다. | 사람 | 통과 | 이우성 2026-09-25 |
+| 체크리스트 전달 | 이 작업의 작업 진행에서 사람 항목 결과를 고르고 테스트 결과 전달. 결과가 체크리스트와 기록 맨 위 상태에 반영된다. | 사람 | 통과 | 이우성 2026-09-25 |
+| 웹 새 작업 실제 흐름 | 새 작업에 작은 요청을 전달 → 터미널 창에 조사 과정이 보이고 질문이나 구현 계획이 작업 진행에 나타난다 → 답변·구현 승인 → 구현 뒤 테스트 체크리스트가 나온다. | 사람 | 통과 | 이우성 2026-09-25 |
+| 터미널에서 이어하기 | 작업 진행의 터미널에서 이어하기. 고른 AI의 대화 창이 열리고 기록을 읽고 이어간다. | 사람 | 통과 | 이우성 2026-09-25 |
+| 워크플로우 SSoT | AGENTS.md의 AI 워크플로우 절, workflow/index.md, 처리 프롬프트(Workflow-TestFeedback.cjs taskPrompt·터미널 이어하기 요청문), Wiki references/wiki-workflow.md에 규칙 사본 없이 작업 절차 링크만 남았다(tasks/index.md는 2026-09-26 사용자 요청으로 삭제). 옮긴 규칙(자동 백업 금지·모듈 리뷰 재대조)과 명확한 지시 지름길을 AI 대화로 한정한 구절이 작업 절차에 있다. | 사람 | 통과 | 이우성 2026-09-25 |
+
+## 규칙 사본 정리 · 2026-09-26
+
+- 요청: 사용자가 코드·Wiki·지침을 최신화한 뒤 "아직 충돌이 남아있나요?"라고 물었다. AI는 내용 충돌은 없고 사본 두 곳(처리 프롬프트의 규칙 문장, Wiki 절차 요약)과 정본 본문에 빠진 예외 한 구절이 있다고 답했다. 사용자가 "네 진행하세요"라고 승인했다.
+- 처리 프롬프트(`taskPrompt`): 첫 줄은 AGENTS.md와 작업 절차를 따르게 한다. 남긴 것은 단계, 결과 칸 형식, 전체 권한 실행의 제한, 웹 전용 약속, evidence 작성법뿐이다. 체크리스트 규칙은 "기존 항목을 포함한 전체, 작성 규칙은 작업 절차의 테스트 체크리스트 절"로 줄였다. 뺀 규칙 문장은 모두 정본에 있다. 그중 사람 항목 보존·미실행 넘김·사람 항목 최소 하나는 서버 코드가 강제한다. 터미널에서 이어하기 요청문에서 읽을 절 나열도 뺐다. 테스트 `TestWorkflowTestFeedback.cjs`의 프롬프트 검사를 새 문구로 바꿨다.
+- 정본: 단계 절의 "명확한 지시는 구현 승인"을 AI 대화로 한정하고, 웹 새 작업은 정하기부터 시작해 구현 승인을 받는다고 적었다. 「작업 절차 도식 교체」의 미결 첫째가 이것으로 정해졌다. 이어 사용자가 "구현 내용을 명확히 지시한 요청은 그 지시를 구현 승인으로 봅니다. 라는 규칙을 아예 빼는게 나을까요?"라고 물었다. AI가 남기기를 추천했다. 빼면 명확한 지시마다 승인 왕복이 생기고, 확인하기의 코드 리뷰·사람 항목 관문은 그대로 남으며, 웹 새 작업의 동작은 달라지지 않기 때문이다. 사용자가 "남깁시다"로 결정했다.
+- Wiki: `raw/notes/2026-09-26-workflow-ssot-copies.md`를 수집해 `references/wiki-workflow`의 단계 표·승인 규칙·기록 형식·체크리스트 작성 규칙을 정본 링크로 바꿨다. 「절차 정본과 처리 프롬프트」 절을 새로 두고, 요약과 참조 색인 줄도 맞췄다. 순정 lint는 PASS였다.
+- 로컬 서버는 처리 중인 작업이 없어(busy=false) Start-WikiAI.ps1로 새 코드를 띄웠다. 실제 AI 처리로 새 프롬프트의 준수를 확인하지는 않았다. 커밋은 하지 않았다.
 
 ## 구 워크플로우 잔재 제거 · 2026-09-26
 
@@ -225,3 +233,45 @@
 - 사용자 추가 요청으로 P1도 해결했다. 검증 재시도 시작과 테스트 수용 시 최신 코드 리뷰 승인 버전을 대조한다. 불일치하면 blocked/implement로 전환하고 AI 재검토 후 코드 리뷰를 다시 받는다.
 - TestWorkflowExecution에서 v1 승인 → v2 변경 → retry가 검증을 시작하지 않고 차단됨을 확인했다. 재검토·재승인 후 수용, 동일 승인 버전의 재시도 허용, 결과 버전만 현재인 경우의 최종 수용 거부도 검증했다.
 - P2 구현과 함께 기존 Wiki 도구 구조에 근거를 수집·통합했다.
+
+
+## 사용자 테스트 결과 · 2026-09-25T18:13:23.605Z
+
+<!-- test-feedback:request-28efda27-2380-4995-a301-d773499484a5:submitted -->
+- 전달한 사람: 이우성
+
+> 통과 · 코드 리뷰
+> 통과 · 대시보드
+> 통과 · 작업 절차 한 장
+> 통과 · 체크리스트 전달
+> 통과 · 웹 새 작업 실제 흐름
+> 통과 · 터미널에서 이어하기
+> 통과 · 워크플로우 SSoT
+
+
+## AI 완료 정리 · 2026-09-25T18:13:23.610Z
+
+<!-- test-feedback:request-28efda27-2380-4995-a301-d773499484a5-cleanup:1 -->
+- 전달한 사람: 이우성
+- 처리 AI: Codex
+- 처리 결과: 정리 완료
+
+AI 요약:
+
+> 재사용할 사람 테스트 확인 범위를 Wiki에 반영했습니다. 작업 상태·기록·접수 JSON과 게임 코드·에셋은 변경하지 않았습니다.
+
+> 변경: .wiki/raw/notes/2026-09-26-workflow-human-verification.md에 사람 확인 원문·출처 해시·검증 범위를 수집했습니다.
+
+> 변경: .wiki/wiki/references/wiki-workflow.md에 실제 웹 흐름·화면·터미널 이어하기 등의 확인 범위를 추가하고 제공자별 전수 검증과 구분했습니다.
+
+> 변경: Wiki 색인·원자료 수·로그를 갱신하고 기존 사용자 변경을 보존했습니다.
+
+> 근거: AGENTS.md, .agents/workflow/process/index.md, workflow-review.md와 Wiki 스킬·설정·스키마를 읽었습니다. 체크리스트 19/19와 사람 항목 7개 통과를 확인했습니다.
+
+> 근거: Get-FileHash로 작업 기록과 접수 JSON의 처리 전후 해시가 동일함을 확인했습니다.
+
+> 근거: 순정 llm-wiki lint --local: PASS, 지적 0건.
+
+> 근거: CheckWikiLinks.ps1: 61문서, 링크 오류 0건. git diff --check: 공백 오류 없음.
+
+> 근거: Export-Wiki.ps1로 뷰어를 재생성했고 TestWikiViewer.cjs와 TestWikiSpaces.cjs 모두 통과했습니다.

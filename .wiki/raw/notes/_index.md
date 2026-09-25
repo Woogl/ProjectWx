@@ -120,3 +120,4 @@ Last updated: 2026-09-26
 | [Workflow 상태는 질문·계획·체크리스트에서만 정한다](2026-09-26-workflow-state-from-record-only.md) | 첫 실제 웹 처리의 두 결함 뒤 사용자 승인으로 Workflow를 다듬었다. AI가 사람에게 넘기는 것을 질문·구현 계획·테스트 체크리스트로 한정하고 단계마다 AI 결과 칸을 제한했다. 완료는 체크리스트 전부 통과로 즉시 판정하고 Wiki 정리는 완료 뒤 상태를 바꾸지 않는 처리로 옮겼다. | wx, workflow | 2026-09-26 |
 | [Workflow 기록 작성 규칙 링크와 tasks 안내 문서 삭제](2026-09-26-workflow-tasks-guide-removed.md) | 사용자 요청으로 대시보드 머리의 기록 작성 규칙 링크를 없애고, 그 링크만 가리키던 기록 폴더 안내 문서 tasks/index.md를 삭제했다. 규칙은 작업 절차 한 장에만 있다. | wx, workflow | 2026-09-26 |
 | [Workflow 웹 새 작업·이어하기와 터미널 창 실행](2026-09-26-workflow-web-tasks.md) | 대시보드에서 새 작업을 시작하고 질문 답변·구현 승인·추가 요청·테스트 결과 전달·터미널 이어하기로 기존 작업을 잇는다. 정하기는 읽기 전용, 구현·수정은 사용자 결정으로 모든 명령 허용이며 모든 AI 처리는 터미널 창에서 보이며 실행된다. | wx, workflow | 2026-09-26 |
+| [Workflow 사람 테스트 확인 범위](2026-09-26-workflow-human-verification.md) | 이우성의 사람 항목 7개 통과와 실제 웹 흐름·화면 확인 범위 및 검증 한계. | wx, workflow, verification | 2026-09-26 |

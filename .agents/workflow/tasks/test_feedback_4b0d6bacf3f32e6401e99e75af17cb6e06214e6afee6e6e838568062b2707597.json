@@ -1,0 +1,85 @@
+{
+  "taskPath": ".agents/workflow/tasks/workflow-review.md",
+  "revision": 5,
+  "requests": [
+    {
+      "operationId": "request-28efda27-2380-4995-a301-d773499484a5",
+      "digest": "129dc4715f14028a3dba0f2237bb3cb310886a748ca9ccd723516e7556bfda65",
+      "action": "submit",
+      "kind": "record",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/workflow-review.md",
+      "title": "Workflow 개선",
+      "actor": "이우성",
+      "at": "2026-09-25T18:13:23.605Z",
+      "checks": [
+        {
+          "item": "코드 리뷰",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "대시보드",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "작업 절차 한 장",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "체크리스트 전달",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "웹 새 작업 실제 흐름",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "터미널에서 이어하기",
+          "result": "통과",
+          "note": ""
+        },
+        {
+          "item": "워크플로우 SSoT",
+          "result": "통과",
+          "note": ""
+        }
+      ],
+      "status": "recorded"
+    },
+    {
+      "operationId": "request-28efda27-2380-4995-a301-d773499484a5-cleanup",
+      "action": "cleanup",
+      "kind": "cleanup",
+      "provider": "codex",
+      "taskPath": ".agents/workflow/tasks/workflow-review.md",
+      "title": "Workflow 개선",
+      "actor": "이우성",
+      "at": "2026-09-25T18:13:23.610Z",
+      "taskHash": "bafa564b88acf24c5be42406bde538b223bd8e3d696c53b6b626b59574497b32",
+      "status": "complete",
+      "error": "",
+      "attempt": 1,
+      "startedAt": "2026-09-25T18:13:23.611Z",
+      "report": {
+        "summary": "재사용할 사람 테스트 확인 범위를 Wiki에 반영했습니다. 작업 상태·기록·접수 JSON과 게임 코드·에셋은 변경하지 않았습니다.",
+        "evidence": [
+          "AGENTS.md, .agents/workflow/process/index.md, workflow-review.md와 Wiki 스킬·설정·스키마를 읽었습니다. 체크리스트 19/19와 사람 항목 7개 통과를 확인했습니다.",
+          "Get-FileHash로 작업 기록과 접수 JSON의 처리 전후 해시가 동일함을 확인했습니다.",
+          "순정 llm-wiki lint --local: PASS, 지적 0건.",
+          "CheckWikiLinks.ps1: 61문서, 링크 오류 0건. git diff --check: 공백 오류 없음.",
+          "Export-Wiki.ps1로 뷰어를 재생성했고 TestWikiViewer.cjs와 TestWikiSpaces.cjs 모두 통과했습니다."
+        ],
+        "changes": [
+          ".wiki/raw/notes/2026-09-26-workflow-human-verification.md에 사람 확인 원문·출처 해시·검증 범위를 수집했습니다.",
+          ".wiki/wiki/references/wiki-workflow.md에 실제 웹 흐름·화면·터미널 이어하기 등의 확인 범위를 추가하고 제공자별 전수 검증과 구분했습니다.",
+          "Wiki 색인·원자료 수·로그를 갱신하고 기존 사용자 변경을 보존했습니다."
+        ]
+      }
+    }
+  ]
+}
