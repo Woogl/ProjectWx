@@ -36,16 +36,10 @@ UWxEffect_Cost::UWxEffect_Cost()
 
 float UWxMMC_Cost::GetCostMagnitude(const FGameplayEffectSpec& Spec, EWxAbilityCostResource Resource) const
 {
-	// 컨텍스트의 소스 어빌리티 CDO는 AbilityDataRow를 그대로 가진다(EditDefaultsOnly).
+	// 컨텍스트의 소스 어빌리티 CDO는 GA_의 비용 값을 그대로 가진다(EditDefaultsOnly).
 	// 정적 데이터라 서버/클라 동일.
 	const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.GetEffectContext().GetAbility());
-	if (!Ability || Ability->AbilityDataRow.IsNull())
-	{
-		return 0.f;
-	}
-
-	const FWxAbilityTableRow* Row = Ability->AbilityDataRow.GetRow<FWxAbilityTableRow>(ANSI_TO_TCHAR(__FUNCTION__));
-	return Row && Row->CostResource == Resource ? -Row->CostAmount : 0.f;
+	return Ability && Ability->CostResource == Resource ? -Ability->CostAmount : 0.f;
 }
 
 float UWxMMC_MPCost::CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const

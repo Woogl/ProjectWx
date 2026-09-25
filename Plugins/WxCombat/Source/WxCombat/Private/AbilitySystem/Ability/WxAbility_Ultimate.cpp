@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Ultimate.h"
-#include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/Effect/WxEffect_SuperArmor.h"
 #include "AbilitySystem/Task/WxAbilityTask_PlaySkillCutscene.h"
 #include "AbilitySystemComponent.h"
@@ -20,8 +19,6 @@ UWxAbility_Ultimate::UWxAbility_Ultimate()
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Ultimate);
 	ActivationOwnedEffects.Add(UWxEffect_SuperArmor::StaticClass());
-
-	CooldownGameplayEffectClass = UWxEffect_Cooldown_Ultimate::StaticClass();
 }
 
 bool UWxAbility_Ultimate::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
@@ -39,7 +36,7 @@ void UWxAbility_Ultimate::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	ULevelSequence* Sequence = nullptr;
-	if (UltimateMontage)
+	if (const UAnimMontage* UltimateMontage = GetMontage())
 	{
 		for (const FAnimNotifyEvent& NotifyEvent : UltimateMontage->Notifies)
 		{
@@ -102,7 +99,7 @@ void UWxAbility_Ultimate::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 
 void UWxAbility_Ultimate::HandleCutsceneCompleted()
 {
-	if (!PlayMontage(UltimateMontage))
+	if (!PlayMontage(GetMontage()))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}

@@ -6,7 +6,6 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Dodge.generated.h"
 
-class UAnimMontage;
 class UCapsuleComponent;
 struct FGameplayAbilityTargetDataHandle;
 
@@ -26,6 +25,11 @@ enum class EWxDodgeDirection : uint8
 
 /**
  * 입력 방향에 해당하는 8방향 섹션(이동 입력이 없으면 Backstep 섹션)을 재생하고, 몽타주의 Effect.Invincible 구간에 피격되면 극한 회피로 이어진다.
+ *
+ * 행 몽타주에는 섹션 세 종류를 둔다. 각 섹션은 다음 섹션과의 링크를 끊어 하나만 재생되도록 구성한다.
+ * - 방향: EWxDodgeDirection 항목명(Forward, ForwardRight, ...). 구성되지 않은 방향은 Forward로 폴백한다.
+ * - Backstep: 이동 입력이 없을 때. 없으면 Back 방향 섹션을 쓴다.
+ * - 극한 회피: Success 뒤에 방향 항목명(SuccessForward, ...). 끼어드는 시점의 진행 방향으로 고른다. 없으면 극한 회피가 없다.
  *
  * 회피 반격은 여기서 다루지 않는다 — Ability.Dodge만 발행하면 공격 어빌리티가 그 태그로 자기 반격 세트를 고른다.
  * 진입 시점은 회피 몽타주의 StartRecovery가 차단을 푸는 때다.
@@ -51,16 +55,12 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	/**
-	 * 섹션 세 종류를 둔다. 각 섹션은 다음 섹션과의 링크를 끊어 하나만 재생되도록 구성한다.
-	 * - 방향: EWxDodgeDirection 항목명(Forward, ForwardRight, ...). 구성되지 않은 방향은 Forward로 폴백한다.
-	 * - Backstep: 이동 입력이 없을 때. 없으면 Back 방향 섹션을 쓴다.
-	 * - 극한 회피: Success 뒤에 방향 항목명(SuccessForward, ...). 끼어드는 시점의 진행 방향으로 고른다. 없으면 극한 회피가 없다.
-	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> DodgeMontage;
-
 private:
+	static const FName BackstepSectionName;
+
+	/** 극한 회피 섹션은 이 접두사 뒤에 방향 항목명을 붙인다. */
+	static const FString SuccessSectionPrefix;
+
 	EWxDodgeDirection ResolveDodgeDirection(const FVector& LocalDirection) const;
 	FName SelectDodgeSection(const FVector& LocalDirection, const FString& Prefix) const;
 

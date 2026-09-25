@@ -6,8 +6,6 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_UseItem.generated.h"
 
-class UAnimMontage;
-
 /**
  * 소비 아이템 사용 어빌리티(다크소울 에스트병 방식).
  *
@@ -31,8 +29,4 @@ public:
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
-	/** 꿀꺽 지점에 UWxAnimNotify_UseItem을 배치한다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> UseMontage;
 };

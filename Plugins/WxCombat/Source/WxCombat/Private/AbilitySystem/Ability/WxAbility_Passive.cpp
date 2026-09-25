@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Ability/WxAbility_Passive.h"
 #include "GameplayEffect.h"
+#include "Misc/DataValidation.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_Passive::UWxAbility_Passive()
@@ -15,6 +16,33 @@ UWxAbility_Passive::UWxAbility_Passive()
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Passive);
 }
+
+#if WITH_EDITOR
+EDataValidationResult UWxAbility_Passive::IsDataValid(FDataValidationContext& Context) const
+{
+	const EDataValidationResult Result = Super::IsDataValid(Context);
+	const uint32 NumErrors = Context.GetNumErrors();
+
+	for (const FAbilityTriggerData& Trigger : AbilityTriggers)
+	{
+		if (Trigger.TriggerSource != EGameplayAbilityTriggerSource::GameplayEvent)
+		{
+			Context.AddError(FText::FromString(FString::Printf(TEXT("트리거 %s가 GameplayEvent가 아니다. 공격 1회당 한 번 지급하는 판정은 이벤트 페이로드의 발동 정보로 한다."), *Trigger.TriggerTag.ToString())));
+		}
+
+		// 엔진은 이벤트 태그와 그 조상마다 트리거를 찾는다.
+		for (const FAbilityTriggerData& OtherTrigger : AbilityTriggers)
+		{
+			if (Trigger.TriggerTag != OtherTrigger.TriggerTag && Trigger.TriggerTag.MatchesTag(OtherTrigger.TriggerTag))
+			{
+				Context.AddError(FText::FromString(FString::Printf(TEXT("트리거 %s가 %s의 하위라 한 이벤트에 두 번 발동해 효과가 두 번 걸린다."), *Trigger.TriggerTag.ToString(), *OtherTrigger.TriggerTag.ToString())));
+			}
+		}
+	}
+
+	return CombineDataValidationResults(Result, Context.GetNumErrors() > NumErrors ? EDataValidationResult::Invalid : EDataValidationResult::Valid);
+}
+#endif
 
 void UWxAbility_Passive::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {

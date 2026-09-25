@@ -3,14 +3,17 @@
 #include "AbilitySystem/Ability/WxAbility_Dodge.h"
 #include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
-#include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
 #include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystemComponent.h"
+#include "Animation/AnimMontage.h"
 #include "WxCollisionChannels.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
+
+const FName UWxAbility_Dodge::BackstepSectionName(TEXT("Backstep"));
+const FString UWxAbility_Dodge::SuccessSectionPrefix(TEXT("Success"));
 
 UWxAbility_Dodge::UWxAbility_Dodge()
 {
@@ -21,8 +24,6 @@ UWxAbility_Dodge::UWxAbility_Dodge()
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Dodge);
 
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
-
-	CooldownGameplayEffectClass = UWxEffect_Cooldown_Dodge::StaticClass();
 }
 
 float UWxAbility_Dodge::GetMontagePlayRate() const
@@ -37,7 +38,7 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
-	if (!DodgeMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!GetMontage() || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -123,6 +124,7 @@ EWxDodgeDirection UWxAbility_Dodge::ResolveDodgeDirection(const FVector& LocalDi
 
 FName UWxAbility_Dodge::SelectDodgeSection(const FVector& LocalDirection, const FString& Prefix) const
 {
+	const UAnimMontage* DodgeMontage = GetMontage();
 	if (!DodgeMontage)
 	{
 		return NAME_None;
@@ -146,12 +148,12 @@ FName UWxAbility_Dodge::SelectDodgeSection(const FVector& LocalDirection, const 
 
 bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 {
+	UAnimMontage* DodgeMontage = GetMontage();
 	const FVector Local = LocalDirection.GetSafeNormal2D();
 
-	const FName BackstepSection(TEXT("Backstep"));
-	if (Local.IsNearlyZero() && DodgeMontage->IsValidSectionName(BackstepSection))
+	if (Local.IsNearlyZero() && DodgeMontage->IsValidSectionName(BackstepSectionName))
 	{
-		if (!PlayMontage(DodgeMontage, BackstepSection))
+		if (!PlayMontage(DodgeMontage, BackstepSectionName))
 		{
 			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 			return false;
@@ -238,7 +240,7 @@ void UWxAbility_Dodge::HandleDodgeSuccess()
 	if (const AActor* Avatar = GetAvatarActorFromActorInfo())
 	{
 		const FVector LocalDirection = Avatar->GetActorTransform().InverseTransformVectorNoScale(Avatar->GetVelocity());
-		SectionName = SelectDodgeSection(LocalDirection, TEXT("Success"));
+		SectionName = SelectDodgeSection(LocalDirection, SuccessSectionPrefix);
 	}
 
 	if (SectionName.IsNone())
@@ -254,7 +256,7 @@ void UWxAbility_Dodge::HandleDodgeSuccess()
 		ConfirmationTask->ReadyForActivation();
 	}
 
-	if (!PlayMontage(DodgeMontage, SectionName))
+	if (!PlayMontage(GetMontage(), SectionName))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}

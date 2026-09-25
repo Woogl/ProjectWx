@@ -8,7 +8,6 @@
 #include "Engine/EngineTypes.h"
 #include "WxAbility_Groggy.generated.h"
 
-class UAnimMontage;
 class UAbilitySystemComponent;
 struct FOnAttributeChangeData;
 
@@ -27,9 +26,6 @@ public:
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
-	TObjectPtr<UAnimMontage> GroggyMontage;
 
 private:
 	void HandleGPChanged(const FOnAttributeChangeData& Data);

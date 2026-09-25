@@ -18,7 +18,6 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 	// 진행 중인 것은 공격·스킬만 끊는다 — 부류(그룹)로 끊으면 적 패턴까지 평타 피격에 중단된다.
 	// Override는 막히지 않을 뿐 남을 끊지는 않는다 — 진행 중인 공격을 실제로 중단시키려면 지목이 필요하다.
-	// Ability.Skill은 부모 태그라 슬롯별 Ability.Skill.1~4까지 함께 잡는다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Attack);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Skill);
 
@@ -46,6 +45,7 @@ bool UWxAbility_HitReact::ShouldAbilityRespondToEvent(const FGameplayAbilityActo
 
 	// ActivateAbility에서 거르면 재트리거 종료와 공격·스킬 취소가 이미 끝난 뒤다.
 	const FGameplayTag ReactionTag = GetReactionTag(*Payload);
+	const UAnimMontage* HitReactMontage = GetMontage();
 	if (!ReactionTag.IsValid() || !HitReactMontage || !HitReactMontage->IsValidSectionName(ReactionTag.GetTagLeafName()))
 	{
 		return false;
@@ -81,7 +81,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
 
 	// 그로기 중 넉 계열은 보내는 쪽(UWxEffectComponent_DamageReaction)이 일반 피격으로 낮춰 온다.
-	if (!PlayMontage(HitReactMontage, ReactionTag.GetTagLeafName()))
+	if (!PlayMontage(GetMontage(), ReactionTag.GetTagLeafName()))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;

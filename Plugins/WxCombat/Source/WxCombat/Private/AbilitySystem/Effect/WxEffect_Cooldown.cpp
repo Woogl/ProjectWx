@@ -35,7 +35,7 @@ void UWxEffect_Cooldown::GrantCooldownTag(const FGameplayTag& CooldownTag)
 
 float UWxMMC_CooldownDuration::CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const
 {
-	// 컨텍스트의 소스 어빌리티 CDO는 AbilityDataRow를 그대로 가진다(EditDefaultsOnly).
+	// 컨텍스트의 소스 어빌리티 CDO는 GA_의 CooldownTime을 그대로 가진다(EditDefaultsOnly).
 	// 정적 데이터라 서버/클라 동일.
 	const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.GetEffectContext().GetAbility());
 	const float CooldownTime = Ability ? Ability->GetCooldownTime() : 0.f;

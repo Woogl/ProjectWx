@@ -6,8 +6,6 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Ultimate.generated.h"
 
-class UAnimMontage;
-
 /**
  * 컷신(Level Sequence)을 재생한 뒤 공격 몽타주를 실행하며, 컷신 동안 월드는 시간 정지한다.
  * 컷신은 몽타주의 UWxAnimNotify_SkillCutscene이 담고, 재생 전에 읽는다. 없으면 몽타주만 재생한다.
@@ -28,9 +26,6 @@ public:
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> UltimateMontage;
 
 private:
 	UFUNCTION()

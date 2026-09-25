@@ -24,7 +24,7 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (!UseMontage)
+	if (!GetMontage())
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -47,7 +47,7 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 
 	ItemUseComponent->BeginUseItem();
 
-	if (!PlayMontage(UseMontage))
+	if (!PlayMontage(GetMontage()))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;

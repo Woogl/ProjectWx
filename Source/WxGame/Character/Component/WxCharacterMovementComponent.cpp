@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "WxCharacterMovementComponent.h"
+#include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "Animation/AnimInstance.h"
@@ -8,11 +9,6 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Character.h"
 #include "WxGameplayTags.h"
-
-namespace
-{
-	const FName LandingSectionName = TEXT("Grounded");
-}
 
 UWxCharacterMovementComponent::UWxCharacterMovementComponent()
 {
@@ -114,9 +110,9 @@ void UWxCharacterMovementComponent::JumpToLandingSection()
 	// 가산 피격처럼 나중에 시작된 몽타주가 위에 겹쳐 있어도 착지 섹션을 가진 몽타주를 놓치지 않는다.
 	for (FAnimMontageInstance* MontageInstance : AnimInstance->MontageInstances)
 	{
-		if (MontageInstance && MontageInstance->IsActive() && MontageInstance->Montage->GetSectionIndex(LandingSectionName) != INDEX_NONE)
+		if (MontageInstance && MontageInstance->IsActive() && MontageInstance->Montage->GetSectionIndex(UWxAbilityBase::LandingSectionName) != INDEX_NONE)
 		{
-			MontageInstance->JumpToSectionName(LandingSectionName);
+			MontageInstance->JumpToSectionName(UWxAbilityBase::LandingSectionName);
 		}
 	}
 }

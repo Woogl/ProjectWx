@@ -4,7 +4,6 @@
 #include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystem/Effect/WxEffect_Cost.h"
 #include "AbilitySystem/Effect/WxEffect_IgnoreAbilityTags.h"
-#include "AbilitySystem/Ability/WxAbilityTableRow.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxInputBufferComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
@@ -13,8 +12,11 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "GameplayEffect.h"
+#include "Misc/DataValidation.h"
 #include "WxCombatModule.h"
 #include "WxGameplayTags.h"
+
+const FName UWxAbilityBase::LandingSectionName(TEXT("Grounded"));
 
 UWxAbilityBase::UWxAbilityBase()
 {
@@ -28,32 +30,32 @@ UWxAbilityBase::UWxAbilityBase()
 
 FText UWxAbilityBase::GetTitle() const
 {
-	const FWxAbilityTableRow* Row = GetTableRow();
-	return Row ? Row->Title : FText::GetEmpty();
+	return Title;
 }
 
 FText UWxAbilityBase::GetDescription() const
 {
-	const FWxAbilityTableRow* Row = GetTableRow();
-	return Row ? Row->Description : FText::GetEmpty();
+	return Description;
 }
 
 TSoftObjectPtr<UObject> UWxAbilityBase::GetIcon() const
 {
-	const FWxAbilityTableRow* Row = GetTableRow();
-	return Row ? Row->Icon : nullptr;
+	return Icon;
 }
 
 int32 UWxAbilityBase::GetMaxRecharges() const
 {
-	const FWxAbilityTableRow* Row = GetTableRow();
-	return Row ? FMath::Max(1, Row->MaxRecharges) : 1;
+	return FMath::Max(1, MaxRecharges);
 }
 
 float UWxAbilityBase::GetCooldownTime() const
 {
-	const FWxAbilityTableRow* Row = GetTableRow();
-	return Row ? FMath::Max(0.f, Row->CooldownTime) : 0.f;
+	return FMath::Max(0.f, CooldownTime);
+}
+
+UAnimMontage* UWxAbilityBase::GetMontage() const
+{
+	return AbilityMontage;
 }
 
 float UWxAbilityBase::GetMontagePlayRate() const
@@ -371,18 +373,6 @@ void UWxAbilityBase::HandleMontageCancelled()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
-void UWxAbilityBase::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
-{
-	Super::OnGiveAbility(ActorInfo, Spec);
-
-	// 쿨다운 태그가 없으면 순정 판정이 통과시켜 쿨다운이 조용히 사라진다 — GE를 못 찾은 경우와 태그를 빠뜨린 GE를 함께 잡는다.
-	const FGameplayTagContainer* CooldownTags = GetCooldownTags();
-	if (GetCooldownTime() > 0.f && (!CooldownTags || CooldownTags->IsEmpty()))
-	{
-		UE_LOG(LogWxCombat, Error, TEXT("%s: 테이블에 쿨다운 수치가 있는데 쿨다운 태그를 부여하는 GE가 없다. CooldownGameplayEffectClass에 전용 UWxEffect_Cooldown 파생 GE를 지정했는지 확인하라."), *GetName());
-	}
-}
-
 UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
 {
 	UGameplayEffect* CooldownGE = Super::GetCooldownGameplayEffect();
@@ -436,11 +426,29 @@ void UWxAbilityBase::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FG
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
 }
 
-const FWxAbilityTableRow* UWxAbilityBase::GetTableRow() const
+#if WITH_EDITOR
+EDataValidationResult UWxAbilityBase::IsDataValid(FDataValidationContext& Context) const
 {
-	if (AbilityDataRow.IsNull())
+	const EDataValidationResult Result = Super::IsDataValid(Context);
+	const uint32 NumErrors = Context.GetNumErrors();
+
+	// 쿨다운 태그가 없으면 순정 판정이 통과시켜 쿨다운이 조용히 사라진다.
+	if (CooldownTime > 0.f && !(CooldownGameplayEffectClass && CooldownGameplayEffectClass->IsChildOf<UWxEffect_Cooldown>()))
 	{
-		return nullptr;
+		Context.AddError(INVTEXT("쿨다운 시간이 있는데 쿨다운 GE가 UWxEffect_Cooldown 파생이 아니라 쿨다운이 걸리지 않는다."));
 	}
-	return AbilityDataRow.GetRow<FWxAbilityTableRow>(ANSI_TO_TCHAR(__FUNCTION__));
+
+	return CombineDataValidationResults(Result, Context.GetNumErrors() > NumErrors ? EDataValidationResult::Invalid : EDataValidationResult::Valid);
 }
+
+bool UWxAbilityBase::IsActivationExclusive(const UWxAbilityBase& Other) const
+{
+	// 요구한 태그를 가지면 그 태그나 부모를 막는 쪽은 발동할 수 없다.
+	return ActivationRequiredTags.HasAny(Other.ActivationBlockedTags) || Other.ActivationRequiredTags.HasAny(ActivationBlockedTags);
+}
+
+bool UWxAbilityBase::SharesCooldownGroup(const UWxAbilityBase& Other) const
+{
+	return CooldownGameplayEffectClass && CooldownGameplayEffectClass == Other.CooldownGameplayEffectClass;
+}
+#endif

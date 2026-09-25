@@ -38,7 +38,7 @@ void UWxAbility_Groggy::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (!GroggyMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!GetMontage() || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -72,8 +72,9 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		{
 			UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 
-			// GroggyMontage 미설정 경로에서는 즉시 종료될 수 있다.
+			// 몽타주가 없으면 즉시 종료될 수 있다.
 			// 가산 슬롯 피격이 ASC의 현재 몽타주 자리를 차지하면 StopMontageIfCurrent는 그 아래에서 루프 중인 그로기 몽타주를 놓친다.
+			UAnimMontage* GroggyMontage = GetMontage();
 			UAnimInstance* AnimInstance = ActorInfo->GetAnimInstance();
 			if (GroggyMontage && AnimInstance)
 			{
@@ -110,7 +111,7 @@ void UWxAbility_Groggy::HandleMontagePollTick()
 		return;
 	}
 
-	ASC->PlayMontage(this, CurrentActivationInfo, GroggyMontage, 1.f);
+	ASC->PlayMontage(this, CurrentActivationInfo, GetMontage(), 1.f);
 }
 
 void UWxAbility_Groggy::StartMontagePolling()
@@ -140,7 +141,7 @@ void UWxAbility_Groggy::StartGroggyDrain(const FGameplayAbilitySpecHandle Handle
 	GPDelegateHandle = ASC->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetGPAttribute())
 		.AddUObject(this, &UWxAbility_Groggy::HandleGPChanged);
 
-	const float GroggyDuration = GroggyMontage->GetPlayLength();
+	const float GroggyDuration = GetMontage()->GetPlayLength();
 	FGameplayEffectSpecHandle DrainSpecHandle = MakeOutgoingGameplayEffectSpec(UWxEffect_DrainGP::StaticClass(), GetAbilityLevel());
 	if (DrainSpecHandle.IsValid())
 	{

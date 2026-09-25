@@ -6,11 +6,8 @@
 
 UWxAbility_Attack::UWxAbility_Attack()
 {
-	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Ability_Attack);
-	SetAssetTags(AssetTags);
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Attack);
-	
+	SetAttackTag(WxGameplayTags::Ability_Attack);
+
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 
 	bRetriggerInstancedAbility = true;
@@ -26,6 +23,7 @@ void UWxAbility_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
+	UAnimMontage* ComboMontage = GetMontage();
 	ComboIndex = ComboIndex + 1 < GetComboStageCount(ComboMontage) ? ComboIndex + 1 : 0;
 
 	if (!PlayMontage(ComboMontage, GetComboStageSection(ComboMontage, ComboIndex)))
@@ -54,4 +52,45 @@ void UWxAbility_Attack::HandleMontageCompleted()
 void UWxAbility_Attack::OnComboWindowClosed()
 {
 	ComboIndex = INDEX_NONE;
+}
+
+void UWxAbility_Attack::SetAttackTag(const FGameplayTag& AttackTag)
+{
+	SetAssetTags(FGameplayTagContainer(AttackTag));
+
+	ActivationOwnedTags.Reset();
+	ActivationOwnedTags.AddTag(AttackTag);
+}
+
+UWxAbility_Attack_Light::UWxAbility_Attack_Light()
+{
+	SetAttackTag(WxGameplayTags::Ability_Attack_Light);
+
+	ActivationBlockedTags.AddTag(WxGameplayTags::Movement_InAir);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Dodge);
+}
+
+UWxAbility_Attack_Heavy::UWxAbility_Attack_Heavy()
+{
+	SetAttackTag(WxGameplayTags::Ability_Attack_Heavy);
+
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Attack_Light);
+
+	ActivationBlockedTags.AddTag(WxGameplayTags::Movement_InAir);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Dodge);
+}
+
+UWxAbility_Attack_Air::UWxAbility_Attack_Air()
+{
+	SetAttackTag(WxGameplayTags::Ability_Attack_Air);
+
+	ActivationRequiredTags.AddTag(WxGameplayTags::Movement_InAir);
+}
+
+UWxAbility_Attack_DodgeCounter::UWxAbility_Attack_DodgeCounter()
+{
+	SetAttackTag(WxGameplayTags::Ability_Attack_DodgeCounter);
+
+	ActivationRequiredTags.AddTag(WxGameplayTags::Ability_Dodge);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Movement_InAir);
 }

@@ -65,6 +65,7 @@ void UWxAbility_Death::HandleMontageCancelled()
 void UWxAbility_Death::PlayDeathMontageOrRagdoll()
 {
 	// HitReact 등 활성 몽타주는 PlayMontageAndWait가 BlendOut으로 인계받는다.
+	UAnimMontage* DeathMontage = GetMontage();
 	if (!PlayMontage(DeathMontage))
 	{
 		EnableRagdoll();

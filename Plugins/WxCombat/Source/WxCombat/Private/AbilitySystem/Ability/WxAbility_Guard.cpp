@@ -58,13 +58,13 @@ void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (!GuardMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!GetMontage() || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	if (!PlayMontage(GuardMontage))
+	if (!PlayMontage(GetMontage()))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -105,7 +105,7 @@ void UWxAbility_Guard::HandleGuardReactEnded()
 		return;
 	}
 
-	PlayMontage(GuardMontage);
+	PlayMontage(GetMontage());
 }
 
 bool UWxAbility_Guard::IsInputHeld() const

@@ -1,24 +1,21 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Ability/WxAbility_Skill.h"
-#include "AbilitySystem/Effect/WxEffect_Cooldown.h"
 #include "AbilitySystemComponent.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_Skill::UWxAbility_Skill()
 {
-	// 슬롯마다 다른 애셋 태그(Ability.Skill.1~4)와 입력 액션은 BP 소관이라, 슬롯 1 태그를 기본값으로 깔아 BP가 태그를 빠뜨려도 종류 단위 지목·잠금에서 빠지지 않게 한다.
+	// BT가 부르는 번호 태그(Ability.Skill.1 등)는 GA_가 에셋 태그와 소유 태그에 더한다.
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Ability_Skill_1);
+	AssetTags.AddTag(WxGameplayTags::Ability_Skill);
 	SetAssetTags(AssetTags);
 
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Skill_1);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Skill);
 	
 	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 
 	bRetriggerInstancedAbility = true;
-
-	CooldownGameplayEffectClass = UWxEffect_Cooldown_Skill_1::StaticClass();
 }
 
 void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -31,6 +28,7 @@ void UWxAbility_Skill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		return;
 	}
 
+	UAnimMontage* ComboMontage = GetMontage();
 	ComboIndex = ComboIndex + 1 < GetComboStageCount(ComboMontage) ? ComboIndex + 1 : 0;
 
 	if (!PlayMontage(ComboMontage, GetComboStageSection(ComboMontage, ComboIndex)))

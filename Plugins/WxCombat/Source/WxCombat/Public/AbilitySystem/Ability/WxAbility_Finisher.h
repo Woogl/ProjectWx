@@ -6,7 +6,6 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Finisher.generated.h"
 
-class UAnimMontage;
 struct FGameplayEventData;
 
 /**
@@ -36,9 +35,6 @@ public:
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> FinisherMontage;
 
 private:
 	void RegisterWarpTarget(AActor* AvatarActor, const AActor* Target) const;

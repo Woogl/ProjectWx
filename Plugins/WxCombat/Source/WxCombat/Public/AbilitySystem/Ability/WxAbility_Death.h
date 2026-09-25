@@ -6,11 +6,9 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Death.generated.h"
 
-class UAnimMontage;
-
 /**
  * HP가 0에 닿을 때 AttributeSet이 송출하는 Event.Death로 발동한다.
- * DeathMontage가 있으면 그 포즈로 두고, 없거나 외부에 끊기면 래그돌로 폴백한다.
+ * 몽타주가 있으면 그 포즈로 두고, 없거나 외부에 끊기면 래그돌로 폴백한다.
  *
  * 연출이 끝나도 종료하지 않는다 — 활성 동안 부여되는 Ability.Death가 곧 사망 상태이며, 어빌리티 차단·피해 차단·락온 제외·AI 추적 중단이 전부 그 태그에 걸려 있다.
  * 시체는 액터가 파괴될 때 ASC가 정리한다.
@@ -38,9 +36,6 @@ protected:
 	/** 외부가 사망 몽타주를 끊은 비정상 경로 — 래그돌로 폴백한다. */
 	virtual void HandleMontageInterrupted() override;
 	virtual void HandleMontageCancelled() override;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
-	TObjectPtr<UAnimMontage> DeathMontage;
 
 private:
 	void PlayDeathMontageOrRagdoll();

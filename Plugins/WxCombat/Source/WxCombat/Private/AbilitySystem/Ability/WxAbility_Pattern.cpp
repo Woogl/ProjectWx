@@ -5,7 +5,7 @@
 
 UWxAbility_Pattern::UWxAbility_Pattern()
 {
-	// 슬롯마다 다른 애셋 태그(Ability.Pattern.1~)는 BP 소관이라, 부모 태그를 기본값으로 깔아 BP가 태그를 빠뜨려도 종류 단위 지목·잠금에서 빠지지 않게 한다.
+	// BT가 부르는 번호 태그(Ability.Pattern.1 등)는 GA_가 에셋 태그와 소유 태그에 더한다.
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Pattern);
 	SetAssetTags(AssetTags);
@@ -26,6 +26,7 @@ void UWxAbility_Pattern::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
+	UAnimMontage* ComboMontage = GetMontage();
 	ComboIndex = ComboIndex + 1 < GetComboStageCount(ComboMontage) ? ComboIndex + 1 : 0;
 
 	if (!PlayMontage(ComboMontage, GetComboStageSection(ComboMontage, ComboIndex)))
@@ -46,6 +47,7 @@ void UWxAbility_Pattern::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 
 void UWxAbility_Pattern::HandleMontageBlendOut()
 {
+	UAnimMontage* ComboMontage = GetMontage();
 	if (ComboIndex + 1 >= GetComboStageCount(ComboMontage))
 	{
 		return;

@@ -43,7 +43,6 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
 
-	// BP 에서 비워 두어도 화면 문구가 사라지지 않게 기본값을 둔다.
 	InteractionPrompt = NSLOCTEXT("WxAbility_Finisher", "InteractionPrompt", "Finisher");
 }
 
@@ -60,7 +59,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	// 대상에 가하는 변경은 전부 대상 ASC 를 거치고 액터 자체는 위치만 읽으므로 const 로 다룬다.
 	const AActor* Target = TriggerEventData ? TriggerEventData->Target.Get() : nullptr;
 
-	if (!FinisherMontage || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!GetMontage() || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -82,7 +81,7 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	RegisterWarpTarget(AvatarActor, Target);
 
-	if (!PlayMontage(FinisherMontage))
+	if (!PlayMontage(GetMontage()))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}

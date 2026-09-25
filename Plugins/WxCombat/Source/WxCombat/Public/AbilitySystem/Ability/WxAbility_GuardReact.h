@@ -6,10 +6,9 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_GuardReact.generated.h"
 
-class UAnimMontage;
-
 /**
  * 가드가 흡수한 히트의 연출을 맡는다 — 가드 피격·넉 계열 가드·가드 브레이크·퍼펙트 가드.
+ * 행 몽타주에는 섹션 GuardHit, GuardKnockback(넉 계열 공격을 가드), GuardBreak, PerfectGuard를 둔다.
  *
  * 가드 어빌리티에서 떼어낸 이유는 복제다.
  * 대미지 GE가 피격자 클라에서는 예측 키가 없어 적용되지 않으니 그 이벤트도 서버에만 남는데, ServerInitiated 트리거는 엔진이 페이로드째 소유 클라에 복제해 준다.
@@ -33,10 +32,11 @@ protected:
 	/** 완주가 아니라 블렌드아웃에서 끝낸다 — 가드가 자세를 되찾는 구간이 연출 꼬리와 겹쳐야 끊겨 보이지 않는다. */
 	virtual void HandleMontageBlendOut() override;
 
-	/** 섹션 GuardHit, GuardKnockback(넉 계열 공격을 가드), GuardBreak, PerfectGuard를 둔다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> GuardReactMontage;
-
 private:
 	static FName SelectSection(FGameplayTag TriggerTag, FGameplayTag ReactionTag);
+
+	static const FName GuardHitSectionName;
+	static const FName GuardKnockbackSectionName;
+	static const FName GuardBreakSectionName;
+	static const FName PerfectGuardSectionName;
 };

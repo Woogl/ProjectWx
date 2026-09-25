@@ -5,6 +5,11 @@
 #include "GameFramework/Actor.h"
 #include "WxGameplayTags.h"
 
+const FName UWxAbility_GuardReact::GuardHitSectionName(TEXT("GuardHit"));
+const FName UWxAbility_GuardReact::GuardKnockbackSectionName(TEXT("GuardKnockback"));
+const FName UWxAbility_GuardReact::GuardBreakSectionName(TEXT("GuardBreak"));
+const FName UWxAbility_GuardReact::PerfectGuardSectionName(TEXT("PerfectGuard"));
+
 UWxAbility_GuardReact::UWxAbility_GuardReact()
 {
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
@@ -80,7 +85,7 @@ void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		}
 	}
 
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !PlayMontage(GuardReactMontage, SelectSection(TriggerTag, ReactionTag)))
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !PlayMontage(GetMontage(), SelectSection(TriggerTag, ReactionTag)))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -116,17 +121,17 @@ FName UWxAbility_GuardReact::SelectSection(FGameplayTag TriggerTag, FGameplayTag
 {
 	if (TriggerTag == WxGameplayTags::Event_Hit_GuardBreak)
 	{
-		return FName(TEXT("GuardBreak"));
+		return GuardBreakSectionName;
 	}
 
 	if (TriggerTag == WxGameplayTags::Event_PerfectGuard)
 	{
-		return FName(TEXT("PerfectGuard"));
+		return PerfectGuardSectionName;
 	}
 
 	const bool bIsKnockHit = ReactionTag == WxGameplayTags::HitReact_KnockBack
 		|| ReactionTag == WxGameplayTags::HitReact_KnockDown
 		|| ReactionTag == WxGameplayTags::HitReact_KnockUp;
 
-	return FName(bIsKnockHit ? TEXT("GuardKnockback") : TEXT("GuardHit"));
+	return bIsKnockHit ? GuardKnockbackSectionName : GuardHitSectionName;
 }

@@ -15,7 +15,6 @@ class UGameplayEffect;
  * 공격에 딸린 트리거(Event.DamageDealt)는 그 공격 1회 발동당 한 번만 지급한다.
  * 광역·다단히트로 여러 번 적중해도 한 번이고, 콤보는 단마다 발동이 따로라 단마다 지급된다.
  * 트리거를 여럿 등록하면 그중 아무거나 왔을 때 효과 묶음 전체를 건다.
- * 등록한 트리거끼리 조상 관계면 안 된다 — 부모와 자식을 같이 걸면 한 이벤트에 조상마다 발화해 효과가 두 번 걸린다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Passive : public UWxAbilityBase
@@ -24,6 +23,11 @@ class WXCOMBAT_API UWxAbility_Passive : public UWxAbilityBase
 
 public:
 	UWxAbility_Passive();
+
+#if WITH_EDITOR
+	/** 트리거는 GameplayEvent여야 하고 서로 조상 관계면 안 된다 — 부모와 자식을 같이 걸면 한 이벤트에 조상마다 발화해 효과가 두 번 걸린다. */
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
+#endif
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;

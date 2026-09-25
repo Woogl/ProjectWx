@@ -6,8 +6,6 @@
 #include "AbilitySystem/Ability/WxAbilityBase.h"
 #include "WxAbility_Guard.generated.h"
 
-class UAnimMontage;
-
 /**
  * 가드 홀드 상태를 소유한다 — 경감 효과 부여와 루핑 자세 몽타주가 전부다.
  * 효과는 GA_Shared_Guard의 ActivationOwnedEffects가 지목한다.
@@ -47,9 +45,6 @@ protected:
 
 	/** 리액션이 슬롯을 가져간 것뿐이면 가드를 끊지 않는다. */
 	virtual void HandleMontageInterrupted() override;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	TObjectPtr<UAnimMontage> GuardMontage;
 
 private:
 	/** 리액션이 붙어 있는 지금 걸어야 한다 — 태그가 없는 상태로 걸면 태스크가 즉시 해제로 발화한다. */

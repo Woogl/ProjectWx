@@ -19,16 +19,26 @@ class WXCOMBAT_API UWxAbilitySet : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
+	/** 캐릭터가 받는 세트 전체에서 같은 어빌리티는 한 번만 부여한다. */
 	void GiveToAbilitySystem(UWxAbilitySystemComponent* ASC) const;
 
 	/** 여러 세트를 한 배열에 모으므로 중복 제거는 받은 배열 기준이다. */
 	void AppendInputActions(TArray<const UInputAction*>& OutInputActions) const;
 
+#if WITH_EDITOR
+	/**
+	 * 어빌리티 사이의 규칙을 이 세트 안에서만 본다. 어빌리티 하나의 규칙은 GA_가 본다.
+	 * 풀리지 않는 속성 행은 오류다.
+	 * 빈 칸, 같은 어빌리티 중복, 같은 입력의 어빌리티끼리 겹치는 조건, 같은 쿨다운 GE의 다른 값은 경고다.
+	 */
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
+#endif
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Attributes", meta = (RowType = "/Script/WxCombat.WxCombatAttributeInitTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle AttributeInitRow;
 
-	/** 입력 라우팅 키는 각 어빌리티 CDO의 ActivationInputAction이 쥐고 있다. */
+	/** 입력 라우팅 키는 각 어빌리티 CDO의 ActivationInputAction이 쥐고 있다. 같은 입력의 어빌리티가 여럿이면 이 순서로 시도해 처음 성공한 것을 쓴다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TArray<TSubclassOf<UWxAbilityBase>> GrantedAbilities;
 
