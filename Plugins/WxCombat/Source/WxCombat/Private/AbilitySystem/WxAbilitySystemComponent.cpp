@@ -16,8 +16,11 @@ void UWxAbilitySystemComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetSPAttribute())
-		.AddUObject(this, &UWxAbilitySystemComponent::HandleSPChanged);
+	FOnGameplayAttributeValueChange& SPChanged = GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetSPAttribute());
+	if (!SPChanged.IsBoundToObject(this))
+	{
+		SPChanged.AddUObject(this, &UWxAbilitySystemComponent::HandleSPChanged);
+	}
 }
 
 float UWxAbilitySystemComponent::PlayMontage(UGameplayAbility* AnimatingAbility, FGameplayAbilityActivationInfo ActivationInfo, UAnimMontage* Montage, float InPlayRate, FName StartSectionName, float StartTimeSeconds)
@@ -44,20 +47,27 @@ void UWxAbilitySystemComponent::ClearAnimatingAbility(UGameplayAbility* Ability)
 
 void UWxAbilitySystemComponent::GiveAbilitySets()
 {
-	// ASC는 캐릭터 서브오브젝트라 재빙의 후에도 앞서 부여한 어빌리티를 그대로 쥐고 있다.
-	// 다시 부여하면 어빌리티·GE가 중복되고 어트리뷰트 초기화가 HP/SP를 초기값으로 되돌린다.
-	if (bAbilitySetsGranted)
+	if (!IsRegistered() || !IsOwnerActorAuthoritative())
 	{
 		return;
 	}
 
-	bAbilitySetsGranted = true;
+	const bool bInitialize = !bAbilitySetsInitialized;
+	// 재등록으로 어빌리티가 지워져도 기존 속성과 GE는 남는다.
+	bAbilitySetsInitialized = true;
 
 	for (const TObjectPtr<UWxAbilitySet>& Set : AbilitySets)
 	{
 		if (Set)
 		{
-			Set->GiveToAbilitySystem(this);
+			if (bInitialize)
+			{
+				Set->GiveToAbilitySystem(this);
+			}
+			else
+			{
+				Set->GiveAbilitiesToAbilitySystem(this);
+			}
 		}
 	}
 }

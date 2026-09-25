@@ -127,4 +127,7 @@ protected:
 	/** 사망부터 액터 파괴까지의 시간. 0 이하면 시체를 남긴다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Character", meta = (ClampMin = "0.0"))
 	float CorpseLifeSpan = 0.f;
+
+private:
+	bool bDeathHandled = false;
 };

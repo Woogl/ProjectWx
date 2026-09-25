@@ -55,13 +55,19 @@ void AWxCharacterBase::PostInitializeComponents()
 
 	// 래그돌 감지는 시뮬 프록시를 포함한 전 머신에서 필요하므로, 클라에선 PlayerState 복제로만 도는(에너미는 안 도는) InitAbilitySystem이 아니라 여기서 구독한다.
 	// 원격 머신의 초기 복제는 이 함수 뒤에 적용되므로, 늦게 참여해 이미 선 태그도 이 콜백으로 들어온다.
-	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Ragdoll, EGameplayTagEventType::NewOrRemoved)
-		.AddUObject(this, &AWxCharacterBase::HandleRagdollTagChanged);
+	FOnGameplayEffectTagCountChanged& RagdollChanged = AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::State_Ragdoll, EGameplayTagEventType::NewOrRemoved);
+	if (!RagdollChanged.IsBoundToObject(this))
+	{
+		RagdollChanged.AddUObject(this, &AWxCharacterBase::HandleRagdollTagChanged);
+	}
 
 	// 사망 처리도 같은 이유로 여기서 구독한다 — 무기 판정 해제와 OnDeath 방송은 시뮬 프록시를 포함한 전 머신에서 일어나야 한다.
 	// 보상 지급 같은 권위 전용 처리는 OnDeath 구독자(AWxEnemyCharacter::HandleOwnerDeath) 안의 HasAuthority 가드가 계속 가른다.
-	AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved)
-		.AddUObject(this, &AWxCharacterBase::HandleDeathTagChanged);
+	FOnGameplayEffectTagCountChanged& DeathChanged = AbilitySystemComponent->RegisterGameplayTagEvent(WxGameplayTags::Ability_Death, EGameplayTagEventType::NewOrRemoved);
+	if (!DeathChanged.IsBoundToObject(this))
+	{
+		DeathChanged.AddUObject(this, &AWxCharacterBase::HandleDeathTagChanged);
+	}
 
 	// 클래스 기본값이라 머신마다 복제 없이 올린다. 스트리밍 레벨이 다시 보일 때도 불리므로 개수를 1로 맞춘다.
 	for (const FGameplayTag& IdentityTag : IdentityTags)
@@ -258,6 +264,13 @@ void AWxCharacterBase::EnterRagdoll()
 
 void AWxCharacterBase::HandleDeath()
 {
+	if (bDeathHandled)
+	{
+		return;
+	}
+	// 이 게임의 부활은 새 Pawn을 만든다. 같은 시체의 태그 재적용은 새 처치가 아니다.
+	bDeathHandled = true;
+
 	// 스윙 도중 죽으면 공격 구간을 닫을 ANS 종료가 오지 않을 수 있으므로, 시체의 무기가 계속 때리지 않도록 여기서 판정을 걷어낸다.
 	// 사망 태그는 복제되어 모든 머신에서 이 경로를 타므로, 각 머신의 로컬 판정이 함께 해제된다.
 	if (AWxWeaponBase* Weapon = AWxWeaponBase::FindWeapon(this))

@@ -132,10 +132,12 @@ void AWxEnemyCharacter::HandleOwnerDeath(AWxCharacterBase* DeadCharacter)
 	// 사망 통지는 전 머신에 오므로, 표시에 쓰이는 교전 상태는 권위 검사 앞에서 갱신한다.
 	RefreshEngagement();
 
-	if (!HasAuthority())
+	if (!HasAuthority() || bDeathNotified)
 	{
 		return;
 	}
+	// BeginPlay의 이미 죽은 캐릭터 처리도 이 경로로 오므로 처치 통지는 이 객체에서 한 번만 보낸다.
+	bDeathNotified = true;
 
 	OnSpawnableKilled.Broadcast();
 

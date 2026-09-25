@@ -50,6 +50,8 @@ public:
 	void CancelRecoveringAbilities(UGameplayAbility* IgnoreAbility);
 
 private:
+	bool bAbilitySetsInitialized = false;
+
 	/**
 	 * SP를 소모하면 자연 회복을 멈춘다 — 소모 경로가 어빌리티 코스트와 질주 드레인으로 갈려 있어 어트리뷰트 감소를 접점으로 삼는다.
 	 * 회복으로 늘어난 변화와 스태미나를 쓰지 않는 아바타는 제외한다.
@@ -71,7 +73,5 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx")
 	TArray<TObjectPtr<UWxAbilitySet>> AbilitySets;
-
-	bool bAbilitySetsGranted = false;
 
 };

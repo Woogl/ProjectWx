@@ -67,4 +67,5 @@ private:
 	FDataTableRowHandle RewardRow;
 
 	FWxOnSpawnableKilled OnSpawnableKilled;
+	bool bDeathNotified = false;
 };
