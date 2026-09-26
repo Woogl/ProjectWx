@@ -12,15 +12,15 @@ tags:
   - "락온"
 summary: "적 Nameplate와 락온 레티클을 로컬 플레이어 컨트롤러의 NameplateManager가 붙이고 떼는 구조로 바꾸고 WxGame으로 옮긴 완료 작업 기록"
 source_type: task-record
-source_id: src-73d4725c30558f841f13
-sha256: 02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83
+source_id: src-d33c5c972a09bcfd7b66
+sha256: 0d5970dabfd5b118dade8826ce8e440eaad0ec5e28d47027162e3200cd64f36f
 authority: primary
 independence_key: ".agents/workflow/tasks/nameplate-manager.md"
 review_state: active
-refresh_due: 2026-10-26
+refresh_due: 2027-03-25
 original_paths:
   - ".agents/workflow/tasks/nameplate-manager.md"
-raw_copy: ".raw/captured/02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83.md"
+raw_copy: ".raw/captured/0d5970dabfd5b118dade8826ce8e440eaad0ec5e28d47027162e3200cd64f36f.md"
 claim_ids:
   - clm-a387287572-c1
   - clm-a387287572-c2
@@ -36,8 +36,9 @@ key_claims:
 # 작업 - nameplate-manager
 
 - 원본: `.agents/workflow/tasks/nameplate-manager.md`
-- 원자료 사본: `.raw/captured/02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원자료 사본: `.raw/captured/0d5970dabfd5b118dade8826ce8e440eaad0ec5e28d47027162e3200cd64f36f.md` (수집 2026-09-26, 재확인 기한 2027-03-25)
 - 원본 갱신(2026-09-26): 옛 원자료 사본 `.raw/captured/b6020103ecffc7507a7ae78cb774df9d1287a01763acc6ca9fd2a9394ac2ce64.md`를 대체했다. 바뀐 곳은 이전 상태 줄의 옛 `.wiki` 주제 링크 세 개를 링크 없는 텍스트로 바꾼 것뿐이며, 작업 내용·상태·검증 범위는 그대로다.
+- 원본 갱신(2026-09-26, 두 번째): 옛 원자료 사본 `.raw/captured/02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83.md`를 대체했다. 2026-09-26 기록 정리로 머리의 `이전 상태:` 문단을 `경과:` 목록 항목으로 바꾼 것뿐이며, 작업 내용·상태·검증 범위는 그대로다.
 
 ## 개요
 

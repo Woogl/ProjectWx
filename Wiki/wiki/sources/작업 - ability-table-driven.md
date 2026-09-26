@@ -12,15 +12,15 @@ tags:
   - "DataTable"
 summary: "어빌리티를 DataTable 행으로 구동하려던 전환 작업 기록으로, 여러 단계 구현 끝에 GA_ 에셋 방식으로 복귀해 테이블화 없이 체크리스트 7/7 통과로 마무리됐다."
 source_type: task-record
-source_id: src-725958e8aa2fa553c301
-sha256: e08ab0df4442cca63ac5a88a17400d167b4417518b3b7e17d258986ab9cdf24e
+source_id: src-08a811a018e756e51bdc
+sha256: 21565402278f1bce23f6a53234d1f2719b5e28af492d15da81730d18ddca3eb8
 authority: primary
 independence_key: ".agents/workflow/tasks/ability-table-driven.md"
 review_state: active
-refresh_due: 2026-10-26
+refresh_due: 2027-03-25
 original_paths:
   - ".agents/workflow/tasks/ability-table-driven.md"
-raw_copy: ".raw/captured/e08ab0df4442cca63ac5a88a17400d167b4417518b3b7e17d258986ab9cdf24e.md"
+raw_copy: ".raw/captured/21565402278f1bce23f6a53234d1f2719b5e28af492d15da81730d18ddca3eb8.md"
 claim_ids:
   - clm-ba97418dba-c1
   - clm-ba97418dba-c2
@@ -36,7 +36,8 @@ key_claims:
 # 작업 - ability-table-driven
 
 - 원본: `.agents/workflow/tasks/ability-table-driven.md`
-- 원자료 사본: `.raw/captured/e08ab0df4442cca63ac5a88a17400d167b4417518b3b7e17d258986ab9cdf24e.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원자료 사본: `.raw/captured/21565402278f1bce23f6a53234d1f2719b5e28af492d15da81730d18ddca3eb8.md` (수집 2026-09-26, 재확인 기한 2027-03-25)
+- 원본 갱신(2026-09-26): 옛 원자료 사본 `.raw/captured/e08ab0df4442cca63ac5a88a17400d167b4417518b3b7e17d258986ab9cdf24e.md`를 대체했다. 2026-09-26 기록 정리로 머리의 옛 `이전 상태:` 문단을 `경과:` 목록 항목으로 바꾸고, 같은 취지로 세 번 전달된 마무리 추가 요청과 그 AI 처리 이력 두 건을 하나로 합쳤다. 작업 내용·상태·검증 범위는 그대로다.
 
 ## 개요
 

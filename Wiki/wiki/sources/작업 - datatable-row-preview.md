@@ -11,15 +11,15 @@ tags:
   - "에디터"
 summary: "DataTable 행 미리보기에서 데이터 없는 구조체를 {}로 축약하고 셀과 툴팁을 같은 텍스트로 맞춘 에디터 작업 기록으로, 사람 확인 3/3 통과로 완료됐다."
 source_type: task-record
-source_id: src-4094d8d54f71a0271819
-sha256: 6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e
+source_id: src-2803dc91ddd0f74519de
+sha256: 5bc9235892c003daa9e98fb0e383261a0522d7bcd37c270cd38aebff97e7f716
 authority: primary
 independence_key: ".agents/workflow/tasks/datatable-row-preview.md"
 review_state: active
-refresh_due: 2026-10-26
+refresh_due: 2027-03-25
 original_paths:
   - ".agents/workflow/tasks/datatable-row-preview.md"
-raw_copy: ".raw/captured/6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e.md"
+raw_copy: ".raw/captured/5bc9235892c003daa9e98fb0e383261a0522d7bcd37c270cd38aebff97e7f716.md"
 claim_ids:
   - clm-b6b3742e54-c1
   - clm-b6b3742e54-c2
@@ -35,7 +35,8 @@ key_claims:
 # 작업 - datatable-row-preview
 
 - 원본: `.agents/workflow/tasks/datatable-row-preview.md`
-- 원자료 사본: `.raw/captured/6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원자료 사본: `.raw/captured/5bc9235892c003daa9e98fb0e383261a0522d7bcd37c270cd38aebff97e7f716.md` (수집 2026-09-26, 재확인 기한 2027-03-25)
+- 원본 갱신(2026-09-26): 옛 원자료 사본 `.raw/captured/6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e.md`를 대체했다. 2026-09-26 기록 정리로 머리의 옛 `남은 확인`(에디터 재빌드·사용자 화면 수용 미확인) 줄과 옛 `.wiki` 지식 줄을 지웠다. 사람 확인 3/3 통과는 체크리스트에 그대로 있고, 작업 내용·검증 범위도 그대로다.
 
 ## 개요
 

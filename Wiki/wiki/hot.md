@@ -13,7 +13,7 @@ tags:
 
 ## Last Updated
 
-2026-09-26 · ingest-20260926-freshness-review
+2026-09-26 · ingest-20260926-task-record-cleanup
 
 ## Key Recent Facts
 
@@ -23,8 +23,8 @@ tags:
 
 ## Recent Changes
 
-- 기획서 30개 파일·완료 작업 기록 14개는 수집된 원자료와 해시가 같다. 새로운 수집·주장 변경은 없다.
-- 활성 원자료 109건의 원본/캡처 해시를 재확인하고 성격에 맞게 재확인 기한을 연장했다. 수집 날짜는 보존했다.
+- 완료 작업 기록 8건(ability-table-driven, animnotify-labels, datatable-row-preview, dialogue-presentation-vm, interaction-list-vm-simplification, nameplate-manager, ui-data-interface-removal, workflow-review)을 기록 정리 뒤 새 사본으로 다시 수집하고 옛 원자료를 대체했다.
+- 작업 절차 도식 점검의 남은 미결 두 가지(정하기 중 추가 요청 권한, 완료 직후 추가 요청 재활성)는 워크플로우 종합 점검의 Q7·Q8로 정해졌다(workflow-review 후속 줄). 규칙은 정본 `.agents/workflow/process/index.md`를 본다.
 
 ## Active Threads
 

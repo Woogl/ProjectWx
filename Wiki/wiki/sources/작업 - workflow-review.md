@@ -11,32 +11,35 @@ tags:
   - "Wiki"
 summary: "AI 작업 워크플로우를 점검하고 작업 절차 한 장·세 단계·테스트 체크리스트·웹 새 작업과 이어하기로 단순화한 2026-09-22~26 완료 작업 기록"
 source_type: task-record
-source_id: src-0a7e533be98a72a495b5
-sha256: e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7
+source_id: src-30897196d4fd8c9071f3
+sha256: 435c37ae39577b152d434be89a6164cfa0449a237c68b9dc6f576f849412e89f
 authority: primary
 independence_key: ".agents/workflow/tasks/workflow-review.md"
 review_state: active
-refresh_due: 2026-10-26
+refresh_due: 2027-03-25
 original_paths:
   - ".agents/workflow/tasks/workflow-review.md"
-raw_copy: ".raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md"
+raw_copy: ".raw/captured/435c37ae39577b152d434be89a6164cfa0449a237c68b9dc6f576f849412e89f.md"
 claim_ids:
   - clm-d1d69945aa-c1
   - clm-d1d69945aa-c2
   - clm-d1d69945aa-c3
   - clm-d1d69945aa-c4
+  - clm-d1d69945aa-c5
 key_claims:
   - "워크플로우 규칙은 2026-09-26 사용자 결정에 따라 .agents/workflow/process/index.md 한 장을 정본으로 하고 AGENTS.md 등 다른 문서에는 링크만 둔다."
   - "작업 상태는 기록의 질문·계획·테스트 체크리스트에서만 정해지며, 체크리스트가 모두 통과하면 즉시 완료되고 뒤이은 AI 정리는 상태를 바꾸지 않는다."
   - "workflow-review 작업의 체크리스트 19개는 AI 12개와 사람 7개로 구성되어 모두 통과했으나, 바뀐 상태 규칙을 실제 AI 요청으로 다시 돌린 검증은 없다."
   - "대화 세션 간 편집·빌드 조율 문제는 workflow-review 작업 완료 시점에도 미해결이다."
+  - "작업 절차 도식 교체 때 남은 미결 두 가지(정하기 중 추가 요청의 실행 권한, 완료 직후 추가 요청 버튼 재활성)는 2026-09-26 워크플로우 종합 점검 기록의 Q7·Q8로 정해졌다."
 ---
 
 # 작업 - workflow-review
 
 - 원본: `.agents/workflow/tasks/workflow-review.md`
-- 원자료 사본: `.raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원자료 사본: `.raw/captured/435c37ae39577b152d434be89a6164cfa0449a237c68b9dc6f576f849412e89f.md` (수집 2026-09-26, 재확인 기한 2027-03-25)
 - 원본 갱신(2026-09-26): 옛 원자료 사본 `.raw/captured/59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206.md`를 대체했다. 바뀐 곳은 지식 반영 줄 두 곳의 옛 `.wiki` 링크를 링크 없는 텍스트로 바꾼 것뿐이며, 작업 내용·상태·검증 범위는 그대로다.
+- 원본 갱신(2026-09-26, 두 번째): 옛 원자료 사본 `.raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md`를 대체했다. 작업 절차 도식 절에 후속 줄 하나가 더해졌다. 도식 교체 때 남은 미결 두 가지가 워크플로우 종합 점검 기록의 Q7·Q8로 정해졌다는 내용이며(아래 SSoT 절과 핵심 주장 c5), 그 밖의 작업 내용·상태·검증 범위는 그대로다.
 
 ## 개요
 
@@ -80,6 +83,7 @@ key_claims:
 - 도식: 단계 상자(① 정하기·② 만들기·③ 확인하기) 도식으로 교체했다.
 - 잔재 제거: 옛 웹 경로 스크립트 8개, 테스트 5개, 옛 절차 문서 5개, `assets/ai-workflow.png`를 `git rm`했다. 문서 이미지 기능(`Export-Wiki.ps1` PNG 묶기, `wikiImageSource` 등)도 지웠다.
 - 규칙 사본 정리: 처리 프롬프트(`taskPrompt`)의 규칙 문장을 정본 참조로 줄이고, "명확한 지시는 구현 승인"을 AI 대화로 한정했다.
+- 후속(2026-09-26 원본 갱신): 도식 교체 때 남긴 미결 셋 중 남은 둘(정하기 중 추가 요청의 실행 권한, 완료 직후 추가 요청 버튼 재활성과 문서의 "(항상)" 문구)은 워크플로우 종합 점검 기록(`.agents/workflow/tasks/workflow-inspection.md`)의 Q7·Q8로 정해졌다. 그 기록은 이 갱신 시점에 완료 상태가 아니라 수집 대상이 아니며, 현재 규칙은 정본 `.agents/workflow/process/index.md`를 본다.
 
 ## 사람의 판단 원문
 
@@ -108,7 +112,6 @@ key_claims:
 ## 미결정·충돌
 
 - 대화 세션 간 편집·빌드 조율(점검 우선 2)은 미해결이다. 다른 작업의 코드 변경은 자동으로 감지하지 않는다.
-- 도식 교체 때 남긴 미결 셋 중 첫째("명확한 지시는 구현 승인"의 범위)만 정해졌다. 정하기 중 추가 요청을 읽기 전용으로 실행할지, 완료 직후 추가 요청을 숨기고 문서의 "(항상)"을 고칠지는 결정 기록이 없다.
 
 ## 관련 주제
 
@@ -125,3 +128,4 @@ key_claims:
 - 작업 상태는 기록의 질문·계획·테스트 체크리스트에서만 정해지며, 체크리스트가 모두 통과하면 즉시 완료되고 뒤이은 AI 정리는 상태를 바꾸지 않는다. ^c2
 - workflow-review 작업의 체크리스트 19개는 AI 12개와 사람 7개로 구성되어 모두 통과했으나, 바뀐 상태 규칙을 실제 AI 요청으로 다시 돌린 검증은 없다. ^c3
 - 대화 세션 간 편집·빌드 조율 문제는 workflow-review 작업 완료 시점에도 미해결이다. ^c4
+- 작업 절차 도식 교체 때 남은 미결 두 가지(정하기 중 추가 요청의 실행 권한, 완료 직후 추가 요청 버튼 재활성)는 2026-09-26 워크플로우 종합 점검 기록의 Q7·Q8로 정해졌다. ^c5

@@ -13,6 +13,10 @@ tags:
 
 Newest completed operations appear first.
 
+## 2026-09-26 · ingest-20260926-task-record-cleanup
+
+완료 작업 기록 8건의 원본이 2026-09-26 기록 정리로 바뀌어 새 사본으로 다시 수집하고 옛 원자료를 대체했다: [[작업 - ability-table-driven]], [[작업 - animnotify-labels]], [[작업 - datatable-row-preview]], [[작업 - dialogue-presentation-vm]], [[작업 - interaction-list-vm-simplification]], [[작업 - nameplate-manager]], [[작업 - ui-data-interface-removal]], [[작업 - workflow-review]]. 옛 상태 줄 제거·중복 요청 병합 같은 정리뿐이라 주장 근거만 새 사본으로 옮겼다. 지식이 바뀐 것은 workflow-review 한 건으로, 작업 절차 도식 점검의 남은 미결 두 가지가 워크플로우 종합 점검의 Q7·Q8로 정해졌다는 후속 줄이다. 이에 따라 [[작업 절차(Workflow)]]의 두 미결 항목을 확정 결정으로 옮기고 주장 하나(clm-d1d69945aa-c5)를 더했다. 새 원자료의 재확인 기한은 각 옛 원자료의 기한(2027-03-25)을 이었다. 기획서 30개 파일과 나머지 완료 작업 기록 6건은 원장과 해시가 같았고, 30일 안에 재확인 기한이 오는 활성 원자료는 없었다. 게임 빌드·실행 재검증은 하지 않았다.
+
 ## 2026-09-26 · ingest-20260926-freshness-review
 
 기획서 30개 파일(중복 사본 포함 29개 원자료)과 완료 작업 기록 14개의 SHA-256을 원장·manifest와 대조했으며 새 수집 대상은 없었다. 옛 결정 노트 66건은 캡처 사본의 해시를 확인했다. 30일 안에 재확인 기한이 오는 활성 원자료 109건 전부를 한 트랜잭션에서 재확인했다. retrieved_at·ingested_at, 주장과 원자료 본문은 보존했다.

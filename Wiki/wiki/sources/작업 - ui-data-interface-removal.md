@@ -12,15 +12,15 @@ tags:
   - "모듈"
 summary: "공용 IWxUIData 인터페이스를 없애고 WxCombat 데이터·규칙, WxUI VM, WxGame 리졸버 연결로 역할을 나눈 완료 작업 기록"
 source_type: task-record
-source_id: src-fbf62a9104d918a4da32
-sha256: 28130d6e3e3c13b776af54d4de37b50c73dbafcba2c69355652d63d4c915954c
+source_id: src-0cddafb417cfbb15134b
+sha256: 65032a2eeccae1de8b02306c9b4a8ca7c236cabec2ca70a9fa93246f5704a17f
 authority: primary
 independence_key: ".agents/workflow/tasks/ui-data-interface-removal.md"
 review_state: active
-refresh_due: 2026-10-26
+refresh_due: 2027-03-25
 original_paths:
   - ".agents/workflow/tasks/ui-data-interface-removal.md"
-raw_copy: ".raw/captured/28130d6e3e3c13b776af54d4de37b50c73dbafcba2c69355652d63d4c915954c.md"
+raw_copy: ".raw/captured/65032a2eeccae1de8b02306c9b4a8ca7c236cabec2ca70a9fa93246f5704a17f.md"
 claim_ids:
   - clm-eac1fbdeab-c1
   - clm-eac1fbdeab-c2
@@ -36,7 +36,8 @@ key_claims:
 # 작업 - ui-data-interface-removal
 
 - 원본: `.agents/workflow/tasks/ui-data-interface-removal.md`
-- 원자료 사본: `.raw/captured/28130d6e3e3c13b776af54d4de37b50c73dbafcba2c69355652d63d4c915954c.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원자료 사본: `.raw/captured/65032a2eeccae1de8b02306c9b4a8ca7c236cabec2ca70a9fa93246f5704a17f.md` (수집 2026-09-26, 재확인 기한 2027-03-25)
+- 원본 갱신(2026-09-26): 옛 원자료 사본 `.raw/captured/28130d6e3e3c13b776af54d4de37b50c73dbafcba2c69355652d63d4c915954c.md`를 대체했다. 2026-09-26 기록 정리로 머리의 옛 `이전 상태: 확인 대기`·`다음 행동` 줄을 지우고 기록 줄의 "인간 리뷰·플레이 수용은 아직 없다"를 지웠다. 사람 확인 통과(체크리스트 1/1)와 원격 클라이언트 재매칭 문제를 별도 미해결로 둔다는 정리 기록은 그대로다.
 
 ## 개요
 

@@ -12,15 +12,15 @@ tags:
   - "대화"
 summary: "Dialogue VM을 WxUI의 순수 표시 데이터로 분리하고, 화면 클래스를 거쳐 최종적으로 WxGame 리졸버 세 층 구조로 정리한 완료 작업 기록"
 source_type: task-record
-source_id: src-4f16d3cb7a443cee86ee
-sha256: 6b19e4bae75efc3cbeddf6a3cbfb3f2a1a78bdf3f6d63724aa125c13bf711bf3
+source_id: src-7f1ecad66c49bd181697
+sha256: da4546f1bd301d99cf7435c8834b83664048a0a457f77d76658888faff5b10d5
 authority: primary
 independence_key: ".agents/workflow/tasks/dialogue-presentation-vm.md"
 review_state: active
-refresh_due: 2026-10-26
+refresh_due: 2027-03-25
 original_paths:
   - ".agents/workflow/tasks/dialogue-presentation-vm.md"
-raw_copy: ".raw/captured/6b19e4bae75efc3cbeddf6a3cbfb3f2a1a78bdf3f6d63724aa125c13bf711bf3.md"
+raw_copy: ".raw/captured/da4546f1bd301d99cf7435c8834b83664048a0a457f77d76658888faff5b10d5.md"
 claim_ids:
   - clm-350702917e-c1
   - clm-350702917e-c2
@@ -36,7 +36,8 @@ key_claims:
 # 작업 - dialogue-presentation-vm
 
 - 원본: `.agents/workflow/tasks/dialogue-presentation-vm.md`
-- 원자료 사본: `.raw/captured/6b19e4bae75efc3cbeddf6a3cbfb3f2a1a78bdf3f6d63724aa125c13bf711bf3.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원자료 사본: `.raw/captured/da4546f1bd301d99cf7435c8834b83664048a0a457f77d76658888faff5b10d5.md` (수집 2026-09-26, 재확인 기한 2027-03-25)
+- 원본 갱신(2026-09-26): 옛 원자료 사본 `.raw/captured/6b19e4bae75efc3cbeddf6a3cbfb3f2a1a78bdf3f6d63724aa125c13bf711bf3.md`를 대체했다. 2026-09-26 기록 정리로 머리의 옛 `이전 상태:` 줄을 지운 것뿐이며, 작업 내용·상태·검증 범위는 그대로다.
 
 ## 개요
 

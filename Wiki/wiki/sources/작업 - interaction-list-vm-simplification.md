@@ -12,15 +12,15 @@ tags:
   - "MVVM"
 summary: "상호작용 목록 VM을 유지하되 스캐너 신호를 OnRowsChanged 하나로 합쳐 단순화하고, 문구 출처 기준과 엘리베이터 탑승칸 버튼 잠금까지 정리한 완료 작업 기록"
 source_type: task-record
-source_id: src-1730cb541df1643b7273
-sha256: 3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7
+source_id: src-756b067cf0dea4e48af1
+sha256: 88ae1d53d2b929fa4a790777c1932b3facaa372945a3d5c90377fe5dd9959de5
 authority: primary
 independence_key: ".agents/workflow/tasks/interaction-list-vm-simplification.md"
 review_state: active
-refresh_due: 2026-10-26
+refresh_due: 2027-03-25
 original_paths:
   - ".agents/workflow/tasks/interaction-list-vm-simplification.md"
-raw_copy: ".raw/captured/3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7.md"
+raw_copy: ".raw/captured/88ae1d53d2b929fa4a790777c1932b3facaa372945a3d5c90377fe5dd9959de5.md"
 claim_ids:
   - clm-80c9cf979d-c1
   - clm-80c9cf979d-c2
@@ -36,7 +36,8 @@ key_claims:
 # 작업 - interaction-list-vm-simplification
 
 - 원본: `.agents/workflow/tasks/interaction-list-vm-simplification.md`
-- 원자료 사본: `.raw/captured/3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원자료 사본: `.raw/captured/88ae1d53d2b929fa4a790777c1932b3facaa372945a3d5c90377fe5dd9959de5.md` (수집 2026-09-26, 재확인 기한 2027-03-25)
+- 원본 갱신(2026-09-26): 옛 원자료 사본 `.raw/captured/3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7.md`를 대체했다. 2026-09-26 기록 정리로 머리의 옛 `이전 상태:`(구현 완료 · 인간 코드 리뷰·인게임 확인 대기) 줄을 지운 것뿐이며, 작업 내용·상태·검증 범위는 그대로다.
 
 ## 개요
 

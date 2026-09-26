@@ -9,6 +9,7 @@
       ],
       "sha256": "02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83",
       "source_id": "src-73d4725c30558f841f13",
+      "superseded_by": ".raw/captured/0d5970dabfd5b118dade8826ce8e440eaad0ec5e28d47027162e3200cd64f36f.md",
       "supersedes": ".raw/captured/b6020103ecffc7507a7ae78cb774df9d1287a01763acc6ca9fd2a9394ac2ce64.md",
       "title": ".agents/workflow/tasks/nameplate-manager.md"
     },
@@ -29,6 +30,16 @@
       "sha256": "048571ff8d3f592c29b21891c6a77480d8bea2c743950adcbb8cbd727931f871",
       "source_id": "src-3337ab1368bb988640ac",
       "title": ".wiki/raw/notes/2026-09-24-interaction-contract-options-only.md"
+    },
+    ".raw/captured/0d5970dabfd5b118dade8826ce8e440eaad0ec5e28d47027162e3200cd64f36f.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - nameplate-manager.md"
+      ],
+      "sha256": "0d5970dabfd5b118dade8826ce8e440eaad0ec5e28d47027162e3200cd64f36f",
+      "source_id": "src-d33c5c972a09bcfd7b66",
+      "supersedes": ".raw/captured/02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83.md",
+      "title": ".agents/workflow/tasks/nameplate-manager.md"
     },
     ".raw/captured/0d84b879c8359394ddfd36127f7ad1ba2532f6c3ef7a182342af167f671a6c77.md": {
       "ingested": "2026-09-26",
@@ -120,6 +131,16 @@
       "source_id": "src-04b23a4a80e0c6d02fec",
       "title": ".agents/workflow/tasks/wiki-regeneration.md"
     },
+    ".raw/captured/21565402278f1bce23f6a53234d1f2719b5e28af492d15da81730d18ddca3eb8.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - ability-table-driven.md"
+      ],
+      "sha256": "21565402278f1bce23f6a53234d1f2719b5e28af492d15da81730d18ddca3eb8",
+      "source_id": "src-08a811a018e756e51bdc",
+      "supersedes": ".raw/captured/e08ab0df4442cca63ac5a88a17400d167b4417518b3b7e17d258986ab9cdf24e.md",
+      "title": ".agents/workflow/tasks/ability-table-driven.md"
+    },
     ".raw/captured/2323f8c4675818aae7d1faa639f3951c771dd4757dd1edfaea84fd2bced8f009.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -145,6 +166,7 @@
       ],
       "sha256": "28130d6e3e3c13b776af54d4de37b50c73dbafcba2c69355652d63d4c915954c",
       "source_id": "src-fbf62a9104d918a4da32",
+      "superseded_by": ".raw/captured/65032a2eeccae1de8b02306c9b4a8ca7c236cabec2ca70a9fa93246f5704a17f.md",
       "title": ".agents/workflow/tasks/ui-data-interface-removal.md"
     },
     ".raw/captured/2a8e3cdfc0558872cd04ddc502f86f934022994b811419d1afcc0a34f9feb1bd.md": {
@@ -226,6 +248,7 @@
       ],
       "sha256": "3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7",
       "source_id": "src-1730cb541df1643b7273",
+      "superseded_by": ".raw/captured/88ae1d53d2b929fa4a790777c1932b3facaa372945a3d5c90377fe5dd9959de5.md",
       "title": ".agents/workflow/tasks/interaction-list-vm-simplification.md"
     },
     ".raw/captured/3bd526342d7c815c3b58acec2370b6bcf9bf831d58acfabfc688c89177289015.md": {
@@ -254,6 +277,16 @@
       "sha256": "419fb2d743f7ab48b10951d32eaee2f1287c72ff09f231ccae1a2041fd319dc8",
       "source_id": "src-0a7a2abc95a7de9432e5",
       "title": "Docs/CombatDesign/명조 PC 시스템 역기획서.md"
+    },
+    ".raw/captured/435c37ae39577b152d434be89a6164cfa0449a237c68b9dc6f576f849412e89f.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - workflow-review.md"
+      ],
+      "sha256": "435c37ae39577b152d434be89a6164cfa0449a237c68b9dc6f576f849412e89f",
+      "source_id": "src-30897196d4fd8c9071f3",
+      "supersedes": ".raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md",
+      "title": ".agents/workflow/tasks/workflow-review.md"
     },
     ".raw/captured/461f292d16f7bef8e18a46306db038e6aae0f95a6a3cadb9ba927c35ad67953b.md": {
       "ingested": "2026-09-26",
@@ -364,6 +397,16 @@
       "source_id": "src-f065af6c9d30c9f6d88f",
       "title": ".wiki/raw/notes/2026-09-24-wxcombat-machinery-cleanup.md"
     },
+    ".raw/captured/5bc9235892c003daa9e98fb0e383261a0522d7bcd37c270cd38aebff97e7f716.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - datatable-row-preview.md"
+      ],
+      "sha256": "5bc9235892c003daa9e98fb0e383261a0522d7bcd37c270cd38aebff97e7f716",
+      "source_id": "src-2803dc91ddd0f74519de",
+      "supersedes": ".raw/captured/6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e.md",
+      "title": ".agents/workflow/tasks/datatable-row-preview.md"
+    },
     ".raw/captured/5cd247dc4de1588971b8c12f96ec86eee45bb0bf80aa348fe97cd5afe0b0f579.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -400,6 +443,16 @@
       "source_id": "src-cae1fc9ebf92a65c146b",
       "title": ".wiki/raw/notes/2026-09-25-workflow-convenience-review.md"
     },
+    ".raw/captured/5fdef208d4b8c1a37c94666a703e15568d01d7b1a3a46af41aff19e45846b16e.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - animnotify-labels.md"
+      ],
+      "sha256": "5fdef208d4b8c1a37c94666a703e15568d01d7b1a3a46af41aff19e45846b16e",
+      "source_id": "src-292d7ff87c2a92002fb3",
+      "supersedes": ".raw/captured/6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48.md",
+      "title": ".agents/workflow/tasks/animnotify-labels.md"
+    },
     ".raw/captured/609caa7004bf69cc1ffe98e4b753533418d9d10afa8d41b926a0bff3e4953861.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -427,6 +480,16 @@
       "source_id": "src-3bd37c07acf8bbad4701",
       "title": ".wiki/raw/notes/2026-09-25-exclusive-submission-cleanup.md"
     },
+    ".raw/captured/65032a2eeccae1de8b02306c9b4a8ca7c236cabec2ca70a9fa93246f5704a17f.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - ui-data-interface-removal.md"
+      ],
+      "sha256": "65032a2eeccae1de8b02306c9b4a8ca7c236cabec2ca70a9fa93246f5704a17f",
+      "source_id": "src-0cddafb417cfbb15134b",
+      "supersedes": ".raw/captured/28130d6e3e3c13b776af54d4de37b50c73dbafcba2c69355652d63d4c915954c.md",
+      "title": ".agents/workflow/tasks/ui-data-interface-removal.md"
+    },
     ".raw/captured/6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -434,6 +497,7 @@
       ],
       "sha256": "6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e",
       "source_id": "src-4094d8d54f71a0271819",
+      "superseded_by": ".raw/captured/5bc9235892c003daa9e98fb0e383261a0522d7bcd37c270cd38aebff97e7f716.md",
       "title": ".agents/workflow/tasks/datatable-row-preview.md"
     },
     ".raw/captured/6b19e4bae75efc3cbeddf6a3cbfb3f2a1a78bdf3f6d63724aa125c13bf711bf3.md": {
@@ -443,6 +507,7 @@
       ],
       "sha256": "6b19e4bae75efc3cbeddf6a3cbfb3f2a1a78bdf3f6d63724aa125c13bf711bf3",
       "source_id": "src-4f16d3cb7a443cee86ee",
+      "superseded_by": ".raw/captured/da4546f1bd301d99cf7435c8834b83664048a0a457f77d76658888faff5b10d5.md",
       "title": ".agents/workflow/tasks/dialogue-presentation-vm.md"
     },
     ".raw/captured/6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48.md": {
@@ -452,6 +517,7 @@
       ],
       "sha256": "6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48",
       "source_id": "src-fef53e6d8e58e757609b",
+      "superseded_by": ".raw/captured/5fdef208d4b8c1a37c94666a703e15568d01d7b1a3a46af41aff19e45846b16e.md",
       "supersedes": ".raw/captured/6d65717f2c0a5202d98bd731bd6bb04b1303101563323c07be80adcf6b8a9ba8.md",
       "title": ".agents/workflow/tasks/animnotify-labels.md"
     },
@@ -545,6 +611,16 @@
       "sha256": "7f5b6d0d7d4f76b2c044e9e5315a40c5332efb4657c41819b6830e121fcea27e",
       "source_id": "src-0609045bc83d7ede2734",
       "title": "Docs/CombatDesign/WX_첫_보스_기획서.md"
+    },
+    ".raw/captured/88ae1d53d2b929fa4a790777c1932b3facaa372945a3d5c90377fe5dd9959de5.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - interaction-list-vm-simplification.md"
+      ],
+      "sha256": "88ae1d53d2b929fa4a790777c1932b3facaa372945a3d5c90377fe5dd9959de5",
+      "source_id": "src-756b067cf0dea4e48af1",
+      "supersedes": ".raw/captured/3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7.md",
+      "title": ".agents/workflow/tasks/interaction-list-vm-simplification.md"
     },
     ".raw/captured/89800b04230305cea3e80c038f683d446e185242501eba116e3be0f74e4cb1f7.md": {
       "ingested": "2026-09-26",
@@ -889,6 +965,16 @@
       "source_id": "src-c86bc26d2911ee492488",
       "title": ".wiki/raw/notes/2026-09-22-verified-stock-rule.md"
     },
+    ".raw/captured/da4546f1bd301d99cf7435c8834b83664048a0a457f77d76658888faff5b10d5.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - dialogue-presentation-vm.md"
+      ],
+      "sha256": "da4546f1bd301d99cf7435c8834b83664048a0a457f77d76658888faff5b10d5",
+      "source_id": "src-7f1ecad66c49bd181697",
+      "supersedes": ".raw/captured/6b19e4bae75efc3cbeddf6a3cbfb3f2a1a78bdf3f6d63724aa125c13bf711bf3.md",
+      "title": ".agents/workflow/tasks/dialogue-presentation-vm.md"
+    },
     ".raw/captured/dc7d6f746e1d0608e1f778cf3189efd843277a5f7dc7b66fe22bc402b37049e1.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -932,6 +1018,7 @@
       ],
       "sha256": "e08ab0df4442cca63ac5a88a17400d167b4417518b3b7e17d258986ab9cdf24e",
       "source_id": "src-725958e8aa2fa553c301",
+      "superseded_by": ".raw/captured/21565402278f1bce23f6a53234d1f2719b5e28af492d15da81730d18ddca3eb8.md",
       "title": ".agents/workflow/tasks/ability-table-driven.md"
     },
     ".raw/captured/e318190094a7cb664fcbda9082af4a806045782bd2c319f40b3b616352c58175.md": {
@@ -968,6 +1055,7 @@
       ],
       "sha256": "e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7",
       "source_id": "src-0a7e533be98a72a495b5",
+      "superseded_by": ".raw/captured/435c37ae39577b152d434be89a6164cfa0449a237c68b9dc6f576f849412e89f.md",
       "supersedes": ".raw/captured/59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206.md",
       "title": ".agents/workflow/tasks/workflow-review.md"
     },

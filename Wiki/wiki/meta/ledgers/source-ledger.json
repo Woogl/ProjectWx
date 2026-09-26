@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T06:17:47Z",
+  "generated_at": "2026-09-26T13:57:28Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
     "src-016c4f4d42be310c6137": {
@@ -116,6 +116,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-25-workflow-test-feedback.md"
     },
+    "src-08a811a018e756e51bdc": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "21565402278f1bce23f6a53234d1f2719b5e28af492d15da81730d18ddca3eb8",
+      "independence_key": ".agents/workflow/tasks/ability-table-driven.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/21565402278f1bce23f6a53234d1f2719b5e28af492d15da81730d18ddca3eb8.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - ability-table-driven.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": "src-725958e8aa2fa553c301",
+      "title": ".agents/workflow/tasks/ability-table-driven.md"
+    },
     "src-09d71a1b41356e448261": {
       "authority": "primary",
       "content_kind": "document",
@@ -188,7 +207,7 @@
       ],
       "refresh_due": "2027-03-25",
       "retrieved_at": "2026-09-26",
-      "review_status": "active",
+      "review_status": "superseded",
       "supersedes": "src-997f58c17998f689ab53",
       "title": ".agents/workflow/tasks/workflow-review.md"
     },
@@ -210,6 +229,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-24-nameplate-manager-wxgame.md"
+    },
+    "src-0cddafb417cfbb15134b": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "65032a2eeccae1de8b02306c9b4a8ca7c236cabec2ca70a9fa93246f5704a17f",
+      "independence_key": ".agents/workflow/tasks/ui-data-interface-removal.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/65032a2eeccae1de8b02306c9b4a8ca7c236cabec2ca70a9fa93246f5704a17f.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - ui-data-interface-removal.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": "src-fbf62a9104d918a4da32",
+      "title": ".agents/workflow/tasks/ui-data-interface-removal.md"
     },
     "src-128de32fe3ed0635fd18": {
       "authority": "primary",
@@ -302,7 +340,7 @@
       ],
       "refresh_due": "2027-03-25",
       "retrieved_at": "2026-09-26",
-      "review_status": "active",
+      "review_status": "superseded",
       "supersedes": null,
       "title": ".agents/workflow/tasks/interaction-list-vm-simplification.md"
     },
@@ -382,6 +420,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-23-datatable-row-fixup.md"
     },
+    "src-2803dc91ddd0f74519de": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "5bc9235892c003daa9e98fb0e383261a0522d7bcd37c270cd38aebff97e7f716",
+      "independence_key": ".agents/workflow/tasks/datatable-row-preview.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/5bc9235892c003daa9e98fb0e383261a0522d7bcd37c270cd38aebff97e7f716.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - datatable-row-preview.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": "src-4094d8d54f71a0271819",
+      "title": ".agents/workflow/tasks/datatable-row-preview.md"
+    },
     "src-281f68be3034243b724f": {
       "authority": "primary",
       "content_kind": "conversation",
@@ -400,6 +457,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-23-interaction-list-vm.md"
+    },
+    "src-292d7ff87c2a92002fb3": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "5fdef208d4b8c1a37c94666a703e15568d01d7b1a3a46af41aff19e45846b16e",
+      "independence_key": ".agents/workflow/tasks/animnotify-labels.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/5fdef208d4b8c1a37c94666a703e15568d01d7b1a3a46af41aff19e45846b16e.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - animnotify-labels.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": "src-fef53e6d8e58e757609b",
+      "title": ".agents/workflow/tasks/animnotify-labels.md"
     },
     "src-29fa83e3956cdfe188e5": {
       "authority": "primary",
@@ -476,6 +552,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/명조 적 시스템 역기획서.md"
+    },
+    "src-30897196d4fd8c9071f3": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "435c37ae39577b152d434be89a6164cfa0449a237c68b9dc6f576f849412e89f",
+      "independence_key": ".agents/workflow/tasks/workflow-review.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/435c37ae39577b152d434be89a6164cfa0449a237c68b9dc6f576f849412e89f.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - workflow-review.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": "src-0a7e533be98a72a495b5",
+      "title": ".agents/workflow/tasks/workflow-review.md"
     },
     "src-31e474b69a18800c3fa0": {
       "authority": "primary",
@@ -606,7 +701,7 @@
       ],
       "refresh_due": "2027-03-25",
       "retrieved_at": "2026-09-26",
-      "review_status": "active",
+      "review_status": "superseded",
       "supersedes": null,
       "title": ".agents/workflow/tasks/datatable-row-preview.md"
     },
@@ -739,7 +834,7 @@
       ],
       "refresh_due": "2027-03-25",
       "retrieved_at": "2026-09-26",
-      "review_status": "active",
+      "review_status": "superseded",
       "supersedes": null,
       "title": ".agents/workflow/tasks/dialogue-presentation-vm.md"
     },
@@ -872,7 +967,7 @@
       ],
       "refresh_due": "2027-03-25",
       "retrieved_at": "2026-09-26",
-      "review_status": "active",
+      "review_status": "superseded",
       "supersedes": null,
       "title": ".agents/workflow/tasks/ability-table-driven.md"
     },
@@ -929,9 +1024,28 @@
       ],
       "refresh_due": "2027-03-25",
       "retrieved_at": "2026-09-26",
-      "review_status": "active",
+      "review_status": "superseded",
       "supersedes": "src-adaaf5f0488283bcc1c8",
       "title": ".agents/workflow/tasks/nameplate-manager.md"
+    },
+    "src-756b067cf0dea4e48af1": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "88ae1d53d2b929fa4a790777c1932b3facaa372945a3d5c90377fe5dd9959de5",
+      "independence_key": ".agents/workflow/tasks/interaction-list-vm-simplification.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/88ae1d53d2b929fa4a790777c1932b3facaa372945a3d5c90377fe5dd9959de5.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - interaction-list-vm-simplification.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": "src-1730cb541df1643b7273",
+      "title": ".agents/workflow/tasks/interaction-list-vm-simplification.md"
     },
     "src-757f477d3daaafa3f171": {
       "authority": "primary",
@@ -1065,6 +1179,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-25-ui-data-interface-removal.md"
+    },
+    "src-7f1ecad66c49bd181697": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "da4546f1bd301d99cf7435c8834b83664048a0a457f77d76658888faff5b10d5",
+      "independence_key": ".agents/workflow/tasks/dialogue-presentation-vm.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/da4546f1bd301d99cf7435c8834b83664048a0a457f77d76658888faff5b10d5.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - dialogue-presentation-vm.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": "src-4f16d3cb7a443cee86ee",
+      "title": ".agents/workflow/tasks/dialogue-presentation-vm.md"
     },
     "src-7f8afee49742fa7bf2c8": {
       "authority": "primary",
@@ -1788,6 +1921,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-25-workflow-task-records.md"
     },
+    "src-d33c5c972a09bcfd7b66": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "0d5970dabfd5b118dade8826ce8e440eaad0ec5e28d47027162e3200cd64f36f",
+      "independence_key": ".agents/workflow/tasks/nameplate-manager.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/0d5970dabfd5b118dade8826ce8e440eaad0ec5e28d47027162e3200cd64f36f.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - nameplate-manager.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": "src-73d4725c30558f841f13",
+      "title": ".agents/workflow/tasks/nameplate-manager.md"
+    },
     "src-d5cd1ac8119c2b418ceb": {
       "authority": "primary",
       "content_kind": "document",
@@ -2069,7 +2221,7 @@
       ],
       "refresh_due": "2027-03-25",
       "retrieved_at": "2026-09-26",
-      "review_status": "active",
+      "review_status": "superseded",
       "supersedes": null,
       "title": ".agents/workflow/tasks/ui-data-interface-removal.md"
     },
@@ -2126,7 +2278,7 @@
       ],
       "refresh_due": "2027-03-25",
       "retrieved_at": "2026-09-26",
-      "review_status": "active",
+      "review_status": "superseded",
       "supersedes": "src-a23a1d7fb94ec48c6dd4",
       "title": ".agents/workflow/tasks/animnotify-labels.md"
     }
