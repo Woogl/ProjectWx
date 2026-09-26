@@ -1,7 +1,7 @@
 # Wiki를 claude-obsidian으로 전환하고 정기 갱신으로 운영
 
-상태: 확인 대기 · 체크리스트 21/25 통과
-다음 행동: 사람은 코드 리뷰, Routine 첫 실행, Wiki 갱신 버튼(새 방식), 다음 날 예약 실행을 확인한다.
+상태: 확인 대기 · 체크리스트 22/25 통과
+다음 행동: 사람은 코드 리뷰, Routine 첫 실행, 다음 날 예약 실행을 확인한다.
 
 - 날짜: 2026-09-26
 - 계기: AI 게임 개발 워크플로우에 claude-obsidian과 llm-wiki 중 무엇이 맞는지 묻는 사용자 질문에서 시작했다. 조사와 결정은 Claude Code 클라우드 세션에서 진행했고, 구현은 사용자가 새 세션에서 이어서 한다.
@@ -126,7 +126,7 @@
 | 이 PC 실제 갱신 | 커밋·푸시 뒤 대시보드 서버를 새로 띄우고 Wiki 갱신을 요청해 준비물 확인·LF 작업 트리·태그·래퍼 확인·AI 실행·lint까지 끝나는지 | AI | 통과 | `a5a50b359` 푸시 뒤 서버 재시작(revision 변경), 버튼과 같은 API로 Codex 요청 → 100초에 complete. 준비 10초, 대상 43개가 작업 트리 파일 해시로 바로 일치(우회 없음), 기한 경과 0, 래퍼 lint 131쪽 이슈 0, 바뀐 것이 없어 커밋·푸시 없음 |
 | 코드 리뷰 | 변경 파일은 구현 결과 절의 목록과 전환 마무리 절의 버튼 수정·대시보드 갱신 전환(Wiki-AI.cjs, Wiki-Obsidian.cjs, Workflow-TestFeedback.cjs의 runTerminalJob, wiki-viewer/workflow.js·test-feedback.js, 테스트 2개, Wiki/README.md, process/index.md). 볼 점: 완료 처리(record·complete), Workflow 전용 화면 정리, Wiki/README.md의 갱신 절차(래퍼·LF·거절 시 다시 하기·커밋 메시지), 준비물 자동 설치(`--no-launch`, 관리자 승인은 WSL이 없을 때만), 래퍼의 metadata 마운트와 root 실행, LF sparse 작업 트리와 HEAD:main 푸시, 처리할 AI 드롭다운(index.html·test-feedback.js), Saved/Workflow 경로 | 사람 | 대기 |  |
 | Routine 첫 실행 | 커밋·푸시 → AI에게 Routine 전환 요청 → 웹에서 Run now. Wiki/가 init되고 기획서·완료 기록이 수집되어 main에 푸시되며 lint의 provenance_errors·dead_links가 0이다. | 사람 | 대기 | AI 확인: 두 번째 실행(cse_017DwwnfEBCVpWtgefGEpA4H)이 원자료 109건을 수집해 커밋 20b0751~33cb7ea로 푸시했고 lint는 전 항목 0이다(이 PC 재검사도 0). 첫 실행은 외부 코드 거부로 실패했다. |
-| Wiki 갱신 버튼 | OpenWorkflow.bat → 왼쪽 메뉴 아래에서 AI를 고르고 Wiki 갱신을 누른다. 준비물이 없으면 설치 창이 열리고(WSL이 없을 때만 관리자 승인, Linux 사용자 만들기 없음), 있으면 터미널 창에서 그 AI가 갱신한다. 진행 중에는 버튼이 꺼지고, 끝나면 작업 기록 제목 아래에 결과가 보이며 바뀐 것이 있으면 main에 Wiki 커밋이 올라간다. | 사람 | 대기 | 방식이 바뀌었다(D9·D10·D12). Routine을 부르던 이전 방식의 확인 근거는 전환 마무리 절에 있다. |
+| Wiki 갱신 버튼 | OpenWorkflow.bat → 왼쪽 메뉴 아래에서 AI를 고르고 Wiki 갱신을 누른다. 준비물이 없으면 설치 창이 열리고(WSL이 없을 때만 관리자 승인, Linux 사용자 만들기 없음), 있으면 터미널 창에서 그 AI가 갱신한다. 진행 중에는 버튼이 꺼지고, 끝나면 작업 기록 제목 아래에 결과가 보이며 바뀐 것이 있으면 main에 Wiki 커밋이 올라간다. | 사람 | 통과 | 이우성 2026-09-26: "통과". 서버 기록: Claude로 20:45 시작, 약 2분 뒤 complete. 새 원자료 0·기한 경과 0·래퍼 lint 이슈 0이라 커밋·푸시 없음(origin/main `53a0681e3` 그대로). Routine을 부르던 이전 방식의 확인 근거는 전환 마무리 절에 있다. |
 | Obsidian으로 읽기 | pull → Obsidian에서 Wiki 폴더를 vault로 한 번 열기 → Obsidian을 다시 열면 Wiki vault가 열린다. 그래프·백링크·속성이 보이고 링크가 깨지지 않으며, 노트를 읽고 닫은 뒤 `git status`에 Wiki 노트 변경이 없다. | 사람 | 통과 | 이우성 2026-09-26 |
 | Wiki 줄바꿈·무시 규칙 | 규칙 추가 → Wiki 파일 다시 받기 → 노트 3개를 같은 내용의 LF로 다시 저장 → git status → lint --vault Wiki | AI | 통과 | 다시 저장한 노트가 변경으로 잡히지 않음, core-plugins.json은 무시, 원자료 사본은 -text 유지, lint 전 항목 0 |
 | Routine 순정 플러그인 설치 | 웹에서 Wiki 전용 환경을 만들고 그 환경의 설정 스크립트 칸에 스크립트를 넣는다 → AI가 Routine을 그 환경으로 옮겨 실행한다. 실행 기록에 설정 스크립트 실행이 보이고, 세션이 claude-obsidian 플러그인 스킬로 수집·lint를 마치면 AI가 저장소 사본을 지운다. | 사람 | 통과 | 이우성 2026-09-26 |
