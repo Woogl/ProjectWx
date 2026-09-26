@@ -14,12 +14,13 @@ WX의 게임 규칙·구현·결정과 검증 범위를 모은 팀 공유 지식
 - claude-obsidian 버전: `v2.2.0`
   - Routine은 이 태그를 `git clone --depth 1 --branch <태그> https://github.com/AgriciDaniel/claude-obsidian /tmp/claude-obsidian`으로 받습니다. 버전은 사람이 이 줄을 고쳐 올립니다. 더 새 태그가 있으면 보고에 적습니다.
   - 수집·저장·검사는 받은 저장소의 `skills/`(wiki-ingest·wiki-lint 등) 절차와 `scripts/claude-obsidian.py` CLI를 따릅니다. 스킬이 사람에게 맡기는 일(원본을 inbox에 넣기, 적용 전 계획 검토, inbox 파일 삭제)은 Routine이 직접 합니다.
-- 수집 대상: `Docs/CombatDesign`·`Docs/SystemDesign`·`Docs/LevelDesign`의 Markdown과, 상태 줄이 `완료`인 작업 기록(`.agents/workflow/tasks/*.md`)입니다. 마지막 `Wiki/` 커밋 이후 새로 생겼거나 바뀐 것만 수집합니다. `Wiki/wiki/`가 없으면 `init`한 뒤 전체를 수집하고, 이때 옛 `.wiki/raw/notes/`에 있는 사용자 결정 원문 노트도 함께 수집합니다.
+- 수집 대상: `Docs/CombatDesign`·`Docs/SystemDesign`·`Docs/LevelDesign`의 Markdown과, 상태 줄이 `완료`인 작업 기록(`.agents/workflow/tasks/*.md`)입니다. 대상 파일의 내용 해시(SHA-256)로 된 `.raw/captured/<해시>.<확장자>`가 이미 있으면 수집하지 않습니다. 없으면 새 파일이거나 바뀐 파일이므로 수집하고, 같은 저장소 경로의 옛 원자료가 있으면 대체합니다. 원자료 제목에는 저장소 상대 경로를 적어 이 대조에 씁니다. `Wiki/wiki/`가 없으면 `init`한 뒤 전체를 수집하고, 이때 옛 `.wiki/raw/notes/`에 있는 사용자 결정 원문 노트도 함께 수집합니다.
 - 절차:
-  1. 바뀐 원본을 `inbox/`에 복사하고 `capture`로 `.raw/captured/`에 사본을 만든 뒤 수집합니다. 계획 → 승인 해시 → 적용을 스스로 진행하고, capture가 끝난 inbox 복사본은 지웁니다.
+  1. 수집할 원본을 `inbox/`에 복사하고 `capture`로 `.raw/captured/`에 사본을 만든 뒤 수집합니다. 계획 → 승인 해시 → 적용을 스스로 진행하고, capture가 끝난 inbox 복사본은 지웁니다.
   2. `refresh_due`가 지난 원자료는 원본과 대조해 같으면 기한을 갱신하고, 바뀌었으면 새로 수집해 옛 원자료를 대체합니다.
   3. `lint --vault Wiki`에서 `provenance_errors`와 `dead_links`가 없어야 합니다.
   4. `Wiki/` 변경만 커밋해 main에 푸시합니다. 거절되면 `pull --rebase` 후 다시 시도하고 force push는 하지 않습니다. 바뀐 것이 없으면 커밋하지 않습니다.
+  - 수집할 원자료가 많으면 10개 안팎씩 나눠 1~4를 반복하고, 묶음마다 푸시해 진행을 남깁니다. 실행이 중간에 끊겨도 다음 실행이 해시 대조로 남은 것부터 이어갑니다.
 - 지킬 것:
   - 모든 명령에 `--vault Wiki`를 붙입니다. `.raw/`는 커밋합니다(레저가 사본 바이트를 검증합니다).
   - 주소 요청(`address_requests`)과 `checkpoint`는 쓰지 않습니다.
