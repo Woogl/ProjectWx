@@ -1,7 +1,7 @@
 # Wiki를 claude-obsidian으로 전환하고 정기 갱신으로 운영
 
-상태: 확인 대기 · 체크리스트 9/15 통과
-다음 행동: 웹에서 Wiki 전용 환경을 새로 만들고, 그 환경의 설정 스크립트 칸에 전환 마무리 절의 스크립트를 넣은 뒤 AI에게 환경 이름을 알린다. Routine 편집 화면의 지시문 칸에는 넣지 않는다. 그 밖에 코드 리뷰, Obsidian으로 Wiki 읽기, Wiki 갱신 버튼, 다음 날 예약 실행을 확인한다.
+상태: 확인 대기 · 체크리스트 10/16 통과
+다음 행동: 사람 항목을 확인한다. 코드 리뷰, Routine 첫 실행과 Routine 순정 플러그인 설치(AI 확인 근거 있음), Wiki 갱신 버튼, Obsidian으로 Wiki 읽기, 다음 날 예약 실행이다.
 
 - 날짜: 2026-09-26
 - 계기: AI 게임 개발 워크플로우에 claude-obsidian과 llm-wiki 중 무엇이 맞는지 묻는 사용자 질문에서 시작했다. 조사와 결정은 Claude Code 클라우드 세션에서 진행했고, 구현은 사용자가 새 세션에서 이어서 한다.
@@ -113,7 +113,8 @@
 | Routine 첫 실행 | 커밋·푸시 → AI에게 Routine 전환 요청 → 웹에서 Run now. Wiki/가 init되고 기획서·완료 기록이 수집되어 main에 푸시되며 lint의 provenance_errors·dead_links가 0이다. | 사람 | 대기 | AI 확인: 두 번째 실행(cse_017DwwnfEBCVpWtgefGEpA4H)이 원자료 109건을 수집해 커밋 20b0751~33cb7ea로 푸시했고 lint는 전 항목 0이다(이 PC 재검사도 0). 첫 실행은 외부 코드 거부로 실패했다. |
 | Wiki 갱신 버튼 | 웹에서 API 트리거를 더해 토큰 발급 → Saved/Wiki/wiki-routine.json의 token 채움 → OpenWorkflow.bat → Wiki 갱신. 새 Routine 세션 링크가 보이고 호출 중에는 다시 눌리지 않는다. | 사람 | 대기 |  |
 | Obsidian으로 읽기 | pull → Obsidian에서 Wiki 폴더를 vault로 한 번 열기 → 이후 OpenWiki.bat. 그래프·백링크·속성이 보이고 링크가 깨지지 않는다. | 사람 | 대기 |  |
-| Routine 순정 플러그인 설치 | 웹에서 Wiki 전용 환경을 만들고 그 환경의 설정 스크립트 칸에 스크립트를 넣는다 → AI가 Routine을 그 환경으로 옮겨 실행한다. 실행 기록에 설정 스크립트 실행이 보이고, 세션이 claude-obsidian 플러그인 스킬로 수집·lint를 마치면 AI가 저장소 사본을 지운다. | 사람 | 대기 | AI 확인: 첫 설정은 스크립트가 Routine 지시문 칸에 들어가 AI가 지시문을 되돌렸다. 되돌린 뒤 실행(cse_01HvAGrjsJJpcCNdVcaH1RNr)의 기록은 "No setup script configured"였다. |
+| Routine 순정 플러그인 설치 | 웹에서 Wiki 전용 환경을 만들고 그 환경의 설정 스크립트 칸에 스크립트를 넣는다 → AI가 Routine을 그 환경으로 옮겨 실행한다. 실행 기록에 설정 스크립트 실행이 보이고, 세션이 claude-obsidian 플러그인 스킬로 수집·lint를 마치면 AI가 저장소 사본을 지운다. | 사람 | 대기 | AI 확인: 사용자가 앱 브라우저에 로그인한 뒤 AI가 Wiki 환경(env_01KeuTATKhRqdfFx7yVB6bSX)을 만들고 Routine을 옮겼다. 실행 cse_01K5JpzBksuMn1UA816pAahJ에서 설정 스크립트가 완료됐고, 세션은 설치된 플러그인 2.2.0만 써서 권한 거부 없이 lint 전 항목 0을 냈다. 새 원자료가 없어 수집(capture·적용)은 다음 실제 수집에서 처음 돈다. 저장소 사본은 지웠다. 첫 설정은 스크립트가 Routine 지시문 칸에 들어가 되돌렸다. |
+| 저장소 사본 제거 | 참조 검색 → CheckWikiLinks.ps1 → TestAgentHarness.ps1 → 이 PC의 순정 플러그인으로 lint --vault Wiki | AI | 통과 | .agents/vendor 59개 git rm, 남은 참조는 이 기록의 경과뿐, 문서 링크 오류 0, 하네스 exit 0, 순정 플러그인 2.2.0 lint 전 항목 0 |
 | 다음 날 예약 실행 | 다음 날 06:30(KST) 뒤 main에 Wiki 갱신 커밋이 있거나, 바뀐 것이 없다는 Routine 보고가 있다. | 사람 | 대기 |  |
 
 ## 조사
@@ -211,3 +212,15 @@ command -v claude >/dev/null || export PATH="/opt/claude-code/bin:$PATH"
 claude plugin marketplace add 'AgriciDaniel/claude-obsidian#v2.2.0'
 claude plugin install claude-obsidian@agricidaniel-claude-obsidian
 ```
+
+- 사용자 지시(2026-09-26): "알아서 해주세요".
+  - 앱 안 브라우저는 claude.ai 로그인이 필요했다. 사용자가 로그인했다("앱 내 브라우저를 제가 로그인해드리면 될까요?").
+  - AI가 클라우드 환경 `Wiki`(`env_01KeuTATKhRqdfFx7yVB6bSX`)를 만들었다. 네트워크는 신뢰됨, 환경 변수는 없고, 설정 스크립트는 위 스크립트다. 웹 화면의 환경 선택은 기본값으로 되돌렸다.
+- `Wiki/README.md`를 플러그인 스킬 기준으로 고쳤고(`3ec118b14`), 이때는 사본을 남겨 두었다. Routine은 환경만 `Wiki`로 바꿨다.
+- 시험 실행(`cse_01K5JpzBksuMn1UA816pAahJ`): 새 환경이라 저장소 첫 clone에 2분이 걸렸다.
+  - 설정 스크립트는 2초에 끝났다.
+  - 세션은 `/root/.claude/plugins/cache/agricidaniel-claude-obsidian/claude-obsidian/2.2.0`의 SKILL.md·CLI만 썼고 저장소 사본은 쓰지 않았다. 권한 거부는 없었고 플러그인 훅이 돌았으며 lint는 전 항목 0이었다.
+  - 수집 대상 43개가 모두 기존 사본과 같아 커밋은 없었다. 그래서 순정 플러그인 CLI의 capture·적용은 다음 실제 수집에서 처음 돈다.
+- Routine이 보고한 두 가지를 처리했다.
+  - 제목의 저장소 경로가 지금 없는 원자료가 67개다. 옛 `.wiki` 결정 노트 66개와, 내용이 같은 `Object_Design.md` 두 곳의 경로를 쉼표로 적은 1개다. 이들은 2026-10-26 기한에 대조할 원본이 없다. 플러그인은 기한이 지난 원자료만 근거인 accepted 주장을 레저 검증 오류로 본다. 그래서 README 절차 2에 규칙을 더했다: 경로가 여럿이면 각각 대조하고, 경로가 없으면 캡처 사본을 원본으로 보고 기한만 갱신하며, 옛 `.wiki` 결정 노트가 아니면 보고한다.
+  - 저장소 사본이 README와 어긋난다는 지적에 따라 `.agents/vendor/`(59개)를 지웠다.
