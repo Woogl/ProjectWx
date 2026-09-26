@@ -104,7 +104,7 @@ function createServer({token,port=18743,testFeedback=null,wikiUpdate=null}) {
     response.setHeader('Access-Control-Allow-Origin','null');response.setHeader('Access-Control-Allow-Private-Network','true');
     if(!['/test-feedback','/wiki-update'].includes(request.url)||!['POST','OPTIONS'].includes(request.method))return send(404,{error:'지원하지 않는 요청입니다.'});
     if(request.method==='OPTIONS'){response.setHeader('Access-Control-Allow-Methods','POST');response.setHeader('Access-Control-Allow-Headers','Content-Type, X-Wx-Token');return send(204,{});}
-    if(request.headers['x-wx-token']!==token)return send(403,{error:'OpenWorkflow.bat을 다시 실행하세요.'});
+    if(request.headers['x-wx-token']!==token)return send(403,{error:'이 화면의 AI 연결 정보가 지난 것입니다. OpenWorkflow.bat을 다시 실행해 새로 열린 화면을 쓰세요.'});
     if(!request.headers['content-type']?.startsWith('application/json'))return send(400,{error:'JSON 입력이 필요합니다.'});
     try{
       const chunks=[];let size=0;

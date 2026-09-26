@@ -50,7 +50,7 @@ function fixture(providers=['codex'],content=taskText){
 
   const f=fixture();
   assert.deepEqual(f.context().checklist.map(r=>[r.item,r.owner,r.result]),[['빌드','AI','통과'],['저장 후 복원','사람','대기']]);
-  assert.equal(f.context().state,'확인 대기');assert.ok(!Object.hasOwn(f.context(),'codeVersion'),'code versions no longer gate submissions');
+  assert.equal(f.context().state,'확인 대기');assert.equal(f.context().next,'저장 후 복원을 확인한다.','the panel shows the recorded next action');assert.ok(!Object.hasOwn(f.context(),'codeVersion'),'code versions no longer gate submissions');
   assert.throws(()=>f.service.act(f.request({provider:'claude'})),/선택한 AI/);
   assert.throws(()=>f.service.act(f.request({provider:'unknown'})),/선택한 AI/);
   assert.throws(()=>f.service.act(f.request({checks:[]})),/하나 이상/);

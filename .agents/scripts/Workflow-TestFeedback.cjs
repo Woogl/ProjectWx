@@ -233,7 +233,7 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
     const content=fs.readFileSync(taskFile(root,relative)),body=content.toString('utf8'),head=readHead(body),record=read(relative),request=readSection(body,requestHeading);
     let checklist=[],checklistError='',questions=[];
     try{checklist=readChecklist(body)?.rows||[];questions=readQuestions(body)?.rows||[];}catch(error){checklistError=error.message;}
-    return {...view(record),providers:providerList(),title:head.title||path.basename(relative,'.md'),state:head.state,request:request||'',questions,plan:readPlan(body),checklist,checklistError,taskHash:sha(content)};
+    return {...view(record),providers:providerList(),title:head.title||path.basename(relative,'.md'),state:head.state,next:head.next,request:request||'',questions,plan:readPlan(body),checklist,checklistError,taskHash:sha(content)};
   }
   const quote=value=>String(value).split(/\r?\n/).map(line=>'> '+line).join('\n');
   const outcome={questions:'질문 답변 필요',approval:'구현 승인 필요',issues:'실패 확인 필요',retest:'사람 확인 필요',complete:'완료',empty:'처리 결과 확인',conflict:'기록 충돌로 반영하지 않음',failed:'AI 처리 실패'};

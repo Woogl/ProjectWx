@@ -9,35 +9,19 @@ $workflow = Join-Path $repo '.agents/workflow'
 $documents = @(
     foreach ($file in (Get-ChildItem -LiteralPath $workflow -Recurse -File -Filter '*.md' | Sort-Object FullName)) {
         $raw = [IO.File]::ReadAllText($file.FullName)
-        # Keep YAML verbatim for provenance display; rendering never interprets it as document headings or a second schema.
-        $frontmatter = [regex]::Match($raw, '\A---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)')
-        $body = if ($frontmatter.Success) { $raw.Substring($frontmatter.Length) } else { $raw }
-        $heading = [regex]::Match($body, '(?m)^#\s+(.+)$')
+        $heading = [regex]::Match($raw, '(?m)^#\s+(.+)$')
         [ordered]@{
             path = [IO.Path]::GetRelativePath($repo, $file.FullName).Replace('\', '/')
             title = if ($heading.Success) { $heading.Groups[1].Value.Trim() } else { $file.BaseName }
-            frontmatter = if ($frontmatter.Success) { $frontmatter.Groups[1].Value } else { '' }
             text = $raw
             modified = $file.LastWriteTimeUtc.ToString('o')
-            html = (ConvertFrom-Markdown -InputObject $body).Html
+            html = (ConvertFrom-Markdown -InputObject $raw).Html
         }
     }
 )
-$indexPath = Join-Path $workflow 'index.md'
-$navigation = @()
-$group = $null
-foreach ($line in (Get-Content -LiteralPath $indexPath)) {
-    if ($line -match '^## (.+)$') {
-        $group = [ordered]@{ title = $Matches[1]; items = @() }
-        $navigation += $group
-    } elseif ($group -and $line -match '^\s*(?:-|\d+\.) \[([^\]]+)\]\(([^)]+)\)$') {
-        $target = [IO.Path]::GetFullPath((Join-Path (Split-Path $indexPath -Parent) $Matches[2]))
-        $group.items += @{ title = $Matches[1]; path = [IO.Path]::GetRelativePath($repo, $target).Replace('\', '/') }
-    }
-}
 $connectionPath = Join-Path $repo 'Saved/Workflow/ai-connection.json'
 $ai = if (Test-Path -LiteralPath $connectionPath) { Get-Content -LiteralPath $connectionPath -Raw | ConvertFrom-Json -AsHashtable } else { $null }
-$payload = @{ ai = $ai; generated = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'); documents = $documents; navigation = $navigation } | ConvertTo-Json -Depth 8 -Compress -EscapeHandling EscapeHtml
+$payload = @{ ai = $ai; generated = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'); documents = $documents } | ConvertTo-Json -Depth 8 -Compress -EscapeHandling EscapeHtml
 $template = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/index.html'))
 $diagramScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/diagrams.js'))
 $mermaidVendor = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/vendor/mermaid-11.12.0.min.js')).Replace('</script', '<\/script')

@@ -11,27 +11,18 @@ const data = JSON.parse(payload);
 assert.ok(!/[<>&]/.test(payload), 'the data block escapes <, > and & so record text cannot close the script tag');
 const script = html.match(/<script>\s*([\s\S]*?)<\/script>/)[1];
 new vm.Script(script);
-const expectedNavigation = [];
-for (const line of fs.readFileSync(path.join(root, '.agents/workflow/index.md'), 'utf8').split(/\r?\n/)) {
-  if (line === '## 한줄 요약') continue;
-  const heading = line.match(/^## (.+)$/);
-  const link = line.match(/^\s*(?:-|\d+\.) \[([^\]]+)\]\(([^)]+)\)$/);
-  if (heading) expectedNavigation.push({ title: heading[1], items: [] });
-  else if (link && expectedNavigation.length) expectedNavigation.at(-1).items.push({ title: link[1], path: path.posix.normalize('.agents/workflow/' + link[2]) });
-}
-assert.deepEqual(data.navigation, expectedNavigation, 'navigation must follow the current Wiki index');
+assert.deepEqual(Object.keys(data).sort(), ['ai', 'documents', 'generated'], 'the page carries only what the viewer uses');
 assert.equal(new Set(data.documents.map(d => d.path)).size, data.documents.length);
 assert.ok(data.documents.every(d => d.path.startsWith('.agents/workflow/')), 'the Workflow page bundles only workflow documents; the Wiki is read in Obsidian');
 for (const d of data.documents) {
   assert.equal(d.text, fs.readFileSync(path.join(root, d.path), 'utf8'));
-  const frontmatter = d.text.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
-  assert.equal(d.frontmatter, frontmatter?.[1] || '');
-  assert.ok(!d.html.includes('<p>category:'), 'YAML must not render as article prose');
   assert.ok(!Object.hasOwn(d, 'status'), 'reader must not invent freshness from a separate manifest');
   assert.ok(d.html.length > 0);
 }
 class Element {
   constructor(tag) { this.tagName = tag.toUpperCase(); this.children = []; this.value = ''; this.dataset = {}; this.style = {}; this.classList = { toggle() {} }; this.handlers = {}; }
+  set id(value) { this._id = value; elements.set(value, this); }
+  get id() { return this._id; }
   append(...nodes) { this.children.push(...nodes); }
   replaceChildren(...nodes) { this.children = nodes; }
   addEventListener(name, handler) { this.handlers[name] = handler; }
@@ -55,9 +46,10 @@ const imageNode = { tagName: 'IMG', remove: () => { removedImage = true; } };
 context.DOMParser = class { parseFromString() { return { body: { querySelectorAll: () => [imageNode] } }; } };
 vm.runInContext("safeFragment('')", context);
 assert.ok(removedImage, 'markdown images must be removed');
-assert.ok(html.includes('img-src data:'), 'diagram images stay allowed');
-assert.ok(html.includes('.wiki-diagram img{display:block;'), 'diagram images stay centered');
-console.log('PASS markdown image removal and diagram image policy');
+assert.ok(!html.match(/http-equiv="Content-Security-Policy" content="([^"]*)"/)[1].includes('img-src'), 'the page loads no images');
+assert.match(script, /await mermaid\.run\(\{ nodes: \[diagram\] \}\)/, 'diagrams render with stock mermaid.run');
+assert.ok(html.includes('.wiki-diagram svg{display:block;'), 'rendered diagrams stay centered');
+console.log('PASS markdown image removal and stock Mermaid rendering');
 // Work records are listed from their own state lines without the local server, including records without a state.
 assert.equal(vm.runInContext("taskRecordGroups().map(g=>g.title).join(',')", context), '확인 대기,진행 중,완료,리뷰·참고');
 const indexedPaths = Array.from(vm.runInContext('taskRecordGroups().flatMap(g=>g.items.map(item=>item.path))', context));
@@ -94,6 +86,7 @@ const rowActions = (filter, title) => {
   return row.children.find(c => c.className === 'record-actions').children.map(c => c.tagName + ':' + c.textContent);
 };
 assert.deepEqual(rowActions(0, '대기 작업'), ['BUTTON:작업 진행', 'SPAN:질문 답변 필요'], 'waiting records are handled in the task panel with their AI status');
+assert.equal(byId('task-records').children.at(-1).children.find(n => n.className === 'record-item' && n.children[0].children[0].textContent === '대기 작업').children.at(-1).children[0].attributes['aria-label'], '작업 진행: 대기 작업', 'row buttons are named after their task');
 assert.deepEqual(rowActions(1, '처리 작업'), ['BUTTON:작업 진행'], 'running records are followed in the task panel');
 assert.deepEqual(rowActions(2, '끝난 작업'), ['A:기록 열기 →'], 'completed records show no AI status');
 recordFilters()[0].onclick();
@@ -145,10 +138,19 @@ assert.equal(byId('article').children[0].textContent, '문서를 찾을 수 없�
   await vm.runInContext('loadWikiUpdate()', context);
   assert.equal(headingButtons()[1].disabled, false);
   assert.match(wikiNotice(), /마쳤습니다\(Codex\)\. 원자료 1건을 수집했습니다\./, 'the dashboard keeps the last result');
+  const listBefore = byId('task-records').children.at(-1);
+  await vm.runInContext('loadWikiUpdate()', context);
+  assert.equal(byId('task-records').children.at(-1), listBefore, 'Wiki progress updates only its line, not the record list');
+  // 시작 응답을 기다리는 동안 두 번 눌러도 한 번만 시작한다.
+  const firing = context.fired.length;
+  await Promise.all([headingButtons()[1].onclick(), headingButtons()[1].onclick()]);
+  assert.equal(context.fired.length, firing + 1, 'a double click starts the Wiki update once');
+  vm.runInContext("wikiState={status:'complete',provider:'codex',summary:'원자료 1건을 수집했습니다.'};", context);
+  await vm.runInContext('loadWikiUpdate()', context);
   // 고른 AI가 연결되어 있지 않으면 요청하지 않고 그 이유를 같은 자리에 보여준다.
   const before = context.fired.length;
   vm.runInContext("taskProviders=[{id:'claude',label:'Claude Code'}];renderProviderChoice();", context);
   await headingButtons()[1].onclick();
   assert.equal(context.fired.length, before); assert.match(wikiNotice(), /연결되어 있지 않습니다/);
-  console.log(`PASS ${data.documents.length} document snapshots, metadata, JS syntax, task states, new task and task panel entries, Wiki update button, index navigation, launcher, routing and missing-document handling`);
+  console.log(`PASS ${data.documents.length} document snapshots, JS syntax, task states, new task and task panel entries, row button names, Wiki update button (progress line only, single start), launcher, routing and missing-document handling`);
 })().catch(error => { console.error(error); process.exitCode = 1; });
