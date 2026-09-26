@@ -2,7 +2,7 @@
 @echo off
 setlocal
 
-rem Double-click launcher. The real logic lives in .agents/scripts/Export-AbilitySystemLists.ps1, which OpenWiki.bat and AI harnesses run directly.
+rem Double-click launcher. The real logic lives in .agents/scripts/Export-AbilitySystemLists.ps1, which AI harnesses run directly. Output: Saved/AbilitySystemLists.
 set "ProjectRoot=%~dp0.."
 for %%I in ("%ProjectRoot%") do set "ProjectRoot=%%~fI"
 set "ExportScript=%ProjectRoot%\.agents\scripts\Export-AbilitySystemLists.ps1"

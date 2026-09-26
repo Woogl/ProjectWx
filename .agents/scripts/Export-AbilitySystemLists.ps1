@@ -1,5 +1,5 @@
 ﻿# Copyright Woogle. All Rights Reserved.
-# Rebuilds the ability and effect list wiki articles from Content packages and C++ sources without launching the editor.
+# Rebuilds the ability, effect and character lists from Content packages and C++ sources without launching the editor.
 # Runs on Windows PowerShell 5.1 and PowerShell 7; the output must not depend on which one ran it.
 [CmdletBinding()]
 param([string]$RepoRoot)
@@ -7,9 +7,9 @@ $ErrorActionPreference = 'Stop'
 
 $Latin1 = [Text.Encoding]::GetEncoding(28591)
 $Invariant = [Globalization.CultureInfo]::InvariantCulture
-# Both articles live in .wiki/wiki/references, so links climb three folders to the repository root.
-$ArticleFolder = '.wiki/wiki/references'
-$ArticleToRepo = '../../../'
+# The lists are generated on demand into Saved/AbilitySystemLists (not versioned), so links climb two folders to the repository root.
+$ArticleFolder = 'Saved/AbilitySystemLists'
+$ArticleToRepo = '../../'
 # Assets are found by name prefix; no other package is read.
 $PackagePattern = '^(GA|ABS|GE|AM|BT|ST|DA|DT|BP)_'
 # Engine bases that decide what a project class is.
@@ -737,6 +737,7 @@ function Get-RowUsage($Records, $Tables) {
 # Dates move only when the body changes, so regenerating an unchanged list leaves the file and Git untouched.
 function Write-Article([string]$Repo, [string]$Slug, [string]$Title, [string]$Aliases, [string]$Summary, [string]$Body) {
     $path = Join-Path $Repo "$ArticleFolder/$Slug.md"
+    New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
     $today = Get-Date -Format 'yyyy-MM-dd'
     $old = $null
     $created = $today; $updated = $today; $verified = $today
@@ -752,8 +753,6 @@ function Write-Article([string]$Repo, [string]$Slug, [string]$Title, [string]$Al
             '---'
             'title: "' + $Title + '"'
             'category: reference'
-            'sources:'
-            '  - "raw/notes/2026-09-25-ability-data-on-ga.md"'
             'created: ' + $created
             'updated: ' + $Updated
             'tags: [wx, combat]'
@@ -774,7 +773,7 @@ function Write-Article([string]$Repo, [string]$Slug, [string]$Title, [string]$Al
 
 function Get-IntroLines([string]$Subject) {
     return @(
-        $Subject + ' ' + (Format-Link 'ExportAbilitySystemLists.bat' 'BatchFiles/ExportAbilitySystemLists.bat') + '이 어빌리티·이펙트·캐릭터 목록을 함께 다시 만들고 ' + (Format-Link 'OpenWiki.bat' 'BatchFiles/OpenWiki.bat') + '도 위키를 열 때 다시 만든다. 손으로 고치지 않는다.'
+        $Subject + ' ' + (Format-Link 'ExportAbilitySystemLists.bat' 'BatchFiles/ExportAbilitySystemLists.bat') + '이 어빌리티·이펙트·캐릭터 목록을 함께 다시 만든다. 손으로 고치지 않는다.'
         ''
         '- 에셋은 이름으로 적고 파일은 `Content/**/<이름>.uasset`로 찾는다. 같은 이름이 여러 폴더에 있으면 폴더를 앞에 붙인다.'
     )
@@ -807,7 +806,7 @@ function Get-CharacterBody($Characters, $Sets, $Abilities, $AttributeTables, $Ro
     $lines.Add('')
     foreach ($line in (Get-IntroLines '에디터 없이 캐릭터 BP·ABS_·DT_ 에셋을 읽어 만든 표다.')) { $lines.Add($line) }
     $lines.Add('- 캐릭터는 ASC의 `AbilitySets`를 저장한 BP이고, 이 문서는 그 GAS 구성(WxAbilitySet이 주는 어빌리티·이펙트와 속성 초기값)만 다룬다.')
-    $lines.Add('- 어빌리티 상세는 [어빌리티 목록](../references/ability-list.md), 이펙트 상세는 [이펙트 목록](../references/effect-list.md)에 있다.')
+    $lines.Add('- 어빌리티 상세는 [어빌리티 목록](ability-list.md), 이펙트 상세는 [이펙트 목록](effect-list.md)에 있다.')
     $lines.Add('')
 
     $lines.Add('## 캐릭터')
@@ -841,13 +840,8 @@ function Get-CharacterBody($Characters, $Sets, $Abilities, $AttributeTables, $Ro
 
     $lines.Add('## 관련 문서')
     $lines.Add('')
-    $lines.Add('- [[ability-list|어빌리티 목록]] ([어빌리티 목록](../references/ability-list.md))')
-    $lines.Add('- [[combat-abilities|전투 어빌리티와 이펙트]] ([전투 어빌리티와 이펙트](../concepts/combat-abilities.md))')
-    $lines.Add('- [[effect-list|이펙트 목록]] ([이펙트 목록](../references/effect-list.md))')
-    $lines.Add('')
-    $lines.Add('## Sources')
-    $lines.Add('')
-    $lines.Add('- [어빌리티·GE 데이터를 에셋 한 곳으로](../../raw/notes/2026-09-25-ability-data-on-ga.md) — WxAbilitySet의 부여 규칙과 데이터 배치')
+    $lines.Add('- [어빌리티 목록](ability-list.md)')
+    $lines.Add('- [이펙트 목록](effect-list.md)')
     return ($lines -join "`n") + "`n"
 }
 
@@ -858,7 +852,7 @@ function Get-AbilityBody($Abilities, $Montages) {
     foreach ($line in (Get-IntroLines '에디터 없이 GA_·AM_ 에셋을 읽어 만든 표다.')) { $lines.Add($line) }
     $lines.Add('- 값은 에셋에 저장된 값이다. 빈 칸은 "없음"이 아니라 저장된 값이 없어 부모 기본값을 따른다는 뜻이다. 기본값은 타입 칸의 C++ 클래스와 그 상위 클래스의 생성자·헤더 초기값에 있다.')
     $lines.Add('- 발동 조건의 Required·Blocked는 `ActivationRequiredTags`·`ActivationBlockedTags`다. `ActivationOwnedTags`는 AbilityTags와 같으면 적지 않는다.')
-    $lines.Add('- WxAbilitySet 칸의 에셋을 받는 캐릭터와 그 구성은 [캐릭터 목록](../references/character-list.md)에 있다.')
+    $lines.Add('- WxAbilitySet 칸의 에셋을 받는 캐릭터와 그 구성은 [캐릭터 목록](character-list.md)에 있다.')
     $lines.Add('- 콤보 몽타주는 `ComboMontages` 배열 순서대로 표시한다. 각 몽타주의 방향 섹션은 콤보 단계와 별개다.')
     $lines.Add('')
 
@@ -910,7 +904,7 @@ function Get-AbilityBody($Abilities, $Montages) {
 
     $lines.Add('## 몽타주')
     $lines.Add('')
-    $lines.Add('GA_가 쓰는 몽타주와 그 몽타주가 참조하는 몽타주다. 섹션은 시작 시각 순이다. 노티파이는 클래스별로 묶어 처음 나오는 시각 순으로 적고 `×N`은 개수다. `{}` 안은 그 클래스 인스턴스들에 저장된 값을 필드별로 중복 없이 모은 것이라, 어느 인스턴스·섹션의 값인지와 모든 인스턴스가 그 값을 갖는지는 나타내지 않는다. 벡터·회전·트랜스폼 같은 수학 구조체 값(예: `LocalSpawnOffset`)은 적지 않는다. 피해 행 값은 [이펙트 목록](../references/effect-list.md)에 있다.')
+    $lines.Add('GA_가 쓰는 몽타주와 그 몽타주가 참조하는 몽타주다. 섹션은 시작 시각 순이다. 노티파이는 클래스별로 묶어 처음 나오는 시각 순으로 적고 `×N`은 개수다. `{}` 안은 그 클래스 인스턴스들에 저장된 값을 필드별로 중복 없이 모은 것이라, 어느 인스턴스·섹션의 값인지와 모든 인스턴스가 그 값을 갖는지는 나타내지 않는다. 벡터·회전·트랜스폼 같은 수학 구조체 값(예: `LocalSpawnOffset`)은 적지 않는다. 피해 행 값은 [이펙트 목록](effect-list.md)에 있다.')
     $lines.Add('')
     $lines.Add('| 몽타주 | 쓰는 곳 | 섹션 | 노티파이 |')
     $lines.Add('|---|---|---|---|')
@@ -921,13 +915,8 @@ function Get-AbilityBody($Abilities, $Montages) {
 
     $lines.Add('## 관련 문서')
     $lines.Add('')
-    $lines.Add('- [[character-list|캐릭터 목록]] ([캐릭터 목록](../references/character-list.md))')
-    $lines.Add('- [[combat-abilities|전투 어빌리티와 이펙트]] ([전투 어빌리티와 이펙트](../concepts/combat-abilities.md))')
-    $lines.Add('- [[effect-list|이펙트 목록]] ([이펙트 목록](../references/effect-list.md))')
-    $lines.Add('')
-    $lines.Add('## Sources')
-    $lines.Add('')
-    $lines.Add('- [어빌리티·GE 데이터를 에셋 한 곳으로](../../raw/notes/2026-09-25-ability-data-on-ga.md) — GA_가 가진 데이터와 배치 규칙')
+    $lines.Add('- [캐릭터 목록](character-list.md)')
+    $lines.Add('- [이펙트 목록](effect-list.md)')
     return ($lines -join "`n") + "`n"
 }
 
@@ -981,13 +970,8 @@ function Get-EffectBody($Effects, $NativeClasses, $DamageTables, $RowUsage, $Ass
 
     $lines.Add('## 관련 문서')
     $lines.Add('')
-    $lines.Add('- [[ability-list|어빌리티 목록]] ([어빌리티 목록](../references/ability-list.md))')
-    $lines.Add('- [[character-list|캐릭터 목록]] ([캐릭터 목록](../references/character-list.md))')
-    $lines.Add('- [[combat-abilities|전투 어빌리티와 이펙트]] ([전투 어빌리티와 이펙트](../concepts/combat-abilities.md))')
-    $lines.Add('')
-    $lines.Add('## Sources')
-    $lines.Add('')
-    $lines.Add('- [어빌리티·GE 데이터를 에셋 한 곳으로](../../raw/notes/2026-09-25-ability-data-on-ga.md) — GE_가 가진 데이터와 배치 규칙')
+    $lines.Add('- [어빌리티 목록](ability-list.md)')
+    $lines.Add('- [캐릭터 목록](character-list.md)')
     return ($lines -join "`n") + "`n"
 }
 
