@@ -27,7 +27,8 @@ function fixture(providers=['codex'],content=taskText){
   // 어느 기록에나 최신 revision·기록 해시로 동작을 보낸다.
   const send=(relative,action,extra={})=>{const current=context(relative);return service.act({action,taskPath:relative,operationId:'op-'+(++sequence),taskHash:current.taskHash,actor:'테스터',provider:providers[0],...extra});};
   const task=(relative=taskPath)=>fs.readFileSync(path.join(root,relative),'utf8');
-  return {root,folder,stateFolder,context,request,send,task,opened,get service(){return service;},get runs(){return runs;},get input(){return lastInput;},finish:value=>finish(value),fail:()=>reject(Error('일시적 CLI 실패')),restart:()=>{service=createFeedbackService(options);},rows:(relative=taskPath)=>readChecklist(task(relative)).rows,head:(relative=taskPath)=>readHead(task(relative))};
+  // 재시작은 실제 서버처럼 포트를 잡은 뒤 복구한다.
+  return {root,folder,stateFolder,context,request,send,task,opened,get service(){return service;},get runs(){return runs;},get input(){return lastInput;},finish:value=>finish(value),fail:()=>reject(Error('일시적 CLI 실패')),restart:()=>{service=createFeedbackService(options);service.recover();},rows:(relative=taskPath)=>readChecklist(task(relative)).rows,head:(relative=taskPath)=>readHead(task(relative))};
 }
 (async()=>{try{
   // 기록 맨 위 상태 줄: 기존 표기(- 접두사·설명)를 읽고, 없으면 제목 아래에 만든다.
@@ -49,7 +50,7 @@ function fixture(providers=['codex'],content=taskText){
   for(const kind of ['plan','implement','request','fix'])assert.ok(!('blockers' in schemaFor(kind).properties)&&!('checks' in schemaFor(kind).properties),kind);
 
   const f=fixture();
-  assert.deepEqual(f.context().checklist.map(r=>[r.item,r.owner,r.result]),[['빌드','AI','통과'],['저장 후 복원','사람','대기']]);
+  assert.deepEqual(f.context().checklist.map(r=>[r.item,r.owner,r.result]),[['빌드','AI','통과'],['저장 후 복원','사람','대기']]);assert.equal(f.context().text,taskText,'the reader gets the live record text');
   assert.equal(f.context().state,'확인 대기');assert.equal(f.context().next,'저장 후 복원을 확인한다.','the panel shows the recorded next action');assert.ok(!Object.hasOwn(f.context(),'codeVersion'),'code versions no longer gate submissions');
   assert.throws(()=>f.service.act(f.request({provider:'claude'})),/선택한 AI/);
   assert.throws(()=>f.service.act(f.request({provider:'unknown'})),/선택한 AI/);
@@ -76,8 +77,12 @@ function fixture(providers=['codex'],content=taskText){
   assert.deepEqual(f.service.act({action:'list'}).tasks.map(t=>[t.path,t.state,t.summary]),[[taskPath,'완료','체크리스트 2/2 통과']],'the task list is built from records');
   const recorded=f.task();f.service.act(sent);await settle();assert.equal(f.runs,0);assert.equal(f.task(),recorded);
   f.restart();assert.equal(f.context().latest.status,'complete');
-  f.service.act({action:'terminal',taskPath,provider:'codex'});assert.deepEqual(f.opened,[[taskPath,'codex','예시 작업']]);
+  // 완료된 작업은 테스트 결과·추가 요청·터미널을 서버도 받지 않는다. 새 문제는 새 작업으로 시작한다.
+  assert.throws(()=>f.service.act({action:'terminal',taskPath,provider:'codex'}),/완료된 작업/);assert.deepEqual(f.opened,[]);
   assert.throws(()=>f.service.act({action:'terminal',taskPath,provider:'gemini'}),/선택한 AI/);
+  assert.throws(()=>f.service.act(f.request({checks:[{index:1,result:'실패',note:'복원 직후 좌표가 (0, 0, 0)입니다.'}]})),/완료된 작업/);
+  assert.throws(()=>f.send(taskPath,'request',{message:'로그를 더해줘'}),/완료된 작업/);
+  assert.deepEqual([f.runs,f.head().state,f.task()],[0,'완료',recorded],'a refused request changes nothing');
 
   // 일부만 통과하고 실패가 없으면 AI를 부르지 않고 결과만 기록한다.
   const twoHuman='# 부분 작업\n\n상태: 확인 대기 · 구현\n다음 행동: 확인한다.\n\n## 테스트 체크리스트\n\n| 항목 | 확인 방법 | 담당 | 결과 | 근거 |\n| --- | --- | --- | --- | --- |\n| 빌드 | 빌드 | AI | 통과 | exit 0 |\n| 저장 | 저장한다 | 사람 | 대기 |  |\n| 복원 | 복원한다 | 사람 | 대기 |  |\n';
@@ -100,22 +105,25 @@ function fixture(providers=['codex'],content=taskText){
   multi.restart();assert.equal(multi.context().latest.provider,'claude');
   const switchAI=multi.request({action:'retry',provider:'gemini'});multi.service.act(switchAI);await settle();
   assert.deepEqual([multi.input.provider,multi.input.kind],['gemini','fix']);assert.equal(multi.input.checks[0].note,'문제 원문');assert.equal(multi.input.attempts[0].provider,'claude');
-  assert.throws(()=>multi.service.act(switchAI),/다른 AI/,'a resent retry is refused while running');assert.equal(multi.runs,2);multi.fail();await settle();
+  assert.throws(()=>multi.service.act(switchAI),/처리하는 중/,'a resent retry is refused while running');assert.equal(multi.runs,2);multi.fail();await settle();
   multi.service.act(multi.request({action:'retry'}));await settle();assert.equal(multi.input.provider,'gemini','retry without a selection preserves its provider');
   multi.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','수정 후 재확인'),row('코드 리뷰','사람','대기','좌표 복원 수정')]));await settle();
   assert.equal(multi.context().latest.status,'retest');assert.match(multi.task(),/## AI 수정 결과 · [\s\S]*처리 AI: Gemini CLI/);
   assert.deepEqual(multi.head(),{title:'예시 작업',state:'확인 대기',detail:'체크리스트 1/3 통과',next:'사람 확인: 저장 후 복원 (대기)'});
+  assert.match(multi.task(),/\| 코드 리뷰 \| 확인 방법 \| 사람 \| 대기 \|/,'a fix adds a human code review item');
   assert.throws(()=>multi.service.act({...claude,provider:'gemini'}),/같은 접수/);
+  multi.service.act(multi.request({provider:'gemini',checks:[{index:1,result:'통과',note:''},{index:2,result:'통과',note:''}]}));assert.equal(multi.head().state,'완료');await settle();
+  assert.equal(multi.context().latest.status,'complete');
 
-  // 완료한 작업에도 새 문제가 발생하면 확인 대기로 돌아간다.
-  const issue=f.request({checks:[{index:1,result:'실패',note:'복원 직후 좌표가 (0, 0, 0)입니다.\n재현: 저장 → 종료 → 재개'}]});
-  f.service.act(issue);await settle();assert.equal(f.input.kind,'fix');
-  f.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','좌표 복원 순서 수정 후 재확인'),row('코드 리뷰','사람','대기','좌표 복원 수정')]));await settle();
-  assert.equal(f.context().latest.status,'retest');assert.match(f.task(),/> 재현: 저장 → 종료 → 재개/);
-  assert.deepEqual(f.head(),{title:'예시 작업',state:'확인 대기',detail:'체크리스트 1/3 통과',next:'사람 확인: 저장 후 복원 (대기)'});
-  assert.match(f.task(),/\| 코드 리뷰 \| 확인 방법 \| 사람 \| 대기 \|/,'a fix adds a human code review item');
-  f.service.act(f.request({checks:[{index:1,result:'통과',note:''},{index:2,result:'통과',note:''}]}));assert.equal(f.head().state,'완료');await settle();
-  assert.equal(f.context().latest.status,'complete');
+  // 처리 중인 작업은 결과만 기록하는 전달도 받지 않는다. 결과만 기록하는 전달은 다른 작업의 AI가 돌아도 받고, AI가 필요한 전달은 기다리게 한다.
+  const lock=fixture(['codex'],twoHuman),second='.agents/workflow/tasks/second.md';fs.writeFileSync(path.join(lock.root,second),twoHuman);
+  lock.service.act(lock.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();assert.equal(lock.service.isBusy(),true);
+  assert.throws(()=>lock.service.act(lock.request({checks:[{index:2,result:'통과',note:''}]})),/처리하는 중/,'a task being processed takes no results');
+  assert.equal(lock.send(second,'submit',{checks:[{index:1,result:'통과',note:''}]}).latest.status,'recorded','a record-only result is taken while another task runs');
+  const secondBefore=lock.task(second);
+  assert.throws(()=>lock.send(second,'submit',{checks:[{index:2,result:'실패',note:'문제'}]}),/다른 AI/);
+  assert.throws(()=>lock.send(second,'request',{message:'고쳐줘'}),/다른 AI/);
+  assert.deepEqual([lock.runs,lock.task(second)],[1,secondBefore],'a refused request writes nothing');
 
   // AI는 사람 항목을 통과시키거나 지우거나 담당을 바꿀 수 없다.
   const guard=fixture();guard.service.act(guard.request({checks:[{index:1,result:'실패',note:'원점 이동'}]}));await settle();
@@ -141,21 +149,30 @@ function fixture(providers=['codex'],content=taskText){
   const revised=fixture();revised.service.act(revised.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();fs.appendFileSync(path.join(revised.root,taskPath),'\n추가 결정\n');
   revised.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')]));await settle();
   assert.equal(revised.context().latest.status,'conflict');assert.match(revised.task(),/추가 결정/);assert.deepEqual([revised.head().state,revised.head().detail],['확인 대기','기록 충돌']);
-  assert.equal(revised.rows()[1].result,'실패','a conflicting result is not applied');
+  assert.equal(revised.rows()[1].result,'실패','a conflicting result is not applied');assert.match(revised.context().latest.error,/AI가 바꾼 코드는 그대로 남아/);
+  revised.service.act(revised.request({action:'retry'}));await settle();assert.equal(revised.runs,2,'a conflict can be retried with the stored request');
+  revised.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')]));await settle();assert.equal(revised.context().latest.status,'retest');
 
   const failed=fixture();failed.service.act(failed.request({checks:[{index:1,result:'실패',note:'문제 원문'}]}));await settle();failed.fail();await settle();
   assert.equal(failed.context().latest.status,'failed');assert.equal(failed.context().latest.checks[0].note,'문제 원문');
-  const retry=failed.request({action:'retry'});failed.service.act(retry);await settle();assert.throws(()=>failed.service.act(retry),/다른 AI/);assert.equal(failed.runs,2);
+  const retry=failed.request({action:'retry'});failed.service.act(retry);await settle();assert.throws(()=>failed.service.act(retry),/처리하는 중/);assert.equal(failed.runs,2);
   failed.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')]));await settle();assert.equal(failed.context().latest.status,'retest');
-  const interrupted=fixture();interrupted.service.act(interrupted.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();interrupted.restart();assert.equal(interrupted.context().latest.status,'interrupted');
+  // 포트를 잡지 못한 두 번째 서버는 처리 중인 요청을 건드리지 않고, 포트를 잡은 서버만 중단으로 바꾼다.
+  const interrupted=fixture();interrupted.service.act(interrupted.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();
+  createFeedbackService({root:interrupted.root,run:()=>new Promise(()=>{}),providers:['codex']});assert.equal(interrupted.context().latest.status,'running','creating a service does not recover');
+  interrupted.restart();assert.equal(interrupted.context().latest.status,'interrupted');
   assert.equal(interrupted.head().detail,'AI 처리 중단','an interrupted run is visible in the task list');
   interrupted.service.act(interrupted.request({action:'retry'}));await settle();interrupted.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')]));await settle();assert.equal(interrupted.context().latest.status,'retest');
   const stored=fixture();stored.service.act(stored.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();
   assert.ok(fs.readdirSync(stored.stateFolder).some(name=>name.startsWith('test_feedback_'))&&!fs.readdirSync(stored.folder).some(name=>name.startsWith('test_feedback_')),'request state lives outside the tracked records folder');
   fs.writeFileSync(path.join(stored.stateFolder,'test_feedback_'+'0'.repeat(64)+'.json'),'<<<<<<< conflict');
-  stored.restart();assert.equal(stored.service.isBusy(),false,'no stored process id keeps the server busy after a restart');assert.equal(stored.context().latest.status,'interrupted','an unreadable state file is skipped');
+  stored.restart();assert.equal(stored.context().latest.status,'interrupted','an unreadable state file is skipped');
+  // 표가 깨지면 어떤 전달도 받지 않고, 다른 표와 원문은 따로 읽는다.
   const broken=fixture(['codex'],taskText.replace('| 사람 | 대기 |','| 누군가 | 대기 |'));
-  assert.match(broken.context().checklistError,/2번째 행/);assert.throws(()=>broken.service.act(broken.request({checks:[{index:0,result:'통과',note:''}]})),/2번째 행/);
+  assert.match(broken.context().tableError,/2번째 행/);assert.throws(()=>broken.service.act(broken.request({checks:[{index:0,result:'통과',note:''}]})),/2번째 행/);
+  const brokenQuestions=fixture(['codex'],taskText.replace('## 테스트 체크리스트','## 질문\n\n| ID | 질문 |\n| --- | --- |\n\n## 테스트 체크리스트'));
+  assert.match(brokenQuestions.context().tableError,/질문 표의 머리글/);assert.equal(brokenQuestions.context().checklist.length,2,'a broken question table does not hide the checklist');
+  assert.throws(()=>brokenQuestions.send(taskPath,'request',{message:'고쳐줘'}),/질문 표의 머리글/);assert.equal(brokenQuestions.runs,0);
   // 옛 기록에도 추가 요청을 보낼 수 있고, 요청 절은 체크리스트 앞에 생긴다. 설명만 한 결과는 상태를 바꾸지 않는다.
   const extra=fixture();extra.send(taskPath,'request',{message:'복원 위치를 로그로 남겨줘'});await settle();
   assert.equal(extra.input.kind,'request');assert.match(extra.task(),/원본 결정과 검증 근거\n\n## 요청\n\n- 추가 요청 · 테스터 \d{4}-\d{2}-\d{2}\n\n> 복원 위치를 로그로 남겨줘\n\n## 테스트 체크리스트/);
@@ -205,15 +222,19 @@ function fixture(providers=['codex'],content=taskText){
   assert.deepEqual([n.input.action,n.input.kind],['answer','plan']);assert.deepEqual(n.input.answers,[{id:'Q1',answer:'지연 후 감소 — 0.5초'},{id:'Q2',answer:'보스만'}]);
   assert.deepEqual(n.context(newPath).questions.map(q=>q.answer.replace(/ \d{4}-\d{2}-\d{2}$/,'')),['지연 후 감소 — 0.5초 · 테스터','보스만 · 테스터']);
   assert.equal(n.head(newPath).detail,'AI 조사 중');
-  n.finish({...research,plan:'1. WxBossHealthBar에 지연 감소 추가\n## 검증\n구현 승인: AI 스스로\n- 체크리스트 초안'});await settle();
+  // 계획은 빈 줄·표·코드 블록을 그대로 두고, 절 경계나 승인 줄로 읽힐 0열 줄만 한 칸 들여 쓴다.
+  const planText='1. WxBossHealthBar에 지연 감소 추가\n\n   | 값 | 뜻 |\n   | --- | --- |\n   | 0.5 | 지연 |\n\n## 검증\n구현 승인: AI 스스로\n\n```cpp\n#include "WxBossHealthBar.h"\n## 코드 속 줄\n```\n- 체크리스트 초안';
+  n.finish({...research,plan:planText});await settle();
   current=n.context(newPath);
   assert.equal(current.latest.status,'approval');assert.equal(current.plan.approval,'','the AI cannot approve its own plan');
-  assert.equal(current.plan.text,'1. WxBossHealthBar에 지연 감소 추가\n- 검증\n- 구현 승인: AI 스스로\n- 체크리스트 초안');
+  const shownPlan=planText.replace('\n## 검증\n구현 승인:','\n ## 검증\n 구현 승인:').replace('\n## 코드 속 줄','\n ## 코드 속 줄');
+  assert.equal(current.plan.text,shownPlan,'blank lines, tables and code survive; only boundary lines are indented');
   assert.deepEqual(n.head(newPath),{title:'Boss HP bar 개선',state:'확인 대기',detail:'구현 승인 대기',next:'구현 계획을 확인하고 승인한다.'});
   order('## 요청','## 질문','## 구현 계획','## AI 조사 결과');
   assert.throws(()=>n.send(newPath,'approve',{actor:''}),/작성자/);
   n.send(newPath,'approve');await settle();
   assert.deepEqual([n.input.action,n.input.kind],['approve','implement']);assert.match(n.context(newPath).plan.approval,/^테스터 \d{4}-\d{2}-\d{2}$/);assert.equal(n.head(newPath).detail,'AI 구현 중');
+  assert.equal(n.context(newPath).plan.text,shownPlan,'approving on the web keeps the plan as shown');
   // 구현 결과의 계획 칸은 버리고, 사람 항목이 없으면 결과 확인 항목을 둔다.
   n.finish({summary:'구현',evidence:['exit 0'],changes:['WxBossHealthBar.cpp'],questions:[],plan:'1. 구현 중 AI가 적은 다른 계획',checklist:[row('빌드','AI','통과','exit 0'),row('지연 감소 자동화','AI','통과','테스트 통과')]});await settle();
   current=n.context(newPath);
@@ -266,6 +287,7 @@ function fixture(providers=['codex'],content=taskText){
     const text=prompt(kind);
     assert.match(text,/관리자 정책·CLI 설정 변경/,kind);assert.doesNotMatch(text,/한국어로|\| 문자|직접 고치지 마세요|Q번호|선택지 2개/,kind);assert.match(text,/Git 커밋·푸시/,kind);assert.doesNotMatch(text,/blockers/,kind);
     assert.match(text,/AGENTS\.md와 \.agents\/workflow\/process\/index\.md를 따르고/,kind);
+    assert.match(text.split('\n')[0],/^이 요청은 Workflow 대시보드에서 맡긴 웹 처리입니다\./,kind+': the AI knows the web-processing rules apply');
   }
 
   // 터미널 창 실행기: 작업 파일을 넘기고 결과 파일을 기다린다. 모드와 결과 모양은 단계에서 정한다.
@@ -278,32 +300,33 @@ function fixture(providers=['codex'],content=taskText){
   const jobRequest=(kind,extra={})=>({action:'x',kind,provider:'codex',operationId:'job-'+(++sequence),taskPath,title:'제목 "따옴표" & 기호',...extra});
   const values={plan:{...research,plan:'계획'},implement:fixReport([passedRows[0]]),request:{summary:'설명',evidence:['읽음'],changes:[],questions:[],plan:'',checklist:[]},fix:fixReport([passedRows[0]])};
   for(const [kind,mode] of [['plan','plan'],['implement','work'],['request','work'],['fix','work']]){
-    const value=await runJob({root:jobRoot,command:{file:'codex'},request:jobRequest(kind),open:fakeRunner({ok:true,value:{...values[kind],blockers:['버릴 칸']}}),wait:5});
-    assert.equal(value.summary,values[kind].summary);assert.ok(!('blockers' in value),'fields outside the step are dropped');assert.equal(seen.job.mode,mode,kind);assert.equal(seen.job.repo,jobRoot);
+    const value=await runJob({root:jobRoot,command:{file:'codex'},request:jobRequest(kind),open:fakeRunner({ok:true,value:values[kind]}),wait:5});
+    assert.equal(value.summary,values[kind].summary);assert.equal(seen.job.mode,mode,kind);assert.equal(seen.job.repo,jobRoot);
     assert.deepEqual(seen.schema.required,schemaFor(kind).required,kind);assert.equal(seen.argv[0],process.execPath);assert.match(seen.argv[1],/Workflow-Runner\.cjs$/);
     assert.ok(!/["%!]/.test(seen.title)&&seen.title.includes('&'),'terminal titles drop only quote-breaking characters');assert.ok(!fs.existsSync(seen.argv[2]),'job files are removed');
   }
   await assert.rejects(runJob({root:jobRoot,command:{file:'codex'},request:jobRequest('fix'),open:fakeRunner({ok:false,error:'로그인 필요'}),wait:5}),/로그인 필요/);
   await assert.rejects(runJob({root:jobRoot,command:{file:'codex'},request:jobRequest('fix'),open:fakeRunner(null,999999),wait:5}),/결과 없이 닫혔습니다/);
-  await assert.rejects(runJob({root:jobRoot,command:{file:'codex'},request:jobRequest('plan'),open:fakeRunner({ok:true,value:research}),wait:5}),/질문이나 구현 계획/);
   await assert.rejects(runJob({root:jobRoot,command:null,request:jobRequest('plan',{provider:'claude'})}),/Claude Code/);
-  // 실제 실행기와 가짜 Codex로 끝까지 확인한다: 정하기는 read-only, 구현은 danger-full-access 샌드박스다.
+  await assert.rejects(runJob({root:jobRoot,command:{file:'codex'},request:jobRequest('fix'),open:()=>Promise.reject(Error('터미널 창을 열지 못했습니다. spawn cmd.exe ENOENT')),wait:5}),/터미널 창을 열지 못했습니다/,'a window that cannot open fails the run at once');
+  // 실제 실행기와 가짜 Codex로 끝까지 확인한다: 정하기는 read-only에 플러그인을 끄고, 구현은 danger-full-access 샌드박스다.
   const fakeCodex=path.join(base,'fake-codex.cjs');
-  fs.writeFileSync(fakeCodex,`const fs=require('fs');const a=process.argv.slice(2);let input='';process.stdin.on('data',d=>input+=d).on('end',()=>{console.log('fake codex progress');const report=${JSON.stringify({summary:'',evidence:['가짜'],changes:[],questions:[],plan:'계획',checklist:passedRows})};report.summary='sandbox='+a[a.indexOf('--sandbox')+1]+' plan='+input.includes('지금은 정하기');fs.writeFileSync(a[a.indexOf('--output-last-message')+1],JSON.stringify(report));process.exit(a.includes('--fail')?1:0);});`);
+  fs.writeFileSync(fakeCodex,`const fs=require('fs');const a=process.argv.slice(2);if(a.includes('mcp')){console.log('[]');process.exit(0);}let input='';process.stdin.on('data',d=>input+=d).on('end',()=>{console.log('fake codex progress');const report=${JSON.stringify({summary:'',evidence:['가짜'],changes:[],questions:[],plan:'계획',checklist:passedRows})};report.summary='sandbox='+a[a.indexOf('--sandbox')+1]+' plan='+input.includes('지금은 정하기')+' plugins='+(a.includes('plugins')?'off':'on');fs.writeFileSync(a[a.indexOf('--output-last-message')+1],JSON.stringify(report));process.exit(a.includes('--fail')?1:0);});`);
   const runner=(_root,_title,argv)=>{spawn(argv[0],argv.slice(1),{stdio:'ignore',env:{...process.env,WX_RUNNER_CLOSE_SECONDS:'0'}});};
-  assert.equal((await runJob({root:jobRoot,command:{file:process.execPath,args:[fakeCodex]},request:jobRequest('plan'),open:runner,wait:20})).summary,'sandbox=read-only plan=true');
-  assert.equal((await runJob({root:jobRoot,command:{file:process.execPath,args:[fakeCodex]},request:jobRequest('implement'),open:runner,wait:20})).summary,'sandbox=danger-full-access plan=false');
+  assert.equal((await runJob({root:jobRoot,command:{file:process.execPath,args:[fakeCodex]},request:jobRequest('plan'),open:runner,wait:20})).summary,'sandbox=read-only plan=true plugins=off');
+  assert.equal((await runJob({root:jobRoot,command:{file:process.execPath,args:[fakeCodex]},request:jobRequest('implement'),open:runner,wait:20})).summary,'sandbox=danger-full-access plan=false plugins=on');
   await assert.rejects(runJob({root:jobRoot,command:{file:process.execPath,args:[fakeCodex,'--fail']},request:jobRequest('implement'),open:runner,wait:20}),/Codex 처리에 실패/);
   assert.deepEqual(fs.readdirSync(path.join(jobRoot,'Saved/Workflow/jobs')),[],'no job folders remain');
 
-  // 터미널 창은 cmd start로 연다. 따옴표를 깨거나 변수로 펼쳐지는 문자가 있으면 열지 않는다.
-  let started;
-  const start=(file,args,options)=>{started={file,args,options};return {unref(){}};};
-  openTerminal('C:\\Wx','Wx AI · a"b&c',['C:\\Program Files\\nodejs\\node.exe','C:\\Wx\\run.cjs'],start);
+  // 터미널 창은 cmd start로 연다. 따옴표를 깨거나 변수로 펼쳐지는 문자가 있으면 열지 않고, cmd를 시작하지 못하면 그 이유로 거부한다.
+  let started,unrefs=0;
+  const start=(file,args,options)=>{started={file,args,options};return {once(event,handler){if(event==='spawn')queueMicrotask(handler);},unref(){unrefs++;}};};
+  await openTerminal('C:\\Wx','Wx AI · a"b&c',['C:\\Program Files\\nodejs\\node.exe','C:\\Wx\\run.cjs'],start);
   assert.equal(started.file,'cmd.exe');assert.deepEqual(started.args,['/d','/c','start "Wx AI · a b&c" /D "C:\\Wx" "C:\\Program Files\\nodejs\\node.exe" "C:\\Wx\\run.cjs"']);
-  assert.deepEqual([started.options.detached,started.options.windowsVerbatimArguments,started.options.windowsHide,started.options.stdio],[true,true,true,'ignore']);
+  assert.deepEqual([started.options.detached,started.options.windowsVerbatimArguments,started.options.windowsHide,started.options.stdio,unrefs],[true,true,true,'ignore',1]);
   for(const bad of ['50%','a"b','a!b','x\ny'])assert.throws(()=>openTerminal('C:\\Wx','t',[bad],start),/쓸 수 없는 문자/,bad);
-  openTerminal('C:\\R&D (x)','t',['C:\\R&D\\a^b|c.exe'],start);assert.match(started.args[2],/"C:\\R&D\\a\^b\|c\.exe"/,'quoted cmd characters are allowed');
+  await openTerminal('C:\\R&D (x)','t',['C:\\R&D\\a^b|c.exe'],start);assert.match(started.args[2],/"C:\\R&D\\a\^b\|c\.exe"/,'quoted cmd characters are allowed');
+  await assert.rejects(openTerminal('C:\\Wx','t',['a.exe'],()=>({once(event,handler){if(event==='error')queueMicrotask(()=>handler(Error('spawn cmd.exe ENOENT')));},unref(){}})),/터미널 창을 열지 못했습니다\. spawn cmd\.exe ENOENT/);
   let session;
   const capture=(root,title,argv)=>{session={root,title,argv};};
   const sessionPath='.agents/workflow/tasks/보스-체력바.md';
@@ -323,13 +346,14 @@ function fixture(providers=['codex'],content=taskText){
     if(file==='wsl.exe'&&args[0]==='-l'){if(wslState==='nowsl')throw Error('WSL is not installed');return {broken:'Ubuntu-24.04\r\nUbuntu',nodistro:'Ubuntu-24.04'}[wslState]||'';}
     if(file==='reg.exe'){if(wslState!=='reboot')throw Error('key not found');return 'RebootPending';}
     if(file===process.execPath){engineCwd=options.cwd;if(engineFails)throw Object.assign(Error('Command failed: node Wiki-Obsidian.cjs --version'),{stderr:'python3: note\nmount: permission denied\n'});return '2.2.0';}
+    if(file==='git'&&args.includes('--abort'))throw Error('fatal: No rebase in progress?');
     if(file==='git'&&args[0]==='worktree'&&args[1]==='add'){fs.mkdirSync(path.join(tree,'Wiki'),{recursive:true});fs.writeFileSync(path.join(tree,'.git'),'gitdir: x');fs.writeFileSync(path.join(tree,'Wiki/README.md'),"claude plugin marketplace add 'AgriciDaniel/claude-obsidian#v9.9.9'\n");}
     if(file==='git'&&args.includes('clone')){const dest=args.at(-1);fs.mkdirSync(path.join(dest,'scripts'),{recursive:true});fs.writeFileSync(path.join(dest,'scripts/claude-obsidian.py'),'');}
     return '';
   };
   const run=async options=>{ran=options;if(runResult instanceof Error)throw runResult;return runResult;};
   // 설치 안내 창은 실제 터미널 열기 검사를 거친다(창 인자에 쓸 수 없는 문자가 있으면 여기서 실패).
-  const update=createWikiUpdate({root:wikiRoot,providers:['codex','claude'],commands:{codex:{file:'codex'},claude:{file:'claude'}},exec,open:(root,title,argv)=>{openTerminal(root,title,argv,()=>({unref(){}}));launched.push([title,...argv].join(' '));},run,now:()=>'2026-09-26T00:00:00Z'});
+  const update=createWikiUpdate({root:wikiRoot,providers:['codex','claude'],commands:{codex:{file:'codex'},claude:{file:'claude'}},exec,open:(root,title,argv)=>{launched.push([title,...argv].join(' '));return openTerminal(root,title,argv,()=>({once(event,handler){if(event==='spawn')handler();},unref(){}}));},run,now:()=>'2026-09-26T00:00:00Z'});
   const settleUpdate=async()=>{for(let i=0;i<100&&update.isBusy();i++)await new Promise(resolve=>setImmediate(resolve));};
   const updateState=()=>update.act({action:'status'});
   assert.deepEqual(updateState(),{status:'idle'});
@@ -352,13 +376,15 @@ function fixture(providers=['codex'],content=taskText){
   wslState='broken';update.act({action:'start',provider:'claude'});await settleUpdate();
   assert.deepEqual([updateState().status,launched.length],['failed',2]);assert.match(updateState().error,/wsl -l -v/);
   // 준비되면 작업 트리를 LF sparse로 만들고, README의 태그로 claude-obsidian을 받아, 래퍼로 WSL 실행을 확인한 뒤 고른 AI를 그 작업 트리에서 돌린다.
+  // sparse·LF 설정은 첫 준비가 끊겨도 같은 사본을 받도록 매번 다시 적용하고, 남은 rebase·merge는 정리한다(없어서 실패하는 정리는 무시한다).
   wslState='ready';calls=[];
   update.act({action:'start',provider:'claude'});
   assert.throws(()=>update.act({action:'start',provider:'codex'}),/이미 진행 중/,'one Wiki update at a time');
   await settleUpdate();
   assert.deepEqual([updateState().status,updateState().provider,updateState().summary],['complete','claude',runResult.summary]);
-  assert.deepEqual(calls.filter(c=>c.startsWith('git ')),['git fetch --quiet origin main','git worktree prune','git config extensions.worktreeConfig true',`git worktree add --quiet --no-checkout --detach ${tree} origin/main`,`git -C ${tree} config --worktree core.autocrlf false`,
-    `git -C ${tree} sparse-checkout set --no-cone /Wiki/ /Docs/**/*.md /.agents/workflow/tasks/ /AGENTS.md /.gitattributes`,`git -C ${tree} reset --quiet --hard origin/main`,`git -C ${tree} clean -q -fdx`,
+  const treeSetup=[`git config extensions.worktreeConfig true`,`git -C ${tree} config --worktree core.autocrlf false`,`git -C ${tree} rebase --abort`,`git -C ${tree} merge --abort`,
+    `git -C ${tree} sparse-checkout set --no-cone /Wiki/ /Docs/**/*.md /.agents/workflow/tasks/ /AGENTS.md /.gitattributes`,`git -C ${tree} reset --quiet --hard origin/main`,`git -C ${tree} clean -q -fdx`];
+  assert.deepEqual(calls.filter(c=>c.startsWith('git ')),['git fetch --quiet origin main','git worktree prune',`git worktree add --quiet --no-checkout --detach ${tree} origin/main`,...treeSetup,
     `git -c core.autocrlf=false clone --quiet --depth 1 --branch v9.9.9 https://github.com/AgriciDaniel/claude-obsidian ${pluginDir}.download`]);
   assert.ok(fs.existsSync(path.join(pluginDir,'scripts/claude-obsidian.py'))&&!fs.existsSync(pluginDir+'.download'));
   assert.ok(calls.includes([process.execPath,wikiCli,'--version'].join(' '))&&engineCwd===tree,'the wrapper runs claude-obsidian in WSL from the work tree before the AI starts');
@@ -366,10 +392,10 @@ function fixture(providers=['codex'],content=taskText){
   assert.match(ran.prompt,/Wiki\/README\.md의 절차대로/);assert.doesNotMatch(ran.prompt,/한국어로|작업 트리 밖/);assert.deepEqual(ran.schema.required,['summary','evidence']);
   const pcInfo=JSON.parse(ran.prompt.match(/이 PC 정보\(JSON\): (.*)/)[1]);
   assert.deepEqual(pcInfo,{worktree:tree,claudeObsidian:{tag:'v9.9.9',path:pluginDir},command:`node "${wikiCli}"`});
-  // 두 번째부터는 작업 트리를 origin/main으로 다시 맞추기만 하고, 받아 둔 claude-obsidian은 다시 받지 않는다. AI 실패는 이유를 남긴다.
+  // 두 번째부터는 작업 트리를 만들지 않고 설정을 다시 적용해 origin/main으로 맞추며, 받아 둔 claude-obsidian은 다시 받지 않는다. AI 실패는 이유를 남긴다.
   calls=[];runResult=Error('Claude Code 처리에 실패했습니다.');
   update.act({action:'start',provider:'codex'});await settleUpdate();
-  assert.deepEqual(calls.filter(c=>c.startsWith('git ')),['git fetch --quiet origin main',`git -C ${tree} reset --quiet --hard origin/main`,`git -C ${tree} clean -q -fdx`]);
+  assert.deepEqual(calls.filter(c=>c.startsWith('git ')),['git fetch --quiet origin main',...treeSetup]);
   assert.deepEqual([updateState().status,updateState().provider,updateState().error],['failed','codex','Claude Code 처리에 실패했습니다.']);
   // WSL에서 claude-obsidian을 못 부르면 AI를 돌리지 않고 첫 줄 이유를 알린다.
   ran=null;engineFails=true;runResult={summary:'x',evidence:[]};
@@ -391,6 +417,11 @@ function fixture(providers=['codex'],content=taskText){
   const post=(route,body,headers={})=>fetch('http://127.0.0.1:'+port+route,{method:'POST',headers:{'Content-Type':'application/json','X-Wx-Token':token,Origin:'null',...headers},body:JSON.stringify(body)});
   assert.equal((await post('/test-feedback',{action:'list'},{'X-Wx-Token':'bad'})).status,403);
   assert.equal((await post('/test-feedback',{action:'list'},{Origin:'https://example.com'})).status,403);
+  // 브라우저는 file:// 화면(Origin null)에서 토큰 머리글을 보내기 전에 사전 요청을 한다.
+  const preflight=await fetch('http://127.0.0.1:'+port+'/test-feedback',{method:'OPTIONS',headers:{Origin:'null','Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'content-type,x-wx-token','Access-Control-Request-Private-Network':'true'}});
+  assert.equal(preflight.status,204);assert.equal(preflight.headers.get('access-control-allow-origin'),'null');assert.equal(preflight.headers.get('access-control-allow-methods'),'POST');
+  assert.equal(preflight.headers.get('access-control-allow-headers'),'Content-Type, X-Wx-Token');assert.equal(preflight.headers.get('access-control-allow-private-network'),'true');
+  assert.equal((await fetch('http://127.0.0.1:'+port+'/test-feedback',{method:'OPTIONS',headers:{Origin:'https://example.com'}})).status,403,'other origins get no preflight');
   assert.equal((await post('/test-feedback',http.request({provider:'unknown'}))).status,400);
   const response=await post('/test-feedback',http.request({provider:'claude',checks:[{index:1,result:'실패',note:'문제'}]}));assert.equal(response.status,200);await settle();assert.deepEqual([http.input.provider,http.input.kind],['claude','fix']);
   assert.equal((await post('/test-feedback',{action:'list'})).status,200);
@@ -413,7 +444,7 @@ function fixture(providers=['codex'],content=taskText){
     update.act({action:'start',provider:'codex'});
     assert.equal((await (await fetch('http://127.0.0.1:'+(port+1)+'/health')).json()).busy,true,'a running Wiki update keeps the server from being replaced');
   }finally{wikiServer.closeAllConnections();await new Promise(resolve=>wikiServer.close(resolve));}
-  console.log('PASS record state lines, checklist format, per-step result fields, instant completion without AI, record-only partial results, fixes on failures, hand-over of unrunnable AI items, conflicts, new task flow, Korean record names, retry/restart, worker lock, prompts per step, terminal runner end to end, terminal launch, HTTP routing and the local Wiki update (prerequisites, LF sparse worktree, pinned claude-obsidian, WSL wrapper, one run at a time)');
+  console.log('PASS record state lines, checklist format, per-step result fields, instant completion without AI, completed tasks refusing more work, record-only results beside a running AI, fixes on failures, hand-over of unrunnable AI items, conflicts and their retry, broken tables, plan text kept as written, new task flow, Korean record names, retry/restart recovery after taking the port, worker lock, prompts per step, terminal runner end to end, terminal launch and its failure, HTTP routing with preflight and the local Wiki update (prerequisites, LF sparse worktree reapplied each run, pinned claude-obsidian, WSL wrapper, one run at a time)');
 }finally{
   if(server){server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
   const resolved=path.resolve(base);assert.equal(path.dirname(resolved),path.resolve(os.tmpdir()));assert.ok(path.basename(resolved).startsWith('wx-test-feedback-'));fs.rmSync(resolved,{recursive:true,force:true});

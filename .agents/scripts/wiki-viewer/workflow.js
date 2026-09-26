@@ -92,15 +92,16 @@ function renderTaskRecords() {
     const next=el('div',undefined,'record-next');next.append(el('span',group.id==='complete'?'참고할 때':'다음 행동','record-label'),el('span',item.next||'-'));
     const actions=el('div',undefined,'record-actions');
     if(working){const open=workflowButton('이어서 작업',()=>{location.hash=route('work',item.path);});open.setAttribute('aria-label','이어서 작업: '+item.title);actions.append(open);}
-    else if(data.documents.some(d=>d.path===item.path)){const open=el('a','기록 열기 →');open.href=route(item.path);open.setAttribute('aria-label','기록 열기: '+item.title);actions.append(open);}
+    else if(data.ai||data.documents.some(d=>d.path===item.path)){const open=el('a','기록 열기 →');open.href=route(item.path);open.setAttribute('aria-label','기록 열기: '+item.title);actions.append(open);}
     else actions.append(el('span','새 기록 · OpenWorkflow.bat을 다시 실행하면 열립니다.','notice'));
     const latest=taskJobs[item.path]?.latest;if(working&&latest)actions.append(el('span',taskStatusText(latest.status),'notice'));
     link.append(summary,next,actions);list.append(link);
   }
   panel.append(list);
 }
+// 대시보드에 들어올 때마다 서버에서 목록을 다시 받는다.
 function renderWorkSummary() {
   renderTaskRecords();
-  if(!taskJobsLoaded)loadTaskJobs();
+  loadTaskJobs();
   if(data.ai&&!wikiUpdate.loaded)loadWikiUpdate();
 }

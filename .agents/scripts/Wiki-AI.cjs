@@ -28,7 +28,7 @@ function createWikiUpdate({root,providers,commands,exec=execText,open=openTermin
     try{await exec('reg.exe',['query','HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\RebootPending']);return 'reboot';}catch{}
     const install=installed?"wsl.exe --install Ubuntu --no-launch; Write-Host ''; Write-Host '설치 창이 끝났습니다. 대시보드에서 Wiki 갱신을 다시 누르세요.'"
       :"Write-Host 'WSL을 설치합니다. 관리자 승인 창에서 [예]를 누르세요.'; try { Start-Process -Verb RunAs -FilePath wsl.exe -ArgumentList '--install','Ubuntu','--no-launch' -Wait -ErrorAction Stop; Write-Host '설치 창이 닫혔습니다. 재부팅 안내가 있었다면 재부팅한 뒤, 대시보드에서 Wiki 갱신을 다시 누르세요.' } catch { Write-Host ('설치를 시작하지 못했습니다: ' + $_.Exception.Message) }";
-    open(root,'Wx · WSL 설치',['powershell.exe','-NoExit','-NoProfile','-Command',install]);
+    await open(root,'Wx · WSL 설치',['powershell.exe','-NoExit','-NoProfile','-Command',install]);
     return installed?'distro':'install';
   }
   const setupMessages={reboot:'Windows를 다시 시작해야 WSL 설치가 끝납니다. 재부팅한 뒤 Wiki 갱신을 다시 누르세요.',install:'WSL 설치 창을 열었습니다. 관리자 승인 창에서 [예]를 누르고, 설치가 끝나면(재부팅 안내가 나오면 재부팅한 뒤) Wiki 갱신을 다시 누르세요.',distro:'Ubuntu 설치 창을 열었습니다. 설치가 끝나면 Wiki 갱신을 다시 누르세요.'};
@@ -37,12 +37,14 @@ function createWikiUpdate({root,providers,commands,exec=execText,open=openTermin
     if(!fs.existsSync(path.join(tree,'.git'))){
       if(fs.existsSync(tree))throw Error(`${tree}가 Git 작업 트리가 아닙니다. 이 폴더를 지운 뒤 다시 누르세요.`);
       await git('worktree','prune');
-      await git('config','extensions.worktreeConfig','true');
       await git('worktree','add','--quiet','--no-checkout','--detach',tree,'origin/main');
-      // 원자료 해시를 저장소 바이트(LF)로 대조하도록 이 작업 트리만 줄바꿈 변환을 끈다.
-      await git('-C',tree,'config','--worktree','core.autocrlf','false');
-      await git('-C',tree,'sparse-checkout','set','--no-cone','/Wiki/','/Docs/**/*.md','/.agents/workflow/tasks/','/AGENTS.md','/.gitattributes');
     }
+    // 첫 준비가 중간에 끊겨도 같은 사본을 받도록 설정은 매번 다시 적용하고, 지난 AI가 남긴 rebase·merge는 정리한다(없으면 실패하므로 무시).
+    // 원자료 해시를 저장소 바이트(LF)로 대조하도록 이 작업 트리만 줄바꿈 변환을 끈다.
+    await git('config','extensions.worktreeConfig','true');
+    await git('-C',tree,'config','--worktree','core.autocrlf','false');
+    for(const command of ['rebase','merge'])await git('-C',tree,command,'--abort').catch(()=>{});
+    await git('-C',tree,'sparse-checkout','set','--no-cone','/Wiki/','/Docs/**/*.md','/.agents/workflow/tasks/','/AGENTS.md','/.gitattributes');
     await git('-C',tree,'reset','--quiet','--hard','origin/main');
     await git('-C',tree,'clean','-q','-fdx');
   }
@@ -112,7 +114,7 @@ function createServer({token,port=18743,testFeedback=null,wikiUpdate=null}) {
       let body;try{body=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{return send(400,{error:'입력을 읽지 못했습니다.'});}
       if(request.url==='/wiki-update'){if(!wikiUpdate)throw Error('Wiki 갱신 연결이 없습니다. OpenWorkflow.bat을 다시 실행하세요.');return send(200,await wikiUpdate.act(body));}
       if(!testFeedback)throw Error('테스트 결과 연결이 없습니다. OpenWorkflow.bat을 다시 실행하세요.');
-      return send(200,testFeedback.act(body));
+      return send(200,await testFeedback.act(body));
     }catch(error){if(!response.destroyed&&!response.headersSent)send(400,{error:error.message});}
   });
 }
@@ -133,7 +135,9 @@ if(require.main===module&&process.argv[2]==='--tasks'){
     open:(taskPath,provider,title)=>openSession({root:repo,command:config[provider],provider,taskPath,title})});
   const server=createServer({token,testFeedback,wikiUpdate:createWikiUpdate({root:repo,providers,commands:config})});
   server.on('error',error=>{console.error(error.message);process.exit(1);});
+  // 포트를 잡은 서버만 지난 처리를 복구한다. 앞 서버가 살아 있으면 포트를 못 잡고 여기까지 오지 않는다.
   server.listen(18743,'127.0.0.1',()=>{
+    testFeedback.recover();
     fs.mkdirSync(path.join(repo,'Saved/Workflow'),{recursive:true});
     fs.writeFileSync(path.join(repo,'Saved/Workflow/ai-connection.json'),JSON.stringify({token,url:'http://127.0.0.1:18743'}));
   });

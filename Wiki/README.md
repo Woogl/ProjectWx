@@ -18,7 +18,9 @@ Wiki 갱신은 매일 06:30(KST)에 도는 클라우드 Routine 「Wiki 정기 �
   - 설치된 버전이 이 줄과 다르면 쓰지 않고 멈춰 보고합니다. `git ls-remote --tags https://github.com/AgriciDaniel/claude-obsidian`에 더 새 태그가 있으면 보고에 적습니다.
   - 순정에서 벗어나는 곳은 하나입니다. 스킬이 사람에게 맡기는 적용 전 계획 검토를 갱신하는 AI가 스스로 하고 승인 해시로 적용합니다(사람 검토 없이 자동으로 갱신하기로 한 결정 때문). 원본을 inbox에 넣는 일도 AI가 합니다. claude-obsidian을 찾지 못하면 다른 곳에서 받아 쓰지 않고 멈춰 보고합니다.
 - 대시보드 갱신(이 PC, Windows)에서 더 지킬 것:
+  - 고른 AI는 권한 확인 없이 모든 명령을 허용한 채 돕니다. 이 권한과 실행 제한은 작업 절차(`.agents/workflow/process/index.md`)의 작업 탭 절을 따릅니다.
   - 서버가 origin/main으로 맞춘 전용 작업 트리 `Saved/Workflow/wiki-update-tree`에서 일합니다. Wiki·기획서 Markdown·작업 기록만 받은 sparse 사본입니다. 줄바꿈을 바꾸지 않고 받아(LF) 파일 해시가 저장소와 같습니다. 사용자의 작업 트리는 건드리지 않습니다.
+  - 서버는 갱신마다 작업 트리를 되돌립니다(남은 rebase·merge 정리, sparse·LF 설정 다시 적용, `reset --hard origin/main`, `clean -fdx`). 작업 트리에 남긴 것은 다음 갱신에서 지워집니다.
   - claude-obsidian은 Windows에서 vault를 쓰지 못합니다. 그래서 claude-obsidian 명령은 읽기·드라이런까지 모두 작업 트리 루트에서 래퍼로 실행합니다(`node "<래퍼>" <명령> <인자>`). 래퍼가 같은 명령을 WSL에서 실행하므로 드라이런과 적용의 승인 해시가 맞습니다. 스킬 문서의 `python3 .../claude-obsidian.py <명령>`도 래퍼로 바꿔 실행합니다. 래퍼 명령은 서버가 요청문의 `command`에 넣어 줍니다.
   - 파일은 LF 줄바꿈으로 씁니다. 트랜잭션 번들 속 페이지 본문도 마찬가지입니다.
 - 수집 대상: `Docs/CombatDesign`·`Docs/SystemDesign`·`Docs/LevelDesign`의 Markdown과, 상태 줄이 `완료`인 작업 기록(`.agents/workflow/tasks/*.md`)입니다. 원자료 제목(`title`)에는 저장소 상대 경로를 적고, 내용이 같은 파일이 여러 경로에 있으면 쉼표로 함께 적습니다. `Wiki/wiki/`가 없으면 `init`한 뒤 전체를 수집합니다.
@@ -31,6 +33,7 @@ Wiki 갱신은 매일 06:30(KST)에 도는 클라우드 Routine 「Wiki 정기 �
   2. 수집: 수집 대상마다 SHA-256을 `.raw/.manifest.json`과 원장에 대조합니다(순정 wiki-ingest). 같은 해시가 원장에 active로 있으면 건너뜁니다.
      - 새 파일이나 바뀐 파일은 원본을 `inbox/`에 바이트 그대로 복사하고, `capture`로 사본을 만든 뒤 `wiki-ingest`로 수집합니다. 같은 저장소 경로의 옛 원자료는 `supersedes`로 대체합니다. 캡처 사본만 있고 원장에 없으면 그 사본으로 수집을 잇습니다.
      - 원본의 이름·위치가 바뀌었으면(`git log --follow`로 확인) 새 경로로 수집해 옛 원자료를 대체합니다. 원본이 지워졌으면 그 원자료를 `superseded`로, 그 원자료만 근거로 한 주장을 `deprecated`로 바꿉니다.
+     - 기존 페이지(예: 「작업 절차(Workflow)」)가 워크플로우 규칙을 요약하고 있으면, 규칙 문장을 정본 경로 `.agents/workflow/process/index.md`를 가리키는 문장으로 줄이고 옛 규칙 주장은 새 주장이 `supersedes`합니다(아래 서술 규칙).
      - 모든 쓰기는 드라이런 → 승인 해시 → 적용 순서입니다. 한 번에 처리할 양은 순정대로 예산을 정하고 정해진 첫 묶음부터 합니다. 묶음마다 3·4단계를 거쳐 푸시하면, 끊겨도 다음 갱신이 해시 대조로 남은 것부터 잇습니다.
   3. `lint --vault Wiki --strict`의 종료 코드가 0이어야 커밋합니다. 아니면 커밋하지 않고 보고합니다. lint 결과를 자동으로 고치지 않습니다.
   4. `Wiki/wiki`·`Wiki/.raw` 변경만 커밋해(`init` 때는 `Wiki/` 전체) `git push origin HEAD:main`으로 올립니다. 커밋 메시지는 `Wiki 갱신: <바뀐 내용 한국어 요약>`입니다. 바뀐 것이 없으면 커밋하지 않습니다.
@@ -45,6 +48,7 @@ Wiki 갱신은 매일 06:30(KST)에 도는 클라우드 Routine 「Wiki 정기 �
   - 주소 요청(`address_requests`)과 `checkpoint`는 쓰지 않습니다.
   - 버전을 올린 뒤 첫 갱신은 `migrate` 드라이런부터 하고, 계획이 있으면 적용한 뒤 lint합니다. 그래도 검증이 실패하면 쓰지 않고 멈춰 보고합니다.
   - 기획서(`Docs/`)와 코드는 읽기만 합니다.
+  - 관리자 정책·CLI 설정을 바꾸거나 외부 메시지를 보내지 않습니다.
 
 ## 서술 규칙
 
@@ -62,7 +66,7 @@ Wiki 갱신은 매일 06:30(KST)에 도는 클라우드 Routine 「Wiki 정기 �
 - WSL과 Ubuntu: 없으면 설치 창을 엽니다(`wsl --install Ubuntu --no-launch`). WSL 자체가 없으면 관리자 승인이 필요하고, 안내가 나오면 재부팅합니다. claude-obsidian 명령은 root로 실행하므로 Linux 사용자는 만들지 않습니다. 설치를 마친 뒤 다시 누릅니다.
 - Windows 드라이브 연결: 래퍼(`.agents/scripts/Wiki-Obsidian.cjs`)가 명령마다 저장소 드라이브를 `metadata` 옵션으로 `/mnt/wx-<드라이브>`에 붙입니다. 기본 `/mnt/c`는 파일 권한을 저장하지 못해 claude-obsidian 쓰기가 `RESULT_DRIFT`로 되돌려지기 때문입니다. WSL 설정 파일은 바꾸지 않습니다. WSL을 다시 시작하면 연결이 사라지고, 다음 명령에서 다시 붙습니다.
 - claude-obsidian: 아래 설정 스크립트의 태그를 `Saved/Workflow/claude-obsidian/<태그>/`에 자동으로 받습니다.
-- 전용 작업 트리: `Saved/Workflow/wiki-update-tree`를 자동으로 만들고 매번 origin/main으로 맞춥니다. 이때 저장소 설정에 `extensions.worktreeConfig`가 켜지고, 이 작업 트리에만 `core.autocrlf=false`가 붙습니다. `git worktree list`에 이 작업 트리가 보입니다.
+- 전용 작업 트리: `Saved/Workflow/wiki-update-tree`를 자동으로 만들고 매번 설정을 다시 적용해 origin/main으로 맞춥니다. 이때 저장소 설정에 `extensions.worktreeConfig`가 켜지고, 이 작업 트리에만 `core.autocrlf=false`가 붙습니다. `git worktree list`에 이 작업 트리가 보입니다.
 - AI: 작업 절차의 작업 탭 절에 따라 고른 AI가 Windows에서 그대로 갱신합니다. WSL에는 AI를 설치하지 않습니다.
 
 ## Routine 환경

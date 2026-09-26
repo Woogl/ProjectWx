@@ -41,11 +41,16 @@ $output = Join-Path $repo 'Saved/Workflow'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $configPath = Join-Path $output 'ai-providers.json'
 $connection = Join-Path $output 'ai-connection.json'
-function Get-WikiAI {
-    try { Invoke-RestMethod 'http://127.0.0.1:18743/health' -TimeoutSec 1 } catch { $null }
+function Get-WikiAI([int]$TimeoutSec = 1) {
+    try { Invoke-RestMethod 'http://127.0.0.1:18743/health' -TimeoutSec $TimeoutSec } catch { $null }
 }
 # An idle server is always restarted so new code and CLI discovery take effect; a busy one is kept so a running AI is not cut off.
 $health = Get-WikiAI
+# A slow server is not a missing one: while the port is in use, wait longer instead of starting a second server or dropping the connection file.
+if (!$health -and (Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 18743 -State Listen -ErrorAction SilentlyContinue)) {
+    $health = Get-WikiAI 15
+    if (!$health) { throw 'Port 18743 is in use but did not answer. Wait for the running AI to finish or close the program using the port, then rerun OpenWorkflow.bat.' }
+}
 if ($health) {
     if ($health.identity -ne $identity) { throw 'Port 18743 belongs to another Wiki.' }
     if ($health.busy) { Write-Warning 'AI is processing; keeping the running server. Rerun OpenWorkflow.bat after it finishes to load new code.'; exit 0 }

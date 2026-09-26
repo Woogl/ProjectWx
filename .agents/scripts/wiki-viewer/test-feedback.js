@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 // 작업 탭: 새 작업 요청, 질문 답변, 구현 승인, 사람 항목 테스트 결과, 추가 요청을 로컬 서버를 거쳐 AI에게 전달한다.
-let taskJobs=Object.create(null),taskSelected=null,taskContext=null,newTaskOpen=false;
-let taskJobsLoaded=false,taskJobsLoading=false,taskSending=false,terminalOpening=false,taskPoll=null,taskProviders=null,providerChoice='',taskListSignature='';
+let taskJobs=Object.create(null),taskSelected=null,taskContext=null,taskLoadError='',newTaskOpen=false;
+let taskJobsLoading=false,taskSending=false,terminalOpening=false,taskPoll=null,taskProviders=null,providerChoice='',providerSignature='',taskListSignature='';
 const taskDrafts=Object.create(null);
 function availableProviders(){return taskProviders||[{id:'codex',label:'Codex'}];}
 function providerLabel(id){return ({codex:'Codex',claude:'Claude Code',gemini:'Gemini CLI'})[id]||id;}
@@ -23,7 +23,7 @@ function taskDraft(taskPath){
   return taskDrafts[taskPath];
 }
 function rememberDraft(taskPath){if(!storageSet(taskKey('draft',taskPath),taskDraft(taskPath)))showTaskMessage('브라우저에 입력을 보존하지 못했습니다. 이 화면을 닫기 전에 전달하세요.');}
-// 이름은 작업마다 다시 적지 않도록 하나만 기억한다.
+// 작성자는 작업마다 다시 적지 않도록 하나만 기억한다.
 function taskActor(){const actor=storageGet(taskKey('actor'));return typeof actor==='string'?actor:'';}
 function taskField(label,control){const row=el('label',undefined,'feedback-field');row.append(el('span',label),control);return row;}
 function taskInput(tag,label,value,maxLength,onInput){const input=el(tag);if(tag==='input')input.type='text';input.maxLength=maxLength;input.value=value||'';input.setAttribute('aria-label',label);input.oninput=()=>onInput(input.value);return input;}
@@ -40,8 +40,11 @@ function selectedProvider(){
   if(!providerChoice){const saved=storageGet(taskKey('provider'));providerChoice=typeof saved==='string'?saved:'';}
   return providerChoice||availableProviders()[0]?.id||'codex';
 }
+// 목록은 연결된 AI나 선택이 바뀔 때만 다시 만들어, 폴링이 열려 있는 선택 상자를 닫지 않게 한다.
 function renderProviderChoice(){
-  const select=$('ai-provider');fillProviders(select,selectedProvider());select.disabled=!data.ai;
+  const select=$('ai-provider'),selected=selectedProvider(),signature=JSON.stringify([availableProviders(),selected]);select.disabled=!data.ai;
+  if(signature===providerSignature)return;
+  providerSignature=signature;fillProviders(select,selected);
   select.onchange=()=>{providerChoice=select.value;storageSet(taskKey('provider'),select.value);};
 }
 const providerMissing='왼쪽 메뉴 아래에서 고른 AI가 연결되어 있지 않습니다. 다른 AI를 고르거나 OpenWorkflow.bat을 다시 실행하세요.';
@@ -50,10 +53,10 @@ async function loadTaskJobs(){
   taskJobsLoading=true;
   try{
     const result=await workflowRequest('/test-feedback',{action:'list'}),before=taskSelected&&taskJobs[taskSelected.path]?.latest?.status;
-    taskProviders=result.providers||null;renderProviderChoice();taskJobs=result.records;taskJobsLoaded=true;if(Array.isArray(result.tasks))liveTaskRecords=result.tasks;
+    taskProviders=result.providers||null;renderProviderChoice();taskJobs=result.records;if(Array.isArray(result.tasks))liveTaskRecords=result.tasks;
     // 목록은 기록이나 AI 처리 상태가 바뀔 때만 다시 그려 포커스와 입력을 지킨다.
     const signature=JSON.stringify([liveTaskRecords,Object.values(taskJobs).map(job=>[job.taskPath,job.revision,job.latest?.status])]);
-    if(signature!==taskListSignature&&(!location.hash||location.hash==='#'))renderTaskRecords();
+    if(signature!==taskListSignature&&!location.hash)renderTaskRecords();
     taskListSignature=signature;
     if(taskSelected){
       const job=taskJobs[taskSelected.path];
@@ -71,7 +74,7 @@ function watchTaskJobs(){
 }
 // 패널을 열면 제목으로 포커스를 옮겨 키보드·화면 읽기 사용자가 바로 이어간다.
 function openTaskShell(title){
-  const panel=$('test-feedback-panel'),heading=el('h2',title);heading.id='task-title';heading.tabIndex=-1;panel.hidden=false;panel.replaceChildren(heading);
+  const panel=$('test-feedback-panel'),heading=el('h2',title);heading.id='task-title';heading.tabIndex=-1;panel.replaceChildren(heading);
   const message=el('p','','notice');message.id='test-feedback-message';message.setAttribute('role','status');
   return {panel,heading,message};
 }
@@ -90,7 +93,6 @@ function openWork(target){
 // 기록 목록에서 제목을 찾는다. 목록에 없는 기록이면 fallback을 돌려준다.
 function taskTitle(path,fallback=path.split('/').pop().replace(/\.md$/,'')){return (liveTaskRecords||[]).find(t=>t.path===path)?.title||data.documents.find(d=>d.path===path)?.title||fallback;}
 function openNewTask(){
-  if(taskSending)return;
   taskSelected=null;taskContext=null;newTaskOpen=true;
   const {panel,heading,message}=openTaskShell('새 작업'),draft=storageGet(taskKey('new'))||{};
   const remember=patch=>{Object.assign(draft,patch);storageSet(taskKey('new'),draft);};
@@ -108,7 +110,8 @@ function renderSendState(){
   if(!newTaskOpen)return renderTaskStatus();
   $('new-task-fields').disabled=taskSending;$('new-task-submit').disabled=taskSending;
 }
-// 새 작업은 기록을 만든 뒤 작업 탭에서 바로 그 작업으로 넘어간다. 전달하지 못하면 입력을 그대로 두고 같은 버튼으로 다시 전달한다.
+// 새 작업은 기록을 만든 뒤 작업 탭에서 바로 그 작업으로 넘어간다. 전달하는 동안 다른 화면으로 옮겼으면 그 화면을 그대로 둔다.
+// 전달하지 못하면 입력을 그대로 두고 같은 버튼으로 다시 전달한다.
 async function sendNewTask(){
   if(taskSending)return;
   taskSending=true;renderSendState();
@@ -121,17 +124,17 @@ async function sendNewTask(){
     const record=await workflowRequest('/test-feedback',{action:'create',operationId:requestId(),title,request:text,actor,provider});
     storageRemove(taskKey('new'));
     taskJobs[record.taskPath]={taskPath:record.taskPath,revision:record.revision,latest:record.latest};
-    taskRecordFilter='active';
-    taskSending=false;await openTaskPanel({title,path:record.taskPath});
-    if(typeof history!=='undefined')history.replaceState(null,'','#work!'+encodeURIComponent(record.taskPath));
-    showTaskMessage('새 작업을 만들었습니다. AI가 조사를 마치면 질문이나 구현 계획이 이 화면에 나타납니다.');
+    taskRecordFilter='active';taskSending=false;
+    if(location.hash==='#work!new'){
+      history.replaceState(null,'',route('work',record.taskPath));await openTaskPanel({title,path:record.taskPath});
+      showTaskMessage('새 작업을 만들었습니다. AI가 조사를 마치면 질문이나 구현 계획이 이 화면에 나타납니다.');
+    }
     await loadTaskJobs();
-  }catch(error){showTaskMessage(error.message);}
+  }catch(error){if(newTaskOpen)showTaskMessage(error.message);}
   finally{taskSending=false;renderSendState();}
 }
 async function openTaskPanel(item){
-  if(taskSending)return;
-  taskSelected=item;taskContext=null;newTaskOpen=false;storageSet(taskKey('last'),item.path);
+  taskSelected=item;taskContext=null;taskLoadError='';newTaskOpen=false;
   const {panel,heading,message}=openTaskShell(item.title),draft=taskDraft(item.path);
   const next=el('p','','record-next');next.id='task-next';
   const status=el('div');status.id='test-feedback-result';
@@ -142,7 +145,7 @@ async function openTaskPanel(item){
   fields.append(phase,actorField());
   const submit=workflowButton('',()=>sendTaskAction(({questions:'answer',approval:'approve'})[taskPhase()]||'submit'));submit.id='test-feedback-submit';
   const extra=el('details');extra.id='task-request';
-  const note=Object.assign(taskInput('textarea','추가 요청',draft.message,10000,value=>{draft.message=value;rememberDraft(item.path);}),{rows:4});
+  const note=Object.assign(taskInput('textarea','추가 요청',draft.message,10000,value=>{draft.message=value;rememberDraft(item.path);}),{rows:4,id:'task-request-message'});
   const hint=el('p','','notice');hint.id='task-request-hint';
   const send=workflowButton('추가 요청 전달',()=>sendTaskAction('request'));send.id='task-request-send';
   extra.append(el('summary','AI에게 추가 요청'),hint,taskField('요청',note),send);
@@ -154,8 +157,8 @@ async function openTaskPanel(item){
 function taskPhase(){
   const latest=taskJobs[taskSelected.path]?.latest;
   if(latest?.status==='running')return 'running';
-  if(!taskContext)return 'loading';
-  if(taskContext.checklistError)return 'error';
+  if(!taskContext)return taskLoadError?'unreadable':'loading';
+  if(taskContext.tableError)return 'error';
   if(taskContext.questions.some(q=>!q.answer))return 'questions';
   if(taskContext.plan.text&&!taskContext.plan.approval)return 'approval';
   if(taskContext.checklist.length&&taskContext.checklist.every(row=>row.result==='통과'))return 'complete';
@@ -181,7 +184,8 @@ function renderTaskPhase(){
     :'구현 승인 전이라 AI가 읽기 전용으로 조사해 질문이나 구현 계획으로 답합니다.';
   if(phase==='running')return box.append(el('p','AI가 처리하는 동안에는 입력할 수 없습니다. 진행 과정은 터미널 창에서 볼 수 있고, 끝나면 이 화면이 갱신됩니다.','notice'));
   if(phase==='loading')return box.append(el('p','작업 기록을 불러오는 중입니다.','notice'));
-  if(phase==='error')return box.append(el('p',taskContext.checklistError+' 작업 기록의 표를 고친 뒤 최신 상태를 불러오세요.','notice'));
+  if(phase==='unreadable')return box.append(el('p','작업 기록을 불러오지 못했습니다. '+taskLoadError+' 최신 상태 불러오기로 다시 시도하세요.','notice'));
+  if(phase==='error')return box.append(el('p',taskContext.tableError+' 작업 기록의 표를 고친 뒤 최신 상태를 불러오세요.','notice'));
   if(phase==='questions')return renderQuestions(box);
   if(phase==='approval')return renderPlan(box);
   if(phase==='checklist')return renderChecklist(box);
@@ -266,23 +270,28 @@ function renderTaskStatus(){
       for(const item of evidence)detail.append(el('pre',item,'plan-preview'));
       panel.append(detail);
     }
-    if(['failed','interrupted'].includes(latest.status))panel.append(workflowButton('저장된 요청으로 AI 다시 시도',()=>sendTaskAction('retry')));
+    if(['failed','interrupted','conflict'].includes(latest.status))panel.append(workflowButton('저장된 요청으로 AI 다시 시도',()=>sendTaskAction('retry')));
   }
   const busy=taskSending||latest?.status==='running';
   $('test-feedback-fields').disabled=busy;$('test-feedback-submit').disabled=busy||!taskContext;
   $('task-request-send').disabled=busy;$('task-terminal').disabled=busy||terminalOpening;
 }
-// 자동으로 다시 읽을 때는 방금 보여준 안내를 덮지 않는다.
+// 자동으로 다시 읽을 때는 방금 보여준 안내를 덮지 않는다. 마지막으로 연 작업은 읽기에 성공했을 때만 기억한다.
 async function refreshTaskContext(announce=true){
   if(!taskSelected)return;
   const taskPath=taskSelected.path;
   try{
     const context=await workflowRequest('/test-feedback',{action:'read',taskPath});
     if(taskSelected?.path!==taskPath)return;
-    taskContext=context;taskProviders=context.providers||null;renderProviderChoice();taskJobs[taskPath]={taskPath,revision:context.revision,latest:context.latest};
+    taskContext=context;taskLoadError='';taskProviders=context.providers||null;renderProviderChoice();taskJobs[taskPath]={taskPath,revision:context.revision,latest:context.latest};
+    storageSet(taskKey('last'),taskPath);
     if(announce)showTaskMessage('최신 작업 기록을 불러왔습니다.');
     renderTaskPanel();watchTaskJobs();
-  }catch(error){if(taskSelected?.path===taskPath)showTaskMessage(error.message);}
+  }catch(error){
+    if(taskSelected?.path!==taskPath)return;
+    if(!taskContext){taskLoadError=error.message;renderTaskPanel();}
+    showTaskMessage(error.message);
+  }
 }
 // 동작마다 필요한 입력을 모아 보낸다. 전달하지 못하면 입력을 그대로 두고, 같은 일이 두 번 처리되는 것은 서버가 기록 해시와 작업 중 잠금으로 막는다.
 async function sendTaskAction(action){
@@ -314,13 +323,17 @@ async function sendTaskAction(action){
     if(action==='answer')draft.answers={};
     if(action==='request')draft.message='';
     rememberDraft(item.path);
-    showTaskMessage(record.latest?.status==='complete'?'모든 항목이 통과해 완료했습니다.'
-      :record.latest?.status==='recorded'?'테스트 결과를 기록했습니다. 남은 항목을 확인하면 다시 전달하세요.'
-      :action==='approve'?'구현을 승인했습니다. AI가 구현하는 과정은 터미널 창에서 볼 수 있습니다.':'AI에게 전달했습니다. 처리 과정은 터미널 창에서 볼 수 있고, 끝나면 이 화면이 갱신됩니다.');
-    if(taskSelected?.path===item.path)renderTaskPanel();
+    // 전달하는 동안 다른 작업으로 옮겼으면 그 작업의 화면은 건드리지 않는다.
+    if(taskSelected?.path===item.path){
+      if(action==='request')$('task-request-message').value='';
+      showTaskMessage(record.latest?.status==='complete'?'모든 항목이 통과해 완료했습니다.'
+        :record.latest?.status==='recorded'?'테스트 결과를 기록했습니다. 남은 항목을 확인하면 다시 전달하세요.'
+        :action==='approve'?'구현을 승인했습니다. AI가 구현하는 과정은 터미널 창에서 볼 수 있습니다.':'AI에게 전달했습니다. 처리 과정은 터미널 창에서 볼 수 있고, 끝나면 이 화면이 갱신됩니다.');
+      renderTaskPanel();
+    }
     await loadTaskJobs();
-  }catch(error){showTaskMessage(error.message);}
-  finally{taskSending=false;renderTaskStatus();watchTaskJobs();}
+  }catch(error){if(taskSelected?.path===item.path)showTaskMessage(error.message);}
+  finally{taskSending=false;renderSendState();watchTaskJobs();}
 }
 // 사람이 AI와 직접 대화하며 이어갈 터미널 창을 연다. 권한 확인은 평소 CLI 설정을 따른다.
 async function openTaskTerminal(){

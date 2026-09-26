@@ -22,10 +22,12 @@ $connectionPath = Join-Path $repo 'Saved/Workflow/ai-connection.json'
 $ai = if (Test-Path -LiteralPath $connectionPath) { Get-Content -LiteralPath $connectionPath -Raw | ConvertFrom-Json -AsHashtable } else { $null }
 $payload = @{ ai = $ai; generated = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'); documents = $documents } | ConvertTo-Json -Depth 8 -Compress -EscapeHandling EscapeHtml
 $template = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/index.html'))
-$diagramScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/diagrams.js'))
-$mermaidVendor = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/vendor/mermaid-11.12.0.min.js')).Replace('</script', '<\/script')
-$markedVendor = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/vendor/marked-18.0.14.umd.js')).Replace('</script', '<\/script')
-$workflowScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/task-records.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/workflow.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/test-feedback.js'))
+# Inlined scripts must not close their <script> element early; -replace ignores case, so </script in any case becomes <\/script (the same text inside JavaScript strings and regexes).
+function Read-Script([string]$Name) { [IO.File]::ReadAllText((Join-Path $PSScriptRoot "wiki-viewer/$Name")) -replace '</(script)', '<\/$1' }
+$diagramScript = Read-Script 'diagrams.js'
+$mermaidVendor = Read-Script 'vendor/mermaid-11.12.0.min.js'
+$markedVendor = Read-Script 'vendor/marked-18.0.14.umd.js'
+$workflowScript = (Read-Script 'task-records.js') + "`n" + (Read-Script 'workflow.js') + "`n" + (Read-Script 'test-feedback.js')
 $page = $template.Replace('__WX_WORKFLOW_SCRIPT__', $workflowScript).Replace('__WX_DIAGRAM_SCRIPT__', $diagramScript).Replace('__WX_MERMAID_VENDOR__', $mermaidVendor).Replace('__WX_MARKED_VENDOR__', $markedVendor).Replace('__WX_WIKI_DATA__', $payload)
 # 기존 파일 URL을 유지해 브라우저에 보존된 테스트 결과 입력을 잃지 않는다.
 $output = Join-Path $repo 'Saved/Workflow/index.html'

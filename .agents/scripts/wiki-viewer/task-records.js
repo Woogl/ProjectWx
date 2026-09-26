@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 // 작업 기록의 제목 아래 상태·다음 행동 줄과 테스트 체크리스트 표를 읽는다. 로컬 서버와 Workflow 화면이 같이 쓴다.
 var WxTaskRecords = (() => {
-  const states = ['확인 대기', '진행 중', '완료'], owners = ['AI', '사람'], results = ['대기', '통과', '실패', '미실행'];
+  const owners = ['AI', '사람'], results = ['대기', '통과', '실패', '미실행'];
   const checklistHeading = '## 테스트 체크리스트', checklistHeader = '| 항목 | 확인 방법 | 담당 | 결과 | 근거 |';
   const requestHeading = '## 요청', questionHeading = '## 질문', questionHeader = '| ID | 질문 | 선택지 | 추천 | 답변 |', planHeading = '## 구현 계획';
   // 웹에서 만든 작업의 절은 이 순서로 제목 아래에 둔다. 나머지 절은 이력이다.
@@ -51,20 +51,21 @@ var WxTaskRecords = (() => {
     const found = readTable(content, questionHeading, questionHeader, '질문', ([id, question]) => /^[A-Za-z0-9_-]{1,20}$/.test(id) && !!question);
     return found && { ...found, rows: found.rows.map(([id, question, options, recommendation, answer]) => ({ id, question, options: options ? options.split(' / ') : [], recommendation, answer })) };
   }
-  // 구현 계획 본문과 '구현 승인: 확인자 날짜' 줄을 읽는다. 계획이 바뀌면 승인 줄도 사라진다.
+  // 구현 계획 본문과 '구현 승인: 확인자 날짜' 줄을 읽는다. 계획이 바뀌면 승인 줄도 사라진다. 본문은 승인 줄만 빼고 그대로 둔다.
   function readPlan(content) {
     const body = readSection(content, planHeading);
     if (body === null) return { text: '', approval: '' };
-    const lines = body.split('\n'), approval = lines.find(line => /^구현 승인: /.test(line)) || '';
-    return { text: lines.filter(line => line !== approval).join('\n').trim(), approval: approval.replace(/^구현 승인: /, '').trim() };
+    const lines = body.split('\n'), at = lines.findIndex(line => /^구현 승인: /.test(line));
+    const approval = at < 0 ? '' : lines.splice(at, 1)[0].replace(/^구현 승인: /, '').trim();
+    return { text: lines.join('\n').trim(), approval };
   }
-  // 목록 한 줄에 필요한 값만 만든다. 상태 줄이 없는 기록(모듈 리뷰 등)은 state가 빈 문자열이다.
+  // 목록 한 줄에 필요한 값만 만든다. 상태 줄이 없는 기록(모듈 리뷰 등)은 state가 빈 문자열이고, 표가 깨진 기록은 상태 줄의 설명을 보인다.
   function readTaskRecord(path, content, modified = '') {
-    const head = readHead(content); let rows = null, checklistError = '';
-    try { rows = readChecklist(content)?.rows || null; } catch (error) { checklistError = error.message; }
+    const head = readHead(content); let rows = null;
+    try { rows = readChecklist(content)?.rows || null; } catch {}
     const summary = rows ? `체크리스트 ${rows.filter(row => row.result === '통과').length}/${rows.length} 통과` : head.detail;
-    return { path, title: head.title || path.split('/').pop(), state: head.state, summary, next: head.next, checklistError, modified };
+    return { path, title: head.title || path.split('/').pop(), state: head.state, summary, next: head.next, modified };
   }
-  return { states, owners, results, checklistHeading, checklistHeader, requestHeading, questionHeading, questionHeader, planHeading, sectionOrder, stateLine, nextLine, validRow, headRange, readHead, readSection, readChecklist, readQuestions, readPlan, readTaskRecord };
+  return { owners, results, checklistHeading, checklistHeader, requestHeading, questionHeading, questionHeader, planHeading, sectionOrder, stateLine, nextLine, validRow, headRange, readHead, readSection, readChecklist, readQuestions, readPlan, readTaskRecord };
 })();
 if (typeof module !== 'undefined') module.exports = WxTaskRecords;

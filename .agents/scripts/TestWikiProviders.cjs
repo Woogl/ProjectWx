@@ -28,6 +28,35 @@ const sample = { summary:'처리', evidence:['exit 0'], changes:[], questions:[]
     assert.equal(flag(claudeStream, '--output-format'), 'stream-json');assert.ok(claudeStream.includes('--verbose'));
     assert.equal(flag(invocation('gemini', schema, output, 'plan'), '--approval-mode'), 'default');
     assert.equal(flag(invocation('gemini', schema, output, 'work'), '--approval-mode'), 'yolo');
+    // Codex plan은 샌드박스 밖에서 도는 플러그인·앱을 끄고, Codex가 알려준 설정 MCP 서버 가운데 켜진 것만 -c로 끈다. work는 그대로 둔다.
+    assert.ok(!invocation('codex', schema, output, 'work').includes('--disable'));
+    const codexCalls = [];
+    const codexPlan = await runProvider({provider:'codex',command:{file:'codex',args:['--profile-arg']},prompt:'x',repo:dir,output,schema,mode:'plan',execute:(_file,args,options,done)=>{
+      codexCalls.push(args);
+      if (args.includes('mcp')) { assert.equal(options.cwd, dir); done(null, JSON.stringify([{name:'node_repl',enabled:true},{name:'unreal-mcp',enabled:true},{name:'already-off',enabled:false}])); return; }
+      return { stdin:{ on() {}, end() { fs.writeFileSync(output, JSON.stringify(sample)); done(null, ''); } } };
+    }});
+    assert.deepEqual(codexPlan, sample);
+    assert.deepEqual(codexCalls[0], ['--profile-arg', '--disable', 'plugins', 'mcp', 'list', '--json'], 'the server list comes from the same Codex and config');
+    assert.equal(codexCalls[1].join(' '), `--profile-arg exec --sandbox read-only --disable plugins --disable apps -c mcp_servers.node_repl.enabled=false -c mcp_servers.unreal-mcp.enabled=false --ephemeral --output-schema ${schema} --output-last-message ${output} -`);
+    let codexStarted = false;
+    await assert.rejects(runProvider({provider:'codex',command:{file:'codex'},prompt:'x',repo:dir,output,schema,mode:'plan',execute:(_file,args,_options,done)=>{
+      if (args.includes('mcp')) return done(Object.assign(new Error('unknown subcommand'), { code:2 }));
+      codexStarted = true;
+    }}), /MCP 서버 목록/);
+    assert.equal(codexStarted, false, 'a plan without MCP isolation does not start');
+    // 실행 제한은 plan 30분, work 60분이고, 시간이 지나면 AI 프로세스 트리를 끝낸다.
+    const realSetTimeout = global.setTimeout, limits = [];
+    global.setTimeout = (fn, ms, ...rest) => { limits.push(ms); return realSetTimeout(fn, ms, ...rest); };
+    try {
+      for (const mode of ['plan', 'work']) await runProvider({provider:'claude',command:{file:'claude'},prompt:'x',repo:dir,output,schema,mode,execute:(_file,_args,_options,done)=>({stdin:{on(){},end(){done(null,JSON.stringify({structured_output:sample}));}}})});
+    } finally { global.setTimeout = realSetTimeout; }
+    assert.deepEqual(limits, [30 * 60 * 1000, 60 * 60 * 1000]);
+    let stopped;
+    await assert.rejects(runProvider({provider:'claude',command:{file:'claude'},prompt:'x',repo:dir,output,schema,limit:5,
+      stop:child=>{stopped=child;child.finish(Object.assign(new Error('killed'), { code:1 }));},
+      execute:(_file,_args,_options,done)=>({pid:77,finish:done,stdin:{on(){},end(){}}})}), /처리 시간\(0분\)이 지나 AI와 하위 프로세스를 끝냈습니다/);
+    assert.equal(stopped.pid, 77, 'the time limit stops the AI process tree');
     for (const provider of ['codex', 'claude', 'gemini']) {
       let received;
       const execute = (file, args, options, done) => {
@@ -47,8 +76,6 @@ const sample = { summary:'처리', evidence:['exit 0'], changes:[], questions:[]
       assert(!fs.existsSync(output));
       assert(!fs.existsSync(output+'.settings.json'));
     }
-    await assert.rejects(runProvider({provider:'claude',command:{file:process.execPath},prompt:'x',repo:dir,output,schema,
-      execute:(_file,_args,_options,done)=>({stdin:{on(){},end(){done({killed:true});}}})}), /초과/);
     assert.throws(() => runProvider({provider:'claude',command:null,prompt:'x',repo:dir,output,schema}), /Claude Code/);
     const denied = await runProvider({provider:'claude',command:{file:'claude'},prompt:'x',repo:dir,output,schema,
       execute:(_file,_args,_options,done)=>({stdin:{on(){},end(){done(null,JSON.stringify({structured_output:sample,permission_denials:[{tool_name:'Bash'}]}));}}})});
@@ -96,7 +123,7 @@ const sample = { summary:'처리', evidence:['exit 0'], changes:[], questions:[]
       return fakeChild((_prompt, child) => { stdout.emit('data', lines.split('\n')[1] + '\n'); queueMicrotask(() => child.close(0)); }, stdout);
     }}), /구조화된 응답이 없습니다/, 'a stream without a result event is a failure');
     await assert.rejects(runProvider({provider:'codex',command:{file:'codex'},prompt:'x',repo:dir,output,schema,visible:true,launch:()=>fakeChild((_prompt, child) => queueMicrotask(() => child.close(1)))}), /Codex 처리에 실패/);
-    console.log('PASS provider routing, plan/work permission modes, stdin isolation, response parsing, Gemini tool narrowing, visible Codex and streamed Claude progress, errors and cleanup');
+    console.log('PASS provider routing, plan/work permission modes, Codex plan MCP isolation, time limits with process-tree stop, stdin isolation, response parsing, Gemini tool narrowing, visible Codex and streamed Claude progress, errors and cleanup');
   } finally {
     assert.equal(path.dirname(dir), path.resolve(os.tmpdir()));
     assert(path.basename(dir).startsWith('wx-providers-'));
