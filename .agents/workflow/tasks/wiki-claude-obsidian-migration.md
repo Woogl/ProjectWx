@@ -1,7 +1,7 @@
 # Wiki를 claude-obsidian으로 전환하고 정기 갱신으로 운영
 
-상태: 확인 대기 · 체크리스트 10/16 통과
-다음 행동: 사람 항목을 확인한다. 코드 리뷰, Routine 첫 실행과 Routine 순정 플러그인 설치(AI 확인 근거 있음), Wiki 갱신 버튼, Obsidian으로 Wiki 읽기, 다음 날 예약 실행이다.
+상태: 확인 대기 · 체크리스트 11/17 통과
+다음 행동: 사람 항목을 확인한다. 코드 리뷰, Routine 첫 실행과 Routine 순정 플러그인 설치(AI 확인 근거 있음), Wiki 갱신 버튼(버튼 잠금을 고쳤으니 대시보드를 새로고침한 뒤 다시 확인), Obsidian으로 Wiki 읽기, 다음 날 예약 실행이다.
 
 - 날짜: 2026-09-26
 - 계기: AI 게임 개발 워크플로우에 claude-obsidian과 llm-wiki 중 무엇이 맞는지 묻는 사용자 질문에서 시작했다. 조사와 결정은 Claude Code 클라우드 세션에서 진행했고, 구현은 사용자가 새 세션에서 이어서 한다.
@@ -108,10 +108,11 @@
 | 하네스 | TestAgentHarness.ps1 | AI | 통과 | exit 0 |
 | 원자료 사본 줄바꿈 | 이 PC에서 저장소 사본의 claude-obsidian lint --vault Wiki | AI | 통과 | Windows에서 꺼낸 사본이 CRLF가 되어 provenance_errors 109건 → .gitattributes에 Wiki/.raw/** -text를 더하고 다시 꺼낸 뒤 전 항목 0 |
 | claude-obsidian 사본 축소 | 줄인 사본으로 모의 init·lint·doctor | AI | 통과 | 101개 → 58개(약 0.8MB), init 14개 계획, lint 전 항목 0, doctor ok |
-| 레거시 제거 | 옛 Wiki 참조 검색과 링크 검사 | AI | 통과 | .wiki 제거(154개 추적 파일, 폴더는 휴지통), llm-wiki 플러그인·마켓플레이스 제거, 남은 참조 0, CheckWikiLinks 오류 0, Node 테스트 4개·하네스 통과 |
-| 코드 리뷰 | 변경 파일은 구현 결과 절의 목록. 볼 점: 완료 처리(record·complete), /wiki-update의 토큰 취급, Workflow 전용 화면 정리, Wiki/README.md의 Routine 절차 | 사람 | 대기 |  |
+| 레거시 제거 | 옛 Wiki 참조 검색과 링크 검사 | AI | 통과 | .wiki 제거(154개 추적 파일, 폴더는 휴지통), llm-wiki 플러그인·마켓플레이스 제거, 남은 참조 0, CheckWikiLinks 오류 0, Node 테스트 4개·하네스 통과. 뒤이어 Codex·Claude·Obsidian 사용자 설정의 흔적도 정리했고 llm-wiki 검색 0(전환 마무리 절) |
+| Wiki 갱신 버튼 잠금 | 수정 전·후 workflow.js로 각각 Export-Wiki.ps1 → TestWikiViewer.cjs | AI | 통과 | 시작 뒤 꺼짐 검사가 수정 전 코드에서 실패하고 수정 뒤 통과. 워크플로우 Node 테스트 4개·문서 링크 오류 0 |
+| 코드 리뷰 | 변경 파일은 구현 결과 절의 목록과 전환 마무리 절의 버튼 잠금 수정. 볼 점: 완료 처리(record·complete), /wiki-update의 토큰 취급, Workflow 전용 화면 정리, Wiki/README.md의 Routine 절차, 버튼 잠금과 테스트의 경쟁 조건 수정 | 사람 | 대기 |  |
 | Routine 첫 실행 | 커밋·푸시 → AI에게 Routine 전환 요청 → 웹에서 Run now. Wiki/가 init되고 기획서·완료 기록이 수집되어 main에 푸시되며 lint의 provenance_errors·dead_links가 0이다. | 사람 | 대기 | AI 확인: 두 번째 실행(cse_017DwwnfEBCVpWtgefGEpA4H)이 원자료 109건을 수집해 커밋 20b0751~33cb7ea로 푸시했고 lint는 전 항목 0이다(이 PC 재검사도 0). 첫 실행은 외부 코드 거부로 실패했다. |
-| Wiki 갱신 버튼 | 웹에서 API 트리거를 더해 토큰 발급 → Saved/Wiki/wiki-routine.json의 token 채움 → OpenWorkflow.bat → Wiki 갱신. 새 Routine 세션 링크가 보이고 호출 중에는 다시 눌리지 않는다. | 사람 | 대기 |  |
+| Wiki 갱신 버튼 | 웹에서 API 트리거를 더해 토큰 발급 → Saved/Wiki/wiki-routine.json의 token 채움 → OpenWorkflow.bat → Wiki 갱신. 새 Routine 세션 링크가 보이고, 그 뒤로 새로고침 전까지 버튼이 꺼져 있다. | 사람 | 대기 | AI 확인: 사용자가 토큰을 넣은 뒤 서버 상태는 configured true, 버튼 실행 cse_01TG3SDyHFejVDS9h44Bi77d가 lint 0·변경 없음으로 성공했다. 사용자 보고로 잠금을 고쳤다(전환 마무리 절). |
 | Obsidian으로 읽기 | pull → Obsidian에서 Wiki 폴더를 vault로 한 번 열기 → 이후 OpenWiki.bat. 그래프·백링크·속성이 보이고 링크가 깨지지 않는다. | 사람 | 대기 |  |
 | Routine 순정 플러그인 설치 | 웹에서 Wiki 전용 환경을 만들고 그 환경의 설정 스크립트 칸에 스크립트를 넣는다 → AI가 Routine을 그 환경으로 옮겨 실행한다. 실행 기록에 설정 스크립트 실행이 보이고, 세션이 claude-obsidian 플러그인 스킬로 수집·lint를 마치면 AI가 저장소 사본을 지운다. | 사람 | 대기 | AI 확인: 사용자가 앱 브라우저에 로그인한 뒤 AI가 Wiki 환경(env_01KeuTATKhRqdfFx7yVB6bSX)을 만들고 Routine을 옮겼다. 실행 cse_01K5JpzBksuMn1UA816pAahJ에서 설정 스크립트가 완료됐고, 세션은 설치된 플러그인 2.2.0만 써서 권한 거부 없이 lint 전 항목 0을 냈다. 새 원자료가 없어 수집(capture·적용)은 다음 실제 수집에서 처음 돈다. 저장소 사본은 지웠다. 첫 설정은 스크립트가 Routine 지시문 칸에 들어가 되돌렸다. |
 | 저장소 사본 제거 | 참조 검색 → CheckWikiLinks.ps1 → TestAgentHarness.ps1 → 이 PC의 순정 플러그인으로 lint --vault Wiki | AI | 통과 | .agents/vendor 59개 git rm, 남은 참조는 이 기록의 경과뿐, 문서 링크 오류 0, 하네스 exit 0, 순정 플러그인 2.2.0 lint 전 항목 0 |
@@ -224,3 +225,19 @@ claude plugin install claude-obsidian@agricidaniel-claude-obsidian
 - Routine이 보고한 두 가지를 처리했다.
   - 제목의 저장소 경로가 지금 없는 원자료가 67개다. 옛 `.wiki` 결정 노트 66개와, 내용이 같은 `Object_Design.md` 두 곳의 경로를 쉼표로 적은 1개다. 이들은 2026-10-26 기한에 대조할 원본이 없다. 플러그인은 기한이 지난 원자료만 근거인 accepted 주장을 레저 검증 오류로 본다. 그래서 README 절차 2에 규칙을 더했다: 경로가 여럿이면 각각 대조하고, 경로가 없으면 캡처 사본을 원본으로 보고 기한만 갱신하며, 옛 `.wiki` 결정 노트가 아니면 보고한다.
   - 저장소 사본이 README와 어긋난다는 지적에 따라 `.agents/vendor/`(59개)를 지웠다.
+- 커밋 순서 실수: 미리 스테이징해 둔 사본 삭제가 README 규칙 커밋 `6991c1004`에 함께 들어갔고, `9413b59fa`에는 이 기록만 있다. main에 푸시된 뒤라 이력은 고치지 않았다.
+- 사용자 지시(2026-09-26): "한번 돌려보고 레거시도 제거하고 워크플로우 테스트도 해봅시다".
+- 레거시 정리(사용자 설정, 바꾸기 전 설정 파일은 세션 임시 폴더에 백업):
+  - Codex는 `codex plugin marketplace remove llm-wiki`로 설정 항목과 클론을 지웠다. 스킬 `wiki`·`wiki-query`는 휴지통으로 보냈다.
+  - Claude는 남아 있던 플러그인 캐시 `llm-wiki`를 휴지통으로 보냈다.
+  - Obsidian은 vault 목록에서 옛 `C:\Wx\.wiki\wiki` 항목을 지우고, 그 창 상태 파일을 휴지통으로 보냈다.
+  - 다시 검색했을 때 세 설정 어디에도 llm-wiki가 없었다.
+- 워크플로우 시험:
+  - 워크플로우 Node 테스트 4개가 통과했다.
+  - `OpenWorkflow.bat`로 대시보드와 AI 서버를 띄웠고, 서버의 revision이 현재 스크립트 해시와 같았다.
+  - 사용자가 Routine 편집 화면에서 API 트리거와 토큰을 발급해 `Saved/Wiki/wiki-routine.json`에 넣었다. 토큰은 서버 표시와 일치했고, 서버 상태는 `configured: true`였다.
+  - 버튼 실행(`cse_01TG3SDyHFejVDS9h44Bi77d`, 53초)은 설정 스크립트 캐시를 썼다. 세션의 `claude plugin list`에 2.2.0이 켜져 있었고, Skill 도구로 `claude-obsidian:wiki-ingest`를 불러왔다. lint는 0이고 바뀐 것이 없었다.
+- 사용자 보고: "Routine 세션 열기 링크 보였어요. 요청 중에 Wiki 갱신 버튼이 잠기지는 않았어요."
+  - 원인: 잠금은 `/fire` 요청 중(1초 미만)에만 걸려서 보이지 않았다. 응답 뒤 다시 누르면 첫 실행이 도는 중에 두 번째 실행이 겹칠 수 있었다.
+  - 수정: 시작에 성공해 세션 링크가 있으면 새로고침 전까지 버튼을 끈다(`wiki-viewer/workflow.js`).
+  - 테스트 보강: `TestWikiViewer.cjs`에서 첫 렌더가 시작한 설정 확인이 클릭 도중 늦게 끝나 `configured`를 되돌리는 경쟁 조건이 있어, 새 검사가 수정 전 코드에서도 통과했다. 설정 확인이 끝난 뒤 상태를 바꾸고 `configured` 유지를 함께 검사하도록 고쳤다. 이제 수정 전 코드에서는 실패하고 수정 뒤에는 통과한다.
