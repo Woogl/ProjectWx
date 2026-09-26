@@ -312,10 +312,59 @@ function fixture(providers=['codex'],content=taskText){
   openSession({root:'C:\\Wx',command:{file:'node.exe',args:['gemini.js']},provider:'gemini',taskPath:sessionPath,title:'보스',open:capture});assert.deepEqual(session.argv.slice(0,3),['node.exe','gemini.js','-i']);
   assert.throws(()=>openSession({root:'C:\\Wx',command:null,provider:'codex',taskPath:sessionPath,title:'보스',open:capture}),/Codex CLI/);
 
+  // Wiki 갱신: 준비물(WSL, claude-obsidian)을 확인·설치하고 origin/main의 sparse 작업 트리에서 고른 AI를 돌린다.
+  const wikiRoot=path.join(base,'wiki-update'),tree=path.join(wikiRoot,'Saved/Wiki/update-tree'),pluginDir=path.join(wikiRoot,'Saved/Wiki/claude-obsidian/v9.9.9');
+  let calls=[],wslState='none',ran=null,runResult={summary:'원자료 1건 수집, lint 0, 커밋 abc1234',evidence:['lint 0']};const launched=[];
+  const exec=async(file,args)=>{
+    calls.push([file,...args].join(' '));
+    if(file==='wsl.exe'&&args[1]==='python3'){if(wslState!=='ready')throw Error('no python');return 'Python 3.12.3';}
+    if(file==='wsl.exe'&&args[0]==='-l'){if(wslState==='none')throw Error('no distribution');return 'Ubuntu';}
+    if(file==='wsl.exe'&&args[1]==='wslpath')return '/mnt/c/'+path.basename(args[3]);
+    if(file==='git'&&args[0]==='worktree'&&args[1]==='add'){fs.mkdirSync(path.join(tree,'Wiki'),{recursive:true});fs.writeFileSync(path.join(tree,'.git'),'gitdir: x');fs.writeFileSync(path.join(tree,'Wiki/README.md'),"claude plugin marketplace add 'AgriciDaniel/claude-obsidian#v9.9.9'\n");}
+    if(file==='git'&&args.includes('clone')){const dest=args.at(-1);fs.mkdirSync(path.join(dest,'scripts'),{recursive:true});fs.writeFileSync(path.join(dest,'scripts/claude-obsidian.py'),'');}
+    return '';
+  };
+  const run=async options=>{ran=options;if(runResult instanceof Error)throw runResult;return runResult;};
+  const update=createWikiUpdate({root:wikiRoot,providers:['codex','claude'],commands:{codex:{file:'codex'},claude:{file:'claude'}},exec,launch:(file,args)=>{launched.push([file,...args].join(' '));return {unref(){}};},run,now:()=>'2026-09-26T00:00:00Z'});
+  const settleUpdate=async()=>{for(let i=0;i<100&&update.isBusy();i++)await new Promise(resolve=>setImmediate(resolve));};
+  const updateState=()=>update.act({action:'status'});
+  assert.deepEqual(updateState(),{status:'idle'});
+  assert.throws(()=>update.act({action:'fire'}),/형식 오류/);
+  assert.throws(()=>update.act({action:'start',provider:'gemini'}),/사용할 수 없습니다/,'only connected AIs can update the Wiki');
+  // WSL 배포판이 없으면 관리자 승인 창으로 설치를 시작하고 Git은 건드리지 않는다.
+  assert.equal(update.act({action:'start',provider:'claude'}).status,'preparing');await settleUpdate();
+  assert.equal(updateState().status,'setup');assert.match(updateState().message,/Linux 사용자/);
+  assert.deepEqual(launched,["powershell.exe -NoProfile -Command Start-Process -Verb RunAs -FilePath wsl.exe -ArgumentList '--install','-d','Ubuntu'"]);
+  assert.ok(!calls.some(c=>c.startsWith('git ')));
+  // 배포판은 있는데 python3를 못 부르면(첫 설정 전) 설치 창 없이 이유를 알린다.
+  wslState='unset';update.act({action:'start',provider:'claude'});await settleUpdate();
+  assert.deepEqual([updateState().status,launched.length],['failed',1]);assert.match(updateState().error,/첫 설정/);
+  // 준비되면 작업 트리를 sparse로 만들고, README의 태그로 claude-obsidian을 받아, 고른 AI를 그 작업 트리에서 돌린다.
+  wslState='ready';calls=[];
+  update.act({action:'start',provider:'claude'});
+  assert.throws(()=>update.act({action:'start',provider:'codex'}),/이미 진행 중/,'one Wiki update at a time');
+  await settleUpdate();
+  assert.deepEqual([updateState().status,updateState().provider,updateState().summary],['complete','claude',runResult.summary]);
+  assert.deepEqual(calls.filter(c=>c.startsWith('git ')),['git fetch --quiet origin main','git worktree prune',`git worktree add --quiet --no-checkout --detach ${tree} origin/main`,
+    `git -C ${tree} sparse-checkout set --no-cone /Wiki/ /Docs/**/*.md /.agents/workflow/tasks/ /AGENTS.md /.gitattributes`,`git -C ${tree} reset --quiet --hard origin/main`,`git -C ${tree} clean -q -fdx`,
+    `git -c core.autocrlf=false clone --quiet --depth 1 --branch v9.9.9 https://github.com/AgriciDaniel/claude-obsidian ${pluginDir}.download`]);
+  assert.ok(fs.existsSync(path.join(pluginDir,'scripts/claude-obsidian.py'))&&!fs.existsSync(pluginDir+'.download'));
+  assert.deepEqual([ran.repo,ran.mode,ran.provider,ran.command.file,ran.title],[tree,'work','claude','claude','Wiki 갱신']);
+  assert.match(ran.prompt,/Wiki\/README\.md의 정기 갱신 절차/);assert.deepEqual(ran.schema.required,['summary','evidence']);
+  const pcInfo=JSON.parse(ran.prompt.match(/이 PC 정보\(JSON\): (.*)/)[1]);
+  assert.deepEqual([pcInfo.worktree,pcInfo.worktreeWsl,pcInfo.claudeObsidian.tag,pcInfo.claudeObsidian.path,pcInfo.claudeObsidian.wslPath],[tree,'/mnt/c/update-tree','v9.9.9',pluginDir,'/mnt/c/v9.9.9']);
+  // 두 번째부터는 작업 트리를 origin/main으로 다시 맞추기만 하고, 받아 둔 claude-obsidian은 다시 받지 않는다. AI 실패는 이유를 남긴다.
+  calls=[];runResult=Error('Claude Code 처리에 실패했습니다.');
+  update.act({action:'start',provider:'codex'});await settleUpdate();
+  assert.deepEqual(calls.filter(c=>c.startsWith('git ')),['git fetch --quiet origin main',`git -C ${tree} reset --quiet --hard origin/main`,`git -C ${tree} clean -q -fdx`]);
+  assert.deepEqual([updateState().status,updateState().provider,updateState().error],['failed','codex','Claude Code 처리에 실패했습니다.']);
+  // 작업 트리 자리에 Git 작업 트리가 아닌 폴더가 있으면 지우지 않고 알린다.
+  fs.rmSync(path.join(tree,'.git'));runResult={summary:'x',evidence:[]};
+  update.act({action:'start',provider:'codex'});await settleUpdate();
+  assert.match(updateState().error,/Git 작업 트리가 아닙니다/);assert.ok(fs.existsSync(path.join(tree,'Wiki/README.md')));
+
   const http=fixture(['codex','claude','gemini']),token='feedback-test',port=18746;
-  const routineFile=path.join(base,'wiki-routine.json'),fired=[];
-  const firePost=async(url,options)=>{fired.push({url,options});return {ok:true,status:200,json:async()=>({type:'routine_fire',claude_code_session_id:'s',claude_code_session_url:'https://claude.ai/code/session_test'})};};
-  server=createServer({token,port,testFeedback:http.service,wikiUpdate:createWikiUpdate({file:routineFile,post:firePost})});await new Promise(resolve=>server.listen(port,'127.0.0.1',resolve));
+  server=createServer({token,port,testFeedback:http.service,wikiUpdate:update});await new Promise(resolve=>server.listen(port,'127.0.0.1',resolve));
   const post=(route,body,headers={})=>fetch('http://127.0.0.1:'+port+route,{method:'POST',headers:{'Content-Type':'application/json','X-Wx-Token':token,Origin:'null',...headers},body:JSON.stringify(body)});
   assert.equal((await post('/test-feedback',{action:'list'},{'X-Wx-Token':'bad'})).status,403);
   assert.equal((await post('/test-feedback',{action:'list'},{Origin:'https://example.com'})).status,403);
@@ -330,20 +379,18 @@ function fixture(providers=['codex'],content=taskText){
   const createdByHttp=await (await post('/test-feedback',{...createBody,operationId:'http-create',provider:'gemini'})).json();
   assert.equal(createdByHttp.latest.status,'running');await settle();assert.deepEqual([http.input.provider,http.input.kind],['gemini','plan']);
   assert.deepEqual(await (await post('/test-feedback',{action:'terminal',taskPath,provider:'codex'})).json(),{opened:true});
-  // Wiki 갱신: 설정이 없으면 꺼져 있고, 있으면 Routine을 실행해 세션 주소만 돌려준다. 토큰은 페이지로 돌아가지 않는다.
-  assert.deepEqual(await (await post('/wiki-update',{action:'status'})).json(),{configured:false});
-  assert.equal((await post('/wiki-update',{action:'fire'})).status,400);assert.equal(fired.length,0);
-  fs.writeFileSync(routineFile,JSON.stringify({trigger:'trig_test1',token:'secret-token'}));
-  assert.deepEqual(await (await post('/wiki-update',{action:'status'})).json(),{configured:true});
-  assert.equal((await post('/wiki-update',{action:'fire'},{'X-Wx-Token':'bad'})).status,403);assert.equal(fired.length,0);
-  const fireResult=await (await post('/wiki-update',{action:'fire'})).json();
-  assert.deepEqual(fireResult,{sessionUrl:'https://claude.ai/code/session_test'});
-  assert.equal(fired[0].url,'https://api.anthropic.com/v1/claude_code/routines/trig_test1/fire');
-  assert.deepEqual([fired[0].options.method,fired[0].options.headers.Authorization,fired[0].options.headers['anthropic-version']],['POST','Bearer secret-token','2023-06-01']);
-  let release;const slow=createWikiUpdate({file:routineFile,post:()=>new Promise(resolve=>{release=()=>resolve({ok:false,status:401,json:async()=>({error:{message:'invalid token'}})});})});
-  const first=slow.act({action:'fire'});await settle();await assert.rejects(slow.act({action:'fire'}),/요청하는 중/,'a second fire waits for the first');
-  release();await assert.rejects(first,/HTTP 401\)\. invalid token/);
-  console.log('PASS record state lines, checklist format, per-step result fields, instant completion without AI, record-only partial results, fixes on failures, hand-over of unrunnable AI items, conflicts, new task flow, Korean record names, retry/restart, worker lock, prompts per step, terminal runner end to end, terminal launch, HTTP routing and the Wiki update routine trigger');
+  // Wiki 갱신 경로는 접속 토큰을 거친다. 진행 중이면 서버가 바쁘다고 알려 그동안 서버를 다시 띄우지 않는다.
+  assert.equal((await post('/wiki-update',{action:'status'},{'X-Wx-Token':'bad'})).status,403);
+  assert.equal((await (await post('/wiki-update',{action:'status'})).json()).status,'failed');
+  assert.equal((await post('/wiki-update',{action:'start',provider:'gemini'})).status,400);
+  fs.writeFileSync(path.join(tree,'.git'),'gitdir: x');runResult=new Promise(()=>{});
+  const wikiServer=createServer({token,port:port+1,wikiUpdate:update});await new Promise(resolve=>wikiServer.listen(port+1,'127.0.0.1',resolve));
+  try{
+    assert.equal((await (await fetch('http://127.0.0.1:'+(port+1)+'/health')).json()).busy,false);
+    update.act({action:'start',provider:'codex'});
+    assert.equal((await (await fetch('http://127.0.0.1:'+(port+1)+'/health')).json()).busy,true,'a running Wiki update keeps the server from being replaced');
+  }finally{wikiServer.closeAllConnections();await new Promise(resolve=>wikiServer.close(resolve));}
+  console.log('PASS record state lines, checklist format, per-step result fields, instant completion without AI, record-only partial results, fixes on failures, hand-over of unrunnable AI items, conflicts, new task flow, Korean record names, retry/restart, worker lock, prompts per step, terminal runner end to end, terminal launch, HTTP routing and the local Wiki update (prerequisites, sparse worktree, pinned claude-obsidian, one run at a time)');
 }finally{
   if(server){server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
   const resolved=path.resolve(base);assert.equal(path.dirname(resolved),path.resolve(os.tmpdir()));assert.ok(path.basename(resolved).startsWith('wx-test-feedback-'));fs.rmSync(resolved,{recursive:true,force:true});

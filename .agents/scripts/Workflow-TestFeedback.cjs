@@ -181,20 +181,25 @@ function waitResult(job,onSpawn,wait){
     tick();
   });
 }
-// AI 처리를 터미널 창의 실행기로 보내고 결과 파일을 기다린다.
+// AI를 터미널 창의 실행기로 돌리고 결과 파일을 기다린다. repo는 AI가 일할 폴더다.
+async function runTerminalJob({root,repo=root,command,provider,mode,title,id,prompt,schema,onSpawn,open=openTerminal,wait=1000}){
+  if(!command?.file)throw Error(`${labels[provider]||provider} CLI 설치·로그인이 필요합니다.`);
+  const job=path.join(root,'Saved/Wiki/jobs',id);
+  fs.rmSync(job,{recursive:true,force:true});fs.mkdirSync(job,{recursive:true});
+  const safeTitle=title.replace(/["%^&|<>!\r\n]/g,' ');
+  fs.writeFileSync(path.join(job,'job.json'),JSON.stringify({provider,command,mode,title:safeTitle,repo}));
+  fs.writeFileSync(path.join(job,'prompt.txt'),prompt);
+  fs.writeFileSync(path.join(job,'schema.json'),JSON.stringify(schema));
+  try{
+    open(root,'Wx AI · '+safeTitle,[process.execPath,path.join(__dirname,'Workflow-Runner.cjs'),job]);
+    return await waitResult(job,onSpawn,wait);
+  }finally{fs.rmSync(job,{recursive:true,force:true});}
+}
+// 작업 기록의 AI 처리를 터미널 창에서 돌리고 단계에 맞는 결과만 돌려준다.
 async function runJob({root,command,request,onSpawn,open=openTerminal,wait=1000}){
   const provider=request.provider||'codex',kind=request.kind;
-  if(!command?.file)throw Error(`${labels[provider]||provider} CLI 설치·로그인이 필요합니다.`);
-  const job=path.join(root,'Saved/Wiki/jobs',request.operationId+'-'+(request.attempt||1));
-  fs.rmSync(job,{recursive:true,force:true});fs.mkdirSync(job,{recursive:true});
-  const title=(request.title||path.basename(request.taskPath,'.md')).replace(/["%^&|<>!\r\n]/g,' ');
-  fs.writeFileSync(path.join(job,'job.json'),JSON.stringify({provider,command,mode:kind==='plan'?'plan':'work',title,repo:root}));
-  fs.writeFileSync(path.join(job,'prompt.txt'),taskPrompt(request));
-  fs.writeFileSync(path.join(job,'schema.json'),JSON.stringify(schemaFor(kind)));
-  try{
-    open(root,'Wx AI · '+title,[process.execPath,path.join(__dirname,'Workflow-Runner.cjs'),job]);
-    return validateReport(await waitResult(job,onSpawn,wait),kind);
-  }finally{fs.rmSync(job,{recursive:true,force:true});}
+  const value=await runTerminalJob({root,command,provider,mode:kind==='plan'?'plan':'work',title:request.title||path.basename(request.taskPath,'.md'),id:request.operationId+'-'+(request.attempt||1),prompt:taskPrompt(request),schema:schemaFor(kind),onSpawn,open,wait});
+  return validateReport(value,kind);
 }
 function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결이 없습니다. OpenWorkflow.bat을 다시 실행하세요.');},providers=['codex']}){
   fs.mkdirSync(folder(root),{recursive:true});
@@ -393,4 +398,4 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
   }
   return {act,isBusy};
 }
-module.exports={createFeedbackService,runJob,openTerminal,openSession,taskPrompt,schemaFor,validateReport,readTasks,writeChecklist,writeHead,writeSection,writePlan};
+module.exports={createFeedbackService,runJob,runTerminalJob,openTerminal,openSession,taskPrompt,schemaFor,validateReport,readTasks,writeChecklist,writeHead,writeSection,writePlan};

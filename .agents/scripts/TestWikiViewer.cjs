@@ -122,18 +122,25 @@ context.location.hash = '#missing-document';
 vm.runInContext('readRoute()', context);
 assert.equal(byId('article').children[0].textContent, '문서를 찾을 수 없습니다.');
 (async () => {
-  // Wiki 갱신: Routine 토큰이 없으면 꺼져 있고, 켜지면 한 번 요청해 Routine 세션 링크를 보여준 뒤 새로고침 전까지 꺼진다.
-  await new Promise(resolve => setImmediate(resolve)); // 첫 렌더가 시작한 설정 확인이 끝난 뒤에 상태를 바꾼다.
+  // Wiki 갱신: AI 연결이 없으면 꺼져 있고, 있으면 패널에서 고른 AI로 시작을 요청하며, 진행 중에는 다시 시작할 수 없다.
+  await new Promise(resolve => setImmediate(resolve)); // 첫 렌더가 시작한 상태 확인이 끝난 뒤에 상태를 바꾼다.
   const headingButtons = () => byId('task-records').children[0].children.filter(n => n.tagName === 'BUTTON');
-  assert.equal(headingButtons()[1].disabled, true, 'Wiki update stays off without a routine token');
-  vm.runInContext("wikiUpdate.configured=true;workflowRequest=async(endpoint,body)=>{globalThis.fired=[endpoint,body];return {sessionUrl:'https://claude.ai/code/session_test'};};renderTaskRecords();", context);
+  const panel = byId('test-feedback-panel'), panelButton = text => panel.children.find(n => n.tagName === 'BUTTON' && n.textContent === text);
+  const panelMessage = () => panel.children.find(n => n.id === 'test-feedback-message').textContent;
+  vm.runInContext('data.ai=null;renderTaskRecords();', context);
+  assert.equal(headingButtons()[1].disabled, true, 'Wiki update needs the local AI connection');
+  vm.runInContext("data.ai={token:'t',url:'http://127.0.0.1:1'};taskProviders=[{id:'claude',label:'Claude Code'},{id:'codex',label:'Codex'}];globalThis.fired=[];globalThis.wikiState={status:'idle'};workflowRequest=async(endpoint,body)=>{fired.push([endpoint,body]);if(body.action==='start')wikiState={status:'running',provider:body.provider,message:'Claude Code가 Wiki를 갱신하는 중입니다.'};return wikiState;};renderTaskRecords();", context);
   assert.equal(headingButtons()[1].disabled, false);
-  await headingButtons()[1].onclick();
-  assert.deepEqual(JSON.parse(JSON.stringify(context.fired)), ['/wiki-update', { action: 'fire' }]);
-  const note = byId('task-records').children[1];
-  assert.match(note.textContent, /Wiki 갱신을 시작했습니다/);
-  assert.equal(note.children.find(n => n.tagName === 'A').href, 'https://claude.ai/code/session_test');
-  assert.equal(vm.runInContext('wikiUpdate.configured', context), true);
-  assert.equal(headingButtons()[1].disabled, true, 'a started Wiki update stays off until the page reloads');
+  headingButtons()[1].onclick(); await new Promise(resolve => setImmediate(resolve));
+  assert.equal(panel.children[0].textContent, 'Wiki 갱신');
+  await panelButton('갱신 시작').onclick();
+  assert.deepEqual(JSON.parse(JSON.stringify(context.fired.at(-1))), ['/wiki-update', { action: 'start', provider: 'claude' }]);
+  assert.equal(panelButton('갱신 시작').disabled, true, 'a running Wiki update cannot start again');
+  assert.match(panelMessage(), /갱신하는 중/);
+  vm.runInContext("wikiState={status:'complete',provider:'claude',summary:'원자료 1건을 수집했습니다.'};", context);
+  await vm.runInContext('loadWikiUpdate()', context);
+  assert.equal(panelButton('갱신 시작').disabled, false);
+  assert.match(panelMessage(), /마쳤습니다\(Claude Code\)\. 원자료 1건을 수집했습니다\./);
+  assert.match(byId('task-records').children[1].textContent, /마쳤습니다/, 'the dashboard keeps the last result');
   console.log(`PASS ${data.documents.length} document snapshots, metadata, JS syntax, task states, new task and task panel entries, Wiki update button, index navigation, launcher, routing and missing-document handling`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 // 작업 진행 패널: 새 작업 요청, 질문 답변, 구현 승인, 사람 항목 테스트 결과, 추가 요청을 로컬 서버를 거쳐 AI에게 전달한다.
 let taskJobs=Object.create(null),taskSelected=null,taskContext=null,newTaskOpen=false;
-let taskJobsLoaded=false,taskJobsLoading=false,taskSending=false,taskPoll=null,taskProviders=null;
+let taskJobsLoaded=false,taskJobsLoading=false,taskSending=false,taskPoll=null,taskProviders=null,taskPanelView='';
 const taskDrafts=Object.create(null);
 function availableProviders(){return taskProviders||[{id:'codex',label:'Codex'}];}
 function providerLabel(id){return ({codex:'Codex',claude:'Claude Code',gemini:'Gemini CLI'})[id]||id;}
@@ -58,7 +58,9 @@ function watchTaskJobs(){
   if(!Object.values(taskJobs).some(job=>job.latest?.status==='running'))return;
   taskPoll=setTimeout(()=>{taskPoll=null;loadTaskJobs();},3000);
 }
-function openTaskShell(title){
+// 패널 하나를 작업·새 작업·Wiki 갱신이 번갈아 쓴다. view는 지금 무엇을 보여주는지다.
+function openTaskShell(title,view='task'){
+  taskPanelView=view;
   const panel=$('test-feedback-panel');panel.hidden=false;panel.replaceChildren(el('h2',title));
   const message=el('p','','notice');message.id='test-feedback-message';message.setAttribute('role','status');
   return {panel,message};

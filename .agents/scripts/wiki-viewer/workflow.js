@@ -20,29 +20,61 @@ function taskRecordGroups() {
   for(const record of records)(groups.find(g=>g.title===record.state)||groups[3]).items.push({title:record.title,path:record.path,evidence:record.summary,next:record.next});
   return groups;
 }
-// Wiki 갱신: 정기 갱신 Routine을 지금 실행한다. 토큰이 없으면 꺼 두고, 요청 중에는 다시 누를 수 없다.
-const wikiUpdate={loaded:false,configured:false,sending:false,message:'',url:''};
+// Wiki 갱신: 고른 AI가 이 PC에서 Wiki/README.md 절차로 갱신한다. 상태는 서버에 있고 진행 중에만 다시 읽는다.
+const wikiUpdate={loaded:false,status:'idle',provider:'',message:'',summary:'',error:''};
+let wikiUpdatePoll=null;
+const wikiUpdateBusy=()=>['preparing','running'].includes(wikiUpdate.status);
 async function loadWikiUpdate() {
   wikiUpdate.loaded=true;
-  try{wikiUpdate.configured=!!(await workflowRequest('/wiki-update',{action:'status'})).configured;}catch{wikiUpdate.configured=false;}
-  renderTaskRecords();
+  try{Object.assign(wikiUpdate,await workflowRequest('/wiki-update',{action:'status'}));}catch{}
+  showWikiUpdate();
 }
-async function fireWikiUpdate() {
-  if(wikiUpdate.sending)return;
-  wikiUpdate.sending=true;wikiUpdate.message='Wiki 갱신을 요청하는 중입니다.';wikiUpdate.url='';renderTaskRecords();
-  try{const result=await workflowRequest('/wiki-update',{action:'fire'});wikiUpdate.message='Wiki 갱신을 시작했습니다. 결과가 main에 푸시된 뒤 pull하면 Obsidian에서 볼 수 있습니다.';wikiUpdate.url=result.sessionUrl||'';}
-  catch(error){wikiUpdate.message=error.message;}
-  finally{wikiUpdate.sending=false;renderTaskRecords();}
+function showWikiUpdate() {
+  renderTaskRecords();renderWikiUpdate();
+  if(wikiUpdateBusy()&&!wikiUpdatePoll&&typeof setTimeout!=='undefined')wikiUpdatePoll=setTimeout(()=>{wikiUpdatePoll=null;loadWikiUpdate();},3000);
+}
+function wikiUpdateText() {
+  const who=providerLabel(wikiUpdate.provider||'');
+  if(wikiUpdateBusy())return wikiUpdate.message+' · '+who;
+  if(wikiUpdate.status==='setup')return wikiUpdate.message;
+  if(wikiUpdate.status==='complete')return `Wiki 갱신을 마쳤습니다(${who}). ${wikiUpdate.summary} main에 올라간 결과는 pull하면 Obsidian에서 볼 수 있습니다.`;
+  if(wikiUpdate.status==='failed')return 'Wiki 갱신을 하지 못했습니다. '+wikiUpdate.error;
+  return '';
+}
+function wikiUpdateProvider() {const saved=storageGet(taskKey('wiki-provider'));return typeof saved==='string'&&saved?saved:availableProviders()[0]?.id||'codex';}
+function openWikiUpdate() {
+  taskSelected=null;taskContext=null;newTaskOpen=false;
+  openTaskShell('Wiki 갱신','wiki-update');renderWikiUpdate();
+  if(!wikiUpdateBusy())loadWikiUpdate();
+}
+// 패널이 Wiki 갱신을 보여주는 동안에만 다시 그린다.
+function renderWikiUpdate() {
+  const panel=$('test-feedback-panel');
+  if(panel.hidden||taskPanelView!=='wiki-update')return;
+  const {message}=openTaskShell('Wiki 갱신','wiki-update'),busy=wikiUpdateBusy();
+  const fields=el('fieldset');fields.id='wiki-update-fields';fields.disabled=busy;
+  fields.append(providerField('wiki-update-provider',wikiUpdateProvider(),value=>storageSet(taskKey('wiki-provider'),value)));
+  const start=workflowButton('갱신 시작',()=>startWikiUpdate());start.id='wiki-update-start';start.disabled=busy;
+  message.textContent=wikiUpdateText();
+  panel.append(el('p','고른 AI가 이 PC에서 Wiki/README.md 절차로 Wiki를 갱신하고 main에 푸시합니다. WSL과 claude-obsidian이 없으면 설치를 시작합니다. 진행 과정은 새 터미널 창에 보입니다.','notice'),fields,message,start,workflowButton('닫기',()=>{panel.hidden=true;}));
+}
+async function startWikiUpdate() {
+  if(wikiUpdateBusy())return;
+  const provider=wikiUpdateProvider();
+  if(!availableProviders().some(p=>p.id===provider))return showTaskMessage('선택한 AI가 연결되어 있지 않습니다. 다른 AI를 선택하거나 OpenWorkflow.bat을 다시 실행하세요.');
+  Object.assign(wikiUpdate,{summary:'',error:''});
+  try{Object.assign(wikiUpdate,await workflowRequest('/wiki-update',{action:'start',provider}));}
+  catch(error){Object.assign(wikiUpdate,{status:'failed',error:error.message});}
+  showWikiUpdate();
 }
 function renderTaskRecords() {
   const panel=$('task-records');panel.replaceChildren();
   const groups=taskRecordGroups(),total=groups.reduce((n,g)=>n+g.items.length,0);
   const heading=el('div',undefined,'record-heading'),start=workflowButton('새 작업',()=>openNewTask());start.id='new-task-open';
-  const update=workflowButton('Wiki 갱신',()=>fireWikiUpdate());update.id='wiki-update';update.disabled=!wikiUpdate.configured||wikiUpdate.sending||!!wikiUpdate.url;
-  if(!wikiUpdate.configured)update.title=data.ai?'Saved/Wiki/wiki-routine.json에 Routine의 trigger와 token을 넣으면 켜집니다.':'OpenWorkflow.bat을 다시 실행해 AI 연결을 시작하세요.';
-  else if(wikiUpdate.url)update.title='이미 시작했습니다. 다시 실행하려면 새로고침하세요.';
+  const update=workflowButton('Wiki 갱신',()=>openWikiUpdate());update.id='wiki-update';update.disabled=!data.ai;
+  if(!data.ai)update.title='OpenWorkflow.bat을 다시 실행해 AI 연결을 시작하세요.';
   heading.append(el('h2','확인할 일과 작업 기록'),start,update);panel.append(heading);
-  if(wikiUpdate.message){const note=el('p',wikiUpdate.message,'notice');if(wikiUpdate.url){const link=el('a','Routine 세션 열기');link.href=wikiUpdate.url;link.target='_blank';link.rel='noopener noreferrer';note.append(' ',link);}panel.append(note);}
+  if(wikiUpdate.status!=='idle')panel.append(el('p',wikiUpdateText(),'notice'));
   if(!total){panel.append(el('p','작업 기록이 없습니다. 새 작업으로 시작하세요.','notice'));return;}
   panel.append(el('p',total+'개 기록. 최근에 바뀐 기록부터 보여줍니다. 작업 진행에서 질문 답변·구현 승인·테스트 결과 전달을 하고, 새 일은 새 작업으로 시작하세요.','notice'));
   const filters=el('div',undefined,'record-filters');filters.setAttribute('role','group');filters.setAttribute('aria-label','작업 상태');
