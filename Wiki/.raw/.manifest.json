@@ -2,6 +2,24 @@
   "address_map": {},
   "description": "Ingest delta tracker. Source payloads are create-only.",
   "sources": {
+    ".raw/captured/043c6ec9f9ee4795580b7262c786ba60fd3d28ce48e7352cc8ade80748120739.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-damage-context-cleanup.md"
+      ],
+      "sha256": "043c6ec9f9ee4795580b7262c786ba60fd3d28ce48e7352cc8ade80748120739",
+      "source_id": "src-e1d67fb4d45dcb614edc",
+      "title": ".wiki/raw/notes/2026-09-23-damage-context-cleanup.md"
+    },
+    ".raw/captured/0d84b879c8359394ddfd36127f7ad1ba2532f6c3ef7a182342af167f671a6c77.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-damage-four-arguments.md"
+      ],
+      "sha256": "0d84b879c8359394ddfd36127f7ad1ba2532f6c3ef7a182342af167f671a6c77",
+      "source_id": "src-9261f9040fc8cc2e29a0",
+      "title": ".wiki/raw/notes/2026-09-23-damage-four-arguments.md"
+    },
     ".raw/captured/0ff318ce2a70b1f95379fb31f827ed7c4462b133440d3560a949c6475c363698.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -10,6 +28,15 @@
       "sha256": "0ff318ce2a70b1f95379fb31f827ed7c4462b133440d3560a949c6475c363698",
       "source_id": "src-ce19177694027db12835",
       "title": "Docs/CombatDesign/Patrol_Design.md"
+    },
+    ".raw/captured/14d52454d36745148fb80fabf1c78c036caace5d70b2ed2dd833251b94d566be.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-boss-battle-three-layer.md"
+      ],
+      "sha256": "14d52454d36745148fb80fabf1c78c036caace5d70b2ed2dd833251b94d566be",
+      "source_id": "src-78c4cedfc439fa0f50a7",
+      "title": ".wiki/raw/notes/2026-09-23-boss-battle-three-layer.md"
     },
     ".raw/captured/1cdc81388a52f3b8705b8872665f7adc254e81e3ba0a959a0c80fb61569f1269.md": {
       "ingested": "2026-09-26",
@@ -64,6 +91,15 @@
       "sha256": "3a04a2bc1f49a84c8439bec3b090e0fe82da87dd46f6a29a9079ae0911c08704",
       "source_id": "src-77f121f89f4d09dc254b",
       "title": ".agents/workflow/tasks/datatable-row-rename-reference-update.md"
+    },
+    ".raw/captured/3a87f612e6308146b063389aac2bbc003d65494a2c0d9aef306d5722b02465d4.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-22-workflow-closure.md"
+      ],
+      "sha256": "3a87f612e6308146b063389aac2bbc003d65494a2c0d9aef306d5722b02465d4",
+      "source_id": "src-190324fcc51209d69ca0",
+      "title": ".wiki/raw/notes/2026-09-22-workflow-closure.md"
     },
     ".raw/captured/3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7.md": {
       "ingested": "2026-09-26",
@@ -227,6 +263,15 @@
       "source_id": "src-dab8ff2a136731644295",
       "title": "Docs/SystemDesign/Object_Design.md, Docs/LevelDesign/Object_Design.md"
     },
+    ".raw/captured/7ba0c6f3766e89e2b0c45d22cac919c9118480fa6dcd006ba0dc9fbeb3383911.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-ability-resolver-module.md"
+      ],
+      "sha256": "7ba0c6f3766e89e2b0c45d22cac919c9118480fa6dcd006ba0dc9fbeb3383911",
+      "source_id": "src-3e382221986e197c9098",
+      "title": ".wiki/raw/notes/2026-09-23-ability-resolver-module.md"
+    },
     ".raw/captured/7dbd3870044d6f40cceaa0aadbe2b85532cb36d3801d96acfe7cd698c5d240ca.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -271,6 +316,15 @@
       "sha256": "903549ef1c2eb6c61f79473b70780cba03ab51cf01afa6e951362b65652d8ccb",
       "source_id": "src-29fa83e3956cdfe188e5",
       "title": "Docs/SystemDesign/Core_Combat_System.md"
+    },
+    ".raw/captured/929c5313575c83b7afad99e78d7a113cea8c828666b72081d87140a850f78d70.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-apply-damage-unification.md"
+      ],
+      "sha256": "929c5313575c83b7afad99e78d7a113cea8c828666b72081d87140a850f78d70",
+      "source_id": "src-b8eecc38d8d7eccd1975",
+      "title": ".wiki/raw/notes/2026-09-23-apply-damage-unification.md"
     },
     ".raw/captured/a2f7e5b8bf1d09961ed855182d7d6eb578a8b18062ed90ad0e796a17cfb5b58d.md": {
       "ingested": "2026-09-26",
@@ -344,6 +398,24 @@
       "source_id": "src-a36446b84e1533ed7f08",
       "title": ".agents/workflow/tasks/animnotify-categories.md"
     },
+    ".raw/captured/c66645cc2cd732a62dd49fcdb4babb939a7d1b1cf5b24ccf3fd83ffdeb67a206.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-damage-forward-flow.md"
+      ],
+      "sha256": "c66645cc2cd732a62dd49fcdb4babb939a7d1b1cf5b24ccf3fd83ffdeb67a206",
+      "source_id": "src-394a6c2707ea6f85c043",
+      "title": ".wiki/raw/notes/2026-09-23-damage-forward-flow.md"
+    },
+    ".raw/captured/c7b89b299b5bd56fa064de5e8301ed48614bbb69ceab22d3dd0981fb0ce1ddf8.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-22-workflow-dashboard.md"
+      ],
+      "sha256": "c7b89b299b5bd56fa064de5e8301ed48614bbb69ceab22d3dd0981fb0ce1ddf8",
+      "source_id": "src-73560212904f810d69bc",
+      "title": ".wiki/raw/notes/2026-09-22-workflow-dashboard.md"
+    },
     ".raw/captured/cbaedec2f43d791ee90da776e29260366415dfd55a6aaf50b64f9e6de53d296f.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -361,6 +433,24 @@
       "sha256": "d0832ea218feb93dd8309527b45696f99a05ef96f23fc61a6e042214820239ab",
       "source_id": "src-cfa091c12fac9ef14f27",
       "title": "Docs/CombatDesign/레벨_배치용_잡몹.md"
+    },
+    ".raw/captured/d6af9f837b5beff13e4a4c35a80302349686153ab247c462559ae91d771f0574.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-22-workflow-review.md"
+      ],
+      "sha256": "d6af9f837b5beff13e4a4c35a80302349686153ab247c462559ae91d771f0574",
+      "source_id": "src-7f8afee49742fa7bf2c8",
+      "title": ".wiki/raw/notes/2026-09-22-workflow-review.md"
+    },
+    ".raw/captured/d9e214670aefc1f403a22ab1e7977253c0b37341257a6ab4797675e1f16e0dca.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-22-verified-stock-rule.md"
+      ],
+      "sha256": "d9e214670aefc1f403a22ab1e7977253c0b37341257a6ab4797675e1f16e0dca",
+      "source_id": "src-c86bc26d2911ee492488",
+      "title": ".wiki/raw/notes/2026-09-22-verified-stock-rule.md"
     },
     ".raw/captured/e01725c9c8a679b5977bf257c832757663de20fde4cbbd961e78c7d49ed92d94.md": {
       "ingested": "2026-09-26",
@@ -388,6 +478,15 @@
       "sha256": "e6adb3fe5b44c4d5f4f471ab1882e658b847413a077763d317542c1f10905d61",
       "source_id": "src-1497f4b6d288822484cc",
       "title": "Docs/CombatDesign/전투 방향 변경에  따른 시스템 수정 요구사항.md"
+    },
+    ".raw/captured/fc91e336f2d43b3d2bec92aaa471ed167a0c8077f8f2152199ec5fb171fe8544.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-22-current-workflow.md"
+      ],
+      "sha256": "fc91e336f2d43b3d2bec92aaa471ed167a0c8077f8f2152199ec5fb171fe8544",
+      "source_id": "src-128de32fe3ed0635fd18",
+      "title": ".wiki/raw/notes/2026-09-22-current-workflow.md"
     }
   },
   "version": 1

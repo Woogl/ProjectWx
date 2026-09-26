@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T05:50:43Z",
+  "generated_at": "2026-09-26T05:50:46Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
     "src-016c4f4d42be310c6137": {
@@ -116,6 +116,25 @@
       "supersedes": null,
       "title": "Docs/CombatDesign/명조 PC 시스템 역기획서.md"
     },
+    "src-128de32fe3ed0635fd18": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "fc91e336f2d43b3d2bec92aaa471ed167a0c8077f8f2152199ec5fb171fe8544",
+      "independence_key": ".wiki/raw/notes/2026-09-22-current-workflow.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/fc91e336f2d43b3d2bec92aaa471ed167a0c8077f8f2152199ec5fb171fe8544.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-22-current-workflow.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-22-current-workflow.md"
+    },
     "src-1497f4b6d288822484cc": {
       "authority": "primary",
       "content_kind": "document",
@@ -173,6 +192,25 @@
       "supersedes": null,
       "title": ".agents/workflow/tasks/interaction-list-vm-simplification.md"
     },
+    "src-190324fcc51209d69ca0": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "3a87f612e6308146b063389aac2bbc003d65494a2c0d9aef306d5722b02465d4",
+      "independence_key": ".wiki/raw/notes/2026-09-22-workflow-closure.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/3a87f612e6308146b063389aac2bbc003d65494a2c0d9aef306d5722b02465d4.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-22-workflow-closure.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-22-workflow-closure.md"
+    },
     "src-29fa83e3956cdfe188e5": {
       "authority": "primary",
       "content_kind": "document",
@@ -210,6 +248,44 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/명조 적 시스템 역기획서.md"
+    },
+    "src-394a6c2707ea6f85c043": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "c66645cc2cd732a62dd49fcdb4babb939a7d1b1cf5b24ccf3fd83ffdeb67a206",
+      "independence_key": ".wiki/raw/notes/2026-09-23-damage-forward-flow.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/c66645cc2cd732a62dd49fcdb4babb939a7d1b1cf5b24ccf3fd83ffdeb67a206.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-damage-forward-flow.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-23-damage-forward-flow.md"
+    },
+    "src-3e382221986e197c9098": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "7ba0c6f3766e89e2b0c45d22cac919c9118480fa6dcd006ba0dc9fbeb3383911",
+      "independence_key": ".wiki/raw/notes/2026-09-23-ability-resolver-module.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/7ba0c6f3766e89e2b0c45d22cac919c9118480fa6dcd006ba0dc9fbeb3383911.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-ability-resolver-module.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-23-ability-resolver-module.md"
     },
     "src-4094d8d54f71a0271819": {
       "authority": "primary",
@@ -382,6 +458,25 @@
       "supersedes": null,
       "title": ".agents/workflow/tasks/cooldown-unification.md"
     },
+    "src-73560212904f810d69bc": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "c7b89b299b5bd56fa064de5e8301ed48614bbb69ceab22d3dd0981fb0ce1ddf8",
+      "independence_key": ".wiki/raw/notes/2026-09-22-workflow-dashboard.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/c7b89b299b5bd56fa064de5e8301ed48614bbb69ceab22d3dd0981fb0ce1ddf8.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-22-workflow-dashboard.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-22-workflow-dashboard.md"
+    },
     "src-757f477d3daaafa3f171": {
       "authority": "primary",
       "content_kind": "document",
@@ -439,6 +534,44 @@
       "supersedes": null,
       "title": ".agents/workflow/tasks/datatable-row-rename-reference-update.md"
     },
+    "src-78c4cedfc439fa0f50a7": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "14d52454d36745148fb80fabf1c78c036caace5d70b2ed2dd833251b94d566be",
+      "independence_key": ".wiki/raw/notes/2026-09-23-boss-battle-three-layer.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/14d52454d36745148fb80fabf1c78c036caace5d70b2ed2dd833251b94d566be.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-boss-battle-three-layer.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-23-boss-battle-three-layer.md"
+    },
+    "src-7f8afee49742fa7bf2c8": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "d6af9f837b5beff13e4a4c35a80302349686153ab247c462559ae91d771f0574",
+      "independence_key": ".wiki/raw/notes/2026-09-22-workflow-review.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/d6af9f837b5beff13e4a4c35a80302349686153ab247c462559ae91d771f0574.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-22-workflow-review.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-22-workflow-review.md"
+    },
     "src-8111c305354c561da569": {
       "authority": "primary",
       "content_kind": "document",
@@ -476,6 +609,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/LevelDesign/레버_증기_사양서.md"
+    },
+    "src-9261f9040fc8cc2e29a0": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "0d84b879c8359394ddfd36127f7ad1ba2532f6c3ef7a182342af167f671a6c77",
+      "independence_key": ".wiki/raw/notes/2026-09-23-damage-four-arguments.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/0d84b879c8359394ddfd36127f7ad1ba2532f6c3ef7a182342af167f671a6c77.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-damage-four-arguments.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-23-damage-four-arguments.md"
     },
     "src-997f58c17998f689ab53": {
       "authority": "primary",
@@ -610,6 +762,25 @@
       "supersedes": null,
       "title": "Docs/CombatDesign/Respawn_System.md"
     },
+    "src-b8eecc38d8d7eccd1975": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "929c5313575c83b7afad99e78d7a113cea8c828666b72081d87140a850f78d70",
+      "independence_key": ".wiki/raw/notes/2026-09-23-apply-damage-unification.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/929c5313575c83b7afad99e78d7a113cea8c828666b72081d87140a850f78d70.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-apply-damage-unification.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-23-apply-damage-unification.md"
+    },
     "src-c34545fea3552723390e": {
       "authority": "primary",
       "content_kind": "document",
@@ -647,6 +818,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/뒤잡_시스템.md"
+    },
+    "src-c86bc26d2911ee492488": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "d9e214670aefc1f403a22ab1e7977253c0b37341257a6ab4797675e1f16e0dca",
+      "independence_key": ".wiki/raw/notes/2026-09-22-verified-stock-rule.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/d9e214670aefc1f403a22ab1e7977253c0b37341257a6ab4797675e1f16e0dca.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-22-verified-stock-rule.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-22-verified-stock-rule.md"
     },
     "src-ce19177694027db12835": {
       "authority": "primary",
@@ -761,6 +951,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/적 규격서.md"
+    },
+    "src-e1d67fb4d45dcb614edc": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "043c6ec9f9ee4795580b7262c786ba60fd3d28ce48e7352cc8ade80748120739",
+      "independence_key": ".wiki/raw/notes/2026-09-23-damage-context-cleanup.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/043c6ec9f9ee4795580b7262c786ba60fd3d28ce48e7352cc8ade80748120739.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-damage-context-cleanup.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-23-damage-context-cleanup.md"
     },
     "src-f18b919b389d5ab5acdd": {
       "authority": "primary",

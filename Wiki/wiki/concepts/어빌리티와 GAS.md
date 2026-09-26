@@ -8,6 +8,7 @@ tags:
   - concept
 summary: "GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조"
 sources:
+  - "[[결정 노트 - 2026-09-23-damage-forward-flow]]"
   - "[[기획서 - PC규격서]]"
   - "[[기획서 - WA_PC_규격서]]"
   - "[[기획서 - WA_주인공_캐릭터]]"
@@ -44,6 +45,7 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 행이 에셋과 1:1인 DT_Effect는 제거하고 값은 GE 에셋에 두며, 여러 노티파이·투사체가 행을 골라 쓰는 DT_Damage는 유지한다. ([[작업 - ability-table-driven]])
 - 쿨다운은 그룹별 GE 파생 클래스 대신 공용 UWxEffect_Cooldown 하나와 어빌리티의 FGameplayTagContainer CooldownTags로 구분하기로 사용자가 승인했다. ([[작업 - cooldown-unification]])
 - Ability.Pattern.N 태그는 BT 재정비에 필요할 수 있어 유지하고 Ability.Skill.N 제거는 BT 재정비 때 하기로 사용자가 정했다. ([[작업 - cooldown-unification]])
+- 사용자는 2026-09-23 회피를 ASC의 OnImmunityBlockGameplayEffectDelegate를 쓰는 방식으로 재구현하도록 지시했고, Dodge 어빌리티가 활성 동안 막힌 UWxEffect_Damage를 감지해 극한 회피로 전환한다. ([[결정 노트 - 2026-09-23-damage-forward-flow]])
 
 ## 구현 관찰
 
@@ -53,6 +55,7 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 공용 쿨다운 GE는 엔진 WarnCooldownEffectWithoutTags 규칙을 만족하도록 Cooldown 부모 태그를 부여하고, 빈 CooldownTags면 CheckCooldown이 먼저 통과시킨다. ([[작업 - cooldown-unification]])
 - 어빌리티 슬롯 VM은 어빌리티 제거로 인스턴스가 Garbage가 된 경우를 IsExplicitlyNull()로 처음부터 빈 슬롯과 구분해 제목·충전을 초기화한다. ([[작업 - ui-data-interface-removal]])
 - 공유 AbilitySystem VM의 효과 목록 연결은 한 번만 설정되며 연결 전 조회된 빈 목록은 현재 활성 GE로 보충된다. ([[작업 - ui-data-interface-removal]])
+- 2026-09-23 기준 엔진 Immunity 통지는 ApplyGameplayEffectSpecToSelf에서 CanApply보다 먼저 돌기 때문에 적대 판정을 GE CanApply로 옮기면 아군 공격에도 회피 통지가 나가 되돌렸다. ([[결정 노트 - 2026-09-23-damage-forward-flow]])
 
 ## 검증 범위
 
@@ -65,6 +68,7 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 
 ## 원자료
 
+- [[결정 노트 - 2026-09-23-damage-forward-flow]] — Hit Wrapper GE와 전용 EffectContext를 없애고 ApplyDamage 판정에서 Damage GE 컴포넌트 반응으로 결과가 앞으로만 흐르게 한 2026-09-23 결정들
 - [[기획서 - PC규격서]] — 모든 PC가 공유하는 HP·MP·UP·SP 자원, 공통 어빌리티 분류, 후딜·전체 GA 캔슬 규칙, 회피 스택·극한회피, 가드·패링 규격을 정의한 문서
 - [[기획서 - WA_PC_규격서]] — 명조 방향 PC 구조를 속성 6종, 캐릭터 스탯, HP·궁극기 게이지·스태미나·고유 자원, 공용·개별 어빌리티 분류로 정의한 Project WX PC 규격서
 - [[기획서 - WA_주인공_캐릭터]] — 주인공 캐릭터의 개별 어빌리티(5단 일반 공격·강공격 연계·회피 반격·E 스킬·고유 자원 스킬·10초 강화 버프·궁극기) 규격서

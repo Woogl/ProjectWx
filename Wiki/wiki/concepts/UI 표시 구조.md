@@ -8,6 +8,8 @@ tags:
   - concept
 summary: "VM·리졸버·Nameplate 등 화면 표시 연결 구조"
 sources:
+  - "[[결정 노트 - 2026-09-23-ability-resolver-module]]"
+  - "[[결정 노트 - 2026-09-23-boss-battle-three-layer]]"
   - "[[기획서 - Nameplate_System]]"
   - "[[작업 - cooldown-unification]]"
   - "[[작업 - dialogue-presentation-vm]]"
@@ -36,6 +38,7 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - UI 개발자 설정에는 LayoutClass와 ConfirmationPopupClass 같은 UI 틀만 두고, 사망·대화 같은 게임 화면 클래스는 컨트롤러 BP의 UWxPlayerLayoutComponent에 둔다. ([[작업 - player-screen-classes-to-layout-component]])
 - 퀘스트 추적기는 사용자 결정에 따라 전용 위젯 클래스 없이 WBP_QuestTracker가 UserWidget을 부모로 두고 리졸버가 만든 WxUI Quest VM으로 구동된다. ([[작업 - quest-presentation-vm]])
 - IWxUIData 제거 뒤 UI 데이터는 WxCombat이 원본 데이터·규칙, WxUI가 VM과 GAS 공통 구독, WxGame 리졸버가 데이터 연결을 맡으며 중계 서브시스템이나 대체 인터페이스는 두지 않는다. ([[작업 - ui-data-interface-removal]])
+- 사용자는 2026-09-23 VM을 전부 WxUI에 모으고, 도메인 데이터가 필요한 표시는 모델(WxGame)·연결(WxGame 리졸버)·VM(WxUI 순수 표시) 세 층으로 나누도록 결정했다. ([[결정 노트 - 2026-09-23-boss-battle-three-layer]])
 
 ## 구현 관찰
 
@@ -45,6 +48,9 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - UWxNameplateManagerComponent는 TActorIterator<AWxEnemyCharacter>로 순회해 IsAlive() && (락온 대상 || (거리 안 && State.Engaged))일 때 Nameplate를 캡슐 반높이 + HeadClearance(기본 90) 위치에 붙인다. ([[작업 - nameplate-manager]])
 - NameplateManager는 락온 대상에는 MaxVisibilityDistance를 적용하지 않고, 새로 붙일 때만 VisibilityDistanceHysteresis(기본 200cm)만큼 안쪽이어야 한다. ([[작업 - nameplate-manager]])
 - Ability.Death·State.Dialogue 태그 관찰과 대화 창 수명은 UWxUIManagerSubsystem에서 UWxPlayerLayoutComponent로 옮겨졌고, 서브시스템은 레이아웃·팝업·일시정지만 맡는다. ([[작업 - player-screen-classes-to-layout-component]])
+- 2026-09-23 정적 조사 기준 WxViewModelResolver_Ability는 WxUI 플러그인에 있으며 위젯 소유 PC의 Pawn ASC에서 AbilitySystem VM의 슬롯 캐시를 찾아 준다. ([[결정 노트 - 2026-09-23-ability-resolver-module]])
+- 2026-09-23 Ability Resolver 이동에서 기존 WxGame 클래스 경로는 DefaultEngine.ini CoreRedirects로 WxUI 경로에 연결됐다. ([[결정 노트 - 2026-09-23-ability-resolver-module]])
+- 2026-09-23 WxViewModelResolver_BossCharacter는 상태를 들지 않는 공유 const 객체로, CreateInstance에서 VM을 만들어 WeakLambda로 구독하고 DestroyInstance에서 RemoveAll(ViewModel)로 그 VM 구독만 끊는다. ([[결정 노트 - 2026-09-23-boss-battle-three-layer]])
 
 ## 검증 범위
 
@@ -53,6 +59,7 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - Nameplate 교전·락온·사망 표시, 크기·위치, 리슨 서버와 원격 클라이언트 구분은 2026-09-25 이우성이 인게임에서 통과로 확인했다. ([[작업 - nameplate-manager]])
 - 사망 화면과 대화 창의 표시·닫힘·부활 후 재표시는 2026-09-23 사용자가 인게임에서 확인했다. ([[작업 - player-screen-classes-to-layout-component]])
 - IWxUIData 제거 후 HUD·버프·보스·이름표 표시는 2026-09-25 이우성이 플레이로 확인했고, 자동화 Wx.UI.Presentation 3개가 통과했다. ([[작업 - ui-data-interface-removal]])
+- 2026-09-23 Ability Resolver 이동 노트는 정적 조사이며 기존 WBP의 로드·표시 동작은 확인하지 않았다. ([[결정 노트 - 2026-09-23-ability-resolver-module]])
 
 ## 미결정·충돌
 
@@ -61,6 +68,8 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 
 ## 원자료
 
+- [[결정 노트 - 2026-09-23-ability-resolver-module]] — Ability ViewModel Resolver를 WxGame에서 WxUI로 옮기고 CoreRedirects로 기존 클래스 경로를 호환시킨 2026-09-23 정적 확인 기록
+- [[결정 노트 - 2026-09-23-boss-battle-three-layer]] — 보스 표시를 UWxBattleSubsystem·WxGame 리졸버·WxUI Character VM 세 층으로 재구성하고 보스 식별을 IdentityTags로 바꾼 2026-09-23 결정
 - [[기획서 - Nameplate_System]] — 일반·네임드 몬스터 네임플레이트의 HP·DP 표시 구성, 시야·청각·피격 인식 규칙, 표시·숨김 조건과 보스 전용 규칙을 정의한 기획서
 - [[작업 - cooldown-unification]] — 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 공용 GE 하나로 통합하고 CooldownTags로 구분하게 바꾼 작업 기록으로, 사람 확인 4/4 통과로 완료됐다.
 - [[작업 - dialogue-presentation-vm]] — Dialogue VM을 WxUI의 순수 표시 데이터로 분리하고, 화면 클래스를 거쳐 최종적으로 WxGame 리졸버 세 층 구조로 정리한 완료 작업 기록

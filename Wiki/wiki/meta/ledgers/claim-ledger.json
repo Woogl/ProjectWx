@@ -1,5 +1,125 @@
 {
   "claims": {
+    "clm-0e01aa4f14-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-workflow-review.md",
+          "relation": "supports",
+          "source_id": "src-7f8afee49742fa7bf2c8"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-workflow-review.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자는 2026-09-22 기획자에게 툴 난도가 높다는 이유로 Workflow의 기획 단계를 기획서 검토 단계로 바꾸도록 요청했다."
+    },
+    "clm-0e01aa4f14-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-workflow-review.md",
+          "relation": "supports",
+          "source_id": "src-7f8afee49742fa7bf2c8"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-workflow-review.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 Workflow 기획서 검토 전환에서 AI는 없는 기획이나 수치를 임의로 작성하지 않고 누락·충돌·구현 영향만 조사하도록 정해졌다."
+    },
+    "clm-0e01aa4f14-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-workflow-review.md",
+          "relation": "supports",
+          "source_id": "src-7f8afee49742fa7bf2c8"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-workflow-review.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 결정으로 Workflow의 문서 검색 진입은 제거하고 Wiki 검색은 유지했다."
+    },
+    "clm-109b37c644-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-damage-four-arguments.md",
+          "relation": "supports",
+          "source_id": "src-9261f9040fc8cc2e29a0"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-damage-four-arguments.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 사용자 승인으로 FWxDamageRequest가 제거되고 ApplyDamage는 Causer·Target·DamageTableRow·HitResult 네 인자를 받는 유일한 진입점이 됐다."
+    },
+    "clm-109b37c644-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-damage-four-arguments.md",
+          "relation": "supports",
+          "source_id": "src-9261f9040fc8cc2e29a0"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-damage-four-arguments.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "네 인자 ApplyDamage는 Causer의 ASC를 먼저 찾고 없으면 직접 Owner의 ASC를 사용한다."
+    },
+    "clm-109b37c644-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-damage-four-arguments.md",
+          "relation": "supports",
+          "source_id": "src-9261f9040fc8cc2e29a0"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-damage-four-arguments.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "네 인자 ApplyDamage에서 투사체는 저장된 ProjectileLevel과 Ability=nullptr를, 일반 공격은 적용 직전 AnimatingAbility와 그 레벨(없으면 1)을 사용한다."
+    },
     "clm-128c0f2c6b-c1": {
       "assessment": "provisional",
       "confidence": "high",
@@ -399,6 +519,86 @@
       "risk": "normal",
       "supersedes": null,
       "text": "Elite_monster 기획서는 엘리트 01의 HP·경직도·스태거 최대치·그로기 지속 시간을 모두 미정으로 남긴다."
+    },
+    "clm-23cbef3fd0-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-damage-forward-flow.md",
+          "relation": "supports",
+          "source_id": "src-394a6c2707ea6f85c043"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-damage-forward-flow.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 사용자 승인으로 Hit Wrapper GE와 FWxHitEffectContext를 삭제하고 ApplyDamage 판정 → Damage GE → 반응 컴포넌트로 결과가 앞으로만 흐르게 재설계했다."
+    },
+    "clm-23cbef3fd0-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-damage-forward-flow.md",
+          "relation": "supports",
+          "source_id": "src-394a6c2707ea6f85c043"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-damage-forward-flow.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 사용자 지시로 회피는 Dodge 어빌리티가 ASC의 OnImmunityBlockGameplayEffectDelegate를 구독해 막힌 Damage GE를 감지하는 방식으로 재구현됐다."
+    },
+    "clm-23cbef3fd0-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-damage-forward-flow.md",
+          "relation": "supports",
+          "source_id": "src-394a6c2707ea6f85c043"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-damage-forward-flow.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 최종 상태에서 ApplyDamage는 FWxDamageResult 대신 Damage GE 적용 여부 bool만 반환한다."
+    },
+    "clm-23cbef3fd0-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-damage-forward-flow.md",
+          "relation": "supports",
+          "source_id": "src-394a6c2707ea6f85c043"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-damage-forward-flow.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 사용자 지시로 추가 효과 Spec은 피해 반응이 끝난 뒤 _AdditionalEffects 컴포넌트가 실행 시점에 만든다."
     },
     "clm-27d0566c03-c1": {
       "assessment": "accepted",
@@ -880,6 +1080,86 @@
       "supersedes": null,
       "text": "game-concept 기획서는 위험 신호를 빨강(연속공격)과 노랑(가드 불가)으로 구분하고 화면에서 가장 밝은 색으로 두도록 요구한다."
     },
+    "clm-3f9c6d8c1a-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-verified-stock-rule.md",
+          "relation": "supports",
+          "source_id": "src-c86bc26d2911ee492488"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-verified-stock-rule.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자는 2026-09-22 옛 LLM Wiki의 verified 필드 규칙을 WX 전용 인간 확인 방침에서 순정 LLM Wiki 규칙으로 완전히 되돌리도록 결정했다."
+    },
+    "clm-3f9c6d8c1a-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-verified-stock-rule.md",
+          "relation": "supports",
+          "source_id": "src-c86bc26d2911ee492488"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-verified-stock-rule.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "verified 순정 규칙 전환 노트는 WX 전용 verified 방침 때문에 합성 신선도 점수 상한이 75점이었다고 기록한다."
+    },
+    "clm-3f9c6d8c1a-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-verified-stock-rule.md",
+          "relation": "supports",
+          "source_id": "src-c86bc26d2911ee492488"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-verified-stock-rule.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "verified 순정 규칙 전환 이후 schema.md는 verified를 편찬·재확인 날짜로 기록하고 편찬 없는 구조 이관에는 넣지 않도록 규정했다."
+    },
+    "clm-3f9c6d8c1a-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-verified-stock-rule.md",
+          "relation": "supports",
+          "source_id": "src-c86bc26d2911ee492488"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-verified-stock-rule.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "verified 순정 규칙 전환 노트는 verified 날짜가 빌드·게임 실행 검증일이 아니라고 명시한다."
+    },
     "clm-3fad528269-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -939,6 +1219,126 @@
       "risk": "normal",
       "supersedes": null,
       "text": "피니시 대상 우선순위(Q-001), 피니시 위치 조정 주체(Q-002), 현광 자원 예외 공통화(Q-003)는 wiki-regeneration 시점에 미확정으로 보존되었다."
+    },
+    "clm-48f0ba3f04-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-apply-damage-unification.md",
+          "relation": "supports",
+          "source_id": "src-b8eecc38d8d7eccd1975"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-apply-damage-unification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 사용자 요청으로 UWxCombatLibrary의 bool ApplyDamage와 ApplyDamageWithResult가 FWxDamageResult를 반환하는 ApplyDamage 하나로 통합됐다."
+    },
+    "clm-48f0ba3f04-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-apply-damage-unification.md",
+          "relation": "supports",
+          "source_id": "src-b8eecc38d8d7eccd1975"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-apply-damage-unification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "ApplyDamage 반환 API 통합은 출처 추론과 피해 처리 정책을 바꾸지 않고 반환 API만 합쳤다."
+    },
+    "clm-48f0ba3f04-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-apply-damage-unification.md",
+          "relation": "supports",
+          "source_id": "src-b8eecc38d8d7eccd1975"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-apply-damage-unification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "ApplyDamage 통합 당시 C++ 검색에서 두 기존 함수의 호출자는 자동화 테스트뿐이었고 Content uasset 문자열 검색에서도 참조가 없었다."
+    },
+    "clm-553dabec7a-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-workflow-dashboard.md",
+          "relation": "supports",
+          "source_id": "src-73560212904f810d69bc"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-workflow-dashboard.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 Workflow 대시보드는 공용 작업을 기획 검토·설계·구현·코드 리뷰·테스트·완료 단계로 분류해 개수·제목·상태를 표시하도록 구현됐다."
+    },
+    "clm-553dabec7a-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-workflow-dashboard.md",
+          "relation": "supports",
+          "source_id": "src-73560212904f810d69bc"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-workflow-dashboard.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 Workflow 대시보드의 완료 분류는 execution.status=complete인 테스트 수용을 뜻하며 Wiki 정리 완료를 뜻하지 않는다."
+    },
+    "clm-553dabec7a-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-workflow-dashboard.md",
+          "relation": "supports",
+          "source_id": "src-73560212904f810d69bc"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-workflow-dashboard.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 Workflow 대시보드 검증은 TestWikiViewer.cjs·TestWikiSpaces.cjs 모의 DOM 테스트이며 실제 브라우저 육안 검증은 포함하지 않는다."
     },
     "clm-5c8bdfa4b2-c1": {
       "assessment": "accepted",
@@ -1439,6 +1839,66 @@
       "risk": "normal",
       "supersedes": null,
       "text": "그로기 피니시 기획서의 복수 대상 선택 규칙은 본문(가장 가까운 적)과 플로우차트(락온 적 우선)가 서로 다르다."
+    },
+    "clm-8232dca0b4-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-damage-context-cleanup.md",
+          "relation": "supports",
+          "source_id": "src-e1d67fb4d45dcb614edc"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-damage-context-cleanup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 소스 검색에서 Damage Context의 DamageTable·DamageRowName은 생성과 NetSerialize 외에 읽는 곳이 없어 제거됐다."
+    },
+    "clm-8232dca0b4-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-damage-context-cleanup.md",
+          "relation": "supports",
+          "source_id": "src-e1d67fb4d45dcb614edc"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-damage-context-cleanup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 정리 후 Damage Context의 네트워크 형식은 기본 GameplayEffectContext와 방어 2비트만 남아 이전 형식과 비트 호환되지 않는다."
+    },
+    "clm-8232dca0b4-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-damage-context-cleanup.md",
+          "relation": "supports",
+          "source_id": "src-e1d67fb4d45dcb614edc"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-damage-context-cleanup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Damage Context 정리의 회귀 테스트는 직렬화 왕복 검사이며 실제 네트워크 세션 검증과 구분된다."
     },
     "clm-84a458af73-c1": {
       "assessment": "provisional",
@@ -2420,6 +2880,86 @@
       "supersedes": null,
       "text": "대화 세션 간 편집·빌드 조율 문제는 workflow-review 작업 완료 시점에도 미해결이다."
     },
+    "clm-da458a7691-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-ability-resolver-module.md",
+          "relation": "supports",
+          "source_id": "src-3e382221986e197c9098"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-ability-resolver-module.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 작업 트리에서 WxViewModelResolver_Ability는 WxGame에서 WxUI 플러그인(WXUI_API)으로 옮겨졌다."
+    },
+    "clm-da458a7691-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-ability-resolver-module.md",
+          "relation": "supports",
+          "source_id": "src-3e382221986e197c9098"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-ability-resolver-module.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Ability Resolver 이동 후 DefaultEngine.ini의 CoreRedirects가 /Script/WxGame.WxViewModelResolver_Ability를 /Script/WxUI.WxViewModelResolver_Ability로 연결한다."
+    },
+    "clm-da458a7691-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-ability-resolver-module.md",
+          "relation": "supports",
+          "source_id": "src-3e382221986e197c9098"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-ability-resolver-module.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Ability Resolver는 위젯 소유 PC의 Pawn에서 ASC를 얻고 ASC가 없거나 AbilityTags가 비면 nullptr를 반환한다."
+    },
+    "clm-da458a7691-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-ability-resolver-module.md",
+          "relation": "supports",
+          "source_id": "src-3e382221986e197c9098"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-ability-resolver-module.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Ability Resolver 이동 노트는 기존 WBP 로드와 표시 동작을 확인하지 않은 정적 조사다."
+    },
     "clm-db10390bbc-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -2820,6 +3360,86 @@
       "supersedes": null,
       "text": "원격 클라이언트의 기존 스펙 복제 후 재매칭 신호 누락은 IWxUIData 제거 작업 뒤에도 별도 미해결로 남아 있다."
     },
+    "clm-ec374ad6ca-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-workflow-closure.md",
+          "relation": "supports",
+          "source_id": "src-190324fcc51209d69ca0"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-workflow-closure.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 Workflow 실행기는 검증 시작과 accept 때 현재 코드 버전을 마지막 approve의 codeVersion과 대조해 다르면 구현 단계로 되돌리도록 구현됐다."
+    },
+    "clm-ec374ad6ca-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-workflow-closure.md",
+          "relation": "supports",
+          "source_id": "src-190324fcc51209d69ca0"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-workflow-closure.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 Workflow 실행기의 finish는 승인자 이름·wikiStatus·wikiEvidence·cleanupEvidence가 모두 있어야 complete와 closure를 저장한다."
+    },
+    "clm-ec374ad6ca-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-workflow-closure.md",
+          "relation": "supports",
+          "source_id": "src-190324fcc51209d69ca0"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-workflow-closure.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 Workflow 승인자 이름은 직접 입력한 표시명이며 계정 인증이 아니다."
+    },
+    "clm-ec374ad6ca-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-workflow-closure.md",
+          "relation": "supports",
+          "source_id": "src-190324fcc51209d69ca0"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-workflow-closure.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 Workflow closure 작업의 검증은 자동 테스트와 모의 DOM에 한정되며 실제 AI 호출·브라우저 육안·UE 실행은 하지 않았다."
+    },
     "clm-ecde107ded-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -2859,6 +3479,166 @@
       "risk": "normal",
       "supersedes": null,
       "text": "조작키 문서는 엑스박스 패드에서 스킬을 LB + XYAB 조합으로, 가드를 LB로 배치한다."
+    },
+    "clm-ee4d82d3a7-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-boss-battle-three-layer.md",
+          "relation": "supports",
+          "source_id": "src-78c4cedfc439fa0f50a7"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-boss-battle-three-layer.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 사용자 결정으로 보스 표시는 모델(UWxBattleSubsystem)·연결(WxGame 리졸버)·VM(WxUI UWxViewModel_Character) 세 층으로 나뉘었다."
+    },
+    "clm-ee4d82d3a7-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-boss-battle-three-layer.md",
+          "relation": "supports",
+          "source_id": "src-78c4cedfc439fa0f50a7"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-boss-battle-three-layer.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 결정으로 보스 식별은 bIsBoss 플래그 대신 AWxCharacterBase::IdentityTags의 Character.Boss 태그로 한다."
+    },
+    "clm-ee4d82d3a7-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-boss-battle-three-layer.md",
+          "relation": "supports",
+          "source_id": "src-78c4cedfc439fa0f50a7"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-boss-battle-three-layer.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "UWxBattleSubsystem은 먼저 교전한 보스를 현재 보스로 유지하고 현재 보스가 바뀔 때만 OnCurrentBossChanged를 발행한다."
+    },
+    "clm-ee4d82d3a7-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-boss-battle-three-layer.md",
+          "relation": "supports",
+          "source_id": "src-78c4cedfc439fa0f50a7"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-boss-battle-three-layer.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "보스 표시 세 층 구조는 빌드와 WBP 컴파일까지 확인됐지만 보스 콘텐츠가 없어 인게임 표시는 검증되지 않았다."
+    },
+    "clm-fb5e7d2daa-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-current-workflow.md",
+          "relation": "supports",
+          "source_id": "src-128de32fe3ed0635fd18"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-current-workflow.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 시점 Workflow 절차 문서는 AI 추천이나 미확정 답변은 결정이 아니며 개별 답변·단계 확정·코드 리뷰 수용·테스트 수용을 서로 별개로 규정했다."
+    },
+    "clm-fb5e7d2daa-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-current-workflow.md",
+          "relation": "supports",
+          "source_id": "src-128de32fe3ed0635fd18"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-current-workflow.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 시점 옛 Wiki 설정은 구조 이관·재편찬·Lint 성공이 코드·에셋·실행 재검증이 아니라고 명시했다."
+    },
+    "clm-fb5e7d2daa-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-current-workflow.md",
+          "relation": "supports",
+          "source_id": "src-128de32fe3ed0635fd18"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-current-workflow.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 시점 Wiki-AI.cjs 로컬 서버는 127.0.0.1:18743에서 Host·origin null·X-Wx-Token 토큰을 검사하고 진행 중 작업이 있으면 409로 거부했다."
+    },
+    "clm-fb5e7d2daa-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-22-current-workflow.md",
+          "relation": "supports",
+          "source_id": "src-128de32fe3ed0635fd18"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-22-current-workflow.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-22 시점 완료 절차에서 웹의 테스트 완료 버튼은 테스트 수용만 기록하고 Wiki 편찬·자료 정리를 자동 실행하지 않았다."
     },
     "clm-fb7c901ba4-c1": {
       "assessment": "accepted",
@@ -3001,6 +3781,6 @@
       "text": "퀘스트 추적기 리졸버 구조는 2026-09-23 사용자가 인게임에서 문제없다고 확인했다."
     }
   },
-  "generated_at": "2026-09-26T05:50:43Z",
+  "generated_at": "2026-09-26T05:50:46Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }
