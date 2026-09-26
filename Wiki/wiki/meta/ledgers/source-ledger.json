@@ -1,7 +1,64 @@
 {
-  "generated_at": "2026-09-26T05:49:26Z",
+  "generated_at": "2026-09-26T05:50:11Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
+    "src-0a7a2abc95a7de9432e5": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "419fb2d743f7ab48b10951d32eaee2f1287c72ff09f231ccae1a2041fd319dc8",
+      "independence_key": "Docs/CombatDesign/명조 PC 시스템 역기획서.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/419fb2d743f7ab48b10951d32eaee2f1287c72ff09f231ccae1a2041fd319dc8.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 명조 PC 시스템 역기획서.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/명조 PC 시스템 역기획서.md"
+    },
+    "src-1497f4b6d288822484cc": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "e6adb3fe5b44c4d5f4f471ab1882e658b847413a077763d317542c1f10905d61",
+      "independence_key": "Docs/CombatDesign/전투 방향 변경에  따른 시스템 수정 요구사항.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/e6adb3fe5b44c4d5f4f471ab1882e658b847413a077763d317542c1f10905d61.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 전투 방향 변경에  따른 시스템 수정 요구사항.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/전투 방향 변경에  따른 시스템 수정 요구사항.md"
+    },
+    "src-29fa83e3956cdfe188e5": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "903549ef1c2eb6c61f79473b70780cba03ab51cf01afa6e951362b65652d8ccb",
+      "independence_key": "Docs/SystemDesign/Core_Combat_System.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/903549ef1c2eb6c61f79473b70780cba03ab51cf01afa6e951362b65652d8ccb.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - Core_Combat_System.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/SystemDesign/Core_Combat_System.md"
+    },
     "src-4094d8d54f71a0271819": {
       "authority": "primary",
       "content_kind": "document",
@@ -20,6 +77,63 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".agents/workflow/tasks/datatable-row-preview.md"
+    },
+    "src-655ce2708f432a15eb16": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "7dbd3870044d6f40cceaa0aadbe2b85532cb36d3801d96acfe7cd698c5d240ca",
+      "independence_key": "Docs/CombatDesign/PC규격서.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/7dbd3870044d6f40cceaa0aadbe2b85532cb36d3801d96acfe7cd698c5d240ca.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - PC규격서.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/PC규격서.md"
+    },
+    "src-6a3624fe45a27e84c05e": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "af0d44bf8a57ec6faa9a5a46b78a004fb1addee291ac72a11deef26ab96d9b85",
+      "independence_key": "Docs/CombatDesign/에스트병 기획서.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/af0d44bf8a57ec6faa9a5a46b78a004fb1addee291ac72a11deef26ab96d9b85.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 에스트병 기획서.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/에스트병 기획서.md"
+    },
+    "src-6b3836cacc162bf55c17": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "ad2c7d665a40049b3cd38a580a1d5f40bfc9fa62e3ed12aa325589cfc559b634",
+      "independence_key": "Docs/CombatDesign/game-concept.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/ad2c7d665a40049b3cd38a580a1d5f40bfc9fa62e3ed12aa325589cfc559b634.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - game-concept.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/game-concept.md"
     },
     "src-725958e8aa2fa553c301": {
       "authority": "primary",
@@ -58,6 +172,44 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".agents/workflow/tasks/cooldown-unification.md"
+    },
+    "src-757f477d3daaafa3f171": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "73050c80eb1f4e043a2275580c6de90530577b1b6992fdc2d8fa4b79f08e931e",
+      "independence_key": "Docs/CombatDesign/WA_주인공_캐릭터.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/73050c80eb1f4e043a2275580c6de90530577b1b6992fdc2d8fa4b79f08e931e.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - WA_주인공_캐릭터.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/WA_주인공_캐릭터.md"
+    },
+    "src-75fdaf3e883741b06672": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "3197c6a60425d04df84a8e196561a46a572178659f59e6827cce0facd204a5f9",
+      "independence_key": "Docs/CombatDesign/캐릭터 스탯 명세서.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/3197c6a60425d04df84a8e196561a46a572178659f59e6827cce0facd204a5f9.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 캐릭터 스탯 명세서.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/캐릭터 스탯 명세서.md"
     },
     "src-77f121f89f4d09dc254b": {
       "authority": "primary",
@@ -115,6 +267,44 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".agents/workflow/tasks/animnotify-categories.md"
+    },
+    "src-adc2c6a0d6e40300ee9d": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "e01725c9c8a679b5977bf257c832757663de20fde4cbbd961e78c7d49ed92d94",
+      "independence_key": "Docs/CombatDesign/조작키.MD",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/e01725c9c8a679b5977bf257c832757663de20fde4cbbd961e78c7d49ed92d94.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 조작키.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/조작키.MD"
+    },
+    "src-e1a03d6129da9f4022a9": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "3d1e1754c2ab838a480535abe4d113f0e5291f3b0584ca63480880fb603b4675",
+      "independence_key": "Docs/CombatDesign/WA_PC_규격서.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/3d1e1754c2ab838a480535abe4d113f0e5291f3b0584ca63480880fb603b4675.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - WA_PC_규격서.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/WA_PC_규격서.md"
     }
   }
 }

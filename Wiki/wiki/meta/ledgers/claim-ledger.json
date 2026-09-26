@@ -1,5 +1,265 @@
 {
   "claims": {
+    "clm-1a593b1164-c1": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/캐릭터 스탯 명세서.md",
+          "relation": "supports",
+          "source_id": "src-75fdaf3e883741b06672"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - 캐릭터 스탯 명세서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "캐릭터 스탯 명세서는 공격 경직치가 대상의 현재 PP 이상일 때만 히트 리액션을 재생하고, 어빌리티 사용 중 PP를 일시적으로 올릴 수 있도록 제안한다."
+    },
+    "clm-1a593b1164-c2": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/캐릭터 스탯 명세서.md",
+          "relation": "supports",
+          "source_id": "src-75fdaf3e883741b06672"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - 캐릭터 스탯 명세서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "캐릭터 스탯 명세서는 적의 DP가 MaxDP에 도달하면 그로기가 발생하고 5초 후 DP가 0이 되며 그로기에서 회복되도록 제안한다."
+    },
+    "clm-1a593b1164-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/캐릭터 스탯 명세서.md",
+          "relation": "supports",
+          "source_id": "src-75fdaf3e883741b06672"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - 캐릭터 스탯 명세서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "캐릭터 스탯 명세서는 ASPD를 공격 AM 재생 속도에만 적용하고 가드·회피·사망 AM에는 적용하지 않도록 요구한다."
+    },
+    "clm-1a593b1164-c4": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/캐릭터 스탯 명세서.md",
+          "relation": "supports",
+          "source_id": "src-75fdaf3e883741b06672"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/기획서 - 캐릭터 스탯 명세서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "캐릭터 스탯 명세서는 ATK·DEF·스킬 계수를 쓰는 최종 피해 공식을 미정으로 남겨 두었다."
+    },
+    "clm-1a8255a883-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/WA_주인공_캐릭터.md",
+          "relation": "supports",
+          "source_id": "src-757f477d3daaafa3f171"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - WA_주인공_캐릭터.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WA_주인공_캐릭터 기획서는 고유 자원 최대 상태에서 강공격을 입력하면 고유 자원 스킬 1이 발동하고 10초 강화 버프(속성 피해 20%, 치명타 확률 25% 증가)를 얻도록 요구한다."
+    },
+    "clm-1a8255a883-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/WA_주인공_캐릭터.md",
+          "relation": "supports",
+          "source_id": "src-757f477d3daaafa3f171"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - WA_주인공_캐릭터.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WA_주인공_캐릭터 기획서는 강화 일반 공격 5단이 적중하면 대상 수와 무관하게 최대 HP의 10%만 회복하도록 요구한다."
+    },
+    "clm-1a8255a883-c3": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/WA_주인공_캐릭터.md",
+          "relation": "supports",
+          "source_id": "src-757f477d3daaafa3f171"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - WA_주인공_캐릭터.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WA_주인공_캐릭터 기획서는 고유 자원 획득량을 추후 입력으로 남겨 두었다."
+    },
+    "clm-21115045a0-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/SystemDesign/Core_Combat_System.md",
+          "relation": "supports",
+          "source_id": "src-29fa83e3956cdfe188e5"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - Core_Combat_System.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Core_Combat_System 기획서는 HP·MP·UP를 3대 핵심 자원으로 두고 HP의 자연 회복을 두지 않는다."
+    },
+    "clm-21115045a0-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/SystemDesign/Core_Combat_System.md",
+          "relation": "supports",
+          "source_id": "src-29fa83e3956cdfe188e5"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - Core_Combat_System.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Core_Combat_System 기획서는 UP가 MP 소모 스킬이 적에게 적중했을 때만 충전되도록 요구한다."
+    },
+    "clm-21115045a0-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/SystemDesign/Core_Combat_System.md",
+          "relation": "supports",
+          "source_id": "src-29fa83e3956cdfe188e5"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - Core_Combat_System.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Core_Combat_System 기획서는 패링(Just Guard) 성공 시 피해 0, MP 대량 수급, UP 소량 수급, 적 경직을 요구한다."
+    },
+    "clm-289a251fc5-c1": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/에스트병 기획서.md",
+          "relation": "supports",
+          "source_id": "src-6a3624fe45a27e84c05e"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - 에스트병 기획서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "에스트병 기획서는 포션을 기본 4개 소지, 최대 체력 40% 회복으로 두고 화톳불·보스 재도전·사망 후 재시작에서 최대 수량으로 충전하도록 요구한다."
+    },
+    "clm-289a251fc5-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/에스트병 기획서.md",
+          "relation": "supports",
+          "source_id": "src-6a3624fe45a27e84c05e"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - 에스트병 기획서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "에스트병 기획서는 포션을 GA 실행 즉시 1개 소비하고, 애니메이션 회복 프레임 전에 피격되면 회복 없이 실패하도록 요구한다."
+    },
+    "clm-289a251fc5-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/에스트병 기획서.md",
+          "relation": "supports",
+          "source_id": "src-6a3624fe45a27e84c05e"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - 에스트병 기획서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "에스트병 기획서는 포션 사용 중 이동·달리기는 허용하고 공격·스킬·회피·가드·중복 사용은 막도록 요구한다."
+    },
     "clm-2ca1fefddc-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -79,6 +339,286 @@
       "risk": "normal",
       "supersedes": null,
       "text": "cooldown-unification 작업의 사람 확인 4항목(회피 쿨다운·UI, 소환물 쿨다운 무시, 네트워크 복제, 코드 리뷰)은 2026-09-25 모두 통과했다."
+    },
+    "clm-2e1f79b6a3-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/전투 방향 변경에  따른 시스템 수정 요구사항.md",
+          "relation": "supports",
+          "source_id": "src-1497f4b6d288822484cc"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - 전투 방향 변경에  따른 시스템 수정 요구사항.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "전투 방향 변경 요구사항 문서는 패링을 저스트 가드가 아니라 적 애니메이션의 패링 가능 타이밍에 PC 공격이 적중할 때 발생하도록 바꾼다."
+    },
+    "clm-2e1f79b6a3-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/전투 방향 변경에  따른 시스템 수정 요구사항.md",
+          "relation": "supports",
+          "source_id": "src-1497f4b6d288822484cc"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - 전투 방향 변경에  따른 시스템 수정 요구사항.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "전투 방향 변경 요구사항 문서는 패링 히트 리액션 시 적의 최대 스태거 게이지 10%만큼 현재 스태거 게이지를 증가시키도록 요구한다."
+    },
+    "clm-2e1f79b6a3-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/전투 방향 변경에  따른 시스템 수정 요구사항.md",
+          "relation": "supports",
+          "source_id": "src-1497f4b6d288822484cc"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - 전투 방향 변경에  따른 시스템 수정 요구사항.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "전투 방향 변경 요구사항 문서는 가드와 저스트 가드를 막고, 스킬 키를 1~4에서 입력 시점·상태로 분기하는 E 단일 키로 바꾸도록 요구한다."
+    },
+    "clm-2e1f79b6a3-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/전투 방향 변경에  따른 시스템 수정 요구사항.md",
+          "relation": "supports",
+          "source_id": "src-1497f4b6d288822484cc"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/기획서 - 전투 방향 변경에  따른 시스템 수정 요구사항.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "전투 방향 변경 요구사항 문서는 그로기 시 앞잡을 비활성화하고, 우선도 낮은 항목으로 부조화 게이지 최대일 때 앞잡을 쓰도록 요구한다."
+    },
+    "clm-324dfa0982-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/WA_PC_규격서.md",
+          "relation": "supports",
+          "source_id": "src-e1a03d6129da9f4022a9"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - WA_PC_규격서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WA_PC_규격서는 캐릭터 속성을 회절(1)부터 응결(6)까지 6종으로 두고 무속성 피해는 캐릭터 속성이 아니라 피해 데이터에서 관리하도록 정한다."
+    },
+    "clm-324dfa0982-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/WA_PC_규격서.md",
+          "relation": "supports",
+          "source_id": "src-e1a03d6129da9f4022a9"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - WA_PC_규격서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WA_PC_규격서는 PC 보유 자원을 현재 HP·궁극기 게이지·스태미나·고유 자원으로 두고 스태미나를 일반적으로 강공격·회피·달리기에 소모하도록 정한다."
+    },
+    "clm-324dfa0982-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/WA_PC_규격서.md",
+          "relation": "supports",
+          "source_id": "src-e1a03d6129da9f4022a9"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - WA_PC_규격서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WA_PC_규격서는 공용 어빌리티와 같은 입력이라도 별도 조건·판정이 있으면 개별 어빌리티로 분류하고 해당 캐릭터 ABS에서 공용 어빌리티를 제거하도록 요구한다."
+    },
+    "clm-38ffdcb50d-c1": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/game-concept.md",
+          "relation": "supports",
+          "source_id": "src-6b3836cacc162bf55c17"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - game-concept.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "game-concept 기획서는 스텔라블레이드 전투 시스템을 재현한 1스테이지 프로토타입을 출시가 아닌 학습·검증 목적으로 만든다고 정의한다."
+    },
+    "clm-38ffdcb50d-c2": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/game-concept.md",
+          "relation": "supports",
+          "source_id": "src-6b3836cacc162bf55c17"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - game-concept.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "game-concept 기획서의 최소 기능 검증은 단일 보스 페이즈 1~2 BT 작동, 위험 신호 가독성, 보스 재도전 기능, 1스테이지 제작을 요구한다."
+    },
+    "clm-38ffdcb50d-c3": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/game-concept.md",
+          "relation": "supports",
+          "source_id": "src-6b3836cacc162bf55c17"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - game-concept.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "game-concept 기획서는 위험 신호를 빨강(연속공격)과 노랑(가드 불가)으로 구분하고 화면에서 가장 밝은 색으로 두도록 요구한다."
+    },
+    "clm-6a64dc7baa-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/PC규격서.md",
+          "relation": "supports",
+          "source_id": "src-655ce2708f432a15eb16"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - PC규격서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "PC규격서는 일반 가드가 피해를 50% 경감하고 경감량만큼 SP를 소모하며, SP가 0이 되면 가드가 해제되고 PC가 1초간 그로기에 빠지도록 요구한다."
+    },
+    "clm-6a64dc7baa-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/PC규격서.md",
+          "relation": "supports",
+          "source_id": "src-655ce2708f432a15eb16"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - PC규격서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "PC규격서는 약공격·강공격·스킬·궁극기·가드·점프·포션 마시기 7종 GA가 실행 중 AM의 AN_StartRecovery 이후 프레임에서 현재 GA를 캔슬하고 발동할 수 있도록 요구한다."
+    },
+    "clm-6a64dc7baa-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/PC규격서.md",
+          "relation": "supports",
+          "source_id": "src-655ce2708f432a15eb16"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - PC규격서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "PC규격서는 회피를 최대 2스택, 1초당 1스택 회복으로 두고 극한회피 성공 시 회피 스택 1을 회복하도록 요구한다."
+    },
+    "clm-6a64dc7baa-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/PC규격서.md",
+          "relation": "supports",
+          "source_id": "src-655ce2708f432a15eb16"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/기획서 - PC규격서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "PC규격서는 캔슬로 발동하는 GA가 활성화 차단 태그는 무시할 수 있지만 쿨타임·코스트·스택 조건은 무시하지 못한다고 정의한다."
     },
     "clm-9d2b6fff03-c1": {
       "assessment": "accepted",
@@ -380,6 +920,86 @@
       "supersedes": null,
       "text": "ability-table-driven 작업의 사람 인게임 확인 7항목(HGTest, 분신, 도플갱어, 조작감, 가드 경감·버프 아이콘, 템플릿 패시브 UP, 락온)은 이우성이 2026-09-25 통과로 기록했다."
     },
+    "clm-bcb6005476-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/명조 PC 시스템 역기획서.md",
+          "relation": "supports",
+          "source_id": "src-0a7a2abc95a7de9432e5"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - 명조 PC 시스템 역기획서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "명조 PC 시스템 역기획서는 피해를 HP 피해·스태거 피해·부조화 피해 3종으로 나누고 스태거 게이지가 HP 피해와 같은 양만큼 줄어든다고 적는다."
+    },
+    "clm-bcb6005476-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/명조 PC 시스템 역기획서.md",
+          "relation": "supports",
+          "source_id": "src-0a7a2abc95a7de9432e5"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - 명조 PC 시스템 역기획서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "명조 PC 시스템 역기획서는 방어 계수를 (800+8×PC레벨)/(800+8×공명자 레벨+적 방어력)×(1−방어무시%)×(1−방어감소)로, 적 방어력을 레벨×8+792로 정의한다."
+    },
+    "clm-bcb6005476-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/명조 PC 시스템 역기획서.md",
+          "relation": "supports",
+          "source_id": "src-0a7a2abc95a7de9432e5"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - 명조 PC 시스템 역기획서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "명조 PC 시스템 역기획서는 극한 회피를 대시 중 특정 프레임에 피격될 때 발동하는 공용 어빌리티로 정의한다."
+    },
+    "clm-bcb6005476-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/명조 PC 시스템 역기획서.md",
+          "relation": "supports",
+          "source_id": "src-0a7a2abc95a7de9432e5"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/기획서 - 명조 PC 시스템 역기획서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "명조 PC 시스템 역기획서는 피해 보너스·속성 저항·협주 게이지·변주/반주·에코 사용을 구현 불필요로 표시한다."
+    },
     "clm-de569da4d0-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -459,8 +1079,48 @@
       "risk": "normal",
       "supersedes": null,
       "text": "animnotify-categories 작업의 사람 확인 2항목(코드 리뷰, 타임라인 표시)은 이우성이 2026-09-25에 통과로 기록했다."
+    },
+    "clm-ecde107ded-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/조작키.MD",
+          "relation": "supports",
+          "source_id": "src-adc2c6a0d6e40300ee9d"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - 조작키.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "조작키 문서는 키보드에서 평타를 마우스 좌클릭, 강공격을 우클릭, 가드를 Q, 스킬을 1~4, 특수입력을 E, 상호작용·그로기 피니시를 F로 배치한다."
+    },
+    "clm-ecde107ded-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/조작키.MD",
+          "relation": "supports",
+          "source_id": "src-adc2c6a0d6e40300ee9d"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - 조작키.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "조작키 문서는 엑스박스 패드에서 스킬을 LB + XYAB 조합으로, 가드를 LB로 배치한다."
     }
   },
-  "generated_at": "2026-09-26T05:49:26Z",
+  "generated_at": "2026-09-26T05:50:11Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }
