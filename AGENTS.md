@@ -23,5 +23,5 @@
 
 - 작업 절차·작업 기록·상태 규칙의 정본은 `.agents/workflow/process/index.md` 한 장이다. 워크플로우 규칙은 이 파일에만 적고, 다른 문서에는 링크만 둔다.
 - 공용 스킬과 스크립트는 `.agents/`에서 관리한다.
-- 프로젝트 지식은 순정 LLM Wiki의 프로젝트 로컬 정본 `.wiki/_index.md`에서 탐색한다. Wiki 수정 시 순정 플러그인 절차와 `.wiki/config.md`·`.wiki/schema.md`를 따른다. `.wiki/`는 팀 공유를 위해 Git으로 추적하며 개인 Hub 경로에 의존하지 않는다.
-- 어빌리티(GA_·몽타주)·이펙트(GE)·캐릭터 구성(WxAbilitySet·속성 초기값) 조사는 `.agents/scripts/Export-AbilitySystemLists.ps1`을 실행한 뒤 `.wiki/wiki/references/`의 `ability-list.md`·`effect-list.md`·`character-list.md`부터 본다.
+- 프로젝트 지식은 claude-obsidian vault `Wiki/`의 `Wiki/wiki/index.md`에서 탐색한다. Wiki를 누가 어떻게 쓰는지는 작업 절차와 `Wiki/README.md`를 따른다.
+- 어빌리티(GA_·몽타주)·이펙트(GE)·캐릭터 구성(WxAbilitySet·속성 초기값) 조사는 `.agents/scripts/Export-AbilitySystemLists.ps1`을 실행한 뒤 `Saved/AbilitySystemLists/`의 `ability-list.md`·`effect-list.md`·`character-list.md`부터 본다.
