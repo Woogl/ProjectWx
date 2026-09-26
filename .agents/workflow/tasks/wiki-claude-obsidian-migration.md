@@ -1,7 +1,7 @@
 # Wiki를 claude-obsidian으로 전환하고 정기 갱신으로 운영
 
-상태: 확인 대기 · 체크리스트 20/25 통과
-다음 행동: AI는 커밋·푸시 뒤 대시보드로 이 PC 실제 갱신을 확인한다. 사람은 코드 리뷰, Routine 첫 실행, Wiki 갱신 버튼(새 방식), 다음 날 예약 실행을 확인한다.
+상태: 확인 대기 · 체크리스트 21/25 통과
+다음 행동: 사람은 코드 리뷰, Routine 첫 실행, Wiki 갱신 버튼(새 방식), 다음 날 예약 실행을 확인한다.
 
 - 날짜: 2026-09-26
 - 계기: AI 게임 개발 워크플로우에 claude-obsidian과 llm-wiki 중 무엇이 맞는지 묻는 사용자 질문에서 시작했다. 조사와 결정은 Claude Code 클라우드 세션에서 진행했고, 구현은 사용자가 새 세션에서 이어서 한다.
@@ -123,7 +123,7 @@
 | Wiki-Obsidian 래퍼 | 작업 트리에서 `node .agents/scripts/Wiki-Obsidian.cjs --version`과 `lint --vault Wiki` | AI | 통과 | WSL에서 claude-obsidian 2.2.0 실행, lint 131쪽·링크 1630개 이슈 0, `/mnt/wx-c`에 metadata 마운트가 자동으로 붙음 |
 | 첫 설치 흐름 | 시험 배포판을 `wsl --install Ubuntu --name WxProbe --no-launch`로 설치 → root로 python3 → 지움 | AI | 통과 | 창 없이 98초에 설치, 한 번도 실행하지 않은 배포판에서 root로 Python 3.14.4, Linux 사용자 0명, 지움 완료 |
 | Windows AI 시범 갱신 | 새 서버 코드의 준비 단계를 가짜 AI로 실행 → 작업 트리에 시험 원자료와 새 README를 넣고 이 작업 트리만 푸시 주소를 막음 → Windows의 Codex(표준 입력 요청문)가 README대로 갱신 → 되돌림 | AI | 통과 | 준비 단계 8초(LF 작업 트리, 기획서 CRLF 0개, 래퍼 확인 통과). Codex 258초: `transaction inspect`·`apply`·`lint`를 모두 래퍼로 실행, 원자료 1건 수집·노트 반영·lint 132쪽 이슈 0, 커밋 메시지 새 형식, 바뀐 Wiki 파일에 CRLF 없음, README와 원자료는 커밋에서 뺌. 푸시 없음, 작업 트리는 origin/main으로 되돌림 |
-| 이 PC 실제 갱신 | 커밋·푸시 뒤 대시보드 서버를 새로 띄우고 Wiki 갱신을 요청해 준비물 확인·LF 작업 트리·태그·래퍼 확인·AI 실행·lint까지 끝나는지 | AI | 대기 |  |
+| 이 PC 실제 갱신 | 커밋·푸시 뒤 대시보드 서버를 새로 띄우고 Wiki 갱신을 요청해 준비물 확인·LF 작업 트리·태그·래퍼 확인·AI 실행·lint까지 끝나는지 | AI | 통과 | `a5a50b359` 푸시 뒤 서버 재시작(revision 변경), 버튼과 같은 API로 Codex 요청 → 100초에 complete. 준비 10초, 대상 43개가 작업 트리 파일 해시로 바로 일치(우회 없음), 기한 경과 0, 래퍼 lint 131쪽 이슈 0, 바뀐 것이 없어 커밋·푸시 없음 |
 | 코드 리뷰 | 변경 파일은 구현 결과 절의 목록과 전환 마무리 절의 버튼 수정·대시보드 갱신 전환(Wiki-AI.cjs, Wiki-Obsidian.cjs, Workflow-TestFeedback.cjs의 runTerminalJob, wiki-viewer/workflow.js·test-feedback.js, 테스트 2개, Wiki/README.md, process/index.md). 볼 점: 완료 처리(record·complete), Workflow 전용 화면 정리, Wiki/README.md의 갱신 절차(래퍼·LF·거절 시 다시 하기·커밋 메시지), 준비물 자동 설치(`--no-launch`, 관리자 승인은 WSL이 없을 때만), 래퍼의 metadata 마운트와 root 실행, LF sparse 작업 트리와 HEAD:main 푸시, 처리할 AI 드롭다운(index.html·test-feedback.js), Saved/Workflow 경로 | 사람 | 대기 |  |
 | Routine 첫 실행 | 커밋·푸시 → AI에게 Routine 전환 요청 → 웹에서 Run now. Wiki/가 init되고 기획서·완료 기록이 수집되어 main에 푸시되며 lint의 provenance_errors·dead_links가 0이다. | 사람 | 대기 | AI 확인: 두 번째 실행(cse_017DwwnfEBCVpWtgefGEpA4H)이 원자료 109건을 수집해 커밋 20b0751~33cb7ea로 푸시했고 lint는 전 항목 0이다(이 PC 재검사도 0). 첫 실행은 외부 코드 거부로 실패했다. |
 | Wiki 갱신 버튼 | OpenWorkflow.bat → 왼쪽 메뉴 아래에서 AI를 고르고 Wiki 갱신을 누른다. 준비물이 없으면 설치 창이 열리고(WSL이 없을 때만 관리자 승인, Linux 사용자 만들기 없음), 있으면 터미널 창에서 그 AI가 갱신한다. 진행 중에는 버튼이 꺼지고, 끝나면 작업 기록 제목 아래에 결과가 보이며 바뀐 것이 있으면 main에 Wiki 커밋이 올라간다. | 사람 | 대기 | 방식이 바뀌었다(D9·D10·D12). Routine을 부르던 이전 방식의 확인 근거는 전환 마무리 절에 있다. |
