@@ -314,7 +314,11 @@ claude plugin install claude-obsidian@agricidaniel-claude-obsidian
     - 실측 결과 metadata 임시 마운트에서 쓰기가 통과하고, root로 실행해도 된다. `--no-launch`로 설치한 배포판은 Linux 사용자 없이 root로 바로 쓸 수 있다.
   - 구현한 것: `Wiki-Obsidian.cjs`(래퍼), `Wiki-AI.cjs`(WSL 확인, 설치 두 갈래, LF 작업 트리, 래퍼 확인), 테스트, `Wiki/README.md`(래퍼·LF·거절 시 다시 하기·커밋 메시지·준비물).
   - 검증: Windows의 Codex가 WSL 설치나 재로그인 없이 래퍼로 실제 쓰기까지 마쳤다(체크리스트 「Windows AI 시범 갱신」). 시범 스크립트에서 요청문을 PowerShell 5.1 인자로 넘기자 큰따옴표가 깨졌다. 대시보드 실행기처럼 표준 입력으로 넘겨 해결했다.
-  - 이 PC 정리: 옛 CRLF 작업 트리는 지우고 새로 만들었다. 시범으로 WSL에 설치한 Claude Code·Codex와 `~/.agents/skills` 연결은 새 방식에서 쓰지 않는다. 사용자가 두거나 지울 수 있다.
+  - 이 PC 정리: 옛 CRLF 작업 트리는 지우고 새로 만들었다.
+  - 사용자 요청: "워크플로우에서 레거시를 완전히 제거해주세요."
+    - 이 PC: WSL 홈의 시범 설치물을 지웠다. Claude Code와 Codex(각각의 로그인 정보·설정 포함), `~/.agents/skills` 연결, claude-obsidian 원본 사본, `.bashrc`의 Codex PATH 블록이다. 지운 뒤에도 래퍼 lint는 이슈 0이다.
+    - 저장소: 워크플로우 코드·문서·설정·BatchFiles를 검색했고 옛 방식의 흔적은 없었다(llm-wiki·`.wiki`·OpenWiki·`Saved/Wiki`·Routine 토큰 호출·`wsl.exe` 직접 호출·Linux 사용자 만들기). 작업 기록의 경과, Wiki 원자료, 기획서는 역사 자료라 대상에서 뺐다.
+    - 남긴 것: Ubuntu의 Linux 사용자 `woogle`은 옛 첫 실행 흐름에서 만든 것이다. 새 방식에는 필요 없지만 배포판 기본 사용자라 두었다.
 
 
 ## 사용자 테스트 결과 · 2026-09-26T07:51:40.855Z
