@@ -740,6 +740,86 @@
       "supersedes": null,
       "text": "WA_PC_규격서는 공용 어빌리티와 같은 입력이라도 별도 조건·판정이 있으면 개별 어빌리티로 분류하고 해당 캐릭터 ABS에서 공용 어빌리티를 제거하도록 요구한다."
     },
+    "clm-350702917e-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/dialogue-presentation-vm.md",
+          "relation": "supports",
+          "source_id": "src-4f16d3cb7a443cee86ee"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - dialogue-presentation-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "최종 구조에서 대화 UI는 WxDialogue 세션, WxGame의 UWxViewModelResolver_Dialogue, WxUI의 UWxViewModel_Dialogue 세 층으로 나뉘며 VM은 세션을 모른다."
+    },
+    "clm-350702917e-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/dialogue-presentation-vm.md",
+          "relation": "supports",
+          "source_id": "src-4f16d3cb7a443cee86ee"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - dialogue-presentation-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "UWxDialogueScreen 클래스는 사용자 요청으로 삭제되었고 WBP_DialogueScreen의 부모는 WxActivatableWidget으로 바뀌었다."
+    },
+    "clm-350702917e-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/dialogue-presentation-vm.md",
+          "relation": "supports",
+          "source_id": "src-4f16d3cb7a443cee86ee"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - dialogue-presentation-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "리졸버 복귀 구조는 WxEditor Development 빌드와 4개 WBP의 경고-오류 컴파일을 통과했고, 사용자가 2026-09-23 인게임에서 문제없다고 확인했다."
+    },
+    "clm-350702917e-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/dialogue-presentation-vm.md",
+          "relation": "supports",
+          "source_id": "src-4f16d3cb7a443cee86ee"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - dialogue-presentation-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "리졸버 구조에서는 대화 화면이 활성 상태가 아니어도 위젯이 생성되어 있는 동안 세션을 구독한다."
+    },
     "clm-38ffdcb50d-c1": {
       "assessment": "provisional",
       "confidence": "high",
@@ -799,6 +879,66 @@
       "risk": "normal",
       "supersedes": null,
       "text": "game-concept 기획서는 위험 신호를 빨강(연속공격)과 노랑(가드 불가)으로 구분하고 화면에서 가장 밝은 색으로 두도록 요구한다."
+    },
+    "clm-3fad528269-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/wiki-regeneration.md",
+          "relation": "supports",
+          "source_id": "src-04b23a4a80e0c6d02fec"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - wiki-regeneration.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "wiki-regeneration 작업은 2026-09-22 옛 .wiki를 재생성해 기사 17개·원자료 16개로 정리하고 legacy 19개를 삭제했다."
+    },
+    "clm-3fad528269-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/wiki-regeneration.md",
+          "relation": "supports",
+          "source_id": "src-04b23a4a80e0c6d02fec"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - wiki-regeneration.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "wiki-regeneration 작업의 검증은 lint·링크 검사·뷰어 테스트·렌더링에 한정되며 빌드·게임 실행·바이너리 에셋 내부는 검증하지 않았다."
+    },
+    "clm-3fad528269-c3": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/wiki-regeneration.md",
+          "relation": "supports",
+          "source_id": "src-04b23a4a80e0c6d02fec"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - wiki-regeneration.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "피니시 대상 우선순위(Q-001), 피니시 위치 조정 주체(Q-002), 현광 자원 예외 공통화(Q-003)는 wiki-regeneration 시점에 미확정으로 보존되었다."
     },
     "clm-5c8bdfa4b2-c1": {
       "assessment": "accepted",
@@ -1079,6 +1219,146 @@
       "risk": "normal",
       "supersedes": null,
       "text": "PC규격서는 캔슬로 발동하는 GA가 활성화 차단 태그는 무시할 수 있지만 쿨타임·코스트·스택 조건은 무시하지 못한다고 정의한다."
+    },
+    "clm-75f119c715-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/player-screen-classes-to-layout-component.md",
+          "relation": "supports",
+          "source_id": "src-0a24198e3cfec8246327"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - player-screen-classes-to-layout-component.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사망·대화 화면 클래스는 UWxUIDeveloperSettings에서 제거되어 UWxPlayerLayoutComponent의 DeathScreenClass·DialogueScreenClass로 옮겨졌다."
+    },
+    "clm-75f119c715-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/player-screen-classes-to-layout-component.md",
+          "relation": "supports",
+          "source_id": "src-0a24198e3cfec8246327"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - player-screen-classes-to-layout-component.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "UWxPlayerLayoutComponent는 폰 교체 시 대화 창만 닫고 사망 화면은 닫지 않으며, 사망 화면은 부활 요청 완료 때 스스로 비활성화된다."
+    },
+    "clm-75f119c715-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/player-screen-classes-to-layout-component.md",
+          "relation": "supports",
+          "source_id": "src-0a24198e3cfec8246327"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - player-screen-classes-to-layout-component.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "화면 클래스 이동 작업은 2026-09-23 사용자가 사망·부활·대화 흐름을 인게임에서 확인했으나 별도 코드 리뷰 승인 기록은 없다."
+    },
+    "clm-80c9cf979d-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/interaction-list-vm-simplification.md",
+          "relation": "supports",
+          "source_id": "src-1730cb541df1643b7273"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - interaction-list-vm-simplification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "상호작용 스캐너는 목록 변경과 선택 변경 신호를 OnRowsChanged 하나로 합쳤고, 목록 VM은 신호마다 행 전체를 다시 만든다."
+    },
+    "clm-80c9cf979d-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/interaction-list-vm-simplification.md",
+          "relation": "supports",
+          "source_id": "src-1730cb541df1643b7273"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - interaction-list-vm-simplification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "상호작용 문구는 실제로 일어날 행동의 주인이 가진다는 기준에 따라 Device는 StateTree, 픽업은 아이템 데이터, 피니시는 피니시 어빌리티가 문구를 가진다."
+    },
+    "clm-80c9cf979d-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/interaction-list-vm-simplification.md",
+          "relation": "supports",
+          "source_id": "src-1730cb541df1643b7273"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - interaction-list-vm-simplification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "StateTree 인스턴스 구조체의 FText에 C++ 기본값을 두면 값이 기본값과 같을 때 에셋 저장이 FortniteMain 커스텀 버전 불일치로 실패했다."
+    },
+    "clm-80c9cf979d-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/interaction-list-vm-simplification.md",
+          "relation": "supports",
+          "source_id": "src-1730cb541df1643b7273"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - interaction-list-vm-simplification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "상호작용 목록 VM 단순화와 엘리베이터 버튼 잠금은 2026-09-25 이우성이 인게임 5개 항목과 코드 리뷰를 모두 통과로 확인했다."
     },
     "clm-817893647b-c1": {
       "assessment": "accepted",
@@ -1459,6 +1739,86 @@
       "risk": "normal",
       "supersedes": null,
       "text": "animnotify-labels 작업의 라벨 값 일치와 가독성은 이우성이 2026-09-25 에디터에서 통과로 확인했다."
+    },
+    "clm-a387287572-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/nameplate-manager.md",
+          "relation": "supports",
+          "source_id": "src-adaaf5f0488283bcc1c8"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - nameplate-manager.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "적 Nameplate와 락온 레티클은 WxGame의 UWxNameplateManagerComponent가 로컬 플레이어 컨트롤러에서 붙이고 떼며, 표시 조건은 IsAlive() && (락온 대상 || (거리 안 && State.Engaged))이다."
+    },
+    "clm-a387287572-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/nameplate-manager.md",
+          "relation": "supports",
+          "source_id": "src-adaaf5f0488283bcc1c8"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - nameplate-manager.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Nameplate 작업은 State.LockedOn 태그, UWxNameplateSourceComponent, LockOnTargetQuery 델리게이트를 제거했고 State.Engaged 태그는 유지했다."
+    },
+    "clm-a387287572-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/nameplate-manager.md",
+          "relation": "supports",
+          "source_id": "src-adaaf5f0488283bcc1c8"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - nameplate-manager.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Nameplate 높이는 캡슐 반높이에 HeadClearance를 더한 값이며 헤더 기본값 90은 사용자가 의도한 값이다."
+    },
+    "clm-a387287572-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/nameplate-manager.md",
+          "relation": "supports",
+          "source_id": "src-adaaf5f0488283bcc1c8"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - nameplate-manager.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Nameplate 작업의 인게임 6개 항목(리슨 서버·원격 클라이언트 구분 포함)은 2026-09-25 이우성이 모두 통과로 확인했다."
     },
     "clm-a7d41122c6-c1": {
       "assessment": "accepted",
@@ -1980,6 +2340,86 @@
       "supersedes": null,
       "text": "WX_첫_보스_기획서는 BT 랜덤 데코레이터, 중복 패턴 방지, 특정 프레임 색상 공격 신호, 페이즈 변경·체크 기능을 구현 요청으로 적는다."
     },
+    "clm-d1d69945aa-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/workflow-review.md",
+          "relation": "supports",
+          "source_id": "src-997f58c17998f689ab53"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - workflow-review.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "워크플로우 규칙은 2026-09-26 사용자 결정에 따라 .agents/workflow/process/index.md 한 장을 정본으로 하고 AGENTS.md 등 다른 문서에는 링크만 둔다."
+    },
+    "clm-d1d69945aa-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/workflow-review.md",
+          "relation": "supports",
+          "source_id": "src-997f58c17998f689ab53"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - workflow-review.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "작업 상태는 기록의 질문·계획·테스트 체크리스트에서만 정해지며, 체크리스트가 모두 통과하면 즉시 완료되고 뒤이은 AI 정리는 상태를 바꾸지 않는다."
+    },
+    "clm-d1d69945aa-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/workflow-review.md",
+          "relation": "supports",
+          "source_id": "src-997f58c17998f689ab53"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - workflow-review.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "workflow-review 작업의 체크리스트 19개는 AI 12개와 사람 7개로 구성되어 모두 통과했으나, 바뀐 상태 규칙을 실제 AI 요청으로 다시 돌린 검증은 없다."
+    },
+    "clm-d1d69945aa-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/workflow-review.md",
+          "relation": "supports",
+          "source_id": "src-997f58c17998f689ab53"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - workflow-review.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "대화 세션 간 편집·빌드 조율 문제는 workflow-review 작업 완료 시점에도 미해결이다."
+    },
     "clm-db10390bbc-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -2300,6 +2740,86 @@
       "supersedes": null,
       "text": "Respawn_System 기획서는 부활을 사망으로만 일으키며 자발적 귀환 기능을 두지 않는다."
     },
+    "clm-eac1fbdeab-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/ui-data-interface-removal.md",
+          "relation": "supports",
+          "source_id": "src-fbf62a9104d918a4da32"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - ui-data-interface-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "IWxUIData 공용 인터페이스는 삭제되었고, UI 데이터 연결은 WxGame 리졸버의 정적 함수가 WxUI VM 델리게이트에 연결하는 방식으로 바뀌었다."
+    },
+    "clm-eac1fbdeab-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/ui-data-interface-removal.md",
+          "relation": "supports",
+          "source_id": "src-fbf62a9104d918a4da32"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - ui-data-interface-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "IWxUIData 제거 작업에서 도메인 간 Build.cs 의존성은 추가되지 않았고 WxEditor에만 WxCombat·WxGame 의존성이 추가되었다."
+    },
+    "clm-eac1fbdeab-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/ui-data-interface-removal.md",
+          "relation": "supports",
+          "source_id": "src-fbf62a9104d918a4da32"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - ui-data-interface-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "IWxUIData 제거 후 HUD·버프·보스·이름표 표시는 2026-09-25 이우성이 코드 리뷰와 플레이로 통과를 확인했다."
+    },
+    "clm-eac1fbdeab-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/ui-data-interface-removal.md",
+          "relation": "supports",
+          "source_id": "src-fbf62a9104d918a4da32"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - ui-data-interface-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "원격 클라이언트의 기존 스펙 복제 후 재매칭 신호 누락은 IWxUIData 제거 작업 뒤에도 별도 미해결로 남아 있다."
+    },
     "clm-ecde107ded-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -2399,8 +2919,88 @@
       "risk": "normal",
       "supersedes": null,
       "text": "WX_AM_기능정리 문서는 WX_Perfect_Guard가 가드 어빌리티 중 패링 판정 가능 프레임 구간을 지정하고, 그 구간에 막은 공격을 패링으로 처리한다고 적는다."
+    },
+    "clm-ffd457a168-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/quest-presentation-vm.md",
+          "relation": "supports",
+          "source_id": "src-8111c305354c561da569"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - quest-presentation-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "퀘스트 추적기는 WxQuest 컴포넌트, WxGame의 UWxViewModelResolver_Quest, WxUI의 Quest VM 세 층으로 구성되며 UWxQuestTracker 화면 클래스는 삭제되었다."
+    },
+    "clm-ffd457a168-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/quest-presentation-vm.md",
+          "relation": "supports",
+          "source_id": "src-8111c305354c561da569"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - quest-presentation-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "FWxOnQuestJournalChanged는 VM 소유 약한 람다를 걸기 위해 동적 델리게이트에서 네이티브 멀티캐스트 델리게이트로 바뀌었다."
+    },
+    "clm-ffd457a168-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/quest-presentation-vm.md",
+          "relation": "supports",
+          "source_id": "src-8111c305354c561da569"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - quest-presentation-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "퀘스트 리졸버는 GameState 퀘스트 컴포넌트보다 위젯이 먼저 생기면 나중에 연결하지 않는다."
+    },
+    "clm-ffd457a168-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/quest-presentation-vm.md",
+          "relation": "supports",
+          "source_id": "src-8111c305354c561da569"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - quest-presentation-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "퀘스트 추적기 리졸버 구조는 2026-09-23 사용자가 인게임에서 문제없다고 확인했다."
     }
   },
-  "generated_at": "2026-09-26T05:50:30Z",
+  "generated_at": "2026-09-26T05:50:43Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }

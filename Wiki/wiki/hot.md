@@ -13,33 +13,29 @@ tags:
 
 ## Last Updated
 
-2026-09-26 · ingest-20260926T055030Z-b02
+2026-09-26 · ingest-20260926T055043Z-b05
 
 ## Key Recent Facts
 
-- [[기획서 - 그로기_시스템]]: 스태거 게이지가 최대치에 도달한 적의 무력화(그로기) 공통 규칙과 발생·유지·종료, 피격 판정 순서를 정의한 초안 기획서
-- [[기획서 - 그로기_피니시_시스템_기획서]]: 그로기 상태 적에게 반경 3m 안에서 상호작용 키로 발동하는 강공격 그로기 피니시의 발동 조건·진행 규칙·예외를 정의한 기획서
-- [[기획서 - 경직 수정본]]: GA 종류와 경직 원인·결과 판정으로 PC와 적의 히트 리액션 발생 여부를 하나의 흐름으로 통합하고 패링 경직을 정의한 기획서
-- [[기획서 - 뒤잡_시스템]]: 미인식 상태 적의 등 뒤 1.5m 안에서 상호작용 키로 발동하는 기습 공격 뒤잡의 조건·대상 등급·연출 규칙을 정의한 초안 기획서
-- [[기획서 - 적 규격서]]: 모든 적 전투 설계의 기반이 되는 적 전투 컨셉, HP·경직도·스태거 자원, 공통 어빌리티, 피격 판정 순서, 몬스터 등급 규격을 정의한 기획서
-- [[기획서 - 명조 적 시스템 역기획서]]: 명조의 적 스탯·보유 자원·공용 어빌리티·데미지 공식·패링 효과를 역기획해 WX 적 구조의 참고 기준으로 정리한 문서
-- [[기획서 - Elite_monster]]: 첫 보스 커스터의 패링 학습을 예습시키는 양손 망치형 엘리트 01의 배치·외형·패턴 구성과 그로기 시 갑옷 파괴 기믹을 정리한 기획서
-- [[기획서 - normal_monster_BT]]: 일반급 몬스터 검사·건 암·단검사의 역할, 패턴 스펙 표(분류·거리·재사용 제한·조건)와 스탯, 미확정 수치를 정리한 기획서
-- [[기획서 - boss_common_bt_draft]]: 보스 BT를 페이즈 전환 → 거리 조정 → 강공격군 → 일반공격군 → 비공격 행동 순의 Selector와 패턴군 내부 선택으로 구성하는 공통 초안
-- [[기획서 - WX_첫_보스_기획서]]: 첫 보스 커스터를 느리고 전조가 명확한 학습형 보스로 정하고 2페이즈 템포, 7개 패턴과 파훼법, BT 기능 요청을 정리한 기획서
+- [[작업 - dialogue-presentation-vm]]: Dialogue VM을 WxUI의 순수 표시 데이터로 분리하고, 화면 클래스를 거쳐 최종적으로 WxGame 리졸버 세 층 구조로 정리한 완료 작업 기록
+- [[작업 - interaction-list-vm-simplification]]: 상호작용 목록 VM을 유지하되 스캐너 신호를 OnRowsChanged 하나로 합쳐 단순화하고, 문구 출처 기준과 엘리베이터 탑승칸 버튼 잠금까지 정리한 완료 작업 기록
+- [[작업 - nameplate-manager]]: 적 Nameplate와 락온 레티클을 로컬 플레이어 컨트롤러의 NameplateManager가 붙이고 떼는 구조로 바꾸고 WxGame으로 옮긴 완료 작업 기록
+- [[작업 - player-screen-classes-to-layout-component]]: 사망·대화 화면 클래스를 UI 개발자 설정에서 플레이어 레이아웃 컴포넌트로 옮기고 태그 관찰 책임도 함께 이동한 완료 작업 기록
+- [[작업 - quest-presentation-vm]]: Quest·QuestObjective VM을 WxUI 순수 표시 데이터로 옮기고, 화면 클래스를 거쳐 WxGame 퀘스트 리졸버 세 층 구조로 정리한 완료 작업 기록
+- [[작업 - ui-data-interface-removal]]: 공용 IWxUIData 인터페이스를 없애고 WxCombat 데이터·규칙, WxUI VM, WxGame 리졸버 연결로 역할을 나눈 완료 작업 기록
+- [[작업 - wiki-regeneration]]: 옛 .wiki LLM Wiki를 현재 코드·설정·기획 기준으로 전면 재생성하고 대체된 legacy 문서를 정리한 2026-09-22 완료 작업 기록
+- [[작업 - workflow-review]]: AI 작업 워크플로우를 점검하고 작업 절차 한 장·세 단계·테스트 체크리스트·웹 새 작업과 이어하기로 단순화한 2026-09-22~26 완료 작업 기록
 
 ## Recent Changes
 
-- [[기획서 - 그로기_시스템]]
-- [[기획서 - 그로기_피니시_시스템_기획서]]
-- [[기획서 - 경직 수정본]]
-- [[기획서 - 뒤잡_시스템]]
-- [[기획서 - 적 규격서]]
-- [[기획서 - 명조 적 시스템 역기획서]]
-- [[기획서 - Elite_monster]]
-- [[기획서 - normal_monster_BT]]
-- [[기획서 - boss_common_bt_draft]]
-- [[기획서 - WX_첫_보스_기획서]]
+- [[작업 - dialogue-presentation-vm]]
+- [[작업 - interaction-list-vm-simplification]]
+- [[작업 - nameplate-manager]]
+- [[작업 - player-screen-classes-to-layout-component]]
+- [[작업 - quest-presentation-vm]]
+- [[작업 - ui-data-interface-removal]]
+- [[작업 - wiki-regeneration]]
+- [[작업 - workflow-review]]
 
 ## Active Threads
 

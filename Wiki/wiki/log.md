@@ -13,6 +13,10 @@ tags:
 
 Newest completed operations appear first.
 
+## 2026-09-26 · ingest-20260926T055043Z-b05
+
+완료 작업 기록(2/2) 8건 수집. 원자료: [[작업 - dialogue-presentation-vm]], [[작업 - interaction-list-vm-simplification]], [[작업 - nameplate-manager]], [[작업 - player-screen-classes-to-layout-component]], [[작업 - quest-presentation-vm]], [[작업 - ui-data-interface-removal]], [[작업 - wiki-regeneration]], [[작업 - workflow-review]]. 갱신한 주제: [[UI 표시 구조]], [[Wiki 운영]], [[그로기·경직·피니시]], [[모듈 구조와 코드 정리]], [[상호작용과 장치]], [[어빌리티와 GAS]], [[작업 절차(Workflow)]], [[적 AI와 몬스터]], [[체크포인트와 리스폰]], [[캐릭터 스탯과 전투 자원]], [[퀘스트와 대화]].
+
 ## 2026-09-26 · ingest-20260926T055030Z-b02
 
 기획서(그로기·적·보스) 10건 수집. 원자료: [[기획서 - 그로기_시스템]], [[기획서 - 그로기_피니시_시스템_기획서]], [[기획서 - 경직 수정본]], [[기획서 - 뒤잡_시스템]], [[기획서 - 적 규격서]], [[기획서 - 명조 적 시스템 역기획서]], [[기획서 - Elite_monster]], [[기획서 - normal_monster_BT]], [[기획서 - boss_common_bt_draft]], [[기획서 - WX_첫_보스_기획서]]. 갱신한 주제: [[게임 개요와 전투 방향]], [[그로기·경직·피니시]], [[레벨 디자인]], [[보스 전투]], [[상호작용과 장치]], [[어빌리티와 GAS]], [[적 AI와 몬스터]], [[캐릭터 스탯과 전투 자원]], [[피해 파이프라인]].

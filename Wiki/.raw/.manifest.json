@@ -20,6 +20,24 @@
       "source_id": "src-9b357e71cbd4160f0f05",
       "title": "Docs/CombatDesign/Nameplate_System.md"
     },
+    ".raw/captured/1db48fbd85c15b2d492e2b08e34b0a80db202c09fa30483b7544184dd0e8eed4.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - wiki-regeneration.md"
+      ],
+      "sha256": "1db48fbd85c15b2d492e2b08e34b0a80db202c09fa30483b7544184dd0e8eed4",
+      "source_id": "src-04b23a4a80e0c6d02fec",
+      "title": ".agents/workflow/tasks/wiki-regeneration.md"
+    },
+    ".raw/captured/28130d6e3e3c13b776af54d4de37b50c73dbafcba2c69355652d63d4c915954c.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - ui-data-interface-removal.md"
+      ],
+      "sha256": "28130d6e3e3c13b776af54d4de37b50c73dbafcba2c69355652d63d4c915954c",
+      "source_id": "src-fbf62a9104d918a4da32",
+      "title": ".agents/workflow/tasks/ui-data-interface-removal.md"
+    },
     ".raw/captured/30a14e312982fae0a893540279e4116bac0be84bae21a89b803d780dcaa8937f.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -47,6 +65,15 @@
       "source_id": "src-77f121f89f4d09dc254b",
       "title": ".agents/workflow/tasks/datatable-row-rename-reference-update.md"
     },
+    ".raw/captured/3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - interaction-list-vm-simplification.md"
+      ],
+      "sha256": "3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7",
+      "source_id": "src-1730cb541df1643b7273",
+      "title": ".agents/workflow/tasks/interaction-list-vm-simplification.md"
+    },
     ".raw/captured/3d1e1754c2ab838a480535abe4d113f0e5291f3b0584ca63480880fb603b4675.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -73,6 +100,15 @@
       "sha256": "467a0708f3f75f733f3717531f827406fedbb73484735e56eaf0bfb4265effe4",
       "source_id": "src-09d71a1b41356e448261",
       "title": "Docs/CombatDesign/그로기_피니시_시스템_기획서.md"
+    },
+    ".raw/captured/497e41550f7115470f33ede2b94572b0960d4406dd313213b06421dc8f7d7f4c.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - player-screen-classes-to-layout-component.md"
+      ],
+      "sha256": "497e41550f7115470f33ede2b94572b0960d4406dd313213b06421dc8f7d7f4c",
+      "source_id": "src-0a24198e3cfec8246327",
+      "title": ".agents/workflow/tasks/player-screen-classes-to-layout-component.md"
     },
     ".raw/captured/4a3c94e2677551a53fb9e381698c7cd8d429322687eaa89a73d819e144ded239.md": {
       "ingested": "2026-09-26",
@@ -110,6 +146,15 @@
       "source_id": "src-14ce24a072e8f0124b40",
       "title": "Docs/CombatDesign/boss_common_bt_draft.md"
     },
+    ".raw/captured/59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - workflow-review.md"
+      ],
+      "sha256": "59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206",
+      "source_id": "src-997f58c17998f689ab53",
+      "title": ".agents/workflow/tasks/workflow-review.md"
+    },
     ".raw/captured/5ef1e5f8941b0be03a5211990189016c1ecc851744385b7e84cd0b9c9995c784.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -127,6 +172,15 @@
       "sha256": "6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e",
       "source_id": "src-4094d8d54f71a0271819",
       "title": ".agents/workflow/tasks/datatable-row-preview.md"
+    },
+    ".raw/captured/6b19e4bae75efc3cbeddf6a3cbfb3f2a1a78bdf3f6d63724aa125c13bf711bf3.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - dialogue-presentation-vm.md"
+      ],
+      "sha256": "6b19e4bae75efc3cbeddf6a3cbfb3f2a1a78bdf3f6d63724aa125c13bf711bf3",
+      "source_id": "src-4f16d3cb7a443cee86ee",
+      "title": ".agents/workflow/tasks/dialogue-presentation-vm.md"
     },
     ".raw/captured/6d65717f2c0a5202d98bd731bd6bb04b1303101563323c07be80adcf6b8a9ba8.md": {
       "ingested": "2026-09-26",
@@ -245,6 +299,15 @@
       "source_id": "src-6a3624fe45a27e84c05e",
       "title": "Docs/CombatDesign/에스트병 기획서.md"
     },
+    ".raw/captured/b6020103ecffc7507a7ae78cb774df9d1287a01763acc6ca9fd2a9394ac2ce64.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - nameplate-manager.md"
+      ],
+      "sha256": "b6020103ecffc7507a7ae78cb774df9d1287a01763acc6ca9fd2a9394ac2ce64",
+      "source_id": "src-adaaf5f0488283bcc1c8",
+      "title": ".agents/workflow/tasks/nameplate-manager.md"
+    },
     ".raw/captured/b7733e6d5d5e9775110e5b2f8a574f9255ac6cfe5453bf6b0cc165287d9a2a6d.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -253,6 +316,15 @@
       "sha256": "b7733e6d5d5e9775110e5b2f8a574f9255ac6cfe5453bf6b0cc165287d9a2a6d",
       "source_id": "src-b693f6fd80bca30f050d",
       "title": "Docs/CombatDesign/Respawn_System.md"
+    },
+    ".raw/captured/bf8c3017b5d459b888e5ecfa0c72a0e7425553b1191805f4c3b9af62b210e18f.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - quest-presentation-vm.md"
+      ],
+      "sha256": "bf8c3017b5d459b888e5ecfa0c72a0e7425553b1191805f4c3b9af62b210e18f",
+      "source_id": "src-8111c305354c561da569",
+      "title": ".agents/workflow/tasks/quest-presentation-vm.md"
     },
     ".raw/captured/c0dfd2799640857556422f1c1f7cd0084953eccbeb0b2fbbf81a479fbf6cdf75.md": {
       "ingested": "2026-09-26",

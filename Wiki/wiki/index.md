@@ -16,6 +16,7 @@ WX의 게임 규칙·구현·결정을 모은 claude-obsidian vault입니다. �
 ## 주제
 
 - [[UI 표시 구조]] — VM·리졸버·Nameplate 등 화면 표시 연결 구조
+- [[Wiki 운영]] — 팀 Wiki의 운영 규칙과 전환 이력
 - [[게임 개요와 전투 방향]] — WX의 게임 콘셉트, 핵심 전투 루프와 전투 방향 변경 요구
 - [[그로기·경직·피니시]] — 그로기 게이지, 경직, 뒤잡·피니시 규칙과 구현
 - [[레벨 디자인]] — 레벨 배치용 몬스터, 오브젝트, 레벨 사양서
@@ -25,6 +26,7 @@ WX의 게임 규칙·구현·결정을 모은 claude-obsidian vault입니다. �
 - [[아이템과 회복]] — 에스트병 등 회복 아이템과 아이템 VM
 - [[어빌리티와 GAS]] — GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조
 - [[에디터 도구]] — AnimNotify 분류·라벨, DataTable 행 미리보기·참조 갱신 등 편집기 기능
+- [[작업 절차(Workflow)]] — AI·사람 작업 절차, 대시보드, 테스트 체크리스트 운영 결정
 - [[적 AI와 몬스터]] — 일반·정예 몬스터 규격, BT·AI 제어, 순찰
 - [[체크포인트와 리스폰]] — 체크포인트 저장(SaveGame)과 리스폰 규칙
 - [[캐릭터 스탯과 전투 자원]] — 체력·스태미나 등 스탯 명세와 전투 자원 규칙
@@ -72,6 +74,14 @@ WX의 게임 규칙·구현·결정을 모은 claude-obsidian vault입니다. �
 - [[작업 - cooldown-unification]] — 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 공용 GE 하나로 통합하고 CooldownTags로 구분하게 바꾼 작업 기록으로, 사람 확인 4/4 통과로 완료됐다.
 - [[작업 - datatable-row-preview]] — DataTable 행 미리보기에서 데이터 없는 구조체를 {}로 축약하고 셀과 툴팁을 같은 텍스트로 맞춘 에디터 작업 기록으로, 사람 확인 3/3 통과로 완료됐다.
 - [[작업 - datatable-row-rename-reference-update]] — DataTable 행 이름 변경 시 FDataTableRowHandle 참조를 자동 갱신하는 에디터 플러그인 DataTableRowFixup을 추가한 작업으로 2026-09-23 완료됐다.
+- [[작업 - dialogue-presentation-vm]] — Dialogue VM을 WxUI의 순수 표시 데이터로 분리하고, 화면 클래스를 거쳐 최종적으로 WxGame 리졸버 세 층 구조로 정리한 완료 작업 기록
+- [[작업 - interaction-list-vm-simplification]] — 상호작용 목록 VM을 유지하되 스캐너 신호를 OnRowsChanged 하나로 합쳐 단순화하고, 문구 출처 기준과 엘리베이터 탑승칸 버튼 잠금까지 정리한 완료 작업 기록
+- [[작업 - nameplate-manager]] — 적 Nameplate와 락온 레티클을 로컬 플레이어 컨트롤러의 NameplateManager가 붙이고 떼는 구조로 바꾸고 WxGame으로 옮긴 완료 작업 기록
+- [[작업 - player-screen-classes-to-layout-component]] — 사망·대화 화면 클래스를 UI 개발자 설정에서 플레이어 레이아웃 컴포넌트로 옮기고 태그 관찰 책임도 함께 이동한 완료 작업 기록
+- [[작업 - quest-presentation-vm]] — Quest·QuestObjective VM을 WxUI 순수 표시 데이터로 옮기고, 화면 클래스를 거쳐 WxGame 퀘스트 리졸버 세 층 구조로 정리한 완료 작업 기록
+- [[작업 - ui-data-interface-removal]] — 공용 IWxUIData 인터페이스를 없애고 WxCombat 데이터·규칙, WxUI VM, WxGame 리졸버 연결로 역할을 나눈 완료 작업 기록
+- [[작업 - wiki-regeneration]] — 옛 .wiki LLM Wiki를 현재 코드·설정·기획 기준으로 전면 재생성하고 대체된 legacy 문서를 정리한 2026-09-22 완료 작업 기록
+- [[작업 - workflow-review]] — AI 작업 워크플로우를 점검하고 작업 절차 한 장·세 단계·테스트 체크리스트·웹 새 작업과 이어하기로 단순화한 2026-09-22~26 완료 작업 기록
 
 ## 원자료: 결정 노트
 

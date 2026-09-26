@@ -19,6 +19,7 @@ sources:
   - "[[기획서 - 레벨_배치용_잡몹]]"
   - "[[기획서 - 적 규격서]]"
   - "[[작업 - ability-table-driven]]"
+  - "[[작업 - nameplate-manager]]"
 ---
 
 # 적 AI와 몬스터
@@ -60,6 +61,7 @@ sources:
 ## 구현 관찰
 
 - BT 노드(ActivateAbility·ObserveAbility·MirrorMovement)는 GA_ 복귀 후 스펙 동적 태그 없이 CDO 에셋 태그로 어빌리티를 고르며, 솔저 BT가 Ability.Pattern.N 에셋 태그로 패턴을 발동함을 PIE로 확인했다. ([[작업 - ability-table-driven]])
+- State.Engaged 태그는 AWxEnemyCharacter::RefreshEngagement가 IsAlive()와 자기 락온 대상 유무로 붙이며 NameplateManager와 뒤잡 판정이 이 태그를 읽는다. ([[작업 - nameplate-manager]])
 
 ## 검증 범위
 
@@ -89,3 +91,4 @@ sources:
 - [[기획서 - 레벨_배치용_잡몹]] — 명조 기관인형을 레퍼런스로 한 레벨 배치용 잡몹의 거리 기반 행동 흐름(8m 인지, 3m 접근, 3초 제한)과 패턴 3종을 정의한 짧은 기획서
 - [[기획서 - 적 규격서]] — 모든 적 전투 설계의 기반이 되는 적 전투 컨셉, HP·경직도·스태거 자원, 공통 어빌리티, 피격 판정 순서, 몬스터 등급 규격을 정의한 기획서
 - [[작업 - ability-table-driven]] — 어빌리티를 DataTable 행으로 구동하려던 전환 작업 기록으로, 여러 단계 구현 끝에 GA_ 에셋 방식으로 복귀해 테이블화 없이 체크리스트 7/7 통과로 마무리됐다.
+- [[작업 - nameplate-manager]] — 적 Nameplate와 락온 레티클을 로컬 플레이어 컨트롤러의 NameplateManager가 붙이고 떼는 구조로 바꾸고 WxGame으로 옮긴 완료 작업 기록

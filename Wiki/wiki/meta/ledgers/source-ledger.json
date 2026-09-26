@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T05:50:30Z",
+  "generated_at": "2026-09-26T05:50:43Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
     "src-016c4f4d42be310c6137": {
@@ -20,6 +20,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/WX_BT_기능정리.md"
+    },
+    "src-04b23a4a80e0c6d02fec": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "1db48fbd85c15b2d492e2b08e34b0a80db202c09fa30483b7544184dd0e8eed4",
+      "independence_key": ".agents/workflow/tasks/wiki-regeneration.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/1db48fbd85c15b2d492e2b08e34b0a80db202c09fa30483b7544184dd0e8eed4.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - wiki-regeneration.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/wiki-regeneration.md"
     },
     "src-0609045bc83d7ede2734": {
       "authority": "primary",
@@ -58,6 +77,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/그로기_피니시_시스템_기획서.md"
+    },
+    "src-0a24198e3cfec8246327": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "497e41550f7115470f33ede2b94572b0960d4406dd313213b06421dc8f7d7f4c",
+      "independence_key": ".agents/workflow/tasks/player-screen-classes-to-layout-component.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/497e41550f7115470f33ede2b94572b0960d4406dd313213b06421dc8f7d7f4c.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - player-screen-classes-to-layout-component.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/player-screen-classes-to-layout-component.md"
     },
     "src-0a7a2abc95a7de9432e5": {
       "authority": "primary",
@@ -115,6 +153,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/boss_common_bt_draft.md"
+    },
+    "src-1730cb541df1643b7273": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7",
+      "independence_key": ".agents/workflow/tasks/interaction-list-vm-simplification.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - interaction-list-vm-simplification.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/interaction-list-vm-simplification.md"
     },
     "src-29fa83e3956cdfe188e5": {
       "authority": "primary",
@@ -210,6 +267,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/경직 수정본.md"
+    },
+    "src-4f16d3cb7a443cee86ee": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "6b19e4bae75efc3cbeddf6a3cbfb3f2a1a78bdf3f6d63724aa125c13bf711bf3",
+      "independence_key": ".agents/workflow/tasks/dialogue-presentation-vm.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/6b19e4bae75efc3cbeddf6a3cbfb3f2a1a78bdf3f6d63724aa125c13bf711bf3.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - dialogue-presentation-vm.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/dialogue-presentation-vm.md"
     },
     "src-655ce2708f432a15eb16": {
       "authority": "primary",
@@ -363,6 +439,25 @@
       "supersedes": null,
       "title": ".agents/workflow/tasks/datatable-row-rename-reference-update.md"
     },
+    "src-8111c305354c561da569": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "bf8c3017b5d459b888e5ecfa0c72a0e7425553b1191805f4c3b9af62b210e18f",
+      "independence_key": ".agents/workflow/tasks/quest-presentation-vm.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/bf8c3017b5d459b888e5ecfa0c72a0e7425553b1191805f4c3b9af62b210e18f.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - quest-presentation-vm.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/quest-presentation-vm.md"
+    },
     "src-901a863b1604f4b7600b": {
       "authority": "primary",
       "content_kind": "document",
@@ -381,6 +476,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/LevelDesign/레버_증기_사양서.md"
+    },
+    "src-997f58c17998f689ab53": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206",
+      "independence_key": ".agents/workflow/tasks/workflow-review.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - workflow-review.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/workflow-review.md"
     },
     "src-9b357e71cbd4160f0f05": {
       "authority": "primary",
@@ -438,6 +552,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".agents/workflow/tasks/animnotify-categories.md"
+    },
+    "src-adaaf5f0488283bcc1c8": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "b6020103ecffc7507a7ae78cb774df9d1287a01763acc6ca9fd2a9394ac2ce64",
+      "independence_key": ".agents/workflow/tasks/nameplate-manager.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/b6020103ecffc7507a7ae78cb774df9d1287a01763acc6ca9fd2a9394ac2ce64.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - nameplate-manager.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/nameplate-manager.md"
     },
     "src-adc2c6a0d6e40300ee9d": {
       "authority": "primary",
@@ -647,6 +780,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/LevelDesign/Wx_Quest.md"
+    },
+    "src-fbf62a9104d918a4da32": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "28130d6e3e3c13b776af54d4de37b50c73dbafcba2c69355652d63d4c915954c",
+      "independence_key": ".agents/workflow/tasks/ui-data-interface-removal.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/28130d6e3e3c13b776af54d4de37b50c73dbafcba2c69355652d63d4c915954c.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - ui-data-interface-removal.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/ui-data-interface-removal.md"
     },
     "src-fe76a230ff8efba25b5f": {
       "authority": "primary",

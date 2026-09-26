@@ -16,6 +16,7 @@ sources:
   - "[[기획서 - 그로기_피니시_시스템_기획서]]"
   - "[[작업 - ability-table-driven]]"
   - "[[작업 - cooldown-unification]]"
+  - "[[작업 - ui-data-interface-removal]]"
 ---
 
 # 어빌리티와 GAS
@@ -50,6 +51,8 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 콤보·패턴 몽타주는 번호 섹션 1, 2…를 가진 몽타주 하나로 병합되었고 단계 전환은 같은 몽타주를 다음 섹션부터 새로 재생한다. ([[작업 - ability-table-driven]])
 - ApplyCooldown은 CooldownTags를 스펙 DynamicGrantedTags에 붙이고, 같은 태그의 최대 남은 시간에 CooldownTime을 더한 값을 SetByCaller.Duration으로 넘겨 충전을 차례로 회복시킨다. ([[작업 - cooldown-unification]])
 - 공용 쿨다운 GE는 엔진 WarnCooldownEffectWithoutTags 규칙을 만족하도록 Cooldown 부모 태그를 부여하고, 빈 CooldownTags면 CheckCooldown이 먼저 통과시킨다. ([[작업 - cooldown-unification]])
+- 어빌리티 슬롯 VM은 어빌리티 제거로 인스턴스가 Garbage가 된 경우를 IsExplicitlyNull()로 처음부터 빈 슬롯과 구분해 제목·충전을 초기화한다. ([[작업 - ui-data-interface-removal]])
+- 공유 AbilitySystem VM의 효과 목록 연결은 한 번만 설정되며 연결 전 조회된 빈 목록은 현재 활성 GE로 보충된다. ([[작업 - ui-data-interface-removal]])
 
 ## 검증 범위
 
@@ -70,3 +73,4 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - [[기획서 - 그로기_피니시_시스템_기획서]] — 그로기 상태 적에게 반경 3m 안에서 상호작용 키로 발동하는 강공격 그로기 피니시의 발동 조건·진행 규칙·예외를 정의한 기획서
 - [[작업 - ability-table-driven]] — 어빌리티를 DataTable 행으로 구동하려던 전환 작업 기록으로, 여러 단계 구현 끝에 GA_ 에셋 방식으로 복귀해 테이블화 없이 체크리스트 7/7 통과로 마무리됐다.
 - [[작업 - cooldown-unification]] — 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 공용 GE 하나로 통합하고 CooldownTags로 구분하게 바꾼 작업 기록으로, 사람 확인 4/4 통과로 완료됐다.
+- [[작업 - ui-data-interface-removal]] — 공용 IWxUIData 인터페이스를 없애고 WxCombat 데이터·규칙, WxUI VM, WxGame 리졸버 연결로 역할을 나눈 완료 작업 기록
