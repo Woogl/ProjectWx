@@ -13,6 +13,10 @@ tags:
 
 Newest completed operations appear first.
 
+## 2026-09-26 · ingest-20260926-overview
+
+첫 전체 수집(기획서 29건, 완료 작업 기록 14건, 옛 Wiki 결정 노트 66건)을 마치고 vault 개요를 한국어로 채웠다.
+
 ## 2026-09-26 · ingest-20260926T055111Z-b11
 
 옛 Wiki 결정 노트(6/6) 11건 수집. 원자료: [[결정 노트 - 2026-09-26-workflow-human-verification]], [[결정 노트 - 2026-09-26-workflow-image-removal]], [[결정 노트 - 2026-09-26-workflow-korean-record-names]], [[결정 노트 - 2026-09-26-workflow-legacy-removal]], [[결정 노트 - 2026-09-26-workflow-process-diagram]], [[결정 노트 - 2026-09-26-workflow-result-fields-by-kind]], [[결정 노트 - 2026-09-26-workflow-row-actions-final]], [[결정 노트 - 2026-09-26-workflow-ssot-copies]], [[결정 노트 - 2026-09-26-workflow-state-from-record-only]], [[결정 노트 - 2026-09-26-workflow-tasks-guide-removed]], [[결정 노트 - 2026-09-26-workflow-web-tasks]]. 갱신한 주제: [[Wiki 운영]], [[작업 절차(Workflow)]].
