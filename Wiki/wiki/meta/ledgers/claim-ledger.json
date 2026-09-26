@@ -1,5 +1,145 @@
 {
   "claims": {
+    "clm-128c0f2c6b-c1": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/LevelDesign/Wx_Quest.md",
+          "relation": "supports",
+          "source_id": "src-f18b919b389d5ab5acdd"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - Wx_Quest.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Wx_Quest 기획서는 초반 메인 퀘스트 홀로 남은 마을 생존자를 마을 도착부터 공성포 발사 컷신 종료까지 8단계 목표로 구성하고, 각 단계의 완료 조건을 볼륨 진입·대화 종료·밸브 작동·엘리베이터 도착·패널 입력·적 전멸·컷신 종료로 정한다."
+    },
+    "clm-128c0f2c6b-c2": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/LevelDesign/Wx_Quest.md",
+          "relation": "supports",
+          "source_id": "src-f18b919b389d5ab5acdd"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - Wx_Quest.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Wx_Quest 기획서는 밸브 3개를 순서와 무관하게 모두 작동해야 다음 목표로 넘어가고, 작동한 밸브는 다시 상호작용할 수 없도록 요구한다."
+    },
+    "clm-128c0f2c6b-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/LevelDesign/Wx_Quest.md",
+          "relation": "supports",
+          "source_id": "src-f18b919b389d5ab5acdd"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - Wx_Quest.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Wx_Quest 기획서의 상태는 초안이며, 웨이브 스포너 구성은 담당자 재량으로 비어 있다."
+    },
+    "clm-128c0f2c6b-c4": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/LevelDesign/Wx_Quest.md",
+          "relation": "supports",
+          "source_id": "src-f18b919b389d5ab5acdd"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/기획서 - Wx_Quest.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Wx_Quest 기획서는 퀘스트 보상으로 많은 양의 골드와 적 기지 보호막 1개 제거를 정하고, 목표 소요 시간을 15분으로 둔다."
+    },
+    "clm-13fe101b22-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/LevelDesign/레버_증기_사양서.md",
+          "relation": "supports",
+          "source_id": "src-901a863b1604f4b7600b"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - 레버_증기_사양서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "레버_증기_사양서는 레버를 당길 때마다 연결된 증기의 ON/OFF 상태를 전환하고, 레버를 무한히 상호작용할 수 있되 조작 도중에는 다시 조작할 수 없도록 요구한다."
+    },
+    "clm-13fe101b22-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/LevelDesign/레버_증기_사양서.md",
+          "relation": "supports",
+          "source_id": "src-901a863b1604f4b7600b"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - 레버_증기_사양서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "레버_증기_사양서는 레버와 증기를 1:N과 N:1로 모두 연결할 수 있게 하도록 요구한다."
+    },
+    "clm-13fe101b22-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/LevelDesign/레버_증기_사양서.md",
+          "relation": "supports",
+          "source_id": "src-901a863b1604f4b7600b"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - 레버_증기_사양서.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "레버_증기_사양서는 증기가 길을 막는 벽이지만 부딪혀도 데미지와 튕김이 없고, 세이브 로드와 리스폰 때 마지막 상태를 유지하도록 요구한다."
+    },
     "clm-1a593b1164-c1": {
       "assessment": "provisional",
       "confidence": "high",
@@ -199,6 +339,66 @@
       "risk": "normal",
       "supersedes": null,
       "text": "Core_Combat_System 기획서는 패링(Just Guard) 성공 시 피해 0, MP 대량 수급, UP 소량 수급, 적 경직을 요구한다."
+    },
+    "clm-27d0566c03-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/레벨_배치용_잡몹.md",
+          "relation": "supports",
+          "source_id": "src-cfa091c12fac9ef14f27"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - 레벨_배치용_잡몹.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "레벨_배치용_잡몹 기획서는 잡몹이 PC가 8m 이내이면 3m 이내로 접근하고, 3초 안에 접근하면 패턴 1·2 중 무작위, 접근하지 못하면 패턴 3을 쓰도록 요구한다."
+    },
+    "clm-27d0566c03-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/레벨_배치용_잡몹.md",
+          "relation": "supports",
+          "source_id": "src-cfa091c12fac9ef14f27"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - 레벨_배치용_잡몹.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "레벨_배치용_잡몹 기획서는 패턴 사용 후 잡몹이 2초간 PC를 바라보며 걸어 다니도록 요구한다."
+    },
+    "clm-27d0566c03-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/레벨_배치용_잡몹.md",
+          "relation": "supports",
+          "source_id": "src-cfa091c12fac9ef14f27"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - 레벨_배치용_잡몹.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "레벨_배치용_잡몹 기획서는 패턴 1(칼 3회), 패턴 2(칼 2회), 패턴 3(찌르며 돌진) 모두 신호 후 공격하며 1타 AM에 위치 보정을 넣도록 요구한다."
     },
     "clm-289a251fc5-c1": {
       "assessment": "provisional",
@@ -540,6 +740,86 @@
       "supersedes": null,
       "text": "game-concept 기획서는 위험 신호를 빨강(연속공격)과 노랑(가드 불가)으로 구분하고 화면에서 가장 밝은 색으로 두도록 요구한다."
     },
+    "clm-69cc4c2601-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/Patrol_Design.md",
+          "relation": "supports",
+          "source_id": "src-ce19177694027db12835"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - Patrol_Design.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Patrol_Design 기획서는 정찰을 적 타입이 아니라 레벨디자이너가 개별 배치 적에게 켜는 정찰 역할로 정하며, 일반/엘리트는 지정할 수 있고 보스는 지정할 수 없다고 정한다."
+    },
+    "clm-69cc4c2601-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/Patrol_Design.md",
+          "relation": "supports",
+          "source_id": "src-ce19177694027db12835"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - Patrol_Design.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Patrol_Design 기획서는 순찰 속도를 기본 걷는 속도의 0.75배로, 순찰 경로를 A -> B -> A 구조로 정하고 순찰 지점 도착 시 5초간 정지하도록 요구한다."
+    },
+    "clm-69cc4c2601-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/Patrol_Design.md",
+          "relation": "supports",
+          "source_id": "src-ce19177694027db12835"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - Patrol_Design.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Patrol_Design 기획서는 정찰 적이 플레이어를 감지해도 주변 다른 적에게 전파하지 않도록 요구한다."
+    },
+    "clm-69cc4c2601-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/Patrol_Design.md",
+          "relation": "supports",
+          "source_id": "src-ce19177694027db12835"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/기획서 - Patrol_Design.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Patrol_Design 기획서는 정찰을 전투 트리거로 보고 별도의 은신/잠입 처치 시스템을 전제하지 않는다."
+    },
     "clm-6a64dc7baa-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -620,6 +900,66 @@
       "supersedes": null,
       "text": "PC규격서는 캔슬로 발동하는 GA가 활성화 차단 태그는 무시할 수 있지만 쿨타임·코스트·스택 조건은 무시하지 못한다고 정의한다."
     },
+    "clm-931eb3b32f-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/WX_BT_기능정리.md",
+          "relation": "supports",
+          "source_id": "src-016c4f4d42be310c6137"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - WX_BT_기능정리.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WX_BT_기능정리 문서는 RandomChoice를 하위 노드 중 하나를 균등 확률로 무작위 선택해 실행하는 BT 컴포지트로 정의하고, AvoidRepeat 옵션으로 직전 노드를 제외할 수 있다고 적는다."
+    },
+    "clm-931eb3b32f-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/WX_BT_기능정리.md",
+          "relation": "supports",
+          "source_id": "src-016c4f4d42be310c6137"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - WX_BT_기능정리.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WX_BT_기능정리 문서는 CompareAttributeRatio를 분자 능력치를 분모 능력치로 나눈 비율을 상수와 비교해 하위 노드 실행을 허용하는 BT 데코레이터로 정의한다."
+    },
+    "clm-931eb3b32f-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/WX_BT_기능정리.md",
+          "relation": "supports",
+          "source_id": "src-016c4f4d42be310c6137"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - WX_BT_기능정리.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WX_BT_기능정리 문서는 현재 WX 자체 개발 BT 태스크가 없다고 적는다."
+    },
     "clm-9d2b6fff03-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -679,6 +1019,86 @@
       "risk": "normal",
       "supersedes": null,
       "text": "animnotify-labels 작업의 라벨 값 일치와 가독성은 이우성이 2026-09-25 에디터에서 통과로 확인했다."
+    },
+    "clm-a7d41122c6-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/Nameplate_System.md",
+          "relation": "supports",
+          "source_id": "src-9b357e71cbd4160f0f05"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - Nameplate_System.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Nameplate_System 기획서는 일반/네임드 몬스터의 네임플레이트를 숨김 상태로 시작하고, 적이 플레이어를 인식하거나 카메라 락온될 때 표시하며, 추적 종료 시 페이드 없이 즉시 숨기도록 요구한다."
+    },
+    "clm-a7d41122c6-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/Nameplate_System.md",
+          "relation": "supports",
+          "source_id": "src-9b357e71cbd4160f0f05"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - Nameplate_System.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Nameplate_System 기획서는 일반/정예 적의 시야 거리를 15M, 시야각을 120도, 청각 거리를 1M로 정하고, 피해를 받으면 즉시 인식하도록 요구한다."
+    },
+    "clm-a7d41122c6-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/Nameplate_System.md",
+          "relation": "supports",
+          "source_id": "src-9b357e71cbd4160f0f05"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - Nameplate_System.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Nameplate_System 기획서는 적이 배치 지점에서 30M 이상 멀어지면 추적을 끝내고 걸어서 귀환하며, 귀환 완료 시 HP/DP를 가득 채우도록 요구한다."
+    },
+    "clm-a7d41122c6-c4": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/Nameplate_System.md",
+          "relation": "supports",
+          "source_id": "src-9b357e71cbd4160f0f05"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/기획서 - Nameplate_System.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Nameplate_System 기획서에서 락온 시 은폐된 적을 락온 대상에서 제외하는 규칙은 잠정안이며 협의 예정으로 남아 있다."
     },
     "clm-b6b3742e54-c1": {
       "assessment": "accepted",
@@ -1000,6 +1420,86 @@
       "supersedes": null,
       "text": "명조 PC 시스템 역기획서는 피해 보너스·속성 저항·협주 게이지·변주/반주·에코 사용을 구현 불필요로 표시한다."
     },
+    "clm-db10390bbc-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/SystemDesign/Object_Design.md",
+          "relation": "supports",
+          "source_id": "src-dab8ff2a136731644295"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - Object_Design.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Object_Design 기획서는 배치물을 체크포인트 상호작용 시 리젠·초기화되고 WxSpawner로만 배치하는 스포너블과, 상태를 유지하고 BP 클래스를 레벨에 직접 배치하는 기믹으로 나눈다."
+    },
+    "clm-db10390bbc-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/SystemDesign/Object_Design.md",
+          "relation": "supports",
+          "source_id": "src-dab8ff2a136731644295"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - Object_Design.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Object_Design 기획서는 상호작용 범위를 구형으로 두고 범위 안에 상호작용 대상이 둘 이상이면 가장 가까운 것을 우선하도록 요구한다."
+    },
+    "clm-db10390bbc-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/SystemDesign/Object_Design.md",
+          "relation": "supports",
+          "source_id": "src-dab8ff2a136731644295"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - Object_Design.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Object_Design 기획서는 체크포인트 상호작용 시 HP/MP 전량 회복, 포션 리젠, 던전 내 일반 적 전부 리젠이 일어나며 횟수 제한 없이 반복할 수 있도록 요구한다."
+    },
+    "clm-db10390bbc-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/SystemDesign/Object_Design.md",
+          "relation": "supports",
+          "source_id": "src-dab8ff2a136731644295"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/기획서 - Object_Design.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Object_Design 기획서는 Docs/SystemDesign/Object_Design.md와 Docs/LevelDesign/Object_Design.md 두 경로에 바이트가 같은 사본으로 존재한다."
+    },
     "clm-de569da4d0-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -1080,6 +1580,86 @@
       "supersedes": null,
       "text": "animnotify-categories 작업의 사람 확인 2항목(코드 리뷰, 타임라인 표시)은 이우성이 2026-09-25에 통과로 기록했다."
     },
+    "clm-e7df7b22d2-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/Respawn_System.md",
+          "relation": "supports",
+          "source_id": "src-b693f6fd80bca30f050d"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - Respawn_System.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Respawn_System 기획서는 플레이어가 사망하면 가장 최근에 활성화한 체크포인트에서 부활하고, 부활 시 HP/MP를 전량 회복하도록 요구한다."
+    },
+    "clm-e7df7b22d2-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/Respawn_System.md",
+          "relation": "supports",
+          "source_id": "src-b693f6fd80bca30f050d"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - Respawn_System.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Respawn_System 기획서는 사망 부활과 체크포인트 상호작용 두 경우 모두 같은 규칙으로 스포너블을 리젠하고, 기믹 상태·네임드 처치·상자 개봉·체크포인트 활성화는 유지하도록 요구한다."
+    },
+    "clm-e7df7b22d2-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/Respawn_System.md",
+          "relation": "supports",
+          "source_id": "src-b693f6fd80bca30f050d"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - Respawn_System.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Respawn_System 기획서는 일반 적만 리젠하고 스포너 소환 적·네임드 적·보스는 리젠하지 않으며, 보스는 재도전 시 HP만 전량 초기화하도록 요구한다."
+    },
+    "clm-e7df7b22d2-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/Respawn_System.md",
+          "relation": "supports",
+          "source_id": "src-b693f6fd80bca30f050d"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/기획서 - Respawn_System.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Respawn_System 기획서는 부활을 사망으로만 일으키며 자발적 귀환 기능을 두지 않는다."
+    },
     "clm-ecde107ded-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -1119,8 +1699,68 @@
       "risk": "normal",
       "supersedes": null,
       "text": "조작키 문서는 엑스박스 패드에서 스킬을 LB + XYAB 조합으로, 가드를 LB로 배치한다."
+    },
+    "clm-fb7c901ba4-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/WX_AM_기능정리.md",
+          "relation": "supports",
+          "source_id": "src-40ec76dd3189bb392845"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/기획서 - WX_AM_기능정리.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WX_AM_기능정리 문서는 WX 자체 애님 노티파이로 WX_Spawn_Projectile과 WX_Area_Attack 두 가지를, 노티파이 시퀀스로 WX_Combo_Window, WX_Invincible, WX_Perfect_Guard, WX_Snap_To_Target, WX_Weapon_Attack 다섯 가지를 정의한다."
+    },
+    "clm-fb7c901ba4-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/WX_AM_기능정리.md",
+          "relation": "supports",
+          "source_id": "src-40ec76dd3189bb392845"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/기획서 - WX_AM_기능정리.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WX_AM_기능정리 문서는 피해를 주는 노티파이가 데미지 계수·피격 판정·히트 리액션을 DamageDataRow(테이블) 또는 DamageInfo(테이블 없는 에셋) 중 하나로 설정할 수 있다고 적는다."
+    },
+    "clm-fb7c901ba4-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": "Docs/CombatDesign/WX_AM_기능정리.md",
+          "relation": "supports",
+          "source_id": "src-40ec76dd3189bb392845"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/기획서 - WX_AM_기능정리.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WX_AM_기능정리 문서는 WX_Perfect_Guard가 가드 어빌리티 중 패링 판정 가능 프레임 구간을 지정하고, 그 구간에 막은 공격을 패링으로 처리한다고 적는다."
     }
   },
-  "generated_at": "2026-09-26T05:50:11Z",
+  "generated_at": "2026-09-26T05:50:17Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }

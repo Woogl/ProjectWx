@@ -2,6 +2,33 @@
   "address_map": {},
   "description": "Ingest delta tracker. Source payloads are create-only.",
   "sources": {
+    ".raw/captured/0ff318ce2a70b1f95379fb31f827ed7c4462b133440d3560a949c6475c363698.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - Patrol_Design.md"
+      ],
+      "sha256": "0ff318ce2a70b1f95379fb31f827ed7c4462b133440d3560a949c6475c363698",
+      "source_id": "src-ce19177694027db12835",
+      "title": "Docs/CombatDesign/Patrol_Design.md"
+    },
+    ".raw/captured/1cdc81388a52f3b8705b8872665f7adc254e81e3ba0a959a0c80fb61569f1269.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - Nameplate_System.md"
+      ],
+      "sha256": "1cdc81388a52f3b8705b8872665f7adc254e81e3ba0a959a0c80fb61569f1269",
+      "source_id": "src-9b357e71cbd4160f0f05",
+      "title": "Docs/CombatDesign/Nameplate_System.md"
+    },
+    ".raw/captured/30a14e312982fae0a893540279e4116bac0be84bae21a89b803d780dcaa8937f.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - 레버_증기_사양서.md"
+      ],
+      "sha256": "30a14e312982fae0a893540279e4116bac0be84bae21a89b803d780dcaa8937f",
+      "source_id": "src-901a863b1604f4b7600b",
+      "title": "Docs/LevelDesign/레버_증기_사양서.md"
+    },
     ".raw/captured/3197c6a60425d04df84a8e196561a46a572178659f59e6827cce0facd204a5f9.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -47,6 +74,15 @@
       "source_id": "src-72e77d9f8acb89ba962a",
       "title": ".agents/workflow/tasks/cooldown-unification.md"
     },
+    ".raw/captured/5ef1e5f8941b0be03a5211990189016c1ecc851744385b7e84cd0b9c9995c784.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - WX_BT_기능정리.md"
+      ],
+      "sha256": "5ef1e5f8941b0be03a5211990189016c1ecc851744385b7e84cd0b9c9995c784",
+      "source_id": "src-016c4f4d42be310c6137",
+      "title": "Docs/CombatDesign/WX_BT_기능정리.md"
+    },
     ".raw/captured/6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -65,6 +101,15 @@
       "source_id": "src-a23a1d7fb94ec48c6dd4",
       "title": ".agents/workflow/tasks/animnotify-labels.md"
     },
+    ".raw/captured/6e39decd79a407896d145cd14ef97abfd7feaf7cf6f2073376b04e3b5a35c9e7.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - WX_AM_기능정리.md"
+      ],
+      "sha256": "6e39decd79a407896d145cd14ef97abfd7feaf7cf6f2073376b04e3b5a35c9e7",
+      "source_id": "src-40ec76dd3189bb392845",
+      "title": "Docs/CombatDesign/WX_AM_기능정리.md"
+    },
     ".raw/captured/73050c80eb1f4e043a2275580c6de90530577b1b6992fdc2d8fa4b79f08e931e.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -74,6 +119,15 @@
       "source_id": "src-757f477d3daaafa3f171",
       "title": "Docs/CombatDesign/WA_주인공_캐릭터.md"
     },
+    ".raw/captured/75d7e3ca9197246e60b700c5a5c7fee28eecc2916840e2d21063f9f3518262c1.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - Object_Design.md"
+      ],
+      "sha256": "75d7e3ca9197246e60b700c5a5c7fee28eecc2916840e2d21063f9f3518262c1",
+      "source_id": "src-dab8ff2a136731644295",
+      "title": "Docs/SystemDesign/Object_Design.md, Docs/LevelDesign/Object_Design.md"
+    },
     ".raw/captured/7dbd3870044d6f40cceaa0aadbe2b85532cb36d3801d96acfe7cd698c5d240ca.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -82,6 +136,15 @@
       "sha256": "7dbd3870044d6f40cceaa0aadbe2b85532cb36d3801d96acfe7cd698c5d240ca",
       "source_id": "src-655ce2708f432a15eb16",
       "title": "Docs/CombatDesign/PC규격서.md"
+    },
+    ".raw/captured/89800b04230305cea3e80c038f683d446e185242501eba116e3be0f74e4cb1f7.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - Wx_Quest.md"
+      ],
+      "sha256": "89800b04230305cea3e80c038f683d446e185242501eba116e3be0f74e4cb1f7",
+      "source_id": "src-f18b919b389d5ab5acdd",
+      "title": "Docs/LevelDesign/Wx_Quest.md"
     },
     ".raw/captured/903549ef1c2eb6c61f79473b70780cba03ab51cf01afa6e951362b65652d8ccb.md": {
       "ingested": "2026-09-26",
@@ -110,6 +173,15 @@
       "source_id": "src-6a3624fe45a27e84c05e",
       "title": "Docs/CombatDesign/에스트병 기획서.md"
     },
+    ".raw/captured/b7733e6d5d5e9775110e5b2f8a574f9255ac6cfe5453bf6b0cc165287d9a2a6d.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - Respawn_System.md"
+      ],
+      "sha256": "b7733e6d5d5e9775110e5b2f8a574f9255ac6cfe5453bf6b0cc165287d9a2a6d",
+      "source_id": "src-b693f6fd80bca30f050d",
+      "title": "Docs/CombatDesign/Respawn_System.md"
+    },
     ".raw/captured/c5f8b4308916075f5b4fb089c0cc59a0e23a571012915a6b238fb659a422fb74.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -118,6 +190,15 @@
       "sha256": "c5f8b4308916075f5b4fb089c0cc59a0e23a571012915a6b238fb659a422fb74",
       "source_id": "src-a36446b84e1533ed7f08",
       "title": ".agents/workflow/tasks/animnotify-categories.md"
+    },
+    ".raw/captured/d0832ea218feb93dd8309527b45696f99a05ef96f23fc61a6e042214820239ab.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - 레벨_배치용_잡몹.md"
+      ],
+      "sha256": "d0832ea218feb93dd8309527b45696f99a05ef96f23fc61a6e042214820239ab",
+      "source_id": "src-cfa091c12fac9ef14f27",
+      "title": "Docs/CombatDesign/레벨_배치용_잡몹.md"
     },
     ".raw/captured/e01725c9c8a679b5977bf257c832757663de20fde4cbbd961e78c7d49ed92d94.md": {
       "ingested": "2026-09-26",

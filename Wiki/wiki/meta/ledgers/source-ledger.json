@@ -1,7 +1,26 @@
 {
-  "generated_at": "2026-09-26T05:50:11Z",
+  "generated_at": "2026-09-26T05:50:17Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
+    "src-016c4f4d42be310c6137": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "5ef1e5f8941b0be03a5211990189016c1ecc851744385b7e84cd0b9c9995c784",
+      "independence_key": "Docs/CombatDesign/WX_BT_기능정리.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/5ef1e5f8941b0be03a5211990189016c1ecc851744385b7e84cd0b9c9995c784.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - WX_BT_기능정리.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/WX_BT_기능정리.md"
+    },
     "src-0a7a2abc95a7de9432e5": {
       "authority": "primary",
       "content_kind": "document",
@@ -77,6 +96,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".agents/workflow/tasks/datatable-row-preview.md"
+    },
+    "src-40ec76dd3189bb392845": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "6e39decd79a407896d145cd14ef97abfd7feaf7cf6f2073376b04e3b5a35c9e7",
+      "independence_key": "Docs/CombatDesign/WX_AM_기능정리.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/6e39decd79a407896d145cd14ef97abfd7feaf7cf6f2073376b04e3b5a35c9e7.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - WX_AM_기능정리.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/WX_AM_기능정리.md"
     },
     "src-655ce2708f432a15eb16": {
       "authority": "primary",
@@ -230,6 +268,44 @@
       "supersedes": null,
       "title": ".agents/workflow/tasks/datatable-row-rename-reference-update.md"
     },
+    "src-901a863b1604f4b7600b": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "30a14e312982fae0a893540279e4116bac0be84bae21a89b803d780dcaa8937f",
+      "independence_key": "Docs/LevelDesign/레버_증기_사양서.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/30a14e312982fae0a893540279e4116bac0be84bae21a89b803d780dcaa8937f.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 레버_증기_사양서.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/LevelDesign/레버_증기_사양서.md"
+    },
+    "src-9b357e71cbd4160f0f05": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "1cdc81388a52f3b8705b8872665f7adc254e81e3ba0a959a0c80fb61569f1269",
+      "independence_key": "Docs/CombatDesign/Nameplate_System.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/1cdc81388a52f3b8705b8872665f7adc254e81e3ba0a959a0c80fb61569f1269.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - Nameplate_System.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/Nameplate_System.md"
+    },
     "src-a23a1d7fb94ec48c6dd4": {
       "authority": "primary",
       "content_kind": "document",
@@ -287,6 +363,82 @@
       "supersedes": null,
       "title": "Docs/CombatDesign/조작키.MD"
     },
+    "src-b693f6fd80bca30f050d": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "b7733e6d5d5e9775110e5b2f8a574f9255ac6cfe5453bf6b0cc165287d9a2a6d",
+      "independence_key": "Docs/CombatDesign/Respawn_System.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/b7733e6d5d5e9775110e5b2f8a574f9255ac6cfe5453bf6b0cc165287d9a2a6d.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - Respawn_System.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/Respawn_System.md"
+    },
+    "src-ce19177694027db12835": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "0ff318ce2a70b1f95379fb31f827ed7c4462b133440d3560a949c6475c363698",
+      "independence_key": "Docs/CombatDesign/Patrol_Design.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/0ff318ce2a70b1f95379fb31f827ed7c4462b133440d3560a949c6475c363698.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - Patrol_Design.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/Patrol_Design.md"
+    },
+    "src-cfa091c12fac9ef14f27": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "d0832ea218feb93dd8309527b45696f99a05ef96f23fc61a6e042214820239ab",
+      "independence_key": "Docs/CombatDesign/레벨_배치용_잡몹.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/d0832ea218feb93dd8309527b45696f99a05ef96f23fc61a6e042214820239ab.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 레벨_배치용_잡몹.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/레벨_배치용_잡몹.md"
+    },
+    "src-dab8ff2a136731644295": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "75d7e3ca9197246e60b700c5a5c7fee28eecc2916840e2d21063f9f3518262c1",
+      "independence_key": "Docs/SystemDesign/Object_Design.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/75d7e3ca9197246e60b700c5a5c7fee28eecc2916840e2d21063f9f3518262c1.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - Object_Design.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/SystemDesign/Object_Design.md, Docs/LevelDesign/Object_Design.md"
+    },
     "src-e1a03d6129da9f4022a9": {
       "authority": "primary",
       "content_kind": "document",
@@ -305,6 +457,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/WA_PC_규격서.md"
+    },
+    "src-f18b919b389d5ab5acdd": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "89800b04230305cea3e80c038f683d446e185242501eba116e3be0f74e4cb1f7",
+      "independence_key": "Docs/LevelDesign/Wx_Quest.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/89800b04230305cea3e80c038f683d446e185242501eba116e3be0f74e4cb1f7.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - Wx_Quest.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/LevelDesign/Wx_Quest.md"
     }
   }
 }
