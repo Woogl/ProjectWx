@@ -4,7 +4,7 @@ WX의 게임 규칙·구현·결정과 검증 범위를 모은 팀 공유 지식
 
 ## 읽기
 
-- Obsidian에서 이 `Wiki/` 폴더를 "Open folder as vault"로 한 번 연 뒤에는 저장소의 `BatchFiles/OpenWiki.bat`으로 엽니다.
+- Obsidian에서 이 `Wiki/` 폴더를 "Open folder as vault"로 한 번 열면, 그 뒤로는 Obsidian이 이 vault를 기억해 다시 엽니다.
 - 사람과 작업 중인 AI는 이 폴더를 고치지 않습니다. 고칠 내용을 남기는 방법은 작업 절차(`.agents/workflow/process/index.md`)의 기록 절을 따릅니다.
 
 ## 정기 갱신

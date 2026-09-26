@@ -109,10 +109,9 @@ for (const removed of ['id="search-page"', 'knowledge.html', 'isWorkflow', "'.wi
 const menu = byId('nav').children[0].children;
 assert.deepEqual(menu.map(link => link.textContent), ['작업 현황 대시보드', '작업 절차']);
 assert.deepEqual(menu.map(link => link.href), ['#', '#' + encodeURIComponent('.agents/workflow/process/index.md')]);
-// Workflow launcher starts the local AI server; the Wiki launcher only opens the vault in Obsidian.
-const launcher = name => fs.readFileSync(path.join(root, 'BatchFiles', name), 'utf8');
-assert.ok(launcher('OpenWorkflow.bat').includes('Start-WikiAI.ps1') && launcher('OpenWorkflow.bat').includes('Export-Wiki.ps1" -Open'));
-assert.ok(launcher('OpenWiki.bat').includes('obsidian://open') && !launcher('OpenWiki.bat').includes('Export-Wiki.ps1'));
+// Workflow launcher starts the local AI server before opening the generated page.
+const launcher = fs.readFileSync(path.join(root, 'BatchFiles', 'OpenWorkflow.bat'), 'utf8');
+assert.ok(launcher.includes('Start-WikiAI.ps1') && launcher.includes('Export-Wiki.ps1" -Open'));
 assert.ok(html.includes("const workflowKey = 'wx-wiki-workflow-v1:' + location.pathname"), 'the storage key keeps saved drafts');
 // The retired web task path must not come back through the generated page.
 for (const removed of ['/analyze', '/handoff', '/execution', "'/tasks'", '새 작업 만들기', '기존 작업 이어하기']) assert.ok(!script.includes(removed), removed);
@@ -136,5 +135,5 @@ assert.equal(byId('article').children[0].textContent, '문서를 찾을 수 없�
   assert.equal(note.children.find(n => n.tagName === 'A').href, 'https://claude.ai/code/session_test');
   assert.equal(vm.runInContext('wikiUpdate.configured', context), true);
   assert.equal(headingButtons()[1].disabled, true, 'a started Wiki update stays off until the page reloads');
-  console.log(`PASS ${data.documents.length} document snapshots, metadata, JS syntax, task states, new task and task panel entries, Wiki update button, index navigation, launchers, routing and missing-document handling`);
+  console.log(`PASS ${data.documents.length} document snapshots, metadata, JS syntax, task states, new task and task panel entries, Wiki update button, index navigation, launcher, routing and missing-document handling`);
 })().catch(error => { console.error(error); process.exitCode = 1; });
