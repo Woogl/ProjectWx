@@ -1,6 +1,6 @@
 ---
 name: build-doctor
-description: UE 5.8 C++ 프로젝트의 Editor Development 빌드를 실행하고, 빌드 시작 전 환경 오류와 최초의 인과성 높은 컴파일 오류를 구분해 한국어로 진단한다.
+description: UE 5.8 C++ 프로젝트의 Editor Development 빌드를 실행하고, 빌드 시작 전 환경 오류와 최초의 인과성 높은 컴파일 오류를 구분해 진단한다.
 ---
 
 # Build Doctor
@@ -50,7 +50,7 @@ Windows PowerShell 5.1과 PowerShell 7을 지원한다. 실행기 소스는 5.1�
 
 ## 보고 형식
 
-항상 한국어로 다음 형식을 사용한다.
+항상 다음 형식을 사용한다.
 
 ```markdown
 ## 빌드 결과
