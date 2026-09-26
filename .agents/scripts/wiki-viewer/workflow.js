@@ -38,8 +38,9 @@ function renderTaskRecords() {
   const panel=$('task-records');panel.replaceChildren();
   const groups=taskRecordGroups(),total=groups.reduce((n,g)=>n+g.items.length,0);
   const heading=el('div',undefined,'record-heading'),start=workflowButton('새 작업',()=>openNewTask());start.id='new-task-open';
-  const update=workflowButton('Wiki 갱신',()=>fireWikiUpdate());update.id='wiki-update';update.disabled=!wikiUpdate.configured||wikiUpdate.sending;
+  const update=workflowButton('Wiki 갱신',()=>fireWikiUpdate());update.id='wiki-update';update.disabled=!wikiUpdate.configured||wikiUpdate.sending||!!wikiUpdate.url;
   if(!wikiUpdate.configured)update.title=data.ai?'Saved/Wiki/wiki-routine.json에 Routine의 trigger와 token을 넣으면 켜집니다.':'OpenWorkflow.bat을 다시 실행해 AI 연결을 시작하세요.';
+  else if(wikiUpdate.url)update.title='이미 시작했습니다. 다시 실행하려면 새로고침하세요.';
   heading.append(el('h2','확인할 일과 작업 기록'),start,update);panel.append(heading);
   if(wikiUpdate.message){const note=el('p',wikiUpdate.message,'notice');if(wikiUpdate.url){const link=el('a','Routine 세션 열기');link.href=wikiUpdate.url;link.target='_blank';link.rel='noopener noreferrer';note.append(' ',link);}panel.append(note);}
   if(!total){panel.append(el('p','작업 기록이 없습니다. 새 작업으로 시작하세요.','notice'));return;}

@@ -123,7 +123,8 @@ context.location.hash = '#missing-document';
 vm.runInContext('readRoute()', context);
 assert.equal(byId('article').children[0].textContent, '문서를 찾을 수 없습니다.');
 (async () => {
-  // Wiki 갱신: Routine 토큰이 없으면 꺼져 있고, 켜지면 한 번 요청해 Routine 세션 링크를 보여준다.
+  // Wiki 갱신: Routine 토큰이 없으면 꺼져 있고, 켜지면 한 번 요청해 Routine 세션 링크를 보여준 뒤 새로고침 전까지 꺼진다.
+  await new Promise(resolve => setImmediate(resolve)); // 첫 렌더가 시작한 설정 확인이 끝난 뒤에 상태를 바꾼다.
   const headingButtons = () => byId('task-records').children[0].children.filter(n => n.tagName === 'BUTTON');
   assert.equal(headingButtons()[1].disabled, true, 'Wiki update stays off without a routine token');
   vm.runInContext("wikiUpdate.configured=true;workflowRequest=async(endpoint,body)=>{globalThis.fired=[endpoint,body];return {sessionUrl:'https://claude.ai/code/session_test'};};renderTaskRecords();", context);
@@ -133,5 +134,7 @@ assert.equal(byId('article').children[0].textContent, '문서를 찾을 수 없�
   const note = byId('task-records').children[1];
   assert.match(note.textContent, /Wiki 갱신을 시작했습니다/);
   assert.equal(note.children.find(n => n.tagName === 'A').href, 'https://claude.ai/code/session_test');
+  assert.equal(vm.runInContext('wikiUpdate.configured', context), true);
+  assert.equal(headingButtons()[1].disabled, true, 'a started Wiki update stays off until the page reloads');
   console.log(`PASS ${data.documents.length} document snapshots, metadata, JS syntax, task states, new task and task panel entries, Wiki update button, index navigation, launchers, routing and missing-document handling`);
 })().catch(error => { console.error(error); process.exitCode = 1; });
