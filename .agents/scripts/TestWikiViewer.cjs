@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '../..');
 const html = fs.readFileSync(path.join(root, 'Saved/Workflow/index.html'), 'utf8');
 const payload = html.match(/<script id="wiki-data" type="application\/json">([\s\S]*?)<\/script>/)[1];
 const data = JSON.parse(payload);
+assert.ok(!/[<>&]/.test(payload), 'the data block escapes <, > and & so record text cannot close the script tag');
 const script = html.match(/<script>\s*([\s\S]*?)<\/script>/)[1];
 new vm.Script(script);
 const expectedNavigation = [];
