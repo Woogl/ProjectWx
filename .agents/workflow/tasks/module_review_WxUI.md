@@ -1,6 +1,4 @@
 # WxUI — 코드 리뷰
-상태: 확인 대기 · 코드 리뷰 결과 판단 대기
-다음 행동: 원격 클라이언트 슬롯 재매칭과 HUD 제거 시 메뉴 요청 취소의 수정 여부를 판단한다.
 
 > 화면 레이어·비동기 push·공유 VM·일시정지의 핵심 C++를 검토했다. 원격 클라이언트의 슬롯 재매칭 신호와 HUD 교체 중 메뉴 요청 수명에 미해결 사항 2건이 있다.
 
@@ -31,15 +29,6 @@
 - **문제**: HUD는 요청을 `PendingMenuPush`에 보관하고 완료 시 비우지만(`:95`), 비활성화·제거 때 취소하지 않는다. 폰 교체는 `Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp:51`의 `ClearLayout`에서 기존 HUD를 비활성화하고 스택에서 제거하지만(`:99`, `:102`), 취소 대상은 HUD 자체를 만드는 `PendingLayoutPush`뿐이다(`:92`). 메뉴 요청은 `Plugins/WxUI/Source/WxUI/Private/Widget/WxAsyncAction_PushWidgetToLayer.cpp:18`에서 GameInstance에 등록되고 이전 HUD를 `WorldContextObject`로 강하게 보유한다(`Plugins/WxUI/Source/WxUI/Public/Widget/WxAsyncAction_PushWidgetToLayer.h:49`). 같은 PC의 폰만 교체되면 PrimaryGameLayout이 같아 완료 시 `WxAsyncAction_PushWidgetToLayer.cpp:100` 검사도 통과한다. 메뉴 최초 로드 중 폰이 교체되면 이미 제거된 HUD의 요청이 뒤늦게 새 HUD 위에 메뉴를 띄운다.
 - **제안**: HUD가 제거되거나 비활성화될 때 `PendingMenuPush->Cancel()`로 진행 중 요청을 정리한다. 완료 시 현재 HUD의 요청인지 확인하는 방법도 함께 검토한다.
 - **확신도**: 높음 — 요청의 참조와 레이아웃 검사, 폰 교체 정리 범위를 C++에서 대조했다. 실제 로드 지연 실행 재현은 하지 않았다.
-
-## 테스트 체크리스트
-
-| 항목 | 확인 방법 | 담당 | 결과 | 근거 |
-| --- | --- | --- | --- | --- |
-| 기존 지적 대조 | 현재 구독·비동기 요청 경로와 UE 5.8 엔진 소스를 대조한다 | AI | 통과 | 미해결 2건을 재확인하고 `WxViewModel_Ability.cpp:207`의 무효 참조 초기화 수정으로 해결된 지적은 제외했다 |
-| 리뷰 결과 판단 | 위 2건의 실패 조건과 제안을 검토해 후속 수정 범위를 정한다 | 사람 | 대기 | |
-| 원격 클라이언트 표시 | HUD를 먼저 만든 뒤 스펙을 늦게 복제해 슬롯 표시를 확인한다 | 사람 | 미실행 | 정적 리뷰만 수행했다 |
-| HUD 교체 중 메뉴 요청 | 메뉴 로드를 지연시킨 상태에서 같은 PC의 폰을 교체하고 오래된 메뉴의 push를 확인한다 | 사람 | 미실행 | 정적 리뷰만 수행했다 |
 
 ## 검토 범위
 

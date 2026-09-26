@@ -3,7 +3,6 @@
 상태: 완료 · 체크리스트 2/2 통과
 다음 행동: 변경 시 기록된 테스트 범위와 제약을 참고한다.
 
-- 이전 상태: 구현·검증 완료
 - 사용자 합의: 2026-09-25, `종류: 대표 값 하나`의 짧은 라벨로 17종 수정 요청.
 - 범위: WxCombat 15종, WxAI ReportNoise, WxInventory UseItem. 표시 함수 및 신규 override 선언만 변경.
 - 규칙: Row·에셋 이름 보존, 클래스명 끝 `_C` 제거, 미설정 `None`, 스냅 비활성 `Off`. 수치 없는 고정 표식은 Recovery/Combo Window/Use Item.
