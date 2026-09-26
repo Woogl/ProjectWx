@@ -63,7 +63,7 @@ key_claims:
 ## 관련 주제
 
 - [[작업 절차(Workflow)]]
-- <!--wl-->결정 노트 - 2026-09-26-workflow-row-actions-final
+- [[결정 노트 - 2026-09-26-workflow-row-actions-final]]
 
 ## 핵심 주장
 

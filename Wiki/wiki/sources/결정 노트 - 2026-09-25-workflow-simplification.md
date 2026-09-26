@@ -86,7 +86,7 @@ AI가 제시한 다섯 제안(웹 새 작업 경로 폐지, 사람 판단 지점
 - [[작업 절차(Workflow)]]
 - [[Wiki 운영]]
 - [[결정 노트 - 2026-09-22-current-workflow]]
-- <!--wl-->결정 노트 - 2026-09-26-workflow-legacy-removal
+- [[결정 노트 - 2026-09-26-workflow-legacy-removal]]
 
 ## 핵심 주장
 

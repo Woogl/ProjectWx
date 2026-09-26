@@ -54,7 +54,7 @@ key_claims:
 - `64fcd9285`(캐릭터 재진입 시 어빌리티 소실·이벤트 중복 수정), `519f929fb`(새 게임 체크포인트 삭제 전 선택 Pawn 검증), `b6f1e9e8c`(어빌리티 방향 선택 공용화와 콤보 몽타주 배열): 모듈 리뷰 계약 노트(`2026-09-26-module-review-contracts`)가 `ad0db6de0` 작업 트리 기준으로 다룸.
 - `ac6db7670` Exclusive 어빌리티 차단의 GAS 공통 태그 규칙 전환: 같은 커밋에서 편찬됨.
 - `1689d999f`·`4c9f3934e` AnimNotify 역할별 색상 분류와 Editor 설정: AnimNotify 분류 노트로 편찬됨.
-- `11047815a`·`33733d1bb`·`81c5e03dc` Workflow 개선·모듈 리뷰·작업 기록: `bf6596012`에서 편찬됨. 작업 트리의 구 워크플로우 잔재 제거와 문서 이미지 기능 제거도 <!--wl-->결정 노트 - 2026-09-26-workflow-legacy-removal·<!--wl-->결정 노트 - 2026-09-26-workflow-image-removal로 편찬돼 있음.
+- `11047815a`·`33733d1bb`·`81c5e03dc` Workflow 개선·모듈 리뷰·작업 기록: `bf6596012`에서 편찬됨. 작업 트리의 구 워크플로우 잔재 제거와 문서 이미지 기능 제거도 [[결정 노트 - 2026-09-26-workflow-legacy-removal]]·[[결정 노트 - 2026-09-26-workflow-image-removal]]로 편찬돼 있음.
 
 ## 반영 대상이 아닌 변경
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T05:51:07Z",
+  "generated_at": "2026-09-26T05:51:11Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
     "src-016c4f4d42be310c6137": {
@@ -249,6 +249,25 @@
       "supersedes": null,
       "title": "Docs/CombatDesign/boss_common_bt_draft.md"
     },
+    "src-1612f410020b7383f05d": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "a9dad404a9586149cd82cb6df69549209e86d538dd8a2f087bcf4f2735aa3e29",
+      "independence_key": ".wiki/raw/notes/2026-09-26-workflow-ssot-copies.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/a9dad404a9586149cd82cb6df69549209e86d538dd8a2f087bcf4f2735aa3e29.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-ssot-copies.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-workflow-ssot-copies.md"
+    },
     "src-1730cb541df1643b7273": {
       "authority": "primary",
       "content_kind": "document",
@@ -381,6 +400,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/SystemDesign/Core_Combat_System.md"
+    },
+    "src-2a1863fa3b2d8cda086e": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "6c2fab2cbaa84fc91b4b4504af7630f3863d76ffdc4483006a2ea428ba725081",
+      "independence_key": ".wiki/raw/notes/2026-09-26-workflow-web-tasks.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/6c2fab2cbaa84fc91b4b4504af7630f3863d76ffdc4483006a2ea428ba725081.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-web-tasks.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-workflow-web-tasks.md"
     },
     "src-2b75767555b50e4be106": {
       "authority": "primary",
@@ -629,6 +667,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-25-exclusive-tag-blocking.md"
     },
+    "src-4d376dc7383e42ce7fe1": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "76204d035faca280463478de8bd6a6c365ca5b6cac24edc8a94175e5c44eedf7",
+      "independence_key": ".wiki/raw/notes/2026-09-26-workflow-state-from-record-only.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/76204d035faca280463478de8bd6a6c365ca5b6cac24edc8a94175e5c44eedf7.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-state-from-record-only.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-workflow-state-from-record-only.md"
+    },
     "src-4ec20852882dbfd83898": {
       "authority": "primary",
       "content_kind": "document",
@@ -704,6 +761,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/PC규격서.md"
+    },
+    "src-69776ec0fc45674eb4b4": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "963382b51a35b6f2ee4de8be03cacac2e09f8a2e091bbb845d2841e173877f5c",
+      "independence_key": ".wiki/raw/notes/2026-09-26-workflow-process-diagram.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/963382b51a35b6f2ee4de8be03cacac2e09f8a2e091bbb845d2841e173877f5c.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-process-diagram.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-workflow-process-diagram.md"
     },
     "src-6a3624fe45a27e84c05e": {
       "authority": "primary",
@@ -1028,6 +1104,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-25-cooldown-single-ge.md"
     },
+    "src-8ab2271b7b6733f7b352": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "461f292d16f7bef8e18a46306db038e6aae0f95a6a3cadb9ba927c35ad67953b",
+      "independence_key": ".wiki/raw/notes/2026-09-26-workflow-korean-record-names.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/461f292d16f7bef8e18a46306db038e6aae0f95a6a3cadb9ba927c35ad67953b.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-korean-record-names.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-workflow-korean-record-names.md"
+    },
     "src-8afcfcdf618feadc354b": {
       "authority": "primary",
       "content_kind": "conversation",
@@ -1104,6 +1199,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-23-damage-four-arguments.md"
     },
+    "src-95007bbf6cf68642599a": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "f8dd930f0cdb2a8c1ebbcac0d0d4299d68adc9e79a417af538a45db70e807949",
+      "independence_key": ".wiki/raw/notes/2026-09-26-workflow-row-actions-final.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/f8dd930f0cdb2a8c1ebbcac0d0d4299d68adc9e79a417af538a45db70e807949.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-row-actions-final.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-workflow-row-actions-final.md"
+    },
     "src-997f58c17998f689ab53": {
       "authority": "primary",
       "content_kind": "document",
@@ -1160,6 +1274,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/Nameplate_System.md"
+    },
+    "src-9f5a9238a98d7314f897": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "2a8e3cdfc0558872cd04ddc502f86f934022994b811419d1afcc0a34f9feb1bd",
+      "independence_key": ".wiki/raw/notes/2026-09-26-workflow-human-verification.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/2a8e3cdfc0558872cd04ddc502f86f934022994b811419d1afcc0a34f9feb1bd.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-human-verification.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-workflow-human-verification.md"
     },
     "src-9fbe4572f989de2390d1": {
       "authority": "primary",
@@ -1636,6 +1769,25 @@
       "supersedes": null,
       "title": "Docs/CombatDesign/그로기_시스템.md"
     },
+    "src-d7837fe2ee4e72b34ef3": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "52d6e73ac517d5b60109160bed4f53adce2cdc89d8158e861336475bc47eadde",
+      "independence_key": ".wiki/raw/notes/2026-09-26-workflow-tasks-guide-removed.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/52d6e73ac517d5b60109160bed4f53adce2cdc89d8158e861336475bc47eadde.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-tasks-guide-removed.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-workflow-tasks-guide-removed.md"
+    },
     "src-dab8ff2a136731644295": {
       "authority": "primary",
       "content_kind": "document",
@@ -1749,6 +1901,63 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-23-player-screen-owner.md"
+    },
+    "src-e9ce44e694f9ea0a01fa": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "0f3e2ab3bb15182b3c433c8fb745957174d2ea6094c27b24df494a8e99bc20b0",
+      "independence_key": ".wiki/raw/notes/2026-09-26-workflow-result-fields-by-kind.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/0f3e2ab3bb15182b3c433c8fb745957174d2ea6094c27b24df494a8e99bc20b0.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-result-fields-by-kind.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-workflow-result-fields-by-kind.md"
+    },
+    "src-eeabfc3c85b14871517f": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "c18496a77a96336911d747c623e7458e5db30d4ecd3331b558228a4b9132d7bb",
+      "independence_key": ".wiki/raw/notes/2026-09-26-workflow-legacy-removal.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/c18496a77a96336911d747c623e7458e5db30d4ecd3331b558228a4b9132d7bb.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-legacy-removal.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-workflow-legacy-removal.md"
+    },
+    "src-ef89d987e8946eef6271": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "1ad39f3d1c5831ed8add9507411de48bad3f5985f775709a10bccbcf521b8a21",
+      "independence_key": ".wiki/raw/notes/2026-09-26-workflow-image-removal.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/1ad39f3d1c5831ed8add9507411de48bad3f5985f775709a10bccbcf521b8a21.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-image-removal.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-workflow-image-removal.md"
     },
     "src-f065af6c9d30c9f6d88f": {
       "authority": "primary",

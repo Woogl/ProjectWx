@@ -13,6 +13,10 @@ tags:
 
 Newest completed operations appear first.
 
+## 2026-09-26 · ingest-20260926T055111Z-b11
+
+옛 Wiki 결정 노트(6/6) 11건 수집. 원자료: [[결정 노트 - 2026-09-26-workflow-human-verification]], [[결정 노트 - 2026-09-26-workflow-image-removal]], [[결정 노트 - 2026-09-26-workflow-korean-record-names]], [[결정 노트 - 2026-09-26-workflow-legacy-removal]], [[결정 노트 - 2026-09-26-workflow-process-diagram]], [[결정 노트 - 2026-09-26-workflow-result-fields-by-kind]], [[결정 노트 - 2026-09-26-workflow-row-actions-final]], [[결정 노트 - 2026-09-26-workflow-ssot-copies]], [[결정 노트 - 2026-09-26-workflow-state-from-record-only]], [[결정 노트 - 2026-09-26-workflow-tasks-guide-removed]], [[결정 노트 - 2026-09-26-workflow-web-tasks]]. 갱신한 주제: [[Wiki 운영]], [[작업 절차(Workflow)]].
+
 ## 2026-09-26 · ingest-20260926T055107Z-b10
 
 옛 Wiki 결정 노트(5/6) 11건 수집. 원자료: [[결정 노트 - 2026-09-25-workflow-task-records]], [[결정 노트 - 2026-09-25-workflow-test-feedback]], [[결정 노트 - 2026-09-26-ability-ga-play-acceptance]], [[결정 노트 - 2026-09-26-animnotify-label-acceptance]], [[결정 노트 - 2026-09-26-cooldown-play-acceptance]], [[결정 노트 - 2026-09-26-interaction-list-play-acceptance]], [[결정 노트 - 2026-09-26-nameplate-play-acceptance]], [[결정 노트 - 2026-09-26-refresh-commit-trace]], [[결정 노트 - 2026-09-26-row-preview-acceptance]], [[결정 노트 - 2026-09-26-ui-data-display-acceptance]], [[결정 노트 - 2026-09-26-workflow-dashboard-row-actions]]. 갱신한 주제: [[UI 표시 구조]], [[Wiki 운영]], [[상호작용과 장치]], [[어빌리티와 GAS]], [[에디터 도구]], [[작업 절차(Workflow)]], [[피해 파이프라인]].

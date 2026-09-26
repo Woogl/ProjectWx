@@ -160,6 +160,46 @@
       "supersedes": null,
       "text": "WxAI의 MirrorMovement 순간이동 테스트와 정찰 경로 스폰 테스트가 삭제되어 WxAI에는 자동화 테스트가 남지 않는다."
     },
+    "clm-050b874ca8-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-tasks-guide-removed.md",
+          "relation": "supports",
+          "source_id": "src-d7837fe2ee4e72b34ef3"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-tasks-guide-removed.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-26 사용자 요청으로 Workflow 대시보드 머리의 기록 작성 규칙 링크가 제거되고 .agents/workflow/tasks/index.md가 삭제됐다."
+    },
+    "clm-050b874ca8-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-tasks-guide-removed.md",
+          "relation": "supports",
+          "source_id": "src-d7837fe2ee4e72b34ef3"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-tasks-guide-removed.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "tasks/index.md 삭제 뒤 Workflow 서버와 화면은 기록 폴더의 모든 .md 파일을 작업 기록으로 다룬다."
+    },
     "clm-0d4dfc9134-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -1980,6 +2020,66 @@
       "supersedes": null,
       "text": "ApplyDamage 통합 당시 C++ 검색에서 두 기존 함수의 호출자는 자동화 테스트뿐이었고 Content uasset 문자열 검색에서도 참조가 없었다."
     },
+    "clm-52a30a4798-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-image-removal.md",
+          "relation": "supports",
+          "source_id": "src-ef89d987e8946eef6271"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-image-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자는 2026-09-26 문서 이미지 기능을 유지하자고 했다가 곧바로 지금 안 쓰면 지우자고 최종 결정했다."
+    },
+    "clm-52a30a4798-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-image-removal.md",
+          "relation": "supports",
+          "source_id": "src-ef89d987e8946eef6271"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-image-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이 변경 뒤 Wiki 뷰어의 safeFragment는 IMG를 허용하지 않아 문서 본문 이미지를 그리지 않고, 다이어그램만 SVG data URI 이미지로 표시된다."
+    },
+    "clm-52a30a4798-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-image-removal.md",
+          "relation": "supports",
+          "source_id": "src-ef89d987e8946eef6271"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-image-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이 노트는 구 워크플로우 잔재 제거 노트가 사용자 미결로 남겨 둔 PNG 묶기 기능 보존을 뒤집었다."
+    },
     "clm-553dabec7a-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -2039,6 +2139,126 @@
       "risk": "normal",
       "supersedes": null,
       "text": "2026-09-22 Workflow 대시보드 검증은 TestWikiViewer.cjs·TestWikiSpaces.cjs 모의 DOM 테스트이며 실제 브라우저 육안 검증은 포함하지 않는다."
+    },
+    "clm-5563e817a9-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-ssot-copies.md",
+          "relation": "supports",
+          "source_id": "src-1612f410020b7383f05d"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-ssot-copies.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자는 2026-09-26 AGENTS.md에 관문 줄을 남기는 안 대신 워크플로우 SSoT를 엄격하게 지키기로 결정했고, AGENTS.md는 정본 링크 한 줄이 됐다."
+    },
+    "clm-5563e817a9-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-ssot-copies.md",
+          "relation": "supports",
+          "source_id": "src-1612f410020b7383f05d"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-ssot-copies.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Workflow 처리 프롬프트는 정본을 따르라는 첫 줄과 이번 처리 단계·결과 칸 형식·권한 제한 등 규칙이 아닌 것만 담는다."
+    },
+    "clm-5563e817a9-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-ssot-copies.md",
+          "relation": "supports",
+          "source_id": "src-1612f410020b7383f05d"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-ssot-copies.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "작업 절차 정본은 명확한 지시를 구현 승인으로 보는 규칙을 AI 대화로 한정하며, 웹 새 작업은 항상 정하기부터 시작한다."
+    },
+    "clm-59a4d3a7e7-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-result-fields-by-kind.md",
+          "relation": "supports",
+          "source_id": "src-e9ce44e694f9ea0a01fa"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-result-fields-by-kind.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-26 첫 실제 Codex 처리에서 Codex가 plan 칸에 완료 문장을 채웠고 서버는 이를 승인 줄 없는 구현 계획 절로 기록했다."
+    },
+    "clm-59a4d3a7e7-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-result-fields-by-kind.md",
+          "relation": "supports",
+          "source_id": "src-e9ce44e694f9ea0a01fa"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-result-fields-by-kind.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "조치 뒤 Workflow 서버는 질문과 새 계획을 정하기와 추가 요청 결과에서만 받고 구현·테스트 결과 처리에서 온 것은 쓰지 않는다."
+    },
+    "clm-59a4d3a7e7-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-result-fields-by-kind.md",
+          "relation": "supports",
+          "source_id": "src-e9ce44e694f9ea0a01fa"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-result-fields-by-kind.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Workflow 대시보드의 완료·리뷰·참고 행에는 AI 처리 상태 배지를 표시하지 않는다."
     },
     "clm-5a5eb0be16-c1": {
       "assessment": "accepted",
@@ -2120,6 +2340,66 @@
       "supersedes": null,
       "text": "상호작용 목록 VM 변경은 이 노트 시점에 빌드·WBP 컴파일만 통과했고 인게임 동작은 미검증이었다."
     },
+    "clm-5bd90ce2f0-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-human-verification.md",
+          "relation": "supports",
+          "source_id": "src-9f5a9238a98d7314f897"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-human-verification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이우성은 2026-09-25T18:13:23.605Z에 Workflow 개선 작업의 사람 테스트 항목 7개(코드 리뷰·대시보드·작업 절차 한 장·체크리스트 전달·웹 새 작업 실제 흐름·터미널에서 이어하기·워크플로우 SSoT)를 모두 통과로 전달했다."
+    },
+    "clm-5bd90ce2f0-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-human-verification.md",
+          "relation": "supports",
+          "source_id": "src-9f5a9238a98d7314f897"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-human-verification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "workflow-review 작업 기록 상단은 사람 7개와 기존 AI 12개를 합쳐 체크리스트 19/19 통과로 표시된다."
+    },
+    "clm-5bd90ce2f0-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-human-verification.md",
+          "relation": "supports",
+          "source_id": "src-9f5a9238a98d7314f897"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-human-verification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이 사람 테스트 결과는 사용한 AI 제공자·모델이 기록되지 않아 Codex·Claude·Gemini 각각의 전체 흐름 통과 증거로 볼 수 없다."
+    },
     "clm-5c8bdfa4b2-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -2180,6 +2460,86 @@
       "supersedes": null,
       "text": "normal_monster_BT 기획서는 건 암과 단검사를 단독 위협이 낮아 항상 다른 적과 조합해 배치하는 적으로 규정한다."
     },
+    "clm-5e19ce271d-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-state-from-record-only.md",
+          "relation": "supports",
+          "source_id": "src-4d376dc7383e42ce7fe1"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-state-from-record-only.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-26 사용자 승인 뒤 Workflow 작업 상태는 기록의 질문·구현 계획·테스트 체크리스트 세 절에서만 정해진다."
+    },
+    "clm-5e19ce271d-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-state-from-record-only.md",
+          "relation": "supports",
+          "source_id": "src-4d376dc7383e42ce7fe1"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-state-from-record-only.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Workflow에서 테스트 체크리스트가 모두 통과하면 서버가 즉시 완료로 판정하고, 이어지는 AI 정리가 실패·중단해도 완료가 유지된다."
+    },
+    "clm-5e19ce271d-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-state-from-record-only.md",
+          "relation": "supports",
+          "source_id": "src-4d376dc7383e42ce7fe1"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-state-from-record-only.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이 결정으로 AI 결과 지시문에서 blockers·checks 칸이 없어져 무관한 lint 경고 같은 범위 밖 문제는 요약에만 적는다."
+    },
+    "clm-5e19ce271d-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-state-from-record-only.md",
+          "relation": "supports",
+          "source_id": "src-4d376dc7383e42ce7fe1"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-state-from-record-only.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "바뀐 상태 판정 흐름은 자동 테스트로만 확인했고 실제 AI 요청으로는 다시 실행하지 않았다."
+    },
     "clm-63562ccdea-c1": {
       "assessment": "provisional",
       "confidence": "high",
@@ -2239,6 +2599,86 @@
       "risk": "normal",
       "supersedes": null,
       "text": "boss_common_bt_draft 문서는 보스의 그로기 상태 처리 여부와 상위 우선순위 반영 방식을 추후 세부화 항목으로 남긴다."
+    },
+    "clm-6654fc7c0c-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-process-diagram.md",
+          "relation": "supports",
+          "source_id": "src-69776ec0fc45674eb4b4"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-process-diagram.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-26 작업 절차 도식은 사용자가 고른 시안 B를 바탕으로 정하기·만들기·확인하기 단계 상자 배치로 바뀌었고, 옛 승인된 범위 안의 수정 지름길은 그리지 않는다."
+    },
+    "clm-6654fc7c0c-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-process-diagram.md",
+          "relation": "supports",
+          "source_id": "src-69776ec0fc45674eb4b4"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-process-diagram.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Workflow 서버에서 질문 답변은 읽기 전용 정하기를 다시 실행하므로 답변과 구현 승인 사이에는 항상 AI 조사가 끼어 있다."
+    },
+    "clm-6654fc7c0c-c3": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-process-diagram.md",
+          "relation": "supports",
+          "source_id": "src-69776ec0fc45674eb4b4"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-process-diagram.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "정하기 중 보낸 추가 요청이 모든 명령 허용으로 실행되는 문제는 이 노트 시점에 조치가 정해지지 않은 미결이다."
+    },
+    "clm-6654fc7c0c-c4": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-process-diagram.md",
+          "relation": "supports",
+          "source_id": "src-69776ec0fc45674eb4b4"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-process-diagram.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "완료 직후 작업 진행 패널에서 추가 요청 버튼이 다시 켜지는 동작은 대시보드 안내와 작업 절차 문구와 어긋나며 미결로 남았다."
     },
     "clm-69cc4c2601-c1": {
       "assessment": "accepted",
@@ -3040,6 +3480,66 @@
       "supersedes": null,
       "text": "노트는 사용자가 2026-09-23 사망·부활·대화 동작을 인게임에서 확인했다고 기록한다."
     },
+    "clm-8922cc3e49-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-row-actions-final.md",
+          "relation": "supports",
+          "source_id": "src-95007bbf6cf68642599a"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-row-actions-final.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-26 사용자 결정으로 Workflow 대시보드의 확인 대기·진행 중 행에는 작업 진행 버튼만 두고 기록 열기를 두지 않는다."
+    },
+    "clm-8922cc3e49-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-row-actions-final.md",
+          "relation": "supports",
+          "source_id": "src-95007bbf6cf68642599a"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-row-actions-final.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "상태 배지가 있는 행의 버튼 줄 어긋남은 auto 폭 버튼 칸 때문이었고 160px 고정·오른쪽 정렬로 고쳤다."
+    },
+    "clm-8922cc3e49-c3": {
+      "assessment": "contested",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-row-actions-final.md",
+          "relation": "supports",
+          "source_id": "src-95007bbf6cf68642599a"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-row-actions-final.md"
+      },
+      "notes": "원자료가 다른 자료 또는 원자료 안의 다른 서술과 충돌한다고 밝힌다. 원자료 페이지의 미결정·충돌 절을 본다.",
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "리뷰·참고 행에 기록 열기 버튼이 있는지는 원자료 안의 구현 설명과 테스트 기술이 서로 다르게 적는다."
+    },
     "clm-8b25963986-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -3619,6 +4119,66 @@
       "risk": "normal",
       "supersedes": null,
       "text": "이 정리 이후 락온 카메라·회전 태스크는 대상 사본 없이 매 틱 UWxLockOnComponent::GetLockOnTarget()을 읽는다."
+    },
+    "clm-9e9081322a-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-legacy-removal.md",
+          "relation": "supports",
+          "source_id": "src-eeabfc3c85b14871517f"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-legacy-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자 요청(2026-09-26)으로 옛 웹 작업 경로 스크립트 8개와 테스트 5개, 옛 절차 문서 5개와 4단계 그림 ai-workflow.png가 git rm으로 삭제됐다."
+    },
+    "clm-9e9081322a-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-legacy-removal.md",
+          "relation": "supports",
+          "source_id": "src-eeabfc3c85b14871517f"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-legacy-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Claude Code 권한 거부 알림은 없어진 blockers 칸 대신 처리 근거 evidence에 한 줄로 남도록 옮겨졌다."
+    },
+    "clm-9e9081322a-c3": {
+      "assessment": "contested",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-legacy-removal.md",
+          "relation": "supports",
+          "source_id": "src-eeabfc3c85b14871517f"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-legacy-removal.md"
+      },
+      "notes": "원자료가 다른 자료 또는 원자료 안의 다른 서술과 충돌한다고 밝힌다. 원자료 페이지의 미결정·충돌 절을 본다.",
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이 노트가 남겨 둔 문서 PNG 묶기 기능은 같은 날 사용자 결정으로 제거돼 이 노트의 보존 판단은 더 이상 유효하지 않다."
     },
     "clm-a21cb9ca5f-c1": {
       "assessment": "accepted",
@@ -4599,6 +5159,66 @@
       "risk": "normal",
       "supersedes": null,
       "text": "명조 PC 시스템 역기획서는 피해 보너스·속성 저항·협주 게이지·변주/반주·에코 사용을 구현 불필요로 표시한다."
+    },
+    "clm-bda6487128-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-web-tasks.md",
+          "relation": "supports",
+          "source_id": "src-2a1863fa3b2d8cda086e"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-web-tasks.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자는 2026-09-25 웹에서 새 작업 시작과 기존 작업 이어하기를 요청하고, 웹에서 맡긴 구현에 모든 명령 허용과 터미널 창 표시 실행을 골랐다."
+    },
+    "clm-bda6487128-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-web-tasks.md",
+          "relation": "supports",
+          "source_id": "src-2a1863fa3b2d8cda086e"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-web-tasks.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Workflow 웹 처리에서 정하기는 읽기 전용(Codex read-only, Claude Code Read·Glob·Grep만)으로, 구현·추가 요청·테스트 결과 처리는 모든 명령 허용으로 실행된다."
+    },
+    "clm-bda6487128-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-web-tasks.md",
+          "relation": "supports",
+          "source_id": "src-2a1863fa3b2d8cda086e"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-web-tasks.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "웹 새 작업 기능은 가짜 Codex와 자동 테스트로만 검증했고 실제 AI 요청으로 새 작업을 끝까지 돌리지 않았다."
     },
     "clm-c2d424e44d-c1": {
       "assessment": "accepted",
@@ -5599,6 +6219,66 @@
       "risk": "normal",
       "supersedes": null,
       "text": "animnotify-categories 작업의 사람 확인 2항목(코드 리뷰, 타임라인 표시)은 이우성이 2026-09-25에 통과로 기록했다."
+    },
+    "clm-e2728b400a-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-korean-record-names.md",
+          "relation": "supports",
+          "source_id": "src-8ab2271b7b6733f7b352"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-korean-record-names.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-26부터 Workflow 웹 새 작업의 기록 파일 이름은 접수 식별자 해시 대신 NFC 정규화한 한글 제목(최대 60자)으로 만들고 같은 이름이 있으면 -2, -3을 붙인다."
+    },
+    "clm-e2728b400a-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-korean-record-names.md",
+          "relation": "supports",
+          "source_id": "src-8ab2271b7b6733f7b352"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-korean-record-names.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "기록 이름에 접수 식별자가 없어진 뒤 같은 접수의 재전송은 처리 이력의 create 요청으로 찾으며, 내용이 다르면 거절한다."
+    },
+    "clm-e2728b400a-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-26-workflow-korean-record-names.md",
+          "relation": "supports",
+          "source_id": "src-8ab2271b7b6733f7b352"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-26-workflow-korean-record-names.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이 변경으로 터미널에서 이어하기의 영문·숫자 기록 이름 제한이 없어졌고 cmd 특수 문자만 막는다."
     },
     "clm-e7df7b22d2-c1": {
       "assessment": "accepted",
@@ -6861,6 +7541,6 @@
       "text": "퀘스트 추적기 리졸버 구조는 2026-09-23 사용자가 인게임에서 문제없다고 확인했다."
     }
   },
-  "generated_at": "2026-09-26T05:51:07Z",
+  "generated_at": "2026-09-26T05:51:11Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }
