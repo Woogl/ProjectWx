@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T05:50:50Z",
+  "generated_at": "2026-09-26T05:50:59Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
     "src-016c4f4d42be310c6137": {
@@ -116,6 +116,25 @@
       "supersedes": null,
       "title": "Docs/CombatDesign/명조 PC 시스템 역기획서.md"
     },
+    "src-0b2c75e17de191705e7f": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "df5e4463b4bfe0308075828c9cf94eefec6fa155651cf035af336138da271bdd",
+      "independence_key": ".wiki/raw/notes/2026-09-24-nameplate-manager-wxgame.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/df5e4463b4bfe0308075828c9cf94eefec6fa155651cf035af336138da271bdd.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-nameplate-manager-wxgame.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-24-nameplate-manager-wxgame.md"
+    },
     "src-128de32fe3ed0635fd18": {
       "authority": "primary",
       "content_kind": "conversation",
@@ -211,6 +230,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-22-workflow-closure.md"
     },
+    "src-1e7934105a2cce2c0778": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "2b0fa3b07a5a305a90fdd6e257001c6b75ec9bfa3cd0614bff4fba6149286295",
+      "independence_key": ".wiki/raw/notes/2026-09-25-ability-block-policy-centralization.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/2b0fa3b07a5a305a90fdd6e257001c6b75ec9bfa3cd0614bff4fba6149286295.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-ability-block-policy-centralization.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-25-ability-block-policy-centralization.md"
+    },
     "src-245cd48e09d2ff9ec0b3": {
       "authority": "primary",
       "content_kind": "conversation",
@@ -286,6 +324,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/명조 적 시스템 역기획서.md"
+    },
+    "src-31e474b69a18800c3fa0": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "9b281e65e4f5d167c014be26c4d3d77096e1f69a03aabc0e81f836cee5551bf1",
+      "independence_key": ".wiki/raw/notes/2026-09-24-nameplate-manager.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/9b281e65e4f5d167c014be26c4d3d77096e1f69a03aabc0e81f836cee5551bf1.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-nameplate-manager.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-24-nameplate-manager.md"
     },
     "src-3337ab1368bb988640ac": {
       "authority": "primary",
@@ -381,6 +438,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/WX_AM_기능정리.md"
+    },
+    "src-4874675dea229793c590": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "a5d37955a5a0b5eebbceeb2c8e5a75e18ed84780c545b27776a526f034bf3c8e",
+      "independence_key": ".wiki/raw/notes/2026-09-25-checkpoint-savegame.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/a5d37955a5a0b5eebbceeb2c8e5a75e18ed84780c545b27776a526f034bf3c8e.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-checkpoint-savegame.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-25-checkpoint-savegame.md"
     },
     "src-49b82efe2fd5b598b233": {
       "authority": "primary",
@@ -686,6 +762,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-22-workflow-review.md"
     },
+    "src-80c6c8e3c28e7a130a33": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "3b4ab190a666b4296740e3b02435dd884d57de642ba72836fd6230a065e7cb73",
+      "independence_key": ".wiki/raw/notes/2026-09-24-wxcore-cleanup.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/3b4ab190a666b4296740e3b02435dd884d57de642ba72836fd6230a065e7cb73.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-wxcore-cleanup.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-24-wxcore-cleanup.md"
+    },
     "src-8111c305354c561da569": {
       "authority": "primary",
       "content_kind": "document",
@@ -762,6 +857,25 @@
       "supersedes": null,
       "title": ".agents/workflow/tasks/workflow-review.md"
     },
+    "src-9aac608619f197cba225": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "4b5acbf3f00b05230afcaf1ef7042c588cad07a28afa5fafd1d9ea861c8e3083",
+      "independence_key": ".wiki/raw/notes/2026-09-25-animnotify-labels.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/4b5acbf3f00b05230afcaf1ef7042c588cad07a28afa5fafd1d9ea861c8e3083.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-animnotify-labels.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-25-animnotify-labels.md"
+    },
     "src-9b357e71cbd4160f0f05": {
       "authority": "primary",
       "content_kind": "document",
@@ -780,6 +894,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/Nameplate_System.md"
+    },
+    "src-9fbe4572f989de2390d1": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "ab29b513c45a013e1bb4d2371d110d4e86ade7dfd643e85572dfe66874edbb40",
+      "independence_key": ".wiki/raw/notes/2026-09-25-ability-data-on-ga.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/ab29b513c45a013e1bb4d2371d110d4e86ade7dfd643e85572dfe66874edbb40.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-ability-data-on-ga.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-25-ability-data-on-ga.md"
     },
     "src-a23a1d7fb94ec48c6dd4": {
       "authority": "primary",
@@ -875,6 +1008,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/조작키.MD"
+    },
+    "src-b41b3e5cba0feec06842": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "609caa7004bf69cc1ffe98e4b753533418d9d10afa8d41b926a0bff3e4953861",
+      "independence_key": ".wiki/raw/notes/2026-09-24-wxcombat-cleanup.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/609caa7004bf69cc1ffe98e4b753533418d9d10afa8d41b926a0bff3e4953861.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-wxcombat-cleanup.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-24-wxcombat-cleanup.md"
     },
     "src-b693f6fd80bca30f050d": {
       "authority": "primary",
@@ -1028,6 +1180,25 @@
       "supersedes": null,
       "title": "Docs/CombatDesign/Patrol_Design.md"
     },
+    "src-ce810cd749d77af9dee5": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "b0d65d7de88adb6f16cb61a12ae0dbec34231b0a6fc45a7f6ed4df7f162fea2d",
+      "independence_key": ".wiki/raw/notes/2026-09-25-checkpoint-redirect-cleanup.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/b0d65d7de88adb6f16cb61a12ae0dbec34231b0a6fc45a7f6ed4df7f162fea2d.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-checkpoint-redirect-cleanup.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-25-checkpoint-redirect-cleanup.md"
+    },
     "src-cfa091c12fac9ef14f27": {
       "authority": "primary",
       "content_kind": "document",
@@ -1161,6 +1332,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-23-player-screen-owner.md"
     },
+    "src-f065af6c9d30c9f6d88f": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "5b170df115d5c1ae53a3e41757022e59a6545aaba8cfb473f85312e0947daf4e",
+      "independence_key": ".wiki/raw/notes/2026-09-24-wxcombat-machinery-cleanup.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/5b170df115d5c1ae53a3e41757022e59a6545aaba8cfb473f85312e0947daf4e.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-wxcombat-machinery-cleanup.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-24-wxcombat-machinery-cleanup.md"
+    },
     "src-f18b919b389d5ab5acdd": {
       "authority": "primary",
       "content_kind": "document",
@@ -1179,6 +1369,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/LevelDesign/Wx_Quest.md"
+    },
+    "src-f61648c1a135b8f2157a": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "c5ddf5b757a5dd4996e60000b51e93895d597bc550a3ab7e46244a765926271c",
+      "independence_key": ".wiki/raw/notes/2026-09-24-module-principles.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/c5ddf5b757a5dd4996e60000b51e93895d597bc550a3ab7e46244a765926271c.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-module-principles.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-24-module-principles.md"
     },
     "src-fbf62a9104d918a4da32": {
       "authority": "primary",

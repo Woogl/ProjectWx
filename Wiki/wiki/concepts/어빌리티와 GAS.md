@@ -10,6 +10,10 @@ summary: "GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조"
 sources:
   - "[[결정 노트 - 2026-09-23-damage-forward-flow]]"
   - "[[결정 노트 - 2026-09-23-zero-damage-hitstop]]"
+  - "[[결정 노트 - 2026-09-24-wxcombat-cleanup]]"
+  - "[[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]]"
+  - "[[결정 노트 - 2026-09-25-ability-block-policy-centralization]]"
+  - "[[결정 노트 - 2026-09-25-ability-data-on-ga]]"
   - "[[기획서 - PC규격서]]"
   - "[[기획서 - WA_PC_규격서]]"
   - "[[기획서 - WA_주인공_캐릭터]]"
@@ -47,6 +51,12 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 쿨다운은 그룹별 GE 파생 클래스 대신 공용 UWxEffect_Cooldown 하나와 어빌리티의 FGameplayTagContainer CooldownTags로 구분하기로 사용자가 승인했다. ([[작업 - cooldown-unification]])
 - Ability.Pattern.N 태그는 BT 재정비에 필요할 수 있어 유지하고 Ability.Skill.N 제거는 BT 재정비 때 하기로 사용자가 정했다. ([[작업 - cooldown-unification]])
 - 사용자는 2026-09-23 회피를 ASC의 OnImmunityBlockGameplayEffectDelegate를 쓰는 방식으로 재구현하도록 지시했고, Dodge 어빌리티가 활성 동안 막힌 UWxEffect_Damage를 감지해 극한 회피로 전환한다. ([[결정 노트 - 2026-09-23-damage-forward-flow]])
+- 사용자는 2026-09-24 스택형이 아닌 GE도 쓸 수 있도록 구간 GE 노티파이가 자기가 건 핸들만 제거하는 B안을 골랐다. ([[결정 노트 - 2026-09-24-wxcombat-cleanup]])
+- 사용자는 2026-09-24 소환물 AbilitySet의 NoCooldown을 IgnoreCooldowns로 바꾸고 IgnoreCooldowns는 엔진 기본 GE 컴포넌트 방식으로 동작해야 한다고 결정했다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
+- 2026-09-25 사용자는 어빌리티 공통 차단 규칙을 ASC ApplyAbilityBlockAndCancelTags 확장에서 계산해 Super에 넘기는 방식을 승인하고 이번 범위를 자식의 차단 코드 제거로 한정했다. ([[결정 노트 - 2026-09-25-ability-block-policy-centralization]])
+- 2026-09-25 사용자는 AI 입장의 작업 편의를 최우선 기준으로 삼았고, 어빌리티 데이터는 어빌리티별 데이터 전용 GA_ 에셋에 둔다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
+- 행이 에셋과 1:1인 데이터는 그 GA_·GE_ 에셋에 두고, DataTable은 DT_Damage 같은 여러 곳이 골라 쓰는 정의와 레벨 곡선에만 쓴다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
+- 사용자는 엔진 칸을 HideCategories로 숨기지 않고 스펙 DynamicSpecSourceTags를 쓰지 않도록 결정했다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
 
 ## 구현 관찰
 
@@ -58,20 +68,38 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 공유 AbilitySystem VM의 효과 목록 연결은 한 번만 설정되며 연결 전 조회된 빈 목록은 현재 활성 GE로 보충된다. ([[작업 - ui-data-interface-removal]])
 - 2026-09-23 기준 엔진 Immunity 통지는 ApplyGameplayEffectSpecToSelf에서 CanApply보다 먼저 돌기 때문에 적대 판정을 GE CanApply로 옮기면 아군 공격에도 회피 통지가 나가 되돌렸다. ([[결정 노트 - 2026-09-23-damage-forward-flow]])
 - UWxEffect_Invincible의 Immunity는 UWxEffect_Damage 클래스만 막고 그 차단 통지를 Dodge가 극한 회피로 받으며, 이미 걸린 지속 피해 GE와 치트 GE는 무적 중에도 들어간다. ([[결정 노트 - 2026-09-23-zero-damage-hitstop]])
+- 커밋 ce6295184 이후 UWxAnimNotifyState_ApplyGameplayEffect는 몽타주 인스턴스 ID를 키로 AppliedEffects 맵에 핸들을 두고 끝에서 그 핸들의 스택 하나만 빼며, 몽타주가 아닌 재생에서는 적용하지 않는다. ([[결정 노트 - 2026-09-24-wxcombat-cleanup]])
+- UWxAbilityBase::EndAbility의 ActivationOwnedEffects 제거와 UWxSkillCutsceneComponent::Finish의 컷신 무적 제거도 핸들의 스택 하나만 빼도록 바뀌었다. ([[결정 노트 - 2026-09-24-wxcombat-cleanup]])
+- 2026-09-24 작업 트리의 UWxEffect_IgnoreCooldowns는 Infinite GE로 UImmunityGameplayEffectComponent와 URemoveOtherGameplayEffectComponent가 Cooldown 부모 태그를 부여하는 GE를 막고 걷는다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
+- 코스트 무시 UWxEffect_IgnoreCosts는 순정 CheckCost가 면역이 아니라 어트리뷰트를 보기 때문에 태그와 AbilityBase 판정을 유지한다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
+- 발동 그룹 점유·가드 입력·질주 SP·컷신 사용 중 같은 Wx 고유 발동 실패는 로그를 남기지 않는다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
+- 2026-09-25 작업 트리의 UWxAbilityBase::GetAbilityBlockTags는 명시 차단 목록과 ActivationGroup 공통 규칙을 합치며, Exclusive·Override는 Attack·Skill·Pattern·Ultimate·Dodge·Guard·UseItem·Interact·Jump를 막는다. ([[결정 노트 - 2026-09-25-ability-block-policy-centralization]])
+- Exclusive 약공격(Ability.Attack.Light)은 공통 Attack 부모 대신 Light·Air·DodgeCounter만 막아 강공격이 순정 CancelAbilitiesWithTag로 약공격을 끊을 수 있다. ([[결정 노트 - 2026-09-25-ability-block-policy-centralization]])
+- 2026-09-25 커밋 이후 비용·쿨다운 시간·표시·몽타주는 UWxAbilityBase의 GA_ 프로퍼티이고 발동 조건·쿨다운 그룹 GE·BT 번호 태그·패시브 트리거는 엔진 칸에 둔다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
+- UWxAbilitySet은 캐릭터 ASC에 같은 어빌리티 클래스가 이미 있으면 경고하고 부여를 건너뛴다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
 
 ## 검증 범위
 
 - GA_ 복귀는 Development·DebugGame 빌드, GA_ 40개·세트 9개 데이터 검증 커맨드릿, 단독·리슨 서버 PIE로 AI가 확인했고, 사람이 HGTest·분신·도플갱어·조작감·가드 경감·패시브 UP·락온을 인게임으로 통과 확인했다. ([[작업 - ability-table-driven]])
 - 쿨다운 통합은 WxEditor Development 빌드와 GA_ 40개 데이터 검증을 통과했고, 사람이 회피 쿨다운·UI, 소환물 쿨다운 무시, 리슨 서버 네트워크 복제를 인게임으로 확인했다. ([[작업 - cooldown-unification]])
+- 구간 GE 노티파이 변경은 임시 자동화 테스트 Wx.Combat.ApplyEffectNotify.OwnHandleOnly로 확인한 뒤 테스트 파일을 지웠고 플레이는 미검증이다. ([[결정 노트 - 2026-09-24-wxcombat-cleanup]])
+- WxCombat 장치 정리는 빌드와 ABS_Minion·ABS_Doppelganger 재로드까지 확인됐고 인게임은 미검증이다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
+- 공통 차단 통합은 빌드, ServerOnly 자동화 테스트 3개, GA 40개 CDO 차단 관계 1,600건 대조로 확인됐고 실제 입력·몽타주 타이밍·UI·네트워크 예측/복제는 미확인이다. ([[결정 노트 - 2026-09-25-ability-block-policy-centralization]])
+- GA_ 복귀는 빌드, GA_ 40개 값 대조, 데이터 검증 커맨드릿, PIE 단독·리슨 서버 부여 확인까지 했고 락온·가드 경감률·조작감은 미확인이다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
 
 ## 미결정·충돌
 
 - 어빌리티 클래스·데이터·몽타주 사이 암묵적 계약을 드러내는 방법(선언과 편집 화면 표시 등)은 미결로 남았고, 타입별 몽타주 검증기는 제거된 채 필요 시 재검토하기로 했다. ([[작업 - ability-table-driven]])
+- 사용자는 어빌리티 자식 클래스도 나중에 없앨 수 있으면 없애고 싶다고 했지만 클래스 통합 여부와 시점은 정하지 않았다. ([[결정 노트 - 2026-09-25-ability-block-policy-centralization]])
 
 ## 원자료
 
 - [[결정 노트 - 2026-09-23-damage-forward-flow]] — Hit Wrapper GE와 전용 EffectContext를 없애고 ApplyDamage 판정에서 Damage GE 컴포넌트 반응으로 결과가 앞으로만 흐르게 한 2026-09-23 결정들
 - [[결정 노트 - 2026-09-23-zero-damage-hitstop]] — 히트스톱을 Hit Cue와 같은 조건(피해 0 초과 또는 퍼펙트 가드)으로 맞추고 Hit Cue 예측 발행 등 낡은 주석을 정정한 기록. 빌드 통과, 플레이 미검증.
+- [[결정 노트 - 2026-09-24-wxcombat-cleanup]] — 구간 GE 노티파이가 자기 핸들만 걷게 하고 처형 피해를 처형 어빌리티가 직접 적용하며 퍼펙트 가드 Cue를 Hit Cue로 통합한 WxCombat 정리 네 건 기록
+- [[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]] — 소환물 쿨다운 무시를 순정 GE 컴포넌트로 바꾸고 사망 BT 정지를 AI 컨트롤러로 단일화하며 락온 대상 사본을 없앤 WxCombat 장치 정리 기록
+- [[결정 노트 - 2026-09-25-ability-block-policy-centralization]] — 어빌리티 자식 생성자의 공통 차단 코드를 지우고 ActivationGroup·태그 기반 계산을 ASC ApplyAbilityBlockAndCancelTags 확장 지점으로 통합한 결정과 검증 기록
+- [[결정 노트 - 2026-09-25-ability-data-on-ga]] — 어빌리티 테이블 구동을 시도했다가 AI 작업 편의를 기준으로 데이터 전용 GA_로 돌아가고 DT_Ability·DT_Effect를 지운 결정과 구현·검증 기록
 - [[기획서 - PC규격서]] — 모든 PC가 공유하는 HP·MP·UP·SP 자원, 공통 어빌리티 분류, 후딜·전체 GA 캔슬 규칙, 회피 스택·극한회피, 가드·패링 규격을 정의한 문서
 - [[기획서 - WA_PC_규격서]] — 명조 방향 PC 구조를 속성 6종, 캐릭터 스탯, HP·궁극기 게이지·스태미나·고유 자원, 공용·개별 어빌리티 분류로 정의한 Project WX PC 규격서
 - [[기획서 - WA_주인공_캐릭터]] — 주인공 캐릭터의 개별 어빌리티(5단 일반 공격·강공격 연계·회피 반격·E 스킬·고유 자원 스킬·10초 강화 버프·궁극기) 규격서

@@ -15,6 +15,9 @@ sources:
   - "[[결정 노트 - 2026-09-23-item-viewmodel-unification]]"
   - "[[결정 노트 - 2026-09-23-player-screen-owner]]"
   - "[[결정 노트 - 2026-09-23-screen-classes-to-resolvers]]"
+  - "[[결정 노트 - 2026-09-24-nameplate-manager-wxgame]]"
+  - "[[결정 노트 - 2026-09-24-nameplate-manager]]"
+  - "[[결정 노트 - 2026-09-25-ability-data-on-ga]]"
   - "[[기획서 - Nameplate_System]]"
   - "[[작업 - cooldown-unification]]"
   - "[[작업 - dialogue-presentation-vm]]"
@@ -50,6 +53,10 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 인벤토리 카테고리 변환 함수 라이브러리와 위젯 변수 방식은 공유 인벤토리 VM이 카테고리 상태를 갖는 더 단순한 방식으로 철회되었다. ([[결정 노트 - 2026-09-23-item-viewmodel-unification]])
 - 사용자는 UWxUIDeveloperSettings에는 UI 틀(LayoutClass, ConfirmationPopupClass)만 두고 게임플레이에 반응하는 화면은 컨트롤러 BP의 UWxPlayerLayoutComponent에 두기로 정했다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
 - 사용자는 MVVM을 쓰므로 Widget 클래스를 늘릴 필요가 없다며 UWxDialogueScreen·UWxQuestTracker를 제거하고 WBP가 뷰모델로 구동되게 했다. ([[결정 노트 - 2026-09-23-screen-classes-to-resolvers]])
+- 2026-09-24 사용자는 Nameplate 높이에 SkeletalMesh 윗면이 아니라 캡슐(Root) 윗면을 쓰도록 지시했고 HeadClearance 90cm를 의도한 값으로 확인했다. ([[결정 노트 - 2026-09-24-nameplate-manager-wxgame]])
+- Nameplate 교전 판정은 AWxEnemyCharacter::RefreshEngagement가 한 곳에서 계산하는 State.Engaged 태그를 유지해 쓴다. ([[결정 노트 - 2026-09-24-nameplate-manager-wxgame]])
+- 사용자는 2026-09-23~24에 교전하지 않은 적도 락온하면 Nameplate가 떠야 하고, Nameplate와 레티클을 NameplateManager가 동적으로 붙이고 떼도록 결정했다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
+- Nameplate 태그 조건은 NameplateManager 한 곳에만 두고, 락온 대상에는 표시 거리 제한을 두지 않으며 표시 거리 경계에 히스테리시스를 둔다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
 
 ## 구현 관찰
 
@@ -69,6 +76,11 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 2026-09-23 정적 조사 기준 UWxPlayerLayoutComponent는 폰 교체 시 새 폰의 Ability.Death·State.Dialogue 태그 관찰로 갈아타고, 대화 창만 닫고 사망 화면은 부활 완료 때 스스로 비활성화되게 둔다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
 - UWxUIManagerSubsystem은 레이아웃·팝업·일시정지만 맡고 TrackedPlayerController는 일시정지에만 쓴다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
 - 대화·퀘스트 화면은 모델은 도메인, 연결은 WxGame 리졸버, VM은 WxUI인 세 층 구조이며 리졸버 생성·해제는 위젯 NativeConstruct·NativeDestruct를 따른다. ([[결정 노트 - 2026-09-23-screen-classes-to-resolvers]])
+- 2026-09-24 기준 WxGame의 UWxNameplateManagerComponent는 TActorIterator로 AWxEnemyCharacter를 훑고 Viewer && IsAlive() && (bLockedOn || (bInRange && bEngaged)) 조건으로 Nameplate를 붙인다. ([[결정 노트 - 2026-09-24-nameplate-manager-wxgame]])
+- 2026-09-24 작업으로 LockOnTargetQuery 델리게이트·UWxNameplateSourceComponent·VisibilityRequirements가 제거되고 사망 판정은 HP 0으로 바뀌었다. ([[결정 노트 - 2026-09-24-nameplate-manager-wxgame]])
+- 커밋 aaf557a09 시점 NameplateManager는 로컬 컨트롤러에서만 틱하며 3000cm−200cm 안쪽에서 새 Nameplate를 붙이고 3000cm까지 유지했다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
+- 커밋 aaf557a09로 WBP_Nameplate_Enemy의 가시성 태그 바인딩이 지워져, 위젯은 붙어 있으면 보이고 사망 시 제거는 NameplateManager가 한다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
+- 2026-09-25 GE 표시 데이터는 DT_Effect 행 대신 UWxEffectComponent_UIData의 Title·Description·Icon 프로퍼티에 있고 버프 목록은 아이콘을 채운 GE만 그린다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
 
 ## 검증 범위
 
@@ -82,6 +94,8 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 아이템 VM 단일화는 Development·DebugGame 빌드와 관련 위젯 6개 컴파일만 확인했고 런타임 표시·갱신은 인간 확인 대상으로 남았다. ([[결정 노트 - 2026-09-23-item-viewmodel-unification]])
 - 사망·대화 화면 주인 이동 후 사용자가 2026-09-23 사망·부활·대화 동작을 인게임에서 확인했다고 노트가 기록한다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
 - 대화·퀘스트 화면 리졸버 전환은 WxEditor 빌드와 WBP 4개 경고-오류 컴파일을 통과했고 사용자가 2026-09-23 인게임에서 문제 없음을 확인했다. ([[결정 노트 - 2026-09-23-screen-classes-to-resolvers]])
+- NameplateManager의 WxGame 이동은 빌드·BP 컴파일·레벨 재로드까지 확인됐고 인게임 표시와 리슨 서버·원격 클라이언트는 미검증이다. ([[결정 노트 - 2026-09-24-nameplate-manager-wxgame]])
+- NameplateManager 도입은 빌드와 관련 BP 컴파일 오류 0만 확인됐고 인게임 표시와 리슨 서버·원격 클라이언트 동작은 미검증이다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
 
 ## 미결정·충돌
 
@@ -99,6 +113,9 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - [[결정 노트 - 2026-09-23-item-viewmodel-unification]] — WxGame 인벤토리 아이템 VM을 WxUI 아이템 VM으로 단일화하고 PC당 공유 인벤토리 VM이 값을 공급하게 한 결정, MVVM 변환 함수 제약, WxToolset 도구 기록.
 - [[결정 노트 - 2026-09-23-player-screen-owner]] — 사망·대화 화면 클래스와 태그 관찰을 UIManager 서브시스템·전역 설정에서 컨트롤러 BP의 UWxPlayerLayoutComponent로 옮긴 결정과 정적 조사 기록.
 - [[결정 노트 - 2026-09-23-screen-classes-to-resolvers]] — UWxDialogueScreen·UWxQuestTracker C++ 위젯 클래스를 제거하고 WBP가 WxGame 리졸버가 연결한 WxUI 뷰모델로 구동되게 한 사용자 결정과 구현 기록.
+- [[결정 노트 - 2026-09-24-nameplate-manager-wxgame]] — NameplateManager를 WxUI에서 WxGame 컨트롤러로 옮겨 적과 락온 대상을 직접 읽게 하고 LockOnTargetQuery·마커 컴포넌트·옛 리다이렉트를 지운 기록
+- [[결정 노트 - 2026-09-24-nameplate-manager]] — 적마다 위젯을 만들던 Nameplate와 락온 태스크의 레티클 생성을 없애고 플레이어 컨트롤러의 NameplateManager가 로컬에서 붙이고 떼게 한 구조 기록
+- [[결정 노트 - 2026-09-25-ability-data-on-ga]] — 어빌리티 테이블 구동을 시도했다가 AI 작업 편의를 기준으로 데이터 전용 GA_로 돌아가고 DT_Ability·DT_Effect를 지운 결정과 구현·검증 기록
 - [[기획서 - Nameplate_System]] — 일반·네임드 몬스터 네임플레이트의 HP·DP 표시 구성, 시야·청각·피격 인식 규칙, 표시·숨김 조건과 보스 전용 규칙을 정의한 기획서
 - [[작업 - cooldown-unification]] — 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 공용 GE 하나로 통합하고 CooldownTags로 구분하게 바꾼 작업 기록으로, 사람 확인 4/4 통과로 완료됐다.
 - [[작업 - dialogue-presentation-vm]] — Dialogue VM을 WxUI의 순수 표시 데이터로 분리하고, 화면 클래스를 거쳐 최종적으로 WxGame 리졸버 세 층 구조로 정리한 완료 작업 기록

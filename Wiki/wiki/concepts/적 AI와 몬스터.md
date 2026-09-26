@@ -9,6 +9,7 @@ tags:
 summary: "일반·정예 몬스터 규격, BT·AI 제어, 순찰"
 sources:
   - "[[결정 노트 - 2026-09-24-ai-brain-control-single-owner]]"
+  - "[[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]]"
   - "[[기획서 - Elite_monster]]"
   - "[[기획서 - Nameplate_System]]"
   - "[[기획서 - Patrol_Design]]"
@@ -66,6 +67,7 @@ sources:
 - State.Engaged 태그는 AWxEnemyCharacter::RefreshEngagement가 IsAlive()와 자기 락온 대상 유무로 붙이며 NameplateManager와 뒤잡 판정이 이 태그를 읽는다. ([[작업 - nameplate-manager]])
 - AWxAIController는 사망 시 StopLogic을, Ability.Groggy 태그 추가·제거 시 Reaction 우선순위 LockResource·ClearResourceLock을 호출하고 빙의 해제 시 잠금도 푼다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
 - 엔진 AI 태스크는 Logic 비트 잠금을 쓰므로 그 해제가 Reaction 비트로 잠긴 그로기 중 트리를 재개하지 않는다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
+- 2026-09-24 정리 이후 사망 시 BT 정지는 AWxAIController::HandlePawnDeath만 하고 UWxAbility_Death의 StopLogic 호출은 삭제됐다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
 
 ## 검증 범위
 
@@ -82,10 +84,12 @@ sources:
 - normal_monster_BT 기획서는 패턴별 유효거리, 유효 공격 거리 밖 판단값, 연속공격 쿨다운, 패턴별 데미지·스태거·경직 누적량을 미확정으로 남긴다. ([[기획서 - normal_monster_BT]])
 - 적 규격서는 사망 모션 종료 후 적이 사라진다고 하고 명조 적 시스템 역기획서는 쓰러진 뒤 2초 후 사라진다고 해 시체 제거 시점이 다르다. ([[기획서 - 적 규격서]])
 - 그로기 중 트리 잠금은 진행 중인 MoveTo 경로 추종과 포커스 회전을 멈추지 않아, 미끄러짐이 보이면 PathFollowingComponent도 Reaction 우선순위로 잠가야 한다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
+- 그로기·돌진 중 BT 일시정지를 어디서 할지는 모듈 리뷰 항목으로 남아 있다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
 
 ## 원자료
 
 - [[결정 노트 - 2026-09-24-ai-brain-control-single-owner]] — AI 비헤이비어 트리 정지·잠금을 AWxAIController 하나로 모은 결정. 사망은 StopLogic, 그로기는 Reaction 우선순위 리소스 잠금, 돌진은 브레인을 건드리지 않는다.
+- [[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]] — 소환물 쿨다운 무시를 순정 GE 컴포넌트로 바꾸고 사망 BT 정지를 AI 컨트롤러로 단일화하며 락온 대상 사본을 없앤 WxCombat 장치 정리 기록
 - [[기획서 - Elite_monster]] — 첫 보스 커스터의 패링 학습을 예습시키는 양손 망치형 엘리트 01의 배치·외형·패턴 구성과 그로기 시 갑옷 파괴 기믹을 정리한 기획서
 - [[기획서 - Nameplate_System]] — 일반·네임드 몬스터 네임플레이트의 HP·DP 표시 구성, 시야·청각·피격 인식 규칙, 표시·숨김 조건과 보스 전용 규칙을 정의한 기획서
 - [[기획서 - Patrol_Design]] — 정찰을 적 타입이 아닌 인스턴스 단위 정찰 역할로 정하고, 순찰·추격·귀환 단계와 A-B-A 순찰 경로, 무전파 감지 규칙을 정의한 기획서

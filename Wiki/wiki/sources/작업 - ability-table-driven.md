@@ -105,7 +105,7 @@ key_claims:
 - [[어빌리티와 GAS]]
 - [[에디터 도구]]
 - [[적 AI와 몬스터]]
-- <!--wl-->결정 노트 - 2026-09-25-ability-data-on-ga
+- [[결정 노트 - 2026-09-25-ability-data-on-ga]]
 - <!--wl-->결정 노트 - 2026-09-26-ability-ga-play-acceptance
 
 ## 핵심 주장

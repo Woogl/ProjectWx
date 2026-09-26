@@ -102,8 +102,8 @@ key_claims:
 - [[UI 표시 구조]]
 - [[적 AI와 몬스터]]
 - [[모듈 구조와 코드 정리]]
-- <!--wl-->결정 노트 - 2026-09-24-nameplate-manager
-- <!--wl-->결정 노트 - 2026-09-24-nameplate-manager-wxgame
+- [[결정 노트 - 2026-09-24-nameplate-manager]]
+- [[결정 노트 - 2026-09-24-nameplate-manager-wxgame]]
 - <!--wl-->결정 노트 - 2026-09-26-nameplate-play-acceptance
 
 ## 핵심 주장

@@ -74,6 +74,15 @@
       "source_id": "src-fbf62a9104d918a4da32",
       "title": ".agents/workflow/tasks/ui-data-interface-removal.md"
     },
+    ".raw/captured/2b0fa3b07a5a305a90fdd6e257001c6b75ec9bfa3cd0614bff4fba6149286295.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-ability-block-policy-centralization.md"
+      ],
+      "sha256": "2b0fa3b07a5a305a90fdd6e257001c6b75ec9bfa3cd0614bff4fba6149286295",
+      "source_id": "src-1e7934105a2cce2c0778",
+      "title": ".wiki/raw/notes/2026-09-25-ability-block-policy-centralization.md"
+    },
     ".raw/captured/30a14e312982fae0a893540279e4116bac0be84bae21a89b803d780dcaa8937f.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -118,6 +127,15 @@
       "sha256": "3a87f612e6308146b063389aac2bbc003d65494a2c0d9aef306d5722b02465d4",
       "source_id": "src-190324fcc51209d69ca0",
       "title": ".wiki/raw/notes/2026-09-22-workflow-closure.md"
+    },
+    ".raw/captured/3b4ab190a666b4296740e3b02435dd884d57de642ba72836fd6230a065e7cb73.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-wxcore-cleanup.md"
+      ],
+      "sha256": "3b4ab190a666b4296740e3b02435dd884d57de642ba72836fd6230a065e7cb73",
+      "source_id": "src-80c6c8e3c28e7a130a33",
+      "title": ".wiki/raw/notes/2026-09-24-wxcore-cleanup.md"
     },
     ".raw/captured/3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7.md": {
       "ingested": "2026-09-26",
@@ -173,6 +191,15 @@
       "source_id": "src-72e77d9f8acb89ba962a",
       "title": ".agents/workflow/tasks/cooldown-unification.md"
     },
+    ".raw/captured/4b5acbf3f00b05230afcaf1ef7042c588cad07a28afa5fafd1d9ea861c8e3083.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-animnotify-labels.md"
+      ],
+      "sha256": "4b5acbf3f00b05230afcaf1ef7042c588cad07a28afa5fafd1d9ea861c8e3083",
+      "source_id": "src-9aac608619f197cba225",
+      "title": ".wiki/raw/notes/2026-09-25-animnotify-labels.md"
+    },
     ".raw/captured/4bbb1e6560d7bce7c274cc7763da57e5e8d3ad70473294c9d8b5fff730e20e6a.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -218,6 +245,15 @@
       "source_id": "src-997f58c17998f689ab53",
       "title": ".agents/workflow/tasks/workflow-review.md"
     },
+    ".raw/captured/5b170df115d5c1ae53a3e41757022e59a6545aaba8cfb473f85312e0947daf4e.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-wxcombat-machinery-cleanup.md"
+      ],
+      "sha256": "5b170df115d5c1ae53a3e41757022e59a6545aaba8cfb473f85312e0947daf4e",
+      "source_id": "src-f065af6c9d30c9f6d88f",
+      "title": ".wiki/raw/notes/2026-09-24-wxcombat-machinery-cleanup.md"
+    },
     ".raw/captured/5ef1e5f8941b0be03a5211990189016c1ecc851744385b7e84cd0b9c9995c784.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -235,6 +271,15 @@
       "sha256": "5f1fe579585183e16b3c259cd42c04eeada23d513ad170f721be6913b822b5b8",
       "source_id": "src-245cd48e09d2ff9ec0b3",
       "title": ".wiki/raw/notes/2026-09-23-datatable-row-fixup.md"
+    },
+    ".raw/captured/609caa7004bf69cc1ffe98e4b753533418d9d10afa8d41b926a0bff3e4953861.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-wxcombat-cleanup.md"
+      ],
+      "sha256": "609caa7004bf69cc1ffe98e4b753533418d9d10afa8d41b926a0bff3e4953861",
+      "source_id": "src-b41b3e5cba0feec06842",
+      "title": ".wiki/raw/notes/2026-09-24-wxcombat-cleanup.md"
     },
     ".raw/captured/6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e.md": {
       "ingested": "2026-09-26",
@@ -362,6 +407,15 @@
       "source_id": "src-b8eecc38d8d7eccd1975",
       "title": ".wiki/raw/notes/2026-09-23-apply-damage-unification.md"
     },
+    ".raw/captured/9b281e65e4f5d167c014be26c4d3d77096e1f69a03aabc0e81f836cee5551bf1.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-nameplate-manager.md"
+      ],
+      "sha256": "9b281e65e4f5d167c014be26c4d3d77096e1f69a03aabc0e81f836cee5551bf1",
+      "source_id": "src-31e474b69a18800c3fa0",
+      "title": ".wiki/raw/notes/2026-09-24-nameplate-manager.md"
+    },
     ".raw/captured/a2f7e5b8bf1d09961ed855182d7d6eb578a8b18062ed90ad0e796a17cfb5b58d.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -371,6 +425,15 @@
       "source_id": "src-4ec20852882dbfd83898",
       "title": "Docs/CombatDesign/경직 수정본.md"
     },
+    ".raw/captured/a5d37955a5a0b5eebbceeb2c8e5a75e18ed84780c545b27776a526f034bf3c8e.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-checkpoint-savegame.md"
+      ],
+      "sha256": "a5d37955a5a0b5eebbceeb2c8e5a75e18ed84780c545b27776a526f034bf3c8e",
+      "source_id": "src-4874675dea229793c590",
+      "title": ".wiki/raw/notes/2026-09-25-checkpoint-savegame.md"
+    },
     ".raw/captured/a8e987aff16a7d77c8fd03f2217f4cad69155d03ddb6a7114127f0fecdffec18.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -379,6 +442,15 @@
       "sha256": "a8e987aff16a7d77c8fd03f2217f4cad69155d03ddb6a7114127f0fecdffec18",
       "source_id": "src-fc63937bb42b710abf3f",
       "title": ".wiki/raw/notes/2026-09-23-dialogue-presentation-vm.md"
+    },
+    ".raw/captured/ab29b513c45a013e1bb4d2371d110d4e86ade7dfd643e85572dfe66874edbb40.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-ability-data-on-ga.md"
+      ],
+      "sha256": "ab29b513c45a013e1bb4d2371d110d4e86ade7dfd643e85572dfe66874edbb40",
+      "source_id": "src-9fbe4572f989de2390d1",
+      "title": ".wiki/raw/notes/2026-09-25-ability-data-on-ga.md"
     },
     ".raw/captured/ad2c7d665a40049b3cd38a580a1d5f40bfc9fa62e3ed12aa325589cfc559b634.md": {
       "ingested": "2026-09-26",
@@ -397,6 +469,15 @@
       "sha256": "af0d44bf8a57ec6faa9a5a46b78a004fb1addee291ac72a11deef26ab96d9b85",
       "source_id": "src-6a3624fe45a27e84c05e",
       "title": "Docs/CombatDesign/에스트병 기획서.md"
+    },
+    ".raw/captured/b0d65d7de88adb6f16cb61a12ae0dbec34231b0a6fc45a7f6ed4df7f162fea2d.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-checkpoint-redirect-cleanup.md"
+      ],
+      "sha256": "b0d65d7de88adb6f16cb61a12ae0dbec34231b0a6fc45a7f6ed4df7f162fea2d",
+      "source_id": "src-ce810cd749d77af9dee5",
+      "title": ".wiki/raw/notes/2026-09-25-checkpoint-redirect-cleanup.md"
     },
     ".raw/captured/b6020103ecffc7507a7ae78cb774df9d1287a01763acc6ca9fd2a9394ac2ce64.md": {
       "ingested": "2026-09-26",
@@ -442,6 +523,15 @@
       "sha256": "c2a0caa9fce4784c6ca575f588760e258d99ff69c8e237776d00c6f2c9ce89e9",
       "source_id": "src-c50b38fd4c3e9da6a2b4",
       "title": ".wiki/raw/notes/2026-09-23-zero-damage-hitstop.md"
+    },
+    ".raw/captured/c5ddf5b757a5dd4996e60000b51e93895d597bc550a3ab7e46244a765926271c.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-module-principles.md"
+      ],
+      "sha256": "c5ddf5b757a5dd4996e60000b51e93895d597bc550a3ab7e46244a765926271c",
+      "source_id": "src-f61648c1a135b8f2157a",
+      "title": ".wiki/raw/notes/2026-09-24-module-principles.md"
     },
     ".raw/captured/c5f8b4308916075f5b4fb089c0cc59a0e23a571012915a6b238fb659a422fb74.md": {
       "ingested": "2026-09-26",
@@ -514,6 +604,15 @@
       "sha256": "dce4c862ecb2c25d2de83da215c577e4d4b5a10a8229579b1baf7e860869d337",
       "source_id": "src-281f68be3034243b724f",
       "title": ".wiki/raw/notes/2026-09-23-interaction-list-vm.md"
+    },
+    ".raw/captured/df5e4463b4bfe0308075828c9cf94eefec6fa155651cf035af336138da271bdd.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-nameplate-manager-wxgame.md"
+      ],
+      "sha256": "df5e4463b4bfe0308075828c9cf94eefec6fa155651cf035af336138da271bdd",
+      "source_id": "src-0b2c75e17de191705e7f",
+      "title": ".wiki/raw/notes/2026-09-24-nameplate-manager-wxgame.md"
     },
     ".raw/captured/e01725c9c8a679b5977bf257c832757663de20fde4cbbd961e78c7d49ed92d94.md": {
       "ingested": "2026-09-26",
