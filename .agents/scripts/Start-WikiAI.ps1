@@ -38,7 +38,7 @@ foreach ($entry in @(@('claude', '@anthropic-ai/claude-code'), @('gemini', '@goo
         }
     }
 }
-$output = Join-Path $repo 'Saved/Wiki'
+$output = Join-Path $repo 'Saved/Workflow'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $configPath = Join-Path $output 'ai-providers.json'
 $configJson = ConvertTo-Json -InputObject $providers -Depth 5 -Compress
@@ -50,7 +50,7 @@ function Get-WikiAI {
 $health = Get-WikiAI
 if ($health) {
     if ($health.identity -ne $identity) { throw 'Port 18743 belongs to another Wiki.' }
-    $connection = Join-Path $repo 'Saved/Wiki/ai-connection.json'
+    $connection = Join-Path $repo 'Saved/Workflow/ai-connection.json'
     if ($configUnchanged -and $health.revision -eq $revision -and (Test-Path -LiteralPath $connection)) { exit 0 }
     $processes = @(Get-CimInstance Win32_Process)
     $owned = @($processes | Where-Object { $_.Name -eq 'node.exe' -and $_.ExecutablePath -eq $node -and $_.CommandLine -and $_.CommandLine.Contains('"' + $script + '"') })
@@ -60,7 +60,7 @@ if ($health) {
     Stop-Process -Id $owned[0].ProcessId -ErrorAction Stop
     Wait-Process -Id $owned[0].ProcessId -Timeout 10 -ErrorAction SilentlyContinue
 }
-$output = Join-Path $repo 'Saved/Wiki'
+$output = Join-Path $repo 'Saved/Workflow'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $script = Join-Path $PSScriptRoot 'Wiki-AI.cjs'
 [IO.File]::WriteAllText($configPath, $configJson, [Text.UTF8Encoding]::new($false))
@@ -71,4 +71,4 @@ for ($attempt = 0; $attempt -lt 20; $attempt++) {
     $health = Get-WikiAI
     if ($health -and $health.identity -eq $identity) { exit 0 }
 }
-throw 'Wiki AI did not start. Check Saved/Wiki/ai-error.log.'
+throw 'Wiki AI did not start. Check Saved/Workflow/ai-error.log.'

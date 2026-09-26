@@ -294,7 +294,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.ok(runnerPid>0&&runnerPid!==process.pid);
   assert.equal((await runJob({root:jobRoot,command:{file:process.execPath,args:[fakeCodex]},request:jobRequest('implement'),open:runner,wait:20})).summary,'sandbox=danger-full-access plan=false');
   await assert.rejects(runJob({root:jobRoot,command:{file:process.execPath,args:[fakeCodex,'--fail']},request:jobRequest('implement'),open:runner,wait:20}),/Codex 처리에 실패/);
-  assert.deepEqual(fs.readdirSync(path.join(jobRoot,'Saved/Wiki/jobs')),[],'no job folders remain');
+  assert.deepEqual(fs.readdirSync(path.join(jobRoot,'Saved/Workflow/jobs')),[],'no job folders remain');
 
   // 터미널 창은 cmd start로 연다. 인자에 cmd 특수 문자가 있으면 열지 않는다.
   let started;
@@ -313,7 +313,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.throws(()=>openSession({root:'C:\\Wx',command:null,provider:'codex',taskPath:sessionPath,title:'보스',open:capture}),/Codex CLI/);
 
   // Wiki 갱신: 준비물(WSL, claude-obsidian)을 확인·설치하고 origin/main의 sparse 작업 트리에서 고른 AI를 돌린다.
-  const wikiRoot=path.join(base,'wiki-update'),tree=path.join(wikiRoot,'Saved/Wiki/update-tree'),pluginDir=path.join(wikiRoot,'Saved/Wiki/claude-obsidian/v9.9.9');
+  const wikiRoot=path.join(base,'wiki-update'),tree=path.join(wikiRoot,'Saved/Workflow/wiki-update-tree'),pluginDir=path.join(wikiRoot,'Saved/Workflow/claude-obsidian/v9.9.9');
   let calls=[],wslState='none',ran=null,runResult={summary:'원자료 1건 수집, lint 0, 커밋 abc1234',evidence:['lint 0']};const launched=[];
   const exec=async(file,args)=>{
     calls.push([file,...args].join(' '));
@@ -352,7 +352,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.deepEqual([ran.repo,ran.mode,ran.provider,ran.command.file,ran.title],[tree,'work','claude','claude','Wiki 갱신']);
   assert.match(ran.prompt,/Wiki\/README\.md의 정기 갱신 절차/);assert.deepEqual(ran.schema.required,['summary','evidence']);
   const pcInfo=JSON.parse(ran.prompt.match(/이 PC 정보\(JSON\): (.*)/)[1]);
-  assert.deepEqual([pcInfo.worktree,pcInfo.worktreeWsl,pcInfo.claudeObsidian.tag,pcInfo.claudeObsidian.path,pcInfo.claudeObsidian.wslPath],[tree,'/mnt/c/update-tree','v9.9.9',pluginDir,'/mnt/c/v9.9.9']);
+  assert.deepEqual([pcInfo.worktree,pcInfo.worktreeWsl,pcInfo.claudeObsidian.tag,pcInfo.claudeObsidian.path,pcInfo.claudeObsidian.wslPath],[tree,'/mnt/c/wiki-update-tree','v9.9.9',pluginDir,'/mnt/c/v9.9.9']);
   // 두 번째부터는 작업 트리를 origin/main으로 다시 맞추기만 하고, 받아 둔 claude-obsidian은 다시 받지 않는다. AI 실패는 이유를 남긴다.
   calls=[];runResult=Error('Claude Code 처리에 실패했습니다.');
   update.act({action:'start',provider:'codex'});await settleUpdate();

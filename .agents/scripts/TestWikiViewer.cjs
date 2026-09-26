@@ -5,7 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../..');
-const html = fs.readFileSync(path.join(root, 'Saved/Wiki/index.html'), 'utf8');
+const html = fs.readFileSync(path.join(root, 'Saved/Workflow/index.html'), 'utf8');
 const payload = html.match(/<script id="wiki-data" type="application\/json">([\s\S]*?)<\/script>/)[1];
 const data = JSON.parse(payload);
 const script = html.match(/<script>\s*([\s\S]*?)<\/script>/)[1];

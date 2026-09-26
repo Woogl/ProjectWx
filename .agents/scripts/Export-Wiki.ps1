@@ -35,7 +35,7 @@ foreach ($line in (Get-Content -LiteralPath $indexPath)) {
         $group.items += @{ title = $Matches[1]; path = [IO.Path]::GetRelativePath($repo, $target).Replace('\', '/') }
     }
 }
-$connectionPath = Join-Path $repo 'Saved/Wiki/ai-connection.json'
+$connectionPath = Join-Path $repo 'Saved/Workflow/ai-connection.json'
 $ai = if (Test-Path -LiteralPath $connectionPath) { Get-Content -LiteralPath $connectionPath -Raw | ConvertFrom-Json -AsHashtable } else { $null }
 $payload = @{ ai = $ai; generated = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'); documents = $documents; navigation = $navigation } | ConvertTo-Json -Depth 8 -Compress
 $payload = $payload.Replace('<', '<').Replace('>', '>').Replace('&', '&')
@@ -45,7 +45,7 @@ $mermaidVendor = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/ve
 $workflowScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/task-records.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/workflow.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/test-feedback.js'))
 $page = $template.Replace('__WX_WORKFLOW_SCRIPT__', $workflowScript).Replace('__WX_WIKI_DATA__', $payload).Replace('__WX_DIAGRAM_SCRIPT__', $diagramScript).Replace('__WX_MERMAID_VENDOR__', $mermaidVendor)
 # 기존 파일 URL을 유지해 브라우저에 보존된 테스트 결과 입력을 잃지 않는다.
-$output = Join-Path $repo 'Saved/Wiki/index.html'
+$output = Join-Path $repo 'Saved/Workflow/index.html'
 New-Item -ItemType Directory -Path (Split-Path $output -Parent) -Force | Out-Null
 [IO.File]::WriteAllText($output, $page, [Text.UTF8Encoding]::new($false))
 Write-Output "Workflow viewer: $output ($($documents.Count) documents)"

@@ -17,7 +17,7 @@ const wikiSchema={type:'object',additionalProperties:false,required:['summary','
 // 대시보드의 Wiki 갱신: 고른 AI가 이 PC에서 Wiki/README.md 절차로 Wiki를 갱신해 main에 푸시한다.
 // 사용자 작업 트리와 섞이지 않게 origin/main의 sparse 작업 트리에서 하고, 준비물(WSL, claude-obsidian)이 없으면 설치를 시작한다.
 function createWikiUpdate({root,providers,commands,exec=execText,launch=spawn,run=runTerminalJob,now=()=>new Date().toISOString()}){
-  const tree=path.join(root,'Saved/Wiki/update-tree');
+  const tree=path.join(root,'Saved/Workflow/wiki-update-tree');
   let state={status:'idle'};
   const busy=()=>['preparing','running'].includes(state.status);
   const step=message=>{state={...state,message};};
@@ -46,7 +46,7 @@ function createWikiUpdate({root,providers,commands,exec=execText,launch=spawn,ru
   async function plugin(){
     const tag=fs.readFileSync(path.join(tree,'Wiki/README.md'),'utf8').match(/AgriciDaniel\/claude-obsidian#(v[0-9][\w.-]*)/)?.[1];
     if(!tag)throw Error('Wiki/README.md의 설정 스크립트에서 claude-obsidian 태그를 찾지 못했습니다.');
-    const dir=path.join(root,'Saved/Wiki/claude-obsidian',tag);
+    const dir=path.join(root,'Saved/Workflow/claude-obsidian',tag);
     if(!fs.existsSync(path.join(dir,'scripts/claude-obsidian.py'))){
       step(`claude-obsidian ${tag}을 받는 중입니다.`);
       const download=dir+'.download';
@@ -127,8 +127,8 @@ if(require.main===module&&process.argv[2]==='--tasks'){
   const server=createServer({token,configuration,testFeedback,wikiUpdate:createWikiUpdate({root:repo,providers,commands:config})});
   server.on('error',error=>{console.error(error.message);process.exit(1);});
   server.listen(18743,'127.0.0.1',()=>{
-    fs.mkdirSync(path.join(repo,'Saved/Wiki'),{recursive:true});
-    fs.writeFileSync(path.join(repo,'Saved/Wiki/ai-connection.json'),JSON.stringify({token,url:'http://127.0.0.1:18743'}));
+    fs.mkdirSync(path.join(repo,'Saved/Workflow'),{recursive:true});
+    fs.writeFileSync(path.join(repo,'Saved/Workflow/ai-connection.json'),JSON.stringify({token,url:'http://127.0.0.1:18743'}));
   });
 }
 module.exports={createServer,createWikiUpdate};

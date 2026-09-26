@@ -184,7 +184,7 @@ function waitResult(job,onSpawn,wait){
 // AI를 터미널 창의 실행기로 돌리고 결과 파일을 기다린다. repo는 AI가 일할 폴더다.
 async function runTerminalJob({root,repo=root,command,provider,mode,title,id,prompt,schema,onSpawn,open=openTerminal,wait=1000}){
   if(!command?.file)throw Error(`${labels[provider]||provider} CLI 설치·로그인이 필요합니다.`);
-  const job=path.join(root,'Saved/Wiki/jobs',id);
+  const job=path.join(root,'Saved/Workflow/jobs',id);
   fs.rmSync(job,{recursive:true,force:true});fs.mkdirSync(job,{recursive:true});
   const safeTitle=title.replace(/["%^&|<>!\r\n]/g,' ');
   fs.writeFileSync(path.join(job,'job.json'),JSON.stringify({provider,command,mode,title:safeTitle,repo}));

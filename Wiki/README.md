@@ -13,12 +13,12 @@ WX의 게임 규칙·구현·결정과 검증 범위를 모은 팀 공유 지식
 
 - claude-obsidian은 순정 코드를 그대로 씁니다. 지금 버전은 `v2.2.0`입니다.
   - Routine: 클라우드 환경 `Wiki`의 설정 스크립트가 세션 시작 전에 이 태그로 플러그인을 설치합니다(아래 Routine 환경 절). 플러그인 스킬(`claude-obsidian:wiki-ingest`·`claude-obsidian:wiki-lint` 등)과 그 설치본의 `scripts/claude-obsidian.py` CLI를 씁니다.
-  - 대시보드: 서버가 아래 설정 스크립트의 태그를 `Saved/Wiki/claude-obsidian/<태그>/`에 받아 둡니다. 그 폴더의 `skills/` 절차와 `scripts/claude-obsidian.py` CLI를 씁니다.
+  - 대시보드: 서버가 아래 설정 스크립트의 태그를 `Saved/Workflow/claude-obsidian/<태그>/`에 받아 둡니다. 그 폴더의 `skills/` 절차와 `scripts/claude-obsidian.py` CLI를 씁니다.
   - 이 저장소에는 claude-obsidian 코드를 두지 않습니다. 버전은 사람이 올립니다. 아래 설정 스크립트의 `#` 뒤 태그, 이 줄, 클라우드 환경의 설정 스크립트를 함께 바꿉니다.
   - 설치된 버전이 이 줄과 다르면 쓰지 않고 멈춰 보고합니다. `git ls-remote --tags https://github.com/AgriciDaniel/claude-obsidian`에 더 새 태그가 있으면 보고에 적습니다.
   - 스킬이 사람에게 맡기는 일(원본을 inbox에 넣기, 적용 전 계획 검토, inbox 파일 삭제)은 갱신하는 AI가 직접 합니다. claude-obsidian을 찾지 못하면 다른 곳에서 받아 쓰지 않고 멈춰 보고합니다.
 - 대시보드 갱신(이 PC, Windows)에서 더 지킬 것:
-  - 서버가 origin/main으로 맞춘 전용 작업 트리 `Saved/Wiki/update-tree`에서 일합니다. Wiki·기획서 Markdown·작업 기록만 받은 sparse 사본입니다. 사용자의 작업 트리는 건드리지 않습니다.
+  - 서버가 origin/main으로 맞춘 전용 작업 트리 `Saved/Workflow/wiki-update-tree`에서 일합니다. Wiki·기획서 Markdown·작업 기록만 받은 sparse 사본입니다. 사용자의 작업 트리는 건드리지 않습니다.
   - claude-obsidian은 Windows에서 vault를 쓰지 못합니다. 쓰기 명령(`capture apply`, `transaction apply` 등)은 WSL에서 `wsl.exe --cd <작업 트리의 WSL 경로> -e python3 <claude-obsidian의 WSL 경로>/scripts/claude-obsidian.py <명령> --vault Wiki`로 실행합니다. 읽기와 미리보기(dry-run)는 Windows에서 해도 됩니다. 두 경로는 서버가 요청문에 넣어 줍니다.
 - 수집 대상: `Docs/CombatDesign`·`Docs/SystemDesign`·`Docs/LevelDesign`의 Markdown과, 상태 줄이 `완료`인 작업 기록(`.agents/workflow/tasks/*.md`)입니다. 대상 파일의 내용 해시(SHA-256)로 된 `.raw/captured/<해시>.<확장자>`가 이미 있으면 수집하지 않습니다. 없으면 새 파일이거나 바뀐 파일이므로 수집하고, 같은 저장소 경로의 옛 원자료가 있으면 대체합니다. 원자료 제목에는 저장소 상대 경로를 적어 이 대조에 씁니다. `Wiki/wiki/`가 없으면 `init`한 뒤 전체를 수집합니다.
 - 절차:
@@ -45,9 +45,9 @@ WX의 게임 규칙·구현·결정과 검증 범위를 모은 팀 공유 지식
 대시보드의 **Wiki 갱신**은 누를 때 준비물을 확인하고, 없으면 설치를 시작합니다.
 
 - WSL 배포판: 없으면 관리자 승인 창으로 `wsl --install -d Ubuntu`를 엽니다. 승인, 안내가 나올 때의 재부팅, Ubuntu 첫 실행 때 Linux 사용자 만들기는 사람이 합니다. 마친 뒤 다시 누릅니다.
-- claude-obsidian: 아래 설정 스크립트의 태그를 `Saved/Wiki/claude-obsidian/<태그>/`에 자동으로 받습니다.
-- 전용 작업 트리: `Saved/Wiki/update-tree`를 자동으로 만들고 매번 origin/main으로 맞춥니다. 이때 저장소 설정에 `extensions.worktreeConfig`가 켜지고, `git worktree list`에 이 작업 트리가 보입니다.
-- AI: 대시보드에 연결된 AI(Codex·Claude Code·Gemini CLI) 가운데 하나를 고릅니다.
+- claude-obsidian: 아래 설정 스크립트의 태그를 `Saved/Workflow/claude-obsidian/<태그>/`에 자동으로 받습니다.
+- 전용 작업 트리: `Saved/Workflow/wiki-update-tree`를 자동으로 만들고 매번 origin/main으로 맞춥니다. 이때 저장소 설정에 `extensions.worktreeConfig`가 켜지고, `git worktree list`에 이 작업 트리가 보입니다.
+- AI: 대시보드 왼쪽 메뉴 아래 「처리할 AI」에서 고른 AI(Codex·Claude Code·Gemini CLI 중 연결된 것)가 갱신합니다.
 
 ## Routine 환경
 
