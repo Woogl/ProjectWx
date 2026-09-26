@@ -71,7 +71,7 @@ key_claims:
 ## 검증 범위
 
 - Task 기록 기준 Development 빌드와 `WBP_InteractionList`·`WBP_Interaction`·`WBP_GameLayout` 컴파일(오류 0, 경고 0) 성공.
-- 인게임은 실행하지 않았다. 목록 표시·휠 선택·외곽선·선택지 실행·다중 선택지 장치·범위 이탈·리스폰 후 동작은 인간 확인 대상으로 남았다(이후 인게임 확인은 <!--wl-->결정 노트 - 2026-09-26-interaction-list-play-acceptance 참고).
+- 인게임은 실행하지 않았다. 목록 표시·휠 선택·외곽선·선택지 실행·다중 선택지 장치·범위 이탈·리스폰 후 동작은 인간 확인 대상으로 남았다(이후 인게임 확인은 [[결정 노트 - 2026-09-26-interaction-list-play-acceptance]] 참고).
 
 ## 관련 주제
 

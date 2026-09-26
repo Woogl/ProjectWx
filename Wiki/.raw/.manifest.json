@@ -38,6 +38,15 @@
       "source_id": "src-ce19177694027db12835",
       "title": "Docs/CombatDesign/Patrol_Design.md"
     },
+    ".raw/captured/139aa73bd085ee7b0bd4541ea2443aeb8dcb87a2d8bab1ab35702e03fc8397dd.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-animnotify-label-acceptance.md"
+      ],
+      "sha256": "139aa73bd085ee7b0bd4541ea2443aeb8dcb87a2d8bab1ab35702e03fc8397dd",
+      "source_id": "src-2b75767555b50e4be106",
+      "title": ".wiki/raw/notes/2026-09-26-animnotify-label-acceptance.md"
+    },
     ".raw/captured/14d52454d36745148fb80fabf1c78c036caace5d70b2ed2dd833251b94d566be.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -46,6 +55,15 @@
       "sha256": "14d52454d36745148fb80fabf1c78c036caace5d70b2ed2dd833251b94d566be",
       "source_id": "src-78c4cedfc439fa0f50a7",
       "title": ".wiki/raw/notes/2026-09-23-boss-battle-three-layer.md"
+    },
+    ".raw/captured/1b1ac274ccc99ee5a0c1f2401597cbad82f408872f620216cc592223cc8c38b0.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-cooldown-play-acceptance.md"
+      ],
+      "sha256": "1b1ac274ccc99ee5a0c1f2401597cbad82f408872f620216cc592223cc8c38b0",
+      "source_id": "src-b6d36e66728227406218",
+      "title": ".wiki/raw/notes/2026-09-26-cooldown-play-acceptance.md"
     },
     ".raw/captured/1cdc81388a52f3b8705b8872665f7adc254e81e3ba0a959a0c80fb61569f1269.md": {
       "ingested": "2026-09-26",
@@ -73,6 +91,24 @@
       "sha256": "1db48fbd85c15b2d492e2b08e34b0a80db202c09fa30483b7544184dd0e8eed4",
       "source_id": "src-04b23a4a80e0c6d02fec",
       "title": ".agents/workflow/tasks/wiki-regeneration.md"
+    },
+    ".raw/captured/2323f8c4675818aae7d1faa639f3951c771dd4757dd1edfaea84fd2bced8f009.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-dashboard-row-actions.md"
+      ],
+      "sha256": "2323f8c4675818aae7d1faa639f3951c771dd4757dd1edfaea84fd2bced8f009",
+      "source_id": "src-8afcfcdf618feadc354b",
+      "title": ".wiki/raw/notes/2026-09-26-workflow-dashboard-row-actions.md"
+    },
+    ".raw/captured/27e6ec2d4ecc9ee37d8a524cc8a3cce8bf87657740cb83a07498e3a91a82c6b5.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-ability-ga-play-acceptance.md"
+      ],
+      "sha256": "27e6ec2d4ecc9ee37d8a524cc8a3cce8bf87657740cb83a07498e3a91a82c6b5",
+      "source_id": "src-c99fdef61765bfc296b1",
+      "title": ".wiki/raw/notes/2026-09-26-ability-ga-play-acceptance.md"
     },
     ".raw/captured/28130d6e3e3c13b776af54d4de37b50c73dbafcba2c69355652d63d4c915954c.md": {
       "ingested": "2026-09-26",
@@ -317,6 +353,15 @@
       "source_id": "src-b41b3e5cba0feec06842",
       "title": ".wiki/raw/notes/2026-09-24-wxcombat-cleanup.md"
     },
+    ".raw/captured/6212e2170cab28bdcf85566e9b536305e082a4e34d18462f2834707e127125ee.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-ui-data-display-acceptance.md"
+      ],
+      "sha256": "6212e2170cab28bdcf85566e9b536305e082a4e34d18462f2834707e127125ee",
+      "source_id": "src-a44a43bec2a9e7e844d3",
+      "title": ".wiki/raw/notes/2026-09-26-ui-data-display-acceptance.md"
+    },
     ".raw/captured/63a9bcb713a22d060efe50277c576b84b6c3b7c629bb4a21ad71280c4b48bfb1.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -425,6 +470,15 @@
       "source_id": "src-f18b919b389d5ab5acdd",
       "title": "Docs/LevelDesign/Wx_Quest.md"
     },
+    ".raw/captured/8ec9c9277e25287f3375fd3c8297c2d2bab5f5ea158397c5e56cabf75dc2b4f5.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-interaction-list-play-acceptance.md"
+      ],
+      "sha256": "8ec9c9277e25287f3375fd3c8297c2d2bab5f5ea158397c5e56cabf75dc2b4f5",
+      "source_id": "src-8ff37e3e7398da4d6493",
+      "title": ".wiki/raw/notes/2026-09-26-interaction-list-play-acceptance.md"
+    },
     ".raw/captured/8f6817ea740550bc182e87415178851addbc494bf03c88709564f5afb0463f7a.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -506,6 +560,15 @@
       "source_id": "src-9fbe4572f989de2390d1",
       "title": ".wiki/raw/notes/2026-09-25-ability-data-on-ga.md"
     },
+    ".raw/captured/ac6825062490b11f88ac1431eb10434ea8ba2810f5ae18ad79cbd79e3fad8583.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-nameplate-play-acceptance.md"
+      ],
+      "sha256": "ac6825062490b11f88ac1431eb10434ea8ba2810f5ae18ad79cbd79e3fad8583",
+      "source_id": "src-0648b218c0503ea2c433",
+      "title": ".wiki/raw/notes/2026-09-26-nameplate-play-acceptance.md"
+    },
     ".raw/captured/ad2c7d665a40049b3cd38a580a1d5f40bfc9fa62e3ed12aa325589cfc559b634.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -578,6 +641,15 @@
       "source_id": "src-c50b38fd4c3e9da6a2b4",
       "title": ".wiki/raw/notes/2026-09-23-zero-damage-hitstop.md"
     },
+    ".raw/captured/c5d4d393d3f2facb9de1a3e5c4a7d48b40298d89fcdf6b82d89f93486332ff4e.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-row-preview-acceptance.md"
+      ],
+      "sha256": "c5d4d393d3f2facb9de1a3e5c4a7d48b40298d89fcdf6b82d89f93486332ff4e",
+      "source_id": "src-ad6b6deaa490937b16da",
+      "title": ".wiki/raw/notes/2026-09-26-row-preview-acceptance.md"
+    },
     ".raw/captured/c5ddf5b757a5dd4996e60000b51e93895d597bc550a3ab7e46244a765926271c.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -632,6 +704,15 @@
       "source_id": "src-fe76a230ff8efba25b5f",
       "title": "Docs/CombatDesign/Elite_monster.md"
     },
+    ".raw/captured/ceb5c8df0d967c1ed70e6e119136dca6b4b1aef519ae141641bab710464cf8e8.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-refresh-commit-trace.md"
+      ],
+      "sha256": "ceb5c8df0d967c1ed70e6e119136dca6b4b1aef519ae141641bab710464cf8e8",
+      "source_id": "src-a7dc3f3aa7dde3110b70",
+      "title": ".wiki/raw/notes/2026-09-26-refresh-commit-trace.md"
+    },
     ".raw/captured/cf524c0eec75d943109812e200e937db12ec1cac535d51f06bbf3fdefb9d7ddc.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -649,6 +730,15 @@
       "sha256": "d0832ea218feb93dd8309527b45696f99a05ef96f23fc61a6e042214820239ab",
       "source_id": "src-cfa091c12fac9ef14f27",
       "title": "Docs/CombatDesign/레벨_배치용_잡몹.md"
+    },
+    ".raw/captured/d38cc221dea02acfc8e7718b778326c77a91e0e77a5ef5007f83f7e73e7cb4f2.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-workflow-test-feedback.md"
+      ],
+      "sha256": "d38cc221dea02acfc8e7718b778326c77a91e0e77a5ef5007f83f7e73e7cb4f2",
+      "source_id": "src-0829caca7b781c4aac5c",
+      "title": ".wiki/raw/notes/2026-09-25-workflow-test-feedback.md"
     },
     ".raw/captured/d551b3b1a714f6c12c9210250af529eaa3b3da3271e8fa481b3b379a8996f715.md": {
       "ingested": "2026-09-26",
@@ -766,6 +856,15 @@
       "sha256": "ef0aa55fead92e04406ea9314857498ef630e94fee3d4ae87ce744265f7b365f",
       "source_id": "src-a4166a32f9143168d056",
       "title": ".wiki/raw/notes/2026-09-23-screen-classes-to-resolvers.md"
+    },
+    ".raw/captured/f57f6f3b997f4f3a1cd3671e73e739e8c83b0bd1d87963131cbff85602c5b035.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-workflow-task-records.md"
+      ],
+      "sha256": "f57f6f3b997f4f3a1cd3671e73e739e8c83b0bd1d87963131cbff85602c5b035",
+      "source_id": "src-d2a4509667c21f7ee0fc",
+      "title": ".wiki/raw/notes/2026-09-25-workflow-task-records.md"
     },
     ".raw/captured/fc91e336f2d43b3d2bec92aaa471ed167a0c8077f8f2152199ec5fb171fe8544.md": {
       "ingested": "2026-09-26",

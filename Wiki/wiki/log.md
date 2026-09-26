@@ -13,6 +13,10 @@ tags:
 
 Newest completed operations appear first.
 
+## 2026-09-26 · ingest-20260926T055107Z-b10
+
+옛 Wiki 결정 노트(5/6) 11건 수집. 원자료: [[결정 노트 - 2026-09-25-workflow-task-records]], [[결정 노트 - 2026-09-25-workflow-test-feedback]], [[결정 노트 - 2026-09-26-ability-ga-play-acceptance]], [[결정 노트 - 2026-09-26-animnotify-label-acceptance]], [[결정 노트 - 2026-09-26-cooldown-play-acceptance]], [[결정 노트 - 2026-09-26-interaction-list-play-acceptance]], [[결정 노트 - 2026-09-26-nameplate-play-acceptance]], [[결정 노트 - 2026-09-26-refresh-commit-trace]], [[결정 노트 - 2026-09-26-row-preview-acceptance]], [[결정 노트 - 2026-09-26-ui-data-display-acceptance]], [[결정 노트 - 2026-09-26-workflow-dashboard-row-actions]]. 갱신한 주제: [[UI 표시 구조]], [[Wiki 운영]], [[상호작용과 장치]], [[어빌리티와 GAS]], [[에디터 도구]], [[작업 절차(Workflow)]], [[피해 파이프라인]].
+
 ## 2026-09-26 · ingest-20260926T055103Z-b09
 
 옛 Wiki 결정 노트(4/6) 11건 수집. 원자료: [[결정 노트 - 2026-09-25-checkpoint-single-slot]], [[결정 노트 - 2026-09-25-cooldown-single-ge]], [[결정 노트 - 2026-09-25-exclusive-submission-cleanup]], [[결정 노트 - 2026-09-25-exclusive-tag-blocking]], [[결정 노트 - 2026-09-25-row-preview-empty-struct]], [[결정 노트 - 2026-09-25-row-preview-tooltip]], [[결정 노트 - 2026-09-25-save-checkpoint-rename]], [[결정 노트 - 2026-09-25-spawner-library-removal]], [[결정 노트 - 2026-09-25-ui-data-interface-removal]], [[결정 노트 - 2026-09-25-workflow-convenience-review]], [[결정 노트 - 2026-09-25-workflow-simplification]]. 갱신한 주제: [[UI 표시 구조]], [[Wiki 운영]], [[모듈 구조와 코드 정리]], [[어빌리티와 GAS]], [[에디터 도구]], [[작업 절차(Workflow)]], [[적 AI와 몬스터]], [[체크포인트와 리스폰]].

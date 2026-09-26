@@ -71,7 +71,7 @@ key_claims:
 - [[UI 표시 구조]]
 - [[모듈 구조와 코드 정리]]
 - [[작업 - ui-data-interface-removal]]
-- <!--wl-->결정 노트 - 2026-09-26-ui-data-display-acceptance
+- [[결정 노트 - 2026-09-26-ui-data-display-acceptance]]
 
 ## 핵심 주장
 

@@ -17,6 +17,8 @@ sources:
   - "[[결정 노트 - 2026-09-25-cooldown-single-ge]]"
   - "[[결정 노트 - 2026-09-25-exclusive-submission-cleanup]]"
   - "[[결정 노트 - 2026-09-25-exclusive-tag-blocking]]"
+  - "[[결정 노트 - 2026-09-26-ability-ga-play-acceptance]]"
+  - "[[결정 노트 - 2026-09-26-cooldown-play-acceptance]]"
   - "[[기획서 - PC규격서]]"
   - "[[기획서 - WA_PC_규격서]]"
   - "[[기획서 - WA_주인공_캐릭터]]"
@@ -63,6 +65,8 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 사용자 결정으로 쿨다운 GE는 공용 UWxEffect_Cooldown 하나로 합치고 쿨다운 식별 태그는 어빌리티의 CooldownTags 컨테이너에 둔다. ([[결정 노트 - 2026-09-25-cooldown-single-ge]])
 - 사용자는 Ability.Pattern.N 태그를 BT 재정비용으로 유지하고 Ability.Skill.N 제거는 BT 재정비 때 하기로 했다. ([[결정 노트 - 2026-09-25-cooldown-single-ge]])
 - 사용자는 2026-09-25에 Exclusive 어빌리티 발동 차단을 엔진 순정 태그 차단(BlockAbilitiesWithTag)으로 바꾸고 콤보 구간의 자기 재발동을 허용하기로 승인했다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
+- 어빌리티 테이블 전환은 철회되었고 데이터 전용 GA_를 유지하며, 행 컬럼·세트의 테이블 목록·동적 행 태그 설계는 과거 이력으로만 남는다. ([[결정 노트 - 2026-09-26-ability-ga-play-acceptance]])
+- 쿨다운은 공용 GE·동적 쿨다운 태그·충전당 GE 하나·적용 전 SetByCaller 대기열 계산 구조를 유지한다. ([[결정 노트 - 2026-09-26-cooldown-play-acceptance]])
 
 ## 구현 관찰
 
@@ -100,6 +104,10 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 쿨다운 GE 통합은 에디터 빌드·데이터 검증 커맨드릿(GA 40개·WxAbilitySet 9개 오류 0)·임시 자동화 테스트와 사용자 인게임 회피 확인을 거쳤고, 소환물 쿨다운 무시와 네트워크 복제는 확인되지 않았다. ([[결정 노트 - 2026-09-25-cooldown-single-ge]])
 - Exclusive 차단 임시 테스트와 검증 스크립트는 사용자 요청으로 제거되었고, 그 회귀 결과는 삭제 전 근거로만 남으며 사람 코드 리뷰·플레이·예측/복제는 미확인이다. ([[결정 노트 - 2026-09-25-exclusive-submission-cleanup]])
 - Exclusive 태그 차단은 Editor 빌드, GA 40개 차단 관계 1,600건 대조, AbilityBlocking 자동화 테스트 2건 성공으로 확인되었고 몽타주·선입력 감각·UI·예측/복제·플레이는 미검증이다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
+- GA_ 유지 이후 HGTest·분신·도플갱어 어빌리티 발동과 연출, 블렌드 인 0.05초 통일 뒤 조작감, 가드 중 피해 절반 감소와 방패 버프 아이콘, 패시브 UP 5 지급, 타게팅 프리셋 락온을 사람이 2026-09-25 통과시켰다. ([[결정 노트 - 2026-09-26-ability-ga-play-acceptance]])
+- GA_ 유지의 사람 테스트는 네트워크 구성이 명시되지 않아 예측·복제·BT 타이밍 검증으로 확대하지 않는다. ([[결정 노트 - 2026-09-26-ability-ga-play-acceptance]])
+- 사람은 2026-09-25 공용 쿨다운 GE에 대해 회피 쿨다운·UI 진행률, 소환물 쿨다운 무시, 리슨 서버·클라이언트 PIE 복제, `UWxEffect_Cooldown`·`ApplyCooldown`·`CheckCooldown` 코드 리뷰를 통과시켰다. ([[결정 노트 - 2026-09-26-cooldown-play-acceptance]])
+- 공용 쿨다운 GE 확인은 전용 서버·지연·패킷 손실 조건과 모든 어빌리티 조합으로 확대하지 않는다. ([[결정 노트 - 2026-09-26-cooldown-play-acceptance]])
 
 ## 미결정·충돌
 
@@ -117,6 +125,8 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - [[결정 노트 - 2026-09-25-cooldown-single-ge]] — 쿨다운 그룹별 GE 파생 클래스를 공용 UWxEffect_Cooldown 하나로 합치고 어빌리티 CooldownTags와 SetByCaller 대기열로 충전을 차례 회복시킨 결정
 - [[결정 노트 - 2026-09-25-exclusive-submission-cleanup]] — 사용자 요청으로 Exclusive 차단의 임시 C++ 테스트·검증 스크립트를 제거하고 차단 관련 주석을 태그 차단·취소 면역 기준으로 정정한 기록
 - [[결정 노트 - 2026-09-25-exclusive-tag-blocking]] — Exclusive 발동 차단을 순정 BlockAbilitiesWithTag로 옮기고 콤보 자기 재발동과 도플갱어 소유자 발동 조건 면제 범위를 정한 결정과 검증
+- [[결정 노트 - 2026-09-26-ability-ga-play-acceptance]] — 어빌리티 테이블 전환을 철회하고 데이터 전용 GA_를 유지한 최종 결정과 HGTest·소환물·조작감·GE·락온 사람 테스트 7개 통과 범위
+- [[결정 노트 - 2026-09-26-cooldown-play-acceptance]] — 공용 쿨다운 GE 통합 후 회피 UI 진행률·소환물 쿨다운 무시·리슨 서버와 클라이언트 복제·코드 리뷰를 사람이 통과시킨 확인 범위
 - [[기획서 - PC규격서]] — 모든 PC가 공유하는 HP·MP·UP·SP 자원, 공통 어빌리티 분류, 후딜·전체 GA 캔슬 규칙, 회피 스택·극한회피, 가드·패링 규격을 정의한 문서
 - [[기획서 - WA_PC_규격서]] — 명조 방향 PC 구조를 속성 6종, 캐릭터 스탯, HP·궁극기 게이지·스태미나·고유 자원, 공용·개별 어빌리티 분류로 정의한 Project WX PC 규격서
 - [[기획서 - WA_주인공_캐릭터]] — 주인공 캐릭터의 개별 어빌리티(5단 일반 공격·강공격 연계·회피 반격·E 스킬·고유 자원 스킬·10초 강화 버프·궁극기) 규격서

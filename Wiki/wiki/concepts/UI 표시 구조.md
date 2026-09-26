@@ -20,6 +20,9 @@ sources:
   - "[[결정 노트 - 2026-09-25-ability-data-on-ga]]"
   - "[[결정 노트 - 2026-09-25-cooldown-single-ge]]"
   - "[[결정 노트 - 2026-09-25-ui-data-interface-removal]]"
+  - "[[결정 노트 - 2026-09-26-interaction-list-play-acceptance]]"
+  - "[[결정 노트 - 2026-09-26-nameplate-play-acceptance]]"
+  - "[[결정 노트 - 2026-09-26-ui-data-display-acceptance]]"
   - "[[기획서 - Nameplate_System]]"
   - "[[작업 - cooldown-unification]]"
   - "[[작업 - dialogue-presentation-vm]]"
@@ -60,6 +63,7 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 사용자는 2026-09-23~24에 교전하지 않은 적도 락온하면 Nameplate가 떠야 하고, Nameplate와 레티클을 NameplateManager가 동적으로 붙이고 떼도록 결정했다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
 - Nameplate 태그 조건은 NameplateManager 한 곳에만 두고, 락온 대상에는 표시 거리 제한을 두지 않으며 표시 거리 경계에 히스테리시스를 둔다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
 - 사용자 합의로 IWxUIData를 제거하고 WxGame 리졸버가 구체 도메인 타입의 어빌리티·GE 데이터를 WxUI VM에 전달하며, GAS 공통 구독·갱신은 WxUI에 남긴다. ([[결정 노트 - 2026-09-25-ui-data-interface-removal]])
+- Nameplate는 교전 전 숨김, 적 인식 시 표시, 추적 종료 시 즉시 숨김이며 교전하지 않은 적도 락온하면 Nameplate와 Reticle을 표시한다. ([[결정 노트 - 2026-09-26-nameplate-play-acceptance]])
 
 ## 구현 관찰
 
@@ -102,6 +106,11 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 대화·퀘스트 화면 리졸버 전환은 WxEditor 빌드와 WBP 4개 경고-오류 컴파일을 통과했고 사용자가 2026-09-23 인게임에서 문제 없음을 확인했다. ([[결정 노트 - 2026-09-23-screen-classes-to-resolvers]])
 - NameplateManager의 WxGame 이동은 빌드·BP 컴파일·레벨 재로드까지 확인됐고 인게임 표시와 리슨 서버·원격 클라이언트는 미검증이다. ([[결정 노트 - 2026-09-24-nameplate-manager-wxgame]])
 - NameplateManager 도입은 빌드와 관련 BP 컴파일 오류 0만 확인됐고 인게임 표시와 리슨 서버·원격 클라이언트 동작은 미검증이다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
+- 상호작용 목록 VM 단순화 후 겹친 대상 목록, 다중 선택지 장치의 여러 행, 엘리베이터 탑승칸 `Floor N` 표시와 픽업 행 키 아이콘·이름 1회 표시를 사람이 확인했다. ([[결정 노트 - 2026-09-26-interaction-list-play-acceptance]])
+- 사람은 2026-09-25 Nameplate의 교전 표시·락온 표시·락온 대상 전환·사망 표시·크기와 위치·리슨 호스트와 원격 클라이언트 구분 6항목을 통과시켰다. ([[결정 노트 - 2026-09-26-nameplate-play-acceptance]])
+- Nameplate는 거리별 크기 변화와 3000cm 밖 숨김, 캡슐 윗면 약 90cm 위 표시가 사람 확인되었으나 락온 대상의 거리 제한 예외는 유지된다. ([[결정 노트 - 2026-09-26-nameplate-play-acceptance]])
+- 사람은 2026-09-25 `IWxUIData` 제거와 WxGame 리졸버 연결 이후 코드 리뷰와 HUD·버프·보스·이름표 표시를 플레이로 통과시켰다. ([[결정 노트 - 2026-09-26-ui-data-display-acceptance]])
+- UI 데이터 인터페이스 제거의 사람 확인은 네트워크 환경과 클라이언트별 락온 독립성이 명시되지 않아 멀티플레이 검증으로 확대하지 않는다. ([[결정 노트 - 2026-09-26-ui-data-display-acceptance]])
 
 ## 미결정·충돌
 
@@ -109,6 +118,7 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 원격 클라이언트에서 기존 어빌리티 스펙 복제 후 슬롯 재매칭 신호가 누락되는 문제는 미해결이다. ([[작업 - ui-data-interface-removal]])
 - 상호작용 목록은 선택 변경마다 ListView 엔트리가 새로 붙으므로 선택 전환 애니메이션을 넣으려면 선택 신호를 다시 나눠야 한다. ([[결정 노트 - 2026-09-23-interaction-list-vm]])
 - 사망·대화 화면 클래스 값이 ini에서 컨트롤러 BP 에셋으로 옮겨져 git diff로 리뷰할 수 없다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
+- UI 데이터 인터페이스 제거 작업에서 원격 클라이언트의 스펙 복제 후 슬롯 재매칭 신호 누락은 별도 미해결 사항으로 남아 있다. ([[결정 노트 - 2026-09-26-ui-data-display-acceptance]])
 
 ## 원자료
 
@@ -124,6 +134,9 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - [[결정 노트 - 2026-09-25-ability-data-on-ga]] — 어빌리티 테이블 구동을 시도했다가 AI 작업 편의를 기준으로 데이터 전용 GA_로 돌아가고 DT_Ability·DT_Effect를 지운 결정과 구현·검증 기록
 - [[결정 노트 - 2026-09-25-cooldown-single-ge]] — 쿨다운 그룹별 GE 파생 클래스를 공용 UWxEffect_Cooldown 하나로 합치고 어빌리티 CooldownTags와 SetByCaller 대기열로 충전을 차례 회복시킨 결정
 - [[결정 노트 - 2026-09-25-ui-data-interface-removal]] — IWxUIData 인터페이스를 제거하고 WxGame 리졸버가 어빌리티·GE 데이터를 WxUI VM에 전달하도록 모듈 책임을 나눈 사용자 합의와 구현 관찰
+- [[결정 노트 - 2026-09-26-interaction-list-play-acceptance]] — 상호작용 목록 VM 단순화와 엘리베이터 버튼 잠금에 대해 목록·휠 선택·범위 이탈·행 표시·버튼 잠금·코드 리뷰 6항목을 사람이 통과시킨 범위
+- [[결정 노트 - 2026-09-26-nameplate-play-acceptance]] — NameplateManager 로컬 표시의 교전·락온·대상 전환·사망·크기와 위치·리슨 호스트와 원격 클라이언트 구분 6항목을 사람이 확인한 범위
+- [[결정 노트 - 2026-09-26-ui-data-display-acceptance]] — IWxUIData 제거와 WxGame 리졸버 연결 후 코드 리뷰와 HUD·버프·보스·이름표 표시를 사람이 플레이로 확인한 범위와 남은 원격 재매칭 문제
 - [[기획서 - Nameplate_System]] — 일반·네임드 몬스터 네임플레이트의 HP·DP 표시 구성, 시야·청각·피격 인식 규칙, 표시·숨김 조건과 보스 전용 규칙을 정의한 기획서
 - [[작업 - cooldown-unification]] — 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 공용 GE 하나로 통합하고 CooldownTags로 구분하게 바꾼 작업 기록으로, 사람 확인 4/4 통과로 완료됐다.
 - [[작업 - dialogue-presentation-vm]] — Dialogue VM을 WxUI의 순수 표시 데이터로 분리하고, 화면 클래스를 거쳐 최종적으로 WxGame 리졸버 세 층 구조로 정리한 완료 작업 기록

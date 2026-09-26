@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T05:51:03Z",
+  "generated_at": "2026-09-26T05:51:07Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
     "src-016c4f4d42be310c6137": {
@@ -77,6 +77,44 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/WX_첫_보스_기획서.md"
+    },
+    "src-0648b218c0503ea2c433": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "ac6825062490b11f88ac1431eb10434ea8ba2810f5ae18ad79cbd79e3fad8583",
+      "independence_key": ".wiki/raw/notes/2026-09-26-nameplate-play-acceptance.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/ac6825062490b11f88ac1431eb10434ea8ba2810f5ae18ad79cbd79e3fad8583.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-nameplate-play-acceptance.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-nameplate-play-acceptance.md"
+    },
+    "src-0829caca7b781c4aac5c": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "d38cc221dea02acfc8e7718b778326c77a91e0e77a5ef5007f83f7e73e7cb4f2",
+      "independence_key": ".wiki/raw/notes/2026-09-25-workflow-test-feedback.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/d38cc221dea02acfc8e7718b778326c77a91e0e77a5ef5007f83f7e73e7cb4f2.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-workflow-test-feedback.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-25-workflow-test-feedback.md"
     },
     "src-09d71a1b41356e448261": {
       "authority": "primary",
@@ -343,6 +381,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/SystemDesign/Core_Combat_System.md"
+    },
+    "src-2b75767555b50e4be106": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "139aa73bd085ee7b0bd4541ea2443aeb8dcb87a2d8bab1ab35702e03fc8397dd",
+      "independence_key": ".wiki/raw/notes/2026-09-26-animnotify-label-acceptance.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/139aa73bd085ee7b0bd4541ea2443aeb8dcb87a2d8bab1ab35702e03fc8397dd.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-animnotify-label-acceptance.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-animnotify-label-acceptance.md"
     },
     "src-3007dd429116aa422551": {
       "authority": "primary",
@@ -971,6 +1028,44 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-25-cooldown-single-ge.md"
     },
+    "src-8afcfcdf618feadc354b": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "2323f8c4675818aae7d1faa639f3951c771dd4757dd1edfaea84fd2bced8f009",
+      "independence_key": ".wiki/raw/notes/2026-09-26-workflow-dashboard-row-actions.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/2323f8c4675818aae7d1faa639f3951c771dd4757dd1edfaea84fd2bced8f009.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-workflow-dashboard-row-actions.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-workflow-dashboard-row-actions.md"
+    },
+    "src-8ff37e3e7398da4d6493": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "8ec9c9277e25287f3375fd3c8297c2d2bab5f5ea158397c5e56cabf75dc2b4f5",
+      "independence_key": ".wiki/raw/notes/2026-09-26-interaction-list-play-acceptance.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/8ec9c9277e25287f3375fd3c8297c2d2bab5f5ea158397c5e56cabf75dc2b4f5.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-interaction-list-play-acceptance.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-interaction-list-play-acceptance.md"
+    },
     "src-901a863b1604f4b7600b": {
       "authority": "primary",
       "content_kind": "document",
@@ -1142,6 +1237,63 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-23-screen-classes-to-resolvers.md"
     },
+    "src-a44a43bec2a9e7e844d3": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "6212e2170cab28bdcf85566e9b536305e082a4e34d18462f2834707e127125ee",
+      "independence_key": ".wiki/raw/notes/2026-09-26-ui-data-display-acceptance.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/6212e2170cab28bdcf85566e9b536305e082a4e34d18462f2834707e127125ee.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-ui-data-display-acceptance.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-ui-data-display-acceptance.md"
+    },
+    "src-a7dc3f3aa7dde3110b70": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "ceb5c8df0d967c1ed70e6e119136dca6b4b1aef519ae141641bab710464cf8e8",
+      "independence_key": ".wiki/raw/notes/2026-09-26-refresh-commit-trace.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/ceb5c8df0d967c1ed70e6e119136dca6b4b1aef519ae141641bab710464cf8e8.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-refresh-commit-trace.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-refresh-commit-trace.md"
+    },
+    "src-ad6b6deaa490937b16da": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "c5d4d393d3f2facb9de1a3e5c4a7d48b40298d89fcdf6b82d89f93486332ff4e",
+      "independence_key": ".wiki/raw/notes/2026-09-26-row-preview-acceptance.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/c5d4d393d3f2facb9de1a3e5c4a7d48b40298d89fcdf6b82d89f93486332ff4e.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-row-preview-acceptance.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-row-preview-acceptance.md"
+    },
     "src-adaaf5f0488283bcc1c8": {
       "authority": "primary",
       "content_kind": "document",
@@ -1217,6 +1369,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/Respawn_System.md"
+    },
+    "src-b6d36e66728227406218": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "1b1ac274ccc99ee5a0c1f2401597cbad82f408872f620216cc592223cc8c38b0",
+      "independence_key": ".wiki/raw/notes/2026-09-26-cooldown-play-acceptance.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/1b1ac274ccc99ee5a0c1f2401597cbad82f408872f620216cc592223cc8c38b0.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-cooldown-play-acceptance.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-cooldown-play-acceptance.md"
     },
     "src-b8abe92095b411c6840f": {
       "authority": "primary",
@@ -1332,6 +1503,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-22-verified-stock-rule.md"
     },
+    "src-c99fdef61765bfc296b1": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "27e6ec2d4ecc9ee37d8a524cc8a3cce8bf87657740cb83a07498e3a91a82c6b5",
+      "independence_key": ".wiki/raw/notes/2026-09-26-ability-ga-play-acceptance.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/27e6ec2d4ecc9ee37d8a524cc8a3cce8bf87657740cb83a07498e3a91a82c6b5.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-26-ability-ga-play-acceptance.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-26-ability-ga-play-acceptance.md"
+    },
     "src-cae1fc9ebf92a65c146b": {
       "authority": "primary",
       "content_kind": "conversation",
@@ -1407,6 +1597,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/레벨_배치용_잡몹.md"
+    },
+    "src-d2a4509667c21f7ee0fc": {
+      "authority": "primary",
+      "content_kind": "conversation",
+      "content_sha256": "f57f6f3b997f4f3a1cd3671e73e739e8c83b0bd1d87963131cbff85602c5b035",
+      "independence_key": ".wiki/raw/notes/2026-09-25-workflow-task-records.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/f57f6f3b997f4f3a1cd3671e73e739e8c83b0bd1d87963131cbff85602c5b035.md"
+      },
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-workflow-task-records.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".wiki/raw/notes/2026-09-25-workflow-task-records.md"
     },
     "src-d5cd1ac8119c2b418ceb": {
       "authority": "primary",

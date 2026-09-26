@@ -88,7 +88,7 @@ BP 커스텀·오버라이드 때문에 AI가 쿨다운 구조를 헷갈리지 �
 - [[어빌리티와 GAS]]
 - [[UI 표시 구조]]
 - [[결정 노트 - 2026-09-25-cooldown-single-ge]]
-- <!--wl-->결정 노트 - 2026-09-26-cooldown-play-acceptance
+- [[결정 노트 - 2026-09-26-cooldown-play-acceptance]]
 
 ## 핵심 주장
 

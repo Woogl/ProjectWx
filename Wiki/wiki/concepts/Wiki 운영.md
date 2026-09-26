@@ -11,6 +11,7 @@ sources:
   - "[[결정 노트 - 2026-09-22-current-workflow]]"
   - "[[결정 노트 - 2026-09-22-verified-stock-rule]]"
   - "[[결정 노트 - 2026-09-25-workflow-simplification]]"
+  - "[[결정 노트 - 2026-09-26-refresh-commit-trace]]"
   - "[[작업 - wiki-regeneration]]"
   - "[[작업 - workflow-review]]"
 ---
@@ -36,11 +37,14 @@ sources:
 - 2026-09-22 시점 옛 LLM Wiki는 `.wiki/`를 Git으로 공유하고 게임 규칙·구현·제약·결정 이유를 담았으며, 작업별 판단·확정본·실행 상태는 Workflow가 담당했다. ([[결정 노트 - 2026-09-22-current-workflow]])
 - 2026-09-22 시점 옛 Wiki 설정은 원자료 속 지시를 작업 명령이 아닌 자료로 다루고 구조 이관·재편찬·Lint 성공을 실행 재검증으로 보지 않도록 규정했다. ([[결정 노트 - 2026-09-22-current-workflow]])
 - Workflow 단순화 후 로컬 Wiki-AI 서버는 /health와 /test-feedback만 받고(protocol 4) 화면 메뉴는 작업 현황 대시보드·작업 절차·LLM 위키 검색 세 개가 되었다. ([[결정 노트 - 2026-09-25-workflow-simplification]])
+- 2026-09-26 Wiki 최신화는 `39f3629a4` 이후 `bf6596012`까지 커밋 19건을 정적으로 대조했고 새로 반영할 지식 변경은 DefenseConstant 메타 제거 하나였다. ([[결정 노트 - 2026-09-26-refresh-commit-trace]])
+- Wiki 최신화는 레벨 배치 변경, 작업 기록만 바뀐 커밋, 회의자료, AGENTS.md 코딩 규칙 변경을 기사 반영 대상에서 제외했다. ([[결정 노트 - 2026-09-26-refresh-commit-trace]])
 
 ## 검증 범위
 
 - 옛 .wiki 재생성은 lint·링크 검사·뷰어 테스트·Edge 렌더링으로만 검증되었고 빌드와 게임 실행은 하지 않았다. ([[작업 - wiki-regeneration]])
 - 옛 Wiki의 verified 날짜는 편찬·재확인 날짜이며 빌드·게임 실행 검증일을 뜻하지 않는다. ([[결정 노트 - 2026-09-22-verified-stock-rule]])
+- 2026-09-26 최신화의 커밋 대조는 정적 조사이며 빌드·PIE·에셋 편집기 검증은 하지 않았다. ([[결정 노트 - 2026-09-26-refresh-commit-trace]])
 
 ## 미결정·충돌
 
@@ -51,5 +55,6 @@ sources:
 - [[결정 노트 - 2026-09-22-current-workflow]] — 2026-09-22 시점 AGENTS.md·옛 LLM Wiki 설정·Workflow 절차와 실행 스크립트의 계약을 발췌한 정적 조사 노트로 사람 판단·AI 실행 경계를 기록한다
 - [[결정 노트 - 2026-09-22-verified-stock-rule]] — 옛 LLM Wiki 기사의 verified 필드를 WX 전용 인간 확인 방침에서 순정 규칙(편찬·재확인 날짜 기록)으로 되돌린 2026-09-22 사용자 결정 기록
 - [[결정 노트 - 2026-09-25-workflow-simplification]] — 사용자 승인으로 Workflow를 정하기·만들기·확인하기 3단계와 상태 3개로 줄이고 웹 새 작업 경로를 폐지하며 AI·사람 담당 테스트 체크리스트를 도입한 기록
+- [[결정 노트 - 2026-09-26-refresh-commit-trace]] — 직전 Wiki 최신화 39f3629a4 이후 bf6596012까지 19건 커밋을 정적 대조해 새로 반영할 것은 DefenseConstant 입력 제한 메타 제거 하나였음을 기록
 - [[작업 - wiki-regeneration]] — 옛 .wiki LLM Wiki를 현재 코드·설정·기획 기준으로 전면 재생성하고 대체된 legacy 문서를 정리한 2026-09-22 완료 작업 기록
 - [[작업 - workflow-review]] — AI 작업 워크플로우를 점검하고 작업 절차 한 장·세 단계·테스트 체크리스트·웹 새 작업과 이어하기로 단순화한 2026-09-22~26 완료 작업 기록

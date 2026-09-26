@@ -57,7 +57,7 @@ key_claims:
 
 - [[에디터 도구]]
 - [[작업 - datatable-row-preview]]
-- <!--wl-->결정 노트 - 2026-09-26-row-preview-acceptance
+- [[결정 노트 - 2026-09-26-row-preview-acceptance]]
 
 ## 핵심 주장
 

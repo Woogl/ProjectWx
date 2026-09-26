@@ -71,8 +71,8 @@ key_claims:
 
 - [[작업 절차(Workflow)]]
 - [[작업 - workflow-review]]
-- <!--wl-->결정 노트 - 2026-09-25-workflow-task-records
-- <!--wl-->결정 노트 - 2026-09-25-workflow-test-feedback
+- [[결정 노트 - 2026-09-25-workflow-task-records]]
+- [[결정 노트 - 2026-09-25-workflow-test-feedback]]
 
 ## 핵심 주장
 

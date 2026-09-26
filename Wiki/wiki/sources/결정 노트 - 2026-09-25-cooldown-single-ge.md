@@ -87,7 +87,7 @@ key_claims:
 - [[어빌리티와 GAS]]
 - [[UI 표시 구조]]
 - [[작업 - cooldown-unification]]
-- <!--wl-->결정 노트 - 2026-09-26-cooldown-play-acceptance
+- [[결정 노트 - 2026-09-26-cooldown-play-acceptance]]
 
 ## 핵심 주장
 
