@@ -5,7 +5,6 @@ $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $identity = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($repo.ToLowerInvariant()))).ToLowerInvariant()
 $node = (Get-Command node -ErrorAction Stop).Source
 $script = Join-Path $PSScriptRoot 'Wiki-AI.cjs'
-$revision = (@($script, (Join-Path $PSScriptRoot 'Wiki-AI-Providers.cjs'), (Join-Path $PSScriptRoot 'wiki-gemini-settings.json'), $PSCommandPath, (Join-Path $PSScriptRoot 'Workflow-TestFeedback.cjs'), (Join-Path $PSScriptRoot 'wiki-viewer/task-records.js'), (Join-Path $PSScriptRoot 'Workflow-Runner.cjs')) | ForEach-Object { (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant() }) -join ':'
 $appBin = Join-Path $env:LOCALAPPDATA 'OpenAI/Codex/bin'
 $executable = Get-Process codex -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($appBin, [StringComparison]::OrdinalIgnoreCase) } | Select-Object -First 1 -ExpandProperty Path
 if (!$executable -and (Test-Path -LiteralPath $appBin)) {
@@ -41,34 +40,28 @@ foreach ($entry in @(@('claude', '@anthropic-ai/claude-code'), @('gemini', '@goo
 $output = Join-Path $repo 'Saved/Workflow'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $configPath = Join-Path $output 'ai-providers.json'
-$configJson = ConvertTo-Json -InputObject $providers -Depth 5 -Compress
-# Restart when CLI discovery changes, even if the server code has not changed.
-$configUnchanged = (Test-Path -LiteralPath $configPath) -and ([IO.File]::ReadAllText($configPath) -eq $configJson)
+$connection = Join-Path $output 'ai-connection.json'
 function Get-WikiAI {
     try { Invoke-RestMethod 'http://127.0.0.1:18743/health' -TimeoutSec 1 } catch { $null }
 }
+# An idle server is always restarted so new code and CLI discovery take effect; a busy one is kept so a running AI is not cut off.
 $health = Get-WikiAI
 if ($health) {
     if ($health.identity -ne $identity) { throw 'Port 18743 belongs to another Wiki.' }
-    $connection = Join-Path $repo 'Saved/Workflow/ai-connection.json'
-    if ($configUnchanged -and $health.revision -eq $revision -and (Test-Path -LiteralPath $connection)) { exit 0 }
-    $processes = @(Get-CimInstance Win32_Process)
-    $owned = @($processes | Where-Object { $_.Name -eq 'node.exe' -and $_.ExecutablePath -eq $node -and $_.CommandLine -and $_.CommandLine.Contains('"' + $script + '"') })
-    if ($owned.Count -ne 1 -or $health.busy -or @($processes | Where-Object { $_.ParentProcessId -in $owned.ProcessId -and $_.Name -ne 'conhost.exe' }).Count -gt 0) {
-        throw 'Wiki AI update requires an idle, identifiable server. Finish the running analysis and retry.'
-    }
+    if ($health.busy) { Write-Warning 'AI is processing; keeping the running server. Rerun OpenWorkflow.bat after it finishes to load new code.'; exit 0 }
+    $owned = @(Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine.IndexOf('"' + $script + '"', [StringComparison]::OrdinalIgnoreCase) -ge 0 })
+    if ($owned.Count -ne 1) { throw 'Could not identify the Wiki AI server process on port 18743.' }
     Stop-Process -Id $owned[0].ProcessId -ErrorAction Stop
     Wait-Process -Id $owned[0].ProcessId -Timeout 10 -ErrorAction SilentlyContinue
 }
-$output = Join-Path $repo 'Saved/Workflow'
-New-Item -ItemType Directory -Path $output -Force | Out-Null
-$script = Join-Path $PSScriptRoot 'Wiki-AI.cjs'
-[IO.File]::WriteAllText($configPath, $configJson, [Text.UTF8Encoding]::new($false))
+# Remove the old connection first so a failed start leaves the page without a stale token; the server writes a new one when it listens.
+Remove-Item -LiteralPath $connection -ErrorAction SilentlyContinue
+[IO.File]::WriteAllText($configPath, (ConvertTo-Json -InputObject $providers -Depth 5 -Compress), [Text.UTF8Encoding]::new($false))
 $arguments = '"{0}" "{1}"' -f $script, $configPath
 Start-Process -FilePath $node -ArgumentList $arguments -WindowStyle Hidden -WorkingDirectory $repo -RedirectStandardOutput (Join-Path $output 'ai.log') -RedirectStandardError (Join-Path $output 'ai-error.log') | Out-Null
 for ($attempt = 0; $attempt -lt 20; $attempt++) {
     Start-Sleep -Milliseconds 250
     $health = Get-WikiAI
-    if ($health -and $health.identity -eq $identity) { exit 0 }
+    if ($health -and $health.identity -eq $identity -and (Test-Path -LiteralPath $connection)) { exit 0 }
 }
 throw 'Wiki AI did not start. Check Saved/Workflow/ai-error.log.'

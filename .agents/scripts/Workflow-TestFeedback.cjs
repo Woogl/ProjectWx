@@ -7,6 +7,8 @@ const {labels}=require('./Wiki-AI-Providers.cjs');
 const {owners,results,checklistHeading,checklistHeader,requestHeading,questionHeading,questionHeader,planHeading,sectionOrder,stateLine,nextLine,validRow,headRange,readHead,readSection,readChecklist,readQuestions,readPlan,readTaskRecord}=require('./wiki-viewer/task-records.js');
 const sha=value=>crypto.createHash('sha256').update(value).digest('hex');
 const folder=root=>path.join(root,'.agents/workflow/tasks');
+// 접수 상태는 PC마다 다른 실행 상태라 Git 밖에 둔다.
+const stateFolder=root=>path.join(root,'Saved/Workflow/test-feedback');
 // 동작마다 AI에게 맡기는 일. plan만 읽기 전용이다. 테스트 결과는 실패가 있을 때만 fix로 AI에게 맡긴다.
 const kinds={create:'plan',answer:'plan',approve:'implement',request:'request'};
 const doing={plan:'AI 조사 중',implement:'AI 구현 중',request:'AI 추가 요청 처리 중',fix:'AI 수정 중'};
@@ -139,7 +141,7 @@ function readTasks(root){
 function taskPrompt(request){
   const kind=request.kind;
   const steps={
-    plan:'지금은 정하기입니다. 사람에게 물을 판단은 questions에 넣고, 더 물을 것이 없으면 questions를 비우고 plan에 구현 계획을 목록으로 적으세요. # 제목은 쓰지 마세요.',
+    plan:'지금은 정하기입니다. 요청 절(마지막 추가 요청 포함)을 반영해, 사람에게 물을 판단은 questions에 넣고, 더 물을 것이 없으면 questions를 비우고 plan에 구현 계획을 목록으로 적으세요. # 제목은 쓰지 마세요.',
     implement:'사람이 구현을 승인했습니다. 작업 기록의 구현 계획대로 구현하고 checklist를 돌려주세요.',
     request:'사람의 추가 요청(작업 기록 요청 절의 마지막 추가 요청)을 처리하세요. 고쳤으면 checklist를, 물을 판단은 questions를, 바뀐 구현 계획은 plan을 채우고, 설명만 필요하면 summary만 채우세요.',
     fix:'사람이 테스트 체크리스트에서 실패를 알렸고 서버가 표에 반영했습니다. 실패 원인을 조사해 고치고 checklist를 돌려주세요.'
@@ -151,10 +153,10 @@ ${kind==='plan'?'':'이 처리는 사용자 결정에 따라 권한 확인 없�
 evidence에는 이번 처리에서 실제로 실행하거나 읽은 명령·파일·결과를 적으세요.
 접수 데이터(JSON): ${JSON.stringify({action:request.action,kind,taskPath:request.taskPath,taskHash:request.taskHash,actor:request.actor,at:request.at,checks:request.checks,answers:request.answers,message:request.message})}`;
 }
-// Windows에서 새 터미널 창을 연다. 인자를 따옴표로 감싸므로 cmd 특수 문자는 쓸 수 없다.
+// Windows에서 새 터미널 창을 연다. 인자를 따옴표로 감싸므로 따옴표를 깨거나 변수로 펼쳐지는 문자(" % ! 줄바꿈)만 쓸 수 없다.
 function openTerminal(root,title,argv,start=spawn){
-  const quote=value=>{if(/["%^&|<>!\r\n]/.test(value))throw Error('터미널 창 인자에 쓸 수 없는 문자가 있습니다.');return '"'+value+'"';};
-  const line=`start ${quote(title.replace(/["%^&|<>!\r\n]/g,' '))} /D ${quote(root)} ${argv.map(quote).join(' ')}`;
+  const quote=value=>{if(/["%!\r\n]/.test(value))throw Error('터미널 창 인자에 쓸 수 없는 문자가 있습니다.');return '"'+value+'"';};
+  const line=`start ${quote(title.replace(/["%!\r\n]/g,' '))} /D ${quote(root)} ${argv.map(quote).join(' ')}`;
   start('cmd.exe',['/d','/c',line],{detached:true,stdio:'ignore',windowsHide:true,windowsVerbatimArguments:true}).unref();
 }
 // 사람이 직접 대화할 AI 세션을 연다. 요청문에는 사람이 입력한 글을 넣지 않는다.
@@ -164,17 +166,16 @@ function openSession({root,command,provider,taskPath,title,open=openTerminal}){
   open(root,'Wx AI · '+title,[command.file,...(command.args||[]),...(provider==='gemini'?['-i',prompt]:[prompt])]);
 }
 const alive=pid=>{try{process.kill(pid,0);return true;}catch(error){return error.code==='EPERM';}};
-function waitResult(job,onSpawn,wait){
+function waitResult(job,wait){
   return new Promise((resolve,reject)=>{
     const started=Date.now();let pid=0;
     const tick=()=>{
       try{
-        if(!pid&&fs.existsSync(path.join(job,'pid.txt'))){pid=Number(fs.readFileSync(path.join(job,'pid.txt'),'utf8'));if(pid)onSpawn?.(pid);}
+        if(!pid&&fs.existsSync(path.join(job,'pid.txt')))pid=Number(fs.readFileSync(path.join(job,'pid.txt'),'utf8'));
         const result=path.join(job,'result.json');
         if(fs.existsSync(result)){const value=JSON.parse(fs.readFileSync(result,'utf8'));return value.ok?resolve(value.value):reject(Error(value.error));}
         if(pid&&!alive(pid))return reject(Error('AI 터미널 창이 결과 없이 닫혔습니다. 다시 시도하세요.'));
         if(!pid&&Date.now()-started>60*1000)return reject(Error('AI 터미널 창을 열지 못했습니다.'));
-        if(Date.now()-started>35*60*1000)return reject(Error('AI 처리 시간이 초과되었습니다.'));
       }catch(error){return reject(error);}
       setTimeout(tick,wait);
     };
@@ -182,63 +183,57 @@ function waitResult(job,onSpawn,wait){
   });
 }
 // AI를 터미널 창의 실행기로 돌리고 결과 파일을 기다린다. repo는 AI가 일할 폴더다.
-async function runTerminalJob({root,repo=root,command,provider,mode,title,id,prompt,schema,onSpawn,open=openTerminal,wait=1000}){
+async function runTerminalJob({root,repo=root,command,provider,mode,title,id,prompt,schema,open=openTerminal,wait=1000}){
   if(!command?.file)throw Error(`${labels[provider]||provider} CLI 설치·로그인이 필요합니다.`);
   const job=path.join(root,'Saved/Workflow/jobs',id);
   fs.rmSync(job,{recursive:true,force:true});fs.mkdirSync(job,{recursive:true});
-  const safeTitle=title.replace(/["%^&|<>!\r\n]/g,' ');
+  const safeTitle=title.replace(/["%!\r\n]/g,' ');
   fs.writeFileSync(path.join(job,'job.json'),JSON.stringify({provider,command,mode,title:safeTitle,repo}));
   fs.writeFileSync(path.join(job,'prompt.txt'),prompt);
   fs.writeFileSync(path.join(job,'schema.json'),JSON.stringify(schema));
   try{
     open(root,'Wx AI · '+safeTitle,[process.execPath,path.join(__dirname,'Workflow-Runner.cjs'),job]);
-    return await waitResult(job,onSpawn,wait);
+    return await waitResult(job,wait);
   }finally{fs.rmSync(job,{recursive:true,force:true});}
 }
 // 작업 기록의 AI 처리를 터미널 창에서 돌리고 단계에 맞는 결과만 돌려준다.
-async function runJob({root,command,request,onSpawn,open=openTerminal,wait=1000}){
+async function runJob({root,command,request,open=openTerminal,wait=1000}){
   const provider=request.provider||'codex',kind=request.kind;
-  const value=await runTerminalJob({root,command,provider,mode:kind==='plan'?'plan':'work',title:request.title||path.basename(request.taskPath,'.md'),id:request.operationId+'-'+(request.attempt||1),prompt:taskPrompt(request),schema:schemaFor(kind),onSpawn,open,wait});
+  const value=await runTerminalJob({root,command,provider,mode:kind==='plan'?'plan':'work',title:request.title||path.basename(request.taskPath,'.md'),id:request.operationId+'-'+(request.attempt||1),prompt:taskPrompt(request),schema:schemaFor(kind),open,wait});
   return validateReport(value,kind);
 }
 function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결이 없습니다. OpenWorkflow.bat을 다시 실행하세요.');},providers=['codex']}){
-  fs.mkdirSync(folder(root),{recursive:true});
+  fs.mkdirSync(folder(root),{recursive:true});fs.mkdirSync(stateFolder(root),{recursive:true});
   let active=null;
-  const workers=new Set(),recordFile=relative=>path.join(folder(root),'test_feedback_'+sha(relative)+'.json');
-  function read(relative){const file=recordFile(relative);return fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):{taskPath:relative,revision:0,requests:[]};}
+  const recordFile=relative=>path.join(stateFolder(root),'test_feedback_'+sha(relative)+'.json');
+  // 읽지 못하는 상태 파일은 없는 것으로 보고 새로 시작한다(사람이 볼 이력은 작업 기록에 있다).
+  const parse=file=>{try{return JSON.parse(fs.readFileSync(file,'utf8'));}catch{return null;}};
+  function read(relative){return parse(recordFile(relative))||{taskPath:relative,revision:0,requests:[]};}
   function save(record){record.revision++;atomicWrite(recordFile(record.taskPath),record);return record;}
-  function records(){return fs.readdirSync(folder(root)).filter(name=>/^test_feedback_[a-f0-9]{64}\.json$/.test(name)).map(name=>JSON.parse(fs.readFileSync(path.join(folder(root),name),'utf8')));}
-  const kindOf=request=>request.kind||kinds[request.action]||'fix';
+  function records(){return fs.readdirSync(stateFolder(root)).filter(name=>/^test_feedback_[a-f0-9]{64}\.json$/.test(name)).map(name=>parse(path.join(stateFolder(root),name))).filter(Boolean);}
   // AI 처리가 결과 없이 끝나면 기록 상태 줄에 남겨 작업 현황에서 보이게 한다.
   function markStopped(relative,detail){
     try{const file=taskFile(root,relative);fs.writeFileSync(file,writeHead(fs.readFileSync(file,'utf8'),'확인 대기',detail,'작업 진행 화면에서 다시 시도한다.'),'utf8');}catch{}
   }
   for(const record of records()){
     for(const request of record.requests){
-      if(request.workerPid)workers.add(request.workerPid);
       if(request.status==='running'){request.status='interrupted';request.error='AI 처리가 중단되었습니다. 저장된 요청으로 다시 시도할 수 있습니다.';save(record);markStopped(record.taskPath,'AI 처리 중단');}
     }
   }
-  function isBusy(){
-    for(const pid of workers){try{process.kill(pid,0);}catch(error){if(error.code==='ESRCH')workers.delete(pid);}}
-    return !!active||workers.size>0;
-  }
+  const isBusy=()=>!!active;
   function view(record){
     const latest=record.requests.at(-1);
-    return {taskPath:record.taskPath,revision:record.revision,latest:latest?{operationId:latest.operationId,action:latest.action||'submit',kind:kindOf(latest),provider:latest.provider||'codex',actor:latest.actor,at:latest.at,startedAt:latest.startedAt||latest.at,checks:latest.checks||null,answers:latest.answers||null,message:latest.message||'',status:latest.status,error:latest.error||'',report:latest.report||null}:null};
+    return {taskPath:record.taskPath,revision:record.revision,latest:latest?{operationId:latest.operationId,action:latest.action,kind:latest.kind,provider:latest.provider,actor:latest.actor,at:latest.at,startedAt:latest.startedAt||latest.at,checks:latest.checks||null,answers:latest.answers||null,message:latest.message||'',status:latest.status,error:latest.error||'',report:latest.report||null}:null};
   }
   const providerList=()=>providers.map(id=>({id,label:labels[id]}));
   function list(){
     return {records:Object.fromEntries(records().map(record=>[record.taskPath,view(record)])),providers:providerList(),tasks:readTasks(root)};
   }
-  // 요청·질문·계획·체크리스트가 모두 없는 옛 기록은 다음 행동(없으면 제목)을 사람 항목 하나로 보여준다.
   function context(relative){
     const content=fs.readFileSync(taskFile(root,relative)),body=content.toString('utf8'),head=readHead(body),record=read(relative),request=readSection(body,requestHeading);
-    let checklist,derived=false,checklistError='',questions=[];
-    try{checklist=readChecklist(body)?.rows;questions=readQuestions(body)?.rows||[];}catch(error){checklistError=error.message;checklist=[];}
-    const plan=readPlan(body);
-    if(!checklist&&!questions.length&&!plan.text&&request===null){checklist=[{item:head.next||head.title||path.basename(relative,'.md'),method:'',owner:'사람',result:'대기',evidence:''}];derived=true;}
-    return {...view(record),providers:providerList(),title:head.title||path.basename(relative,'.md'),state:head.state,request:request||'',questions,plan,checklist:checklist||[],derived,checklistError,taskHash:sha(content)};
+    let checklist=[],checklistError='',questions=[];
+    try{checklist=readChecklist(body)?.rows||[];questions=readQuestions(body)?.rows||[];}catch(error){checklistError=error.message;}
+    return {...view(record),providers:providerList(),title:head.title||path.basename(relative,'.md'),state:head.state,request:request||'',questions,plan:readPlan(body),checklist,checklistError,taskHash:sha(content)};
   }
   const quote=value=>String(value).split(/\r?\n/).map(line=>'> '+line).join('\n');
   const outcome={questions:'질문 답변 필요',approval:'구현 승인 필요',issues:'실패 확인 필요',retest:'사람 확인 필요',complete:'완료',empty:'처리 결과 확인',conflict:'기록 충돌로 반영하지 않음',failed:'AI 처리 실패'};
@@ -253,7 +248,7 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
       [`- 전달한 사람: ${request.actor}`,'',quote(request.checks.map(c=>`${c.result} · ${c.item}${c.note?': '+c.note:''}`).join('\n'))]);
   }
   function appendResult(record,request){
-    const kind=kindOf(request),lines=[`- 전달한 사람: ${request.actor}`,`- 처리 AI: ${labels[request.provider||'codex']}`,`- 처리 결과: ${outcome[request.status]||request.status}`];
+    const kind=request.kind,lines=[`- 전달한 사람: ${request.actor}`,`- 처리 AI: ${labels[request.provider]}`,`- 처리 결과: ${outcome[request.status]||request.status}`];
     if(request.answers)lines.push('','답변:','',quote(request.answers.map(a=>`${a.id}: ${a.answer}`).join('\n')));
     if(request.message)lines.push('','요청:','',quote(request.message));
     if(request.report){
@@ -277,16 +272,19 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
     if(value.checklist?.length)body=writeChecklist(body,handOver(guardChecklist(readChecklist(body)?.rows||[],value.checklist)));
     if(value.questions?.length)body=writeQuestions(body,mergeQuestions(readQuestions(body)?.rows||[],value.questions));
     if(value.plan?.trim())body=writePlan(body,value.plan,'');
+    // 코드가 바뀌면 이미 통과한 코드 리뷰를 다시 받는다(작업 절차 「문제가 생기면」).
+    const reviewed=r=>r.owner==='사람'&&r.item==='코드 리뷰'&&r.result==='통과',rows=value.changes?.length?readChecklist(body)?.rows||[]:[];
+    if(rows.some(reviewed))body=writeChecklist(body,rows.map(r=>reviewed(r)?{...r,result:'대기',evidence:'코드가 바뀌어 다시 확인'}:r));
     const state=stateOf(body);request.status=state.status;
     fs.writeFileSync(file,writeHead(body,...state.head),'utf8');
   }
   // 처리하는 동안 기록 상태는 진행 중이다.
   function launch(record,request){
-    const kind=kindOf(request),file=taskFile(root,record.taskPath);
+    const kind=request.kind,file=taskFile(root,record.taskPath);
     fs.writeFileSync(file,writeHead(fs.readFileSync(file,'utf8'),'진행 중',doing[kind],'AI 처리 결과를 기다린다. 진행 과정은 터미널 창에 보인다.'),'utf8');
-    request.kind=kind;request.taskHash=sha(fs.readFileSync(file));request.status='running';request.error='';request.attempt=(request.attempt||0)+1;request.startedAt=new Date().toISOString();save(record);active=request.operationId;
+    request.taskHash=sha(fs.readFileSync(file));request.status='running';request.error='';request.attempt=(request.attempt||0)+1;request.startedAt=new Date().toISOString();save(record);active=request.operationId;
     const input=structuredClone(request);
-    Promise.resolve().then(()=>run(input,pid=>{request.workerPid=pid;save(record);})).then(value=>{
+    Promise.resolve().then(()=>run(input)).then(value=>{
       request.report=validateReport(value,kind);
       settle(record,request,request.report);
       appendResult(record,request);
@@ -295,7 +293,7 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
       request.status='failed';request.error=error.message;
       markStopped(record.taskPath,'AI 처리 실패');
       save(record);
-    }).finally(()=>{delete request.workerPid;save(record);active=null;}).catch(error=>console.error(error));
+    }).finally(()=>{active=null;save(record);}).catch(error=>console.error(error));
     return {...view(record),taskPath:record.taskPath};
   }
   const actorOf=body=>{if(typeof body.actor!=='string'||!body.actor.trim()||body.actor.length>100||/[\r\n]/.test(body.actor))throw Error('이름을 1~100자로 입력하세요.');return body.actor.trim();};
@@ -336,8 +334,6 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
     }
     const digest=sha(JSON.stringify(body)),previous=record.requests.find(r=>r.operationId===body.operationId);
     if(previous){if(previous.digest!==digest)throw Error('같은 접수의 내용이 바뀌었습니다.');return view(record);}
-    if(record.retryOperationId===body.operationId){if(record.retryDigest!==digest)throw Error('같은 재시도의 내용이 바뀌었습니다.');return view(record);}
-    if(record.revision!==body.expectedRevision)throw Error('다른 결과가 접수되었습니다. 최신 상태를 확인하세요.');
     if(isBusy())throw Error('다른 AI가 작업 중입니다. 입력은 유지됩니다. 잠시 후 전달하세요.');
     const current=context(relative);
     if(current.taskHash!==body.taskHash)throw Error('작업 기록이 바뀌었습니다. 최신 상태를 불러와 확인 후 전달하세요.');
@@ -346,12 +342,14 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
       const request=record.requests.at(-1);
       if(!request||!['failed','interrupted'].includes(request.status))throw Error('재시도할 AI 처리가 없습니다.');
       request.attempts||=[];request.attempts.push({provider:request.provider||'codex',status:request.status,error:request.error,report:request.report});
-      request.provider=provider;record.retryOperationId=body.operationId;record.retryDigest=digest;
+      request.provider=provider;
       return launch(record,request);
     }
     const actor=actorOf(body),at=new Date().toISOString(),file=taskFile(root,relative),stamp=`${actor} ${at.slice(0,10)}`;
     let content=fs.readFileSync(file,'utf8');
-    const request={operationId:body.operationId,digest,action:body.action,kind:kinds[body.action],provider,taskPath:relative,title:current.title,actor,at};
+    // 구현 승인 전(승인된 계획도 체크리스트도 없음)의 추가 요청은 정하기로 읽기 전용 처리한다.
+    const planning=body.action==='request'&&!current.plan.approval&&!current.checklist.length;
+    const request={operationId:body.operationId,digest,action:body.action,kind:planning?'plan':kinds[body.action],provider,taskPath:relative,title:current.title,actor,at};
     if(body.action==='answer'){
       const open=current.questions.filter(q=>!q.answer);
       if(!open.length)throw Error('답할 질문이 없습니다.');
@@ -398,4 +396,4 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
   }
   return {act,isBusy};
 }
-module.exports={createFeedbackService,runJob,runTerminalJob,openTerminal,openSession,taskPrompt,schemaFor,validateReport,readTasks,writeChecklist,writeHead,writeSection,writePlan};
+module.exports={createFeedbackService,runJob,runTerminalJob,openTerminal,openSession,taskPrompt,schemaFor,readTasks,writeChecklist,writeHead};

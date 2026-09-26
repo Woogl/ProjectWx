@@ -17,17 +17,17 @@ const research={summary:'조사',evidence:['관련 코드 읽음'],questions:[],
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 let sequence=0,server;
 function fixture(providers=['codex'],content=taskText){
-  const root=path.join(base,'case-'+(++sequence)),folder=path.join(root,'.agents/workflow/tasks');fs.mkdirSync(folder,{recursive:true});
+  const root=path.join(base,'case-'+(++sequence)),folder=path.join(root,'.agents/workflow/tasks'),stateFolder=path.join(root,'Saved/Workflow/test-feedback');fs.mkdirSync(folder,{recursive:true});
   fs.writeFileSync(path.join(root,taskPath),content);
   let finish,reject,runs=0,lastInput;const opened=[];
   const options={root,providers,run:input=>{lastInput=input;runs++;return new Promise((a,b)=>{finish=a;reject=b;});},open:(...args)=>opened.push(args)};
   let service=createFeedbackService(options);
   const context=(relative=taskPath)=>service.act({action:'read',taskPath:relative});
-  const request=(extra={})=>({action:'submit',taskPath,operationId:'op-'+(++sequence),expectedRevision:context().revision,taskHash:context().taskHash,actor:'테스터',checks:[{index:1,result:'통과',note:''}],...extra});
+  const request=(extra={})=>({action:'submit',taskPath,operationId:'op-'+(++sequence),taskHash:context().taskHash,actor:'테스터',checks:[{index:1,result:'통과',note:''}],...extra});
   // 어느 기록에나 최신 revision·기록 해시로 동작을 보낸다.
-  const send=(relative,action,extra={})=>{const current=context(relative);return service.act({action,taskPath:relative,operationId:'op-'+(++sequence),expectedRevision:current.revision,taskHash:current.taskHash,actor:'테스터',provider:providers[0],...extra});};
+  const send=(relative,action,extra={})=>{const current=context(relative);return service.act({action,taskPath:relative,operationId:'op-'+(++sequence),taskHash:current.taskHash,actor:'테스터',provider:providers[0],...extra});};
   const task=(relative=taskPath)=>fs.readFileSync(path.join(root,relative),'utf8');
-  return {root,folder,context,request,send,task,opened,get service(){return service;},get runs(){return runs;},get input(){return lastInput;},finish:value=>finish(value),fail:()=>reject(Error('일시적 CLI 실패')),restart:()=>{service=createFeedbackService(options);},rows:(relative=taskPath)=>readChecklist(task(relative)).rows,head:(relative=taskPath)=>readHead(task(relative))};
+  return {root,folder,stateFolder,context,request,send,task,opened,get service(){return service;},get runs(){return runs;},get input(){return lastInput;},finish:value=>finish(value),fail:()=>reject(Error('일시적 CLI 실패')),restart:()=>{service=createFeedbackService(options);},rows:(relative=taskPath)=>readChecklist(task(relative)).rows,head:(relative=taskPath)=>readHead(task(relative))};
 }
 (async()=>{try{
   // 기록 맨 위 상태 줄: 기존 표기(- 접두사·설명)를 읽고, 없으면 제목 아래에 만든다.
@@ -50,7 +50,7 @@ function fixture(providers=['codex'],content=taskText){
 
   const f=fixture();
   assert.deepEqual(f.context().checklist.map(r=>[r.item,r.owner,r.result]),[['빌드','AI','통과'],['저장 후 복원','사람','대기']]);
-  assert.equal(f.context().derived,false);assert.equal(f.context().state,'확인 대기');assert.ok(!Object.hasOwn(f.context(),'codeVersion'),'code versions no longer gate submissions');
+  assert.equal(f.context().state,'확인 대기');assert.ok(!Object.hasOwn(f.context(),'codeVersion'),'code versions no longer gate submissions');
   assert.throws(()=>f.service.act(f.request({provider:'claude'})),/선택한 AI/);
   assert.throws(()=>f.service.act(f.request({provider:'unknown'})),/선택한 AI/);
   assert.throws(()=>f.service.act(f.request({checks:[]})),/하나 이상/);
@@ -100,7 +100,7 @@ function fixture(providers=['codex'],content=taskText){
   multi.restart();assert.equal(multi.context().latest.provider,'claude');
   const switchAI=multi.request({action:'retry',provider:'gemini'});multi.service.act(switchAI);await settle();
   assert.deepEqual([multi.input.provider,multi.input.kind],['gemini','fix']);assert.equal(multi.input.checks[0].note,'문제 원문');assert.equal(multi.input.attempts[0].provider,'claude');
-  multi.service.act(switchAI);assert.equal(multi.runs,2);multi.fail();await settle();
+  assert.throws(()=>multi.service.act(switchAI),/다른 AI/,'a resent retry is refused while running');assert.equal(multi.runs,2);multi.fail();await settle();
   multi.service.act(multi.request({action:'retry'}));await settle();assert.equal(multi.input.provider,'gemini','retry without a selection preserves its provider');
   multi.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','수정 후 재확인'),row('코드 리뷰','사람','대기','좌표 복원 수정')]));await settle();
   assert.equal(multi.context().latest.status,'retest');assert.match(multi.task(),/## AI 수정 결과 · [\s\S]*처리 AI: Gemini CLI/);
@@ -145,24 +145,15 @@ function fixture(providers=['codex'],content=taskText){
 
   const failed=fixture();failed.service.act(failed.request({checks:[{index:1,result:'실패',note:'문제 원문'}]}));await settle();failed.fail();await settle();
   assert.equal(failed.context().latest.status,'failed');assert.equal(failed.context().latest.checks[0].note,'문제 원문');
-  const retry=failed.request({action:'retry'});failed.service.act(retry);await settle();failed.service.act(retry);assert.equal(failed.runs,2);
+  const retry=failed.request({action:'retry'});failed.service.act(retry);await settle();assert.throws(()=>failed.service.act(retry),/다른 AI/);assert.equal(failed.runs,2);
   failed.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')]));await settle();assert.equal(failed.context().latest.status,'retest');
   const interrupted=fixture();interrupted.service.act(interrupted.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();interrupted.restart();assert.equal(interrupted.context().latest.status,'interrupted');
   assert.equal(interrupted.head().detail,'AI 처리 중단','an interrupted run is visible in the task list');
   interrupted.service.act(interrupted.request({action:'retry'}));await settle();interrupted.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')]));await settle();assert.equal(interrupted.context().latest.status,'retest');
-  const orphan=fixture();orphan.service.act(orphan.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();
-  const stateFile=fs.readdirSync(orphan.folder).find(name=>name.startsWith('test_feedback_'));
-  const state=JSON.parse(fs.readFileSync(path.join(orphan.folder,stateFile)));state.requests[0].workerPid=process.pid;fs.writeFileSync(path.join(orphan.folder,stateFile),JSON.stringify(state));
-  orphan.restart();assert.equal(orphan.service.isBusy(),true);assert.throws(()=>orphan.service.act(orphan.request({action:'retry'})),/다른 AI/);
-
-  // 요청·질문·계획·체크리스트가 없는 옛 기록은 다음 행동(없으면 제목)을 사람 항목 하나로 쓰고, 전달하면 표와 상태 줄을 만든다.
-  const legacy=fixture(['codex'],'# 예시 작업\n\n원본 결정\n\n## 이력\n\n- 구현\n');
-  assert.equal(legacy.context().derived,true);assert.deepEqual(legacy.context().checklist.map(r=>[r.item,r.owner,r.result]),[['예시 작업','사람','대기']]);
-  legacy.service.act(legacy.request({checks:[{index:0,result:'통과',note:''}]}));await settle();
-  assert.match(legacy.task(),/원본 결정\n\n## 테스트 체크리스트\n\n\| 항목 \| 확인 방법 \| 담당 \| 결과 \| 근거 \|\n\| --- \| --- \| --- \| --- \| --- \|\n\| 예시 작업 \|  \| 사람 \| 통과 \| 테스터 /);
-  assert.match(legacy.task(),/^# 예시 작업\n\n상태: 완료 · 체크리스트 1\/1 통과\n다음 행동: /);assert.equal(legacy.runs,0);
-  assert.equal(legacy.context().latest.status,'complete');
-  assert.equal(fixture(['codex'],'# 예시\n\n다음 행동: 보스전을 확인한다.\n').context().checklist[0].item,'보스전을 확인한다.');
+  const stored=fixture();stored.service.act(stored.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();
+  assert.ok(fs.readdirSync(stored.stateFolder).some(name=>name.startsWith('test_feedback_'))&&!fs.readdirSync(stored.folder).some(name=>name.startsWith('test_feedback_')),'request state lives outside the tracked records folder');
+  fs.writeFileSync(path.join(stored.stateFolder,'test_feedback_'+'0'.repeat(64)+'.json'),'<<<<<<< conflict');
+  stored.restart();assert.equal(stored.service.isBusy(),false,'no stored process id keeps the server busy after a restart');assert.equal(stored.context().latest.status,'interrupted','an unreadable state file is skipped');
   const broken=fixture(['codex'],taskText.replace('| 사람 | 대기 |','| 누군가 | 대기 |'));
   assert.match(broken.context().checklistError,/2번째 행/);assert.throws(()=>broken.service.act(broken.request({checks:[{index:0,result:'통과',note:''}]})),/2번째 행/);
   // 옛 기록에도 추가 요청을 보낼 수 있고, 요청 절은 체크리스트 앞에 생긴다. 설명만 한 결과는 상태를 바꾸지 않는다.
@@ -171,6 +162,14 @@ function fixture(providers=['codex'],content=taskText){
   extra.finish({summary:'로그 위치 설명',evidence:['코드 읽음'],changes:[],questions:[],plan:'',checklist:[]});await settle();
   assert.deepEqual([extra.context().latest.status,extra.head().state,extra.head().next],['retest','확인 대기','사람 확인: 저장 후 복원 (대기)']);
   assert.throws(()=>extra.service.act({action:'read',taskPath:'x'}),/경로/);
+  // 구현 승인 전의 추가 요청은 정하기(읽기 전용)로 처리한다.
+  const planning=fixture(['codex'],'# 계획 작업\n\n## 요청\n\n- 요청자: 테스터 · 2026-09-26\n\n> 요청 원문\n\n## 구현 계획\n\n1. 저장 위치를 바꾼다\n');
+  planning.send(taskPath,'request',{message:'계획에 로그를 더해줘'});await settle();assert.equal(planning.input.kind,'plan','a request before approval is read-only planning');
+  // 코드가 바뀌면 이미 통과한 코드 리뷰를 다시 받는다.
+  const review=fixture(['codex'],taskText.replace('| 저장 후 복원 |','| 코드 리뷰 | 변경 파일 | 사람 | 통과 | 테스터 |\n| 저장 후 복원 |'));
+  review.service.act(review.request({checks:[{index:2,result:'실패',note:'복원 위치가 다름'}]}));await settle();
+  review.finish(fixReport([passedRows[0],row('코드 리뷰','사람','통과','테스터'),row('저장 후 복원','사람','대기','재확인')]));await settle();
+  assert.deepEqual(review.rows().map(r=>[r.item,r.result]),[['빌드','통과'],['코드 리뷰','대기'],['저장 후 복원','대기']],'changed code needs a new code review');
 
   // 새 작업: 기록을 만들고 읽기 전용 조사 → 질문 → 답변 → 구현 계획 → 구현 승인 → 구현 → 추가 요청 순서로 진행한다.
   const n=fixture(['codex','claude']);
@@ -190,7 +189,7 @@ function fixture(providers=['codex'],content=taskText){
   n.finish({...research,questions:[question('Q1','체력바 감소 방식?'),question('Q2','적용 범위?')],checklist:[row('빌드','AI','통과','조사 결과에 끼운 표')]});await settle();
   let current=n.context(newPath);
   assert.equal(current.latest.status,'questions');assert.deepEqual(current.questions.map(q=>[q.id,q.answer]),[['Q1',''],['Q2','']]);assert.deepEqual(current.questions[0].options,['즉시/바로','지연 후 감소']);
-  assert.equal(current.derived,false);assert.deepEqual(current.checklist,[],'a research result cannot write a checklist');assert.match(current.request,/^- 요청자: 테스터/);
+  assert.deepEqual(current.checklist,[],'a research result cannot write a checklist');assert.match(current.request,/^- 요청자: 테스터/);
   assert.deepEqual(n.head(newPath),{title:'Boss HP bar 개선',state:'확인 대기',detail:'질문 2개',next:'질문 2개에 답한다.'});
   const order=(...headings)=>{const text=n.task(newPath),at=headings.map(h=>text.indexOf(h));assert.ok(at.every((v,i)=>v>=0&&(i===0||v>at[i-1])),headings.join(' < '));};
   order('## 요청','## 질문','## AI 조사 결과');
@@ -276,11 +275,10 @@ function fixture(providers=['codex'],content=taskText){
   const jobRequest=(kind,extra={})=>({action:'x',kind,provider:'codex',operationId:'job-'+(++sequence),taskPath,title:'제목 "따옴표" & 기호',...extra});
   const values={plan:{...research,plan:'계획'},implement:fixReport([passedRows[0]]),request:{summary:'설명',evidence:['읽음'],changes:[],questions:[],plan:'',checklist:[]},fix:fixReport([passedRows[0]])};
   for(const [kind,mode] of [['plan','plan'],['implement','work'],['request','work'],['fix','work']]){
-    let spawned;
-    const value=await runJob({root:jobRoot,command:{file:'codex'},request:jobRequest(kind),onSpawn:pid=>{spawned=pid;},open:fakeRunner({ok:true,value:{...values[kind],blockers:['버릴 칸']}}),wait:5});
-    assert.equal(value.summary,values[kind].summary);assert.ok(!('blockers' in value),'fields outside the step are dropped');assert.equal(seen.job.mode,mode,kind);assert.equal(seen.job.repo,jobRoot);assert.equal(spawned,process.pid);
+    const value=await runJob({root:jobRoot,command:{file:'codex'},request:jobRequest(kind),open:fakeRunner({ok:true,value:{...values[kind],blockers:['버릴 칸']}}),wait:5});
+    assert.equal(value.summary,values[kind].summary);assert.ok(!('blockers' in value),'fields outside the step are dropped');assert.equal(seen.job.mode,mode,kind);assert.equal(seen.job.repo,jobRoot);
     assert.deepEqual(seen.schema.required,schemaFor(kind).required,kind);assert.equal(seen.argv[0],process.execPath);assert.match(seen.argv[1],/Workflow-Runner\.cjs$/);
-    assert.ok(!/["&]/.test(seen.title),'terminal titles drop cmd characters');assert.ok(!fs.existsSync(seen.argv[2]),'job files are removed');
+    assert.ok(!/["%!]/.test(seen.title)&&seen.title.includes('&'),'terminal titles drop only quote-breaking characters');assert.ok(!fs.existsSync(seen.argv[2]),'job files are removed');
   }
   await assert.rejects(runJob({root:jobRoot,command:{file:'codex'},request:jobRequest('fix'),open:fakeRunner({ok:false,error:'로그인 필요'}),wait:5}),/로그인 필요/);
   await assert.rejects(runJob({root:jobRoot,command:{file:'codex'},request:jobRequest('fix'),open:fakeRunner(null,999999),wait:5}),/결과 없이 닫혔습니다/);
@@ -290,20 +288,19 @@ function fixture(providers=['codex'],content=taskText){
   const fakeCodex=path.join(base,'fake-codex.cjs');
   fs.writeFileSync(fakeCodex,`const fs=require('fs');const a=process.argv.slice(2);let input='';process.stdin.on('data',d=>input+=d).on('end',()=>{console.log('fake codex progress');const report=${JSON.stringify({summary:'',evidence:['가짜'],changes:[],questions:[],plan:'계획',checklist:passedRows})};report.summary='sandbox='+a[a.indexOf('--sandbox')+1]+' plan='+input.includes('지금은 정하기');fs.writeFileSync(a[a.indexOf('--output-last-message')+1],JSON.stringify(report));process.exit(a.includes('--fail')?1:0);});`);
   const runner=(_root,_title,argv)=>{spawn(argv[0],argv.slice(1),{stdio:'ignore',env:{...process.env,WX_RUNNER_CLOSE_SECONDS:'0'}});};
-  let runnerPid;
-  assert.equal((await runJob({root:jobRoot,command:{file:process.execPath,args:[fakeCodex]},request:jobRequest('plan'),onSpawn:pid=>{runnerPid=pid;},open:runner,wait:20})).summary,'sandbox=read-only plan=true');
-  assert.ok(runnerPid>0&&runnerPid!==process.pid);
+  assert.equal((await runJob({root:jobRoot,command:{file:process.execPath,args:[fakeCodex]},request:jobRequest('plan'),open:runner,wait:20})).summary,'sandbox=read-only plan=true');
   assert.equal((await runJob({root:jobRoot,command:{file:process.execPath,args:[fakeCodex]},request:jobRequest('implement'),open:runner,wait:20})).summary,'sandbox=danger-full-access plan=false');
   await assert.rejects(runJob({root:jobRoot,command:{file:process.execPath,args:[fakeCodex,'--fail']},request:jobRequest('implement'),open:runner,wait:20}),/Codex 처리에 실패/);
   assert.deepEqual(fs.readdirSync(path.join(jobRoot,'Saved/Workflow/jobs')),[],'no job folders remain');
 
-  // 터미널 창은 cmd start로 연다. 인자에 cmd 특수 문자가 있으면 열지 않는다.
+  // 터미널 창은 cmd start로 연다. 따옴표를 깨거나 변수로 펼쳐지는 문자가 있으면 열지 않는다.
   let started;
   const start=(file,args,options)=>{started={file,args,options};return {unref(){}};};
   openTerminal('C:\\Wx','Wx AI · a"b&c',['C:\\Program Files\\nodejs\\node.exe','C:\\Wx\\run.cjs'],start);
-  assert.equal(started.file,'cmd.exe');assert.deepEqual(started.args,['/d','/c','start "Wx AI · a b c" /D "C:\\Wx" "C:\\Program Files\\nodejs\\node.exe" "C:\\Wx\\run.cjs"']);
+  assert.equal(started.file,'cmd.exe');assert.deepEqual(started.args,['/d','/c','start "Wx AI · a b&c" /D "C:\\Wx" "C:\\Program Files\\nodejs\\node.exe" "C:\\Wx\\run.cjs"']);
   assert.deepEqual([started.options.detached,started.options.windowsVerbatimArguments,started.options.windowsHide,started.options.stdio],[true,true,true,'ignore']);
-  for(const bad of ['a&b','50%','a"b','a|b','x\ny'])assert.throws(()=>openTerminal('C:\\Wx','t',[bad],start),/쓸 수 없는 문자/,bad);
+  for(const bad of ['50%','a"b','a!b','x\ny'])assert.throws(()=>openTerminal('C:\\Wx','t',[bad],start),/쓸 수 없는 문자/,bad);
+  openTerminal('C:\\R&D (x)','t',['C:\\R&D\\a^b|c.exe'],start);assert.match(started.args[2],/"C:\\R&D\\a\^b\|c\.exe"/,'quoted cmd characters are allowed');
   let session;
   const capture=(root,title,argv)=>{session={root,title,argv};};
   const sessionPath='.agents/workflow/tasks/보스-체력바.md';
@@ -322,7 +319,7 @@ function fixture(providers=['codex'],content=taskText){
     if(file==='wsl.exe'&&args.includes('python3')){if(wslState!=='ready')throw Error('no python');return 'Python 3.14.4';}
     if(file==='wsl.exe'&&args[0]==='-l'){if(wslState==='nowsl')throw Error('WSL is not installed');return {broken:'Ubuntu-24.04\r\nUbuntu',nodistro:'Ubuntu-24.04'}[wslState]||'';}
     if(file==='reg.exe'){if(wslState!=='reboot')throw Error('key not found');return 'RebootPending';}
-    if(file===process.execPath){engineCwd=options.cwd;if(engineFails)throw Error('mount failed\nmore');return '2.2.0';}
+    if(file===process.execPath){engineCwd=options.cwd;if(engineFails)throw Object.assign(Error('Command failed: node Wiki-Obsidian.cjs --version'),{stderr:'python3: note\nmount: permission denied\n'});return '2.2.0';}
     if(file==='git'&&args[0]==='worktree'&&args[1]==='add'){fs.mkdirSync(path.join(tree,'Wiki'),{recursive:true});fs.writeFileSync(path.join(tree,'.git'),'gitdir: x');fs.writeFileSync(path.join(tree,'Wiki/README.md'),"claude plugin marketplace add 'AgriciDaniel/claude-obsidian#v9.9.9'\n");}
     if(file==='git'&&args.includes('clone')){const dest=args.at(-1);fs.mkdirSync(path.join(dest,'scripts'),{recursive:true});fs.writeFileSync(path.join(dest,'scripts/claude-obsidian.py'),'');}
     return '';
@@ -374,17 +371,17 @@ function fixture(providers=['codex'],content=taskText){
   // WSL에서 claude-obsidian을 못 부르면 AI를 돌리지 않고 첫 줄 이유를 알린다.
   ran=null;engineFails=true;runResult={summary:'x',evidence:[]};
   update.act({action:'start',provider:'codex'});await settleUpdate();
-  assert.deepEqual([updateState().status,updateState().error,ran],['failed','WSL에서 claude-obsidian을 실행하지 못했습니다. mount failed',null]);
+  assert.deepEqual([updateState().status,updateState().error,ran],['failed','WSL에서 claude-obsidian을 실행하지 못했습니다. mount: permission denied',null]);
   engineFails=false;
   // 작업 트리 자리에 Git 작업 트리가 아닌 폴더가 있으면 지우지 않고 알린다.
   fs.rmSync(path.join(tree,'.git'));
   update.act({action:'start',provider:'codex'});await settleUpdate();
   assert.match(updateState().error,/Git 작업 트리가 아닙니다/);assert.ok(fs.existsSync(path.join(tree,'Wiki/README.md')));
   // 래퍼: 저장소 드라이브를 metadata로 붙인 경로로 현재 폴더와 Windows 경로 인자를 옮기고, WSL의 Ubuntu에서 root로 실행한다.
-  assert.equal(toWsl('C:\\Wx\\a b\\c.md'),'/mnt/wx-c/Wx/a b/c.md');assert.equal(toWsl('D:\\'),'/mnt/wx-d');
-  const drive=path.resolve(wikiRoot)[0],argv=wslArgs(['capture','apply','--vault','Wiki','C:\\x\\b.json'],path.join(tree,'Wiki'),wikiRoot);
+  assert.equal(toWsl('C:\\Wx\\a b\\c.md','C'),'/mnt/wx-c/Wx/a b/c.md');assert.equal(toWsl('D:\\','C'),'/mnt/d');assert.equal(toWsl('D:\\x','D'),'/mnt/wx-d/x');
+  const drive=path.resolve(wikiRoot)[0],argv=wslArgs(['capture','apply','--vault','Wiki','C:\\x\\b.json','--out=C:\\x\\y.json','Wiki\\wiki\\a.md'],path.join(tree,'Wiki'),wikiRoot);
   assert.deepEqual(argv.slice(0,7),['-d','Ubuntu','-u','root','-e','sh','-c']);assert.match(argv[7],/mountpoint -q "\$m" \|\| .*mount -t drvfs "\$src" "\$m" -o metadata/);
-  assert.deepEqual(argv.slice(8),['sh','/mnt/wx-'+drive.toLowerCase(),drive+':\\',toWsl(path.join(tree,'Wiki')),toWsl(path.join(pluginDir,'scripts/claude-obsidian.py')),'capture','apply','--vault','Wiki','/mnt/wx-c/x/b.json']);
+  assert.deepEqual(argv.slice(8),['sh','/mnt/wx-'+drive.toLowerCase(),drive+':\\',toWsl(path.join(tree,'Wiki')),toWsl(path.join(pluginDir,'scripts/claude-obsidian.py')),'capture','apply','--vault','Wiki',toWsl('C:\\x\\b.json',drive),'--out='+toWsl('C:\\x\\y.json',drive),'Wiki/wiki/a.md']);
 
   const http=fixture(['codex','claude','gemini']),token='feedback-test',port=18746;
   server=createServer({token,port,testFeedback:http.service,wikiUpdate:update});await new Promise(resolve=>server.listen(port,'127.0.0.1',resolve));
@@ -397,7 +394,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.equal((await post('/analyze',{})).status,404,'removed web task routes must not answer');
   assert.equal((await post('/execution',{})).status,404);
   const health=await (await fetch('http://127.0.0.1:'+port+'/health')).json();
-  assert.equal(health.busy,true);assert.equal(health.protocol,4);assert.equal(health.revision.split(':').length,7);
+  assert.equal(health.busy,true);assert.deepEqual(Object.keys(health).sort(),['busy','identity']);
   http.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')]));await settle();assert.equal(http.context().latest.status,'retest');
   const createdByHttp=await (await post('/test-feedback',{...createBody,operationId:'http-create',provider:'gemini'})).json();
   assert.equal(createdByHttp.latest.status,'running');await settle();assert.deepEqual([http.input.provider,http.input.kind],['gemini','plan']);

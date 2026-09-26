@@ -8,10 +8,12 @@ const { spawnSync } = require('node:child_process');
 const repo = path.resolve(__dirname, '../..');
 const distro = 'Ubuntu';
 const mounted = drive => `/mnt/wx-${drive.toLowerCase()}`;
-function toWsl(file) {
+// 저장소 드라이브는 metadata로 붙인 경로로, 다른 드라이브는 WSL 기본 자동 마운트(/mnt/<드라이브>)로 옮긴다.
+function toWsl(file, repoDrive = path.resolve(repo)[0]) {
   const match = /^([A-Za-z]):[\\/]*(.*)$/.exec(path.resolve(file));
   if (!match) throw Error('WSL로 넘길 수 없는 경로입니다: ' + file);
-  return (mounted(match[1]) + '/' + match[2].replace(/\\/g, '/')).replace(/\/+$/, '');
+  const base = match[1].toLowerCase() === repoDrive.toLowerCase() ? mounted(match[1]) : '/mnt/' + match[1].toLowerCase();
+  return (base + '/' + match[2].replace(/\\/g, '/')).replace(/\/+$/, '');
 }
 function wslArgs(args, cwd = process.cwd(), root = repo) {
   const tree = path.join(root, 'Saved/Workflow/wiki-update-tree');
@@ -20,8 +22,14 @@ function wslArgs(args, cwd = process.cwd(), root = repo) {
   const cli = path.join(root, 'Saved/Workflow/claude-obsidian', tag, 'scripts/claude-obsidian.py');
   const drive = path.resolve(root)[0];
   const script = 'm=$1; src=$2; dir=$3; shift 3; mountpoint -q "$m" || { mkdir -p "$m" && mount -t drvfs "$src" "$m" -o metadata; } || exit 70; cd "$dir" && exec python3 -B "$@"';
-  return ['-d', distro, '-u', 'root', '-e', 'sh', '-c', script, 'sh', mounted(drive), drive + ':\\', toWsl(cwd), toWsl(cli),
-    ...args.map(arg => /^[A-Za-z]:[\\/]/.test(arg) ? toWsl(arg) : arg)];
+  // 인자 속 Windows 경로(--옵션=경로 포함)는 WSL 경로로, 역슬래시 상대 경로는 /로 바꾼다.
+  const convert = arg => {
+    const option = /^(--[^=]+=)(.*)$/.exec(arg);
+    if (option) return option[1] + convert(option[2]);
+    if (/^[A-Za-z]:[\\/]/.test(arg)) return toWsl(arg, drive);
+    return !arg.startsWith('-') && arg.includes('\\') ? arg.replace(/\\/g, '/') : arg;
+  };
+  return ['-d', distro, '-u', 'root', '-e', 'sh', '-c', script, 'sh', mounted(drive), drive + ':\\', toWsl(cwd, drive), toWsl(cli, drive), ...args.map(convert)];
 }
 if (require.main === module) {
   let result;

@@ -8,11 +8,7 @@ const { labels } = require('./Wiki-AI-Providers.cjs');
 const { createFeedbackService, runJob, runTerminalJob, openTerminal, openSession, readTasks } = require('./Workflow-TestFeedback.cjs');
 const repo = path.resolve(__dirname, '../..');
 const identity = crypto.createHash('sha256').update(repo.toLowerCase()).digest('hex');
-const protocol = 4;
-// Start-WikiAI.ps1이 같은 파일 목록으로 비교해 코드가 바뀐 서버만 다시 띄운다.
-const revision = [__filename, ...['Wiki-AI-Providers.cjs','wiki-gemini-settings.json','Start-WikiAI.ps1','Workflow-TestFeedback.cjs','wiki-viewer/task-records.js','Workflow-Runner.cjs'].map(file=>path.join(__dirname,file))]
-  .map(file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')).join(':');
-const execText=(file,args,options={})=>new Promise((resolve,reject)=>execFile(file,args,{windowsHide:true,timeout:10*60*1000,maxBuffer:8*1024*1024,...options},(error,stdout)=>error?reject(error):resolve(String(stdout).trim())));
+const execText=(file,args,options={})=>new Promise((resolve,reject)=>execFile(file,args,{windowsHide:true,timeout:10*60*1000,maxBuffer:8*1024*1024,...options},(error,stdout,stderr)=>error?reject(Object.assign(error,{stderr:String(stderr)})):resolve(String(stdout).trim())));
 const wikiSchema={type:'object',additionalProperties:false,required:['summary','evidence'],properties:{summary:{type:'string'},evidence:{type:'array',items:{type:'string'}}}};
 // 대시보드의 Wiki 갱신: 고른 AI가 이 PC(Windows)에서 Wiki/README.md 절차로 Wiki를 갱신해 main에 푸시한다. claude-obsidian 명령만 Wiki-Obsidian.cjs가 WSL에서 실행한다.
 // 사용자 작업 트리와 섞이지 않게 origin/main의 sparse 작업 트리에서 하고, 준비물(WSL, claude-obsidian)이 없으면 설치를 시작한다.
@@ -75,7 +71,7 @@ function createWikiUpdate({root,providers,commands,exec=execText,open=openTermin
       step('WSL에서 claude-obsidian을 확인하는 중입니다.');
       const cli=path.join(__dirname,'Wiki-Obsidian.cjs');
       try{await exec(process.execPath,[cli,'--version'],{cwd:tree,timeout:3*60*1000});}
-      catch(error){throw Error('WSL에서 claude-obsidian을 실행하지 못했습니다. '+String(error.message).split('\n')[0]);}
+      catch(error){throw Error('WSL에서 claude-obsidian을 실행하지 못했습니다. '+(String(error.stderr||'').trim().split('\n').at(-1)||String(error.message).split('\n')[0]));}
       const info={worktree:tree,claudeObsidian:{tag,path:dir},command:`node "${cli}"`};
       state={...state,status:'running',message:'AI가 작업하는 중입니다. 진행 과정은 터미널 창에 보입니다.'};
       const prompt=`지금 폴더는 Wiki 즉시 갱신용 작업 트리입니다(origin/main을 받은 sparse 사본). Wiki/README.md의 절차대로 Wiki를 갱신하세요. 이 PC(Windows)에서 도는 경우의 규칙도 그 문서에 있습니다.
@@ -98,12 +94,12 @@ summary에는 README 절차의 보고를, evidence에는 실제로 실행한 명
   }
   return {act,isBusy:busy};
 }
-function createServer({token,port=18743,configuration='',testFeedback=null,wikiUpdate=null}) {
+function createServer({token,port=18743,testFeedback=null,wikiUpdate=null}) {
   return http.createServer(async(request,response)=>{
     response.setHeader('Cache-Control','no-store');response.setHeader('Content-Type','application/json; charset=utf-8');
     const send=(status,body)=>{response.writeHead(status);response.end(JSON.stringify(body));};
     if(request.headers.host!==`127.0.0.1:${port}`)return send(403,{error:'접근할 수 없습니다.'});
-    if(request.method==='GET'&&request.url==='/health')return send(200,{identity,protocol,revision,busy:!!testFeedback?.isBusy()||!!wikiUpdate?.isBusy(),configuration});
+    if(request.method==='GET'&&request.url==='/health')return send(200,{identity,busy:!!testFeedback?.isBusy()||!!wikiUpdate?.isBusy()});
     if(request.headers.origin!=='null')return send(403,{error:'OpenWorkflow 파일에서 요청하세요.'});
     response.setHeader('Access-Control-Allow-Origin','null');response.setHeader('Access-Control-Allow-Private-Network','true');
     if(!['/test-feedback','/wiki-update'].includes(request.url)||!['POST','OPTIONS'].includes(request.method))return send(404,{error:'지원하지 않는 요청입니다.'});
@@ -132,11 +128,10 @@ if(require.main===module&&process.argv[2]==='--tasks'){
   const token=crypto.randomBytes(32).toString('hex');
   const config=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
   const providers=Object.keys(labels).filter(id=>config[id]?.file && fs.existsSync(config[id].file));
-  const configuration=crypto.createHash('sha256').update(JSON.stringify(config)).digest('hex');
   const testFeedback=createFeedbackService({root:repo,providers,
-    run:(request,onSpawn)=>runJob({root:repo,command:config[request.provider||'codex'],request,onSpawn}),
+    run:request=>runJob({root:repo,command:config[request.provider],request}),
     open:(taskPath,provider,title)=>openSession({root:repo,command:config[provider],provider,taskPath,title})});
-  const server=createServer({token,configuration,testFeedback,wikiUpdate:createWikiUpdate({root:repo,providers,commands:config})});
+  const server=createServer({token,testFeedback,wikiUpdate:createWikiUpdate({root:repo,providers,commands:config})});
   server.on('error',error=>{console.error(error.message);process.exit(1);});
   server.listen(18743,'127.0.0.1',()=>{
     fs.mkdirSync(path.join(repo,'Saved/Workflow'),{recursive:true});

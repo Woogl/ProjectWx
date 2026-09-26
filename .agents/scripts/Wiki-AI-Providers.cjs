@@ -38,7 +38,7 @@ function showClaudeEvent(event, print) {
 }
 
 // visible이면 Codex·Claude Code의 진행 과정을 현재 콘솔(터미널 창)에 보여준다. Gemini CLI는 끝난 뒤 결과만 받는다.
-function runProvider({ provider, command, prompt, repo, output, schema, mode = 'work', visible = false, execute = execFile, launch = spawn, onSpawn = () => {}, print = console.log }) {
+function runProvider({ provider, command, prompt, repo, output, schema, mode = 'work', visible = false, execute = execFile, launch = spawn, print = console.log }) {
   if (!Object.hasOwn(labels,provider)) throw new Error('지원하지 않는 AI 서비스입니다.');
   if (!command?.file) throw new Error(`${labels[provider]} CLI 설치·로그인이 필요합니다.`);
   const stream = visible && provider === 'claude';
@@ -54,7 +54,7 @@ function runProvider({ provider, command, prompt, repo, output, schema, mode = '
     // Preserve administrator policies and authentication; narrow only this child process's tools.
     const core = existing.tools?.core ? allowed.filter(tool => existing.tools.core.includes(tool)) : allowed;
     settingsFile = output + '.settings.json';
-    fs.writeFileSync(settingsFile, JSON.stringify({ ...existing, tools: { ...existing.tools, core }, hooksConfig: { ...existing.hooksConfig, enabled: false }, mcp: { ...existing.mcp, allowed: restricted.mcp.allowed }, skills: { ...existing.skills, enabled: false } }));
+    fs.writeFileSync(settingsFile, JSON.stringify({ ...existing, tools: { ...existing.tools, core }, hooksConfig: { ...existing.hooksConfig, enabled: false }, skills: { ...existing.skills, enabled: false } }));
     env.GEMINI_CLI_SYSTEM_SETTINGS_PATH = settingsFile;
   }
   const cleanup = () => { for (const file of [output, settingsFile].filter(Boolean)) { try { fs.unlinkSync(file); } catch {} } };
@@ -96,7 +96,6 @@ function runProvider({ provider, command, prompt, repo, output, schema, mode = '
         finally { cleanup(); }
       });
     }
-    if(child.pid)onSpawn(child.pid);
     child.stdin.on('error', () => {});
     child.stdin.end(prompt);
   });

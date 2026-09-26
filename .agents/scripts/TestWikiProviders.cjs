@@ -74,12 +74,11 @@ const sample = { summary:'처리', evidence:['exit 0'], changes:[], questions:[]
     } finally { if (previousSettings === undefined) delete process.env.GEMINI_CLI_SYSTEM_SETTINGS_PATH; else process.env.GEMINI_CLI_SYSTEM_SETTINGS_PATH = previousSettings; }
     // 터미널 창 실행: Codex는 출력을 그대로 보여주고, Claude Code는 진행 이벤트를 한 줄씩 보여준 뒤 결과 이벤트를 쓴다.
     const fakeChild = (onEnd, stdout = null) => { const handlers = {}; const child = { pid:4321, stdout, stdin:{ on() {}, end(prompt) { onEnd(prompt, child); } }, on(name, fn) { handlers[name] = fn; }, kill() {}, close(code) { handlers.close(code); } }; return child; };
-    let spawned;
-    const visibleCodex = await runProvider({provider:'codex',command:{file:'codex'},prompt:'x',repo:dir,output,schema,visible:true,onSpawn:pid=>{spawned=pid;},launch:(file,args,options)=>{
+    const visibleCodex = await runProvider({provider:'codex',command:{file:'codex'},prompt:'x',repo:dir,output,schema,visible:true,launch:(file,args,options)=>{
       assert.deepEqual(options.stdio, ['pipe', 'inherit', 'inherit']);assert.equal(options.windowsHide, false);assert.equal(flag(args, '--sandbox'), 'danger-full-access');
       return fakeChild((_prompt, child) => { fs.writeFileSync(output, JSON.stringify(sample)); queueMicrotask(() => child.close(0)); });
     }});
-    assert.deepEqual(visibleCodex, sample);assert.equal(spawned, 4321);assert(!fs.existsSync(output));
+    assert.deepEqual(visibleCodex, sample);assert(!fs.existsSync(output));
     const printed = [], lines = [
       JSON.stringify({type:'system',subtype:'init'}),
       JSON.stringify({type:'assistant',message:{content:[{type:'text',text:'체력바 코드를 읽습니다.'},{type:'tool_use',name:'Read',input:{file_path:'Source/WxUI/Boss.cpp'}}]}}),
