@@ -77,6 +77,8 @@ DerivedDataCache/*
 
 # Agents (AI 하네스 — 스킬·스크립트 정본은 .agents/)
 # Wiki/ (claude-obsidian vault) is intentionally versioned; its own .gitignore keeps runtime state out.
+# Obsidian creates this per-user plugin list the first time a reader opens the vault.
+/Wiki/.obsidian/core-plugins.json
 .claude/**/*.local.json
 .agents/**/*.local.json
 

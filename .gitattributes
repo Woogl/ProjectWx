@@ -1,3 +1,5 @@
 Content/MetaHumans/MH_Player.uasset filter=lfs diff=lfs merge=lfs -text
+# Obsidian and the Linux routine write LF, so reading the vault on Windows must not show line-ending changes.
+Wiki/** text=auto eol=lf
 # claude-obsidian ledgers hash the captured copies byte for byte; keep them identical on every platform.
 Wiki/.raw/** -text

@@ -1,6 +1,6 @@
 # Wiki를 claude-obsidian으로 전환하고 정기 갱신으로 운영
 
-상태: 확인 대기 · 체크리스트 11/17 통과
+상태: 확인 대기 · 체크리스트 12/18 통과
 다음 행동: 사람 항목을 확인한다. 코드 리뷰, Routine 첫 실행과 Routine 순정 플러그인 설치(AI 확인 근거 있음), Wiki 갱신 버튼(버튼 잠금을 고쳤으니 대시보드를 새로고침한 뒤 다시 확인), Obsidian으로 Wiki 읽기, 다음 날 예약 실행이다.
 
 - 날짜: 2026-09-26
@@ -113,7 +113,8 @@
 | 코드 리뷰 | 변경 파일은 구현 결과 절의 목록과 전환 마무리 절의 버튼 잠금 수정. 볼 점: 완료 처리(record·complete), /wiki-update의 토큰 취급, Workflow 전용 화면 정리, Wiki/README.md의 Routine 절차, 버튼 잠금과 테스트의 경쟁 조건 수정 | 사람 | 대기 |  |
 | Routine 첫 실행 | 커밋·푸시 → AI에게 Routine 전환 요청 → 웹에서 Run now. Wiki/가 init되고 기획서·완료 기록이 수집되어 main에 푸시되며 lint의 provenance_errors·dead_links가 0이다. | 사람 | 대기 | AI 확인: 두 번째 실행(cse_017DwwnfEBCVpWtgefGEpA4H)이 원자료 109건을 수집해 커밋 20b0751~33cb7ea로 푸시했고 lint는 전 항목 0이다(이 PC 재검사도 0). 첫 실행은 외부 코드 거부로 실패했다. |
 | Wiki 갱신 버튼 | 웹에서 API 트리거를 더해 토큰 발급 → Saved/Wiki/wiki-routine.json의 token 채움 → OpenWorkflow.bat → Wiki 갱신. 새 Routine 세션 링크가 보이고, 그 뒤로 새로고침 전까지 버튼이 꺼져 있다. | 사람 | 대기 | AI 확인: 사용자가 토큰을 넣은 뒤 서버 상태는 configured true, 버튼 실행 cse_01TG3SDyHFejVDS9h44Bi77d가 lint 0·변경 없음으로 성공했다. 사용자 보고로 잠금을 고쳤다(전환 마무리 절). |
-| Obsidian으로 읽기 | pull → Obsidian에서 Wiki 폴더를 vault로 한 번 열기 → Obsidian을 다시 열면 Wiki vault가 열린다. 그래프·백링크·속성이 보이고 링크가 깨지지 않는다. | 사람 | 대기 |  |
+| Obsidian으로 읽기 | pull → Obsidian에서 Wiki 폴더를 vault로 한 번 열기 → Obsidian을 다시 열면 Wiki vault가 열린다. 그래프·백링크·속성이 보이고 링크가 깨지지 않으며, 노트를 읽고 닫은 뒤 `git status`에 Wiki 노트 변경이 없다. | 사람 | 대기 |  |
+| Wiki 줄바꿈·무시 규칙 | 규칙 추가 → Wiki 파일 다시 받기 → 노트 3개를 같은 내용의 LF로 다시 저장 → git status → lint --vault Wiki | AI | 통과 | 다시 저장한 노트가 변경으로 잡히지 않음, core-plugins.json은 무시, 원자료 사본은 -text 유지, lint 전 항목 0 |
 | Routine 순정 플러그인 설치 | 웹에서 Wiki 전용 환경을 만들고 그 환경의 설정 스크립트 칸에 스크립트를 넣는다 → AI가 Routine을 그 환경으로 옮겨 실행한다. 실행 기록에 설정 스크립트 실행이 보이고, 세션이 claude-obsidian 플러그인 스킬로 수집·lint를 마치면 AI가 저장소 사본을 지운다. | 사람 | 대기 | AI 확인: 사용자가 앱 브라우저에 로그인한 뒤 AI가 Wiki 환경(env_01KeuTATKhRqdfFx7yVB6bSX)을 만들고 Routine을 옮겼다. 실행 cse_01K5JpzBksuMn1UA816pAahJ에서 설정 스크립트가 완료됐고, 세션은 설치된 플러그인 2.2.0만 써서 권한 거부 없이 lint 전 항목 0을 냈다. 새 원자료가 없어 수집(capture·적용)은 다음 실제 수집에서 처음 돈다. 저장소 사본은 지웠다. 첫 설정은 스크립트가 Routine 지시문 칸에 들어가 되돌렸다. |
 | 저장소 사본 제거 | 참조 검색 → CheckWikiLinks.ps1 → TestAgentHarness.ps1 → 이 PC의 순정 플러그인으로 lint --vault Wiki | AI | 통과 | .agents/vendor 59개 git rm, 남은 참조는 이 기록의 경과뿐, 문서 링크 오류 0, 하네스 exit 0, 순정 플러그인 2.2.0 lint 전 항목 0 |
 | 다음 날 예약 실행 | 다음 날 06:30(KST) 뒤 main에 Wiki 갱신 커밋이 있거나, 바뀐 것이 없다는 Routine 보고가 있다. | 사람 | 대기 |  |
@@ -243,3 +244,8 @@ claude plugin install claude-obsidian@agricidaniel-claude-obsidian
   - 테스트 보강: `TestWikiViewer.cjs`에서 첫 렌더가 시작한 설정 확인이 클릭 도중 늦게 끝나 `configured`를 되돌리는 경쟁 조건이 있어, 새 검사가 수정 전 코드에서도 통과했다. 설정 확인이 끝난 뒤 상태를 바꾸고 `configured` 유지를 함께 검사하도록 고쳤다. 이제 수정 전 코드에서는 실패하고 수정 뒤에는 통과한다.
 - 사용자 질문(2026-09-26): "OpenWiki.bat은 제거하는게 나을까요?" → 제거를 추천했다. 첫 등록(Open folder as vault)은 대신하지 못하고, 등록한 뒤에는 Obsidian이 마지막 vault를 다시 열어서 `obsidian://open` 한 줄짜리 포장이었다. 사용자 답: "네, 지워주세요." → `BatchFiles/OpenWiki.bat`을 지우고, 루트·Wiki README 안내와 `TestWikiViewer.cjs`의 검사 줄을 정리했다. Wiki 원자료 사본의 옛 언급은 원자료라 두었다.
 - Obsidian으로 vault를 열자 Obsidian이 `.obsidian/`의 `app.json`·`appearance.json`(끝 줄바꿈)과 `graph.json`(그래프 화면 기본값·확대 상태)을 고치고 `core-plugins.json`을 만들었다. 몇몇 노트는 내용 변화 없이 줄바꿈만 LF로 다시 저장했다. 모두 이 PC의 화면 상태라 커밋하지 않았다(Wiki는 Routine만 쓴다).
+- 사용자 지시(2026-09-26): "계속해서 작업을 끝까지 마무리합시다" → 읽기만 해도 Wiki에 변경 표시가 생기면 "사람은 Wiki를 고치지 않는다"와 부딪히므로 `Wiki/` 밖의 저장소 설정으로 막았다.
+  - 루트 `.gitattributes`에 `Wiki/** text=auto eol=lf`를 더했다. Obsidian과 Routine(Linux)이 모두 LF로 쓰므로, Windows(`core.autocrlf=true`)에서 CRLF로 풀린 노트를 Obsidian이 다시 저장해 생기던 표시가 사라진다. 원자료 사본의 `-text`는 뒤 줄이 그대로 이긴다.
+  - 루트 `.gitignore`에 Obsidian이 처음 열 때 만드는 `/Wiki/.obsidian/core-plugins.json`을 더했다.
+  - 이 PC의 Wiki 파일을 새 규칙으로 다시 받았다. 이때 Obsidian 로컬 변경도 되돌아갔다.
+  - 남은 가능성: 추적 중인 `.obsidian/app.json`·`appearance.json`·`graph.json`은 Obsidian이 설정을 저장할 때 다시 바뀔 수 있다. 사람 항목 「Obsidian으로 읽기」에서 확인하고, 그때 다룬다.
