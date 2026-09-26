@@ -158,8 +158,8 @@ function renderTaskPanel(){
 function renderTaskPhase(){
   const box=$('task-phase'),phase=taskPhase(),submit=$('test-feedback-submit');box.replaceChildren();
   submit.hidden=!['questions','approval','checklist'].includes(phase);submit.textContent=({questions:'답변 전달',approval:'구현 승인',checklist:'테스트 결과 전달'})[phase]||'';
-  // 완료된 작업은 추가 요청을 받지 않는다. 구현 승인 전의 추가 요청은 읽기 전용 조사다.
-  $('task-request').hidden=phase==='complete';
+  // 완료된 작업은 추가 요청도 터미널 이어하기도 받지 않는다(새 문제는 새 작업). 구현 승인 전의 추가 요청은 읽기 전용 조사다.
+  $('task-request').hidden=phase==='complete';$('task-terminal').hidden=phase==='complete';
   $('task-request-hint').textContent=taskContext?.plan.approval||(!taskContext?.plan.text&&taskContext?.checklist.length)
     ?'승인된 범위 안의 수정은 AI가 바로 고치고, 범위를 바꾸는 요청은 질문이나 새 계획으로 돌려줍니다. 권한 확인 없이 모든 명령을 허용해 처리합니다.'
     :'구현 승인 전이라 AI가 읽기 전용으로 조사해 질문이나 구현 계획으로 답합니다.';

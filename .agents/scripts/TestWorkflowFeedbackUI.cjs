@@ -88,7 +88,7 @@ const held=()=>[...storage.keys()].some(key=>key.includes('pending'));
   assert.ok(!Object.hasOwn(savedRequest,'expectedRevision'),'the record hash alone guards stale sends');assert.ok(!held(),'no request is held back in the browser');
   assert.equal(byId('test-feedback-submit').disabled,true);assert.deepEqual(JSON.parse(JSON.stringify(run('taskDraft(item.path).checks'))),{},'sent choices are cleared');
   assert.match(text('task-phase'),/AI가 처리하는 동안/);assert.match(text('test-feedback-result'),/Claude Code 처리 중 · 3분 경과 · 터미널 창/);
-  assert.equal(byId('task-terminal').disabled,true,'a running task cannot be continued in a terminal');
+  assert.equal(byId('task-terminal').disabled,true,'a running task cannot be continued in a terminal');assert.equal(byId('task-terminal').hidden,false,'an open task can be continued in a terminal');
   t.checklist=[row('빌드','AI','통과','exit 0'),row('저장 후 복원','사람','대기','좌표 복원 순서 수정 후 재확인'),row('부활 시 적 재생성','사람','통과','테스터')];
   t.latest={...t.latest,status:'retest',report:{summary:'복원 좌표 수정',changes:['좌표 복원 순서 수정'],evidence:['회귀 테스트 통과']}};t.revision++;
   await run('loadTaskJobs()');assert.equal(byId('test-feedback-submit').disabled,false);assert.equal(byId('test-feedback-fields').disabled,false);
@@ -105,7 +105,7 @@ const held=()=>[...storage.keys()].some(key=>key.includes('pending'));
   assert.match(message(),/모든 항목이 통과해 완료했습니다/,'passing the last item completes the task at once');
   t.checklist=t.checklist.map(r=>({...r,result:'통과'}));t.revision++;await run('loadTaskJobs()');
   assert.match(text('task-phase'),/모든 항목이 통과해 완료된 작업입니다/);assert.equal(byId('test-feedback-submit').hidden,true,'a completed task has nothing to send');
-  assert.equal(byId('task-request').hidden,true,'a completed task takes no extra requests');
+  assert.equal(byId('task-request').hidden,true,'a completed task takes no extra requests');assert.equal(byId('task-terminal').hidden,true,'a completed task is not continued in a terminal');
   // 일부만 통과하면 AI 없이 결과만 기록한다.
   t.checklist=[row('빌드','AI','통과','exit 0'),row('저장 후 복원','사람','대기'),row('부활 시 적 재생성','사람','대기')];t.latest={...t.latest,status:'complete'};t.revision++;await run('loadTaskJobs()');
   choose('저장 후 복원 통과');await byId('test-feedback-submit').onclick();assert.equal(t.latest.status,'recorded');assert.match(message(),/테스트 결과를 기록했습니다/);
