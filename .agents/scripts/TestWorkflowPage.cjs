@@ -9,14 +9,14 @@ const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '../..');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'wx-viewer-'));
 // 만들어 둔 페이지가 아니라 지금 소스로 새로 만든 페이지를 검사한다(기록이 바뀌어 실패하거나 옛 코드로 통과하지 않게).
-// 스크립트 사본에는 닫는 태그 글자를 넣어 Export-Wiki가 인라인 스크립트를 지키는지 본다.
+// 스크립트 사본에는 닫는 태그 글자를 넣어 Export-WorkflowPage가 인라인 스크립트를 지키는지 본다.
 fs.cpSync(path.join(root, '.agents/workflow'), path.join(temp, '.agents/workflow'), { recursive: true });
-fs.cpSync(path.join(__dirname, 'wiki-viewer'), path.join(temp, '.agents/scripts/wiki-viewer'), { recursive: true });
-fs.copyFileSync(path.join(__dirname, 'Export-Wiki.ps1'), path.join(temp, '.agents/scripts/Export-Wiki.ps1'));
-fs.appendFileSync(path.join(temp, '.agents/scripts/wiki-viewer/diagrams.js'), '\n// 닫는 태그 글자 검사: </SCRIPT> </script>\n');
+fs.cpSync(path.join(__dirname, 'workflow-page'), path.join(temp, '.agents/scripts/workflow-page'), { recursive: true });
+fs.copyFileSync(path.join(__dirname, 'Export-WorkflowPage.ps1'), path.join(temp, '.agents/scripts/Export-WorkflowPage.ps1'));
+fs.appendFileSync(path.join(temp, '.agents/scripts/workflow-page/diagrams.js'), '\n// 닫는 태그 글자 검사: </SCRIPT> </script>\n');
 function exportPage() {
   for (const shell of ['pwsh', path.join(process.env.USERPROFILE || '', '.cache/codex-runtimes/codex-primary-runtime/dependencies/native/powershell/pwsh.exe')]) {
-    const run = spawnSync(shell, ['-NoProfile', '-File', path.join(temp, '.agents/scripts/Export-Wiki.ps1'), '-RepoRoot', temp], { encoding: 'utf8', windowsHide: true });
+    const run = spawnSync(shell, ['-NoProfile', '-File', path.join(temp, '.agents/scripts/Export-WorkflowPage.ps1'), '-RepoRoot', temp], { encoding: 'utf8', windowsHide: true });
     if (run.error?.code === 'ENOENT') continue;
     assert.equal(run.status, 0, run.stderr || run.stdout);
     return fs.readFileSync(path.join(temp, 'Saved/Workflow/index.html'), 'utf8');
@@ -155,7 +155,7 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   assert.ok(context.referenceTitles.includes('리뷰'), 'a free-form legacy status is listed under reviews and references');
   // Workflow launcher starts the local AI server before opening the generated page.
   const launcher = fs.readFileSync(path.join(root, 'BatchFiles', 'OpenWorkflow.bat'), 'utf8');
-  assert.ok(launcher.includes('Start-WikiAI.ps1') && launcher.includes('Export-Wiki.ps1" -Open'));
+  assert.ok(launcher.includes('Start-WorkflowServer.ps1') && launcher.includes('Export-WorkflowPage.ps1" -Open'));
   assert.ok(html.includes("const workflowKey = 'wx-wiki-workflow-v1:' + location.pathname"), 'the storage key keeps saved drafts');
   assert.equal(vm.runInContext("resolvePath('.agents/workflow/tasks/a.md', '../process/index.md')", context), '.agents/workflow/process/index.md');
   assert.equal(vm.runInContext("resolvePath('.agents/workflow/index.md', '../../README.md')", context), 'README.md');

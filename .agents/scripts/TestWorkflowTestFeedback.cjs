@@ -2,8 +2,8 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {spawn}=require('node:child_process');
 const {createFeedbackService,runJob,openTerminal,openSession,taskPrompt,schemaFor,readTasks,writeChecklist,writeHead}=require('./Workflow-TestFeedback.cjs');
-const {readChecklist,readHead,readTaskRecord}=require('./wiki-viewer/task-records.js');
-const {createServer,createWikiUpdate}=require('./Wiki-AI.cjs');
+const {readChecklist,readHead,readTaskRecord}=require('./workflow-page/task-records.js');
+const {createServer,createWikiUpdate}=require('./Workflow-Server.cjs');
 const {toWsl,wslArgs}=require('./Wiki-Obsidian.cjs');
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'wx-test-feedback-'));
 const taskPath='.agents/workflow/tasks/example.md';

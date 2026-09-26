@@ -67,7 +67,7 @@ function runProvider({ provider, command, prompt, repo, output, schema, mode = '
     prompt += '\n다음 JSON Schema를 정확히 따르는 객체만 반환하세요. 마크다운 설명을 붙이지 마세요.\n' + fs.readFileSync(schema, 'utf8');
     const existingPath = env.GEMINI_CLI_SYSTEM_SETTINGS_PATH || path.join(env.ProgramData || 'C:/ProgramData', 'gemini-cli/settings.json');
     const existing = fs.existsSync(existingPath) ? JSON.parse(fs.readFileSync(existingPath, 'utf8')) : {};
-    const restricted = JSON.parse(fs.readFileSync(path.join(__dirname, 'wiki-gemini-settings.json'), 'utf8'));
+    const restricted = JSON.parse(fs.readFileSync(path.join(__dirname, 'workflow-gemini-settings.json'), 'utf8'));
     const allowed = mode === 'work' ? restricted.tools.core : restricted.tools.core.filter(tool => !writeTools.includes(tool));
     // Preserve administrator policies and authentication; narrow only this child process's tools.
     const core = existing.tools?.core ? allowed.filter(tool => existing.tools.core.includes(tool)) : allowed;

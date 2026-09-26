@@ -21,9 +21,9 @@ $documents = @(
 $connectionPath = Join-Path $repo 'Saved/Workflow/ai-connection.json'
 $ai = if (Test-Path -LiteralPath $connectionPath) { Get-Content -LiteralPath $connectionPath -Raw | ConvertFrom-Json -AsHashtable } else { $null }
 $payload = @{ ai = $ai; generated = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'); documents = $documents } | ConvertTo-Json -Depth 8 -Compress -EscapeHandling EscapeHtml
-$template = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/index.html'))
+$template = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'workflow-page/index.html'))
 # Inlined scripts must not close their <script> element early; -replace ignores case, so </script in any case becomes <\/script (the same text inside JavaScript strings and regexes).
-function Read-Script([string]$Name) { [IO.File]::ReadAllText((Join-Path $PSScriptRoot "wiki-viewer/$Name")) -replace '</(script)', '<\/$1' }
+function Read-Script([string]$Name) { [IO.File]::ReadAllText((Join-Path $PSScriptRoot "workflow-page/$Name")) -replace '</(script)', '<\/$1' }
 $diagramScript = Read-Script 'diagrams.js'
 $mermaidVendor = Read-Script 'vendor/mermaid-11.12.0.min.js'
 $markedVendor = Read-Script 'vendor/marked-18.0.14.umd.js'
@@ -33,5 +33,5 @@ $page = $template.Replace('__WX_WORKFLOW_SCRIPT__', $workflowScript).Replace('__
 $output = Join-Path $repo 'Saved/Workflow/index.html'
 New-Item -ItemType Directory -Path (Split-Path $output -Parent) -Force | Out-Null
 [IO.File]::WriteAllText($output, $page, [Text.UTF8Encoding]::new($false))
-Write-Output "Workflow viewer: $output ($($documents.Count) documents)"
+Write-Output "Workflow page: $output ($($documents.Count) documents)"
 if ($Open) { Start-Process -FilePath $output }

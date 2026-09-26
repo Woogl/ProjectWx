@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 // 웹에서 맡긴 AI 처리를 터미널 창에서 보이게 실행하고 결과를 작업 폴더에 남긴다: node Workflow-Runner.cjs <작업 폴더>
 const fs=require('node:fs'),path=require('node:path');
-const {labels,runProvider}=require('./Wiki-AI-Providers.cjs');
+const {labels,runProvider}=require('./Workflow-Providers.cjs');
 const job=process.argv[2],file=name=>path.join(job,name);
 function finish(result){const temp=file('result.json.tmp');fs.writeFileSync(temp,JSON.stringify(result));fs.renameSync(temp,file('result.json'));}
 (async()=>{

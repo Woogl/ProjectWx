@@ -49,7 +49,7 @@ const context=vm.createContext({document:{},$:byId,el,workflowKey:'test',data:{a
   localStorage:{getItem:k=>{blocked();return storage.get(k)||null;},setItem:(k,v)=>{blocked();storage.set(k,v);},removeItem:k=>{blocked();storage.delete(k);}},
   workflowRequest:api,workflowButton:(label,click)=>{const node=el('button',label);node.onclick=click;return node;},requestId:()=>String(++sequence),renderTaskRecords:()=>{recordsRendered++;},markdownView:(text,basePath)=>{markdownCalls.push(basePath);return el('pre',text,'plan-markdown');}
 });
-vm.runInContext(fs.readFileSync(path.join(__dirname,'wiki-viewer/test-feedback.js'),'utf8'),context);
+vm.runInContext(fs.readFileSync(path.join(__dirname,'workflow-page/test-feedback.js'),'utf8'),context);
 const run=code=>vm.runInContext(code,context);context.item=item;
 const panelNodes=()=>descendants(byId('test-feedback-panel'));
 const input=label=>panelNodes().find(node=>node.attributes['aria-label']===label);

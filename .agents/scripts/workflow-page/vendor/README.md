@@ -1,7 +1,7 @@
 # 배포 파일
 
-페이지는 외부 스크립트를 불러오지 않는다. Export-Wiki.ps1이 아래 파일을 HTML에 포함하며, 실행 중 외부 다운로드는 하지 않는다.
-갱신할 때는 배포 파일·라이선스·버전 참조·해시를 함께 바꾸고, Export-Wiki.ps1 실행 뒤 TestWikiViewer.cjs와 화면 확인을 한다.
+페이지는 외부 스크립트를 불러오지 않는다. Export-WorkflowPage.ps1이 아래 파일을 HTML에 포함하며, 실행 중 외부 다운로드는 하지 않는다.
+갱신할 때는 배포 파일·라이선스·버전 참조·해시를 함께 바꾸고, Export-WorkflowPage.ps1 실행 뒤 TestWorkflowPage.cjs와 화면 확인을 한다.
 
 ## Mermaid
 

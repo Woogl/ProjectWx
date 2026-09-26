@@ -151,7 +151,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 
 ## 3. 마무리 보고 (아침 다이제스트)
 
-리뷰 문서에는 상태 줄을 두지 않는다. 오케스트레이터는 `.agents/scripts/CheckWikiLinks.ps1`로 링크를 확인한다.
+리뷰 문서에는 상태 줄을 두지 않는다. 오케스트레이터는 `.agents/scripts/CheckDocLinks.ps1`로 링크를 확인한다.
 
 짧게 보고한다. 사용자가 아침에 한눈에 "어디에 불이 났는지" 보게 하는 것이 목표다.
 

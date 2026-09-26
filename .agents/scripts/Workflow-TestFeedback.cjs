@@ -3,8 +3,8 @@
 // AI가 사람에게 넘기는 것은 질문·구현 계획·테스트 체크리스트뿐이고, 작업 상태는 기록의 이 세 절에서만 정한다.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {spawn}=require('node:child_process');
-const {labels}=require('./Wiki-AI-Providers.cjs');
-const {owners,results,checklistHeading,checklistHeader,requestHeading,questionHeading,questionHeader,planHeading,sectionOrder,stateLine,nextLine,validRow,headRange,readHead,readSection,readChecklist,readQuestions,readPlan,readTaskRecord}=require('./wiki-viewer/task-records.js');
+const {labels}=require('./Workflow-Providers.cjs');
+const {owners,results,checklistHeading,checklistHeader,requestHeading,questionHeading,questionHeader,planHeading,sectionOrder,stateLine,nextLine,validRow,headRange,readHead,readSection,readChecklist,readQuestions,readPlan,readTaskRecord}=require('./workflow-page/task-records.js');
 const sha=value=>crypto.createHash('sha256').update(value).digest('hex');
 const folder=root=>path.join(root,'.agents/workflow/tasks');
 // 접수 상태는 PC마다 다른 실행 상태라 Git 밖에 둔다.

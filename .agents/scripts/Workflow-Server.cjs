@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { execFile } = require('node:child_process');
-const { labels } = require('./Wiki-AI-Providers.cjs');
+const { labels } = require('./Workflow-Providers.cjs');
 const { createFeedbackService, runJob, runTerminalJob, openTerminal, openSession, readTasks } = require('./Workflow-TestFeedback.cjs');
 const repo = path.resolve(__dirname, '../..');
 const identity = crypto.createHash('sha256').update(repo.toLowerCase()).digest('hex');
@@ -118,7 +118,7 @@ function createServer({token,port=18743,testFeedback=null,wikiUpdate=null}) {
     }catch(error){if(!response.destroyed&&!response.headersSent)send(400,{error:error.message});}
   });
 }
-// 작업 현황을 터미널에 출력한다: node .agents/scripts/Wiki-AI.cjs --tasks
+// 작업 현황을 터미널에 출력한다: node .agents/scripts/Workflow-Server.cjs --tasks
 if(require.main===module&&process.argv[2]==='--tasks'){
   const tasks=readTasks(repo);
   for(const state of ['확인 대기','진행 중','완료','']){
