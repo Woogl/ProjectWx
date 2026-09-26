@@ -17,6 +17,7 @@ const row=(item,owner,result,evidence='')=>({item,method:item+' 확인 방법',o
 const tasks={[item.path]:{title:item.title,next:item.next,request:'',questions:[],plan:{text:'',approval:''},checklist:[row('빌드','AI','통과','exit 0'),row('저장 후 복원','사람','대기'),row('부활 시 적 재생성','사람','대기')],revision:0,latest:null}};
 const t=tasks[item.path];
 let providers=[{id:'codex',label:'Codex'},{id:'claude',label:'Claude Code'},{id:'gemini',label:'Gemini CLI'}];
+const markdownCalls=[];
 let starts=0,reads=0,loss=false,refuse=false,storageBroken=false,savedRequest,sequence=0,recordsRendered=0;const terminals=[];
 const view=taskPath=>({taskPath,providers,revision:tasks[taskPath].revision,latest:tasks[taskPath].latest,taskHash:'task-'+tasks[taskPath].revision});
 const api=async(route,body)=>{
@@ -42,7 +43,7 @@ const api=async(route,body)=>{
 const blocked=()=>{if(storageBroken)throw Error('저장소 차단');};
 const context=vm.createContext({document:{},$:byId,el,workflowKey:'test',data:{ai:{},documents:[]},location:{hash:''},fetch:()=>{},taskRecordFilter:'waiting',liveTaskRecords:null,
   localStorage:{getItem:k=>{blocked();return storage.get(k)||null;},setItem:(k,v)=>{blocked();storage.set(k,v);},removeItem:k=>{blocked();storage.delete(k);}},
-  workflowRequest:api,workflowButton:(label,click)=>{const node=el('button',label);node.onclick=click;return node;},requestId:()=>String(++sequence),renderTaskRecords:()=>{recordsRendered++;}
+  workflowRequest:api,workflowButton:(label,click)=>{const node=el('button',label);node.onclick=click;return node;},requestId:()=>String(++sequence),renderTaskRecords:()=>{recordsRendered++;},markdownView:(text,basePath)=>{markdownCalls.push(basePath);return el('pre',text,'plan-markdown');}
 });
 vm.runInContext(fs.readFileSync(path.join(__dirname,'wiki-viewer/test-feedback.js'),'utf8'),context);
 const run=code=>vm.runInContext(code,context);context.item=item;
@@ -62,6 +63,8 @@ const held=()=>[...storage.keys()].some(key=>key.includes('pending'));
   await run('openTaskPanel(item)');
   assert.equal(byId('test-feedback-panel').hidden,false);assert.equal(byId('test-feedback-submit').textContent,'테스트 결과 전달');
   assert.equal(text('task-next'),'다음 행동 · 재개 후 좌표 확인','the panel shows the recorded next action');
+  assert.equal(byId('task-title').textContent,item.title);assert.equal(run("storageGet(taskKey('last'))"),item.path,'the work tab remembers the last opened task');
+  context.location.hash='#work';await button('대시보드로').onclick();assert.equal(context.location.hash,'','the work tab returns to the dashboard');
   assert.ok(!descendants(byId('task-phase')).some(node=>node.attributes['aria-label']?.startsWith('빌드 ')),'AI rows are read-only');
   assert.deepEqual(descendants(byId('task-phase')).filter(node=>node.tagName==='H3').map(node=>node.textContent),['사람이 확인할 항목 · 2','AI가 확인한 항목 · 1'],'human work is listed before AI results');
   assert.ok(descendants(byId('task-phase')).some(node=>node.textContent==='통과 · exit 0'));
@@ -77,10 +80,10 @@ const held=()=>[...storage.keys()].some(key=>key.includes('pending'));
   choose('저장 후 복원 이번에 확인 안 함');assert.equal(markOf('저장 후 복원'),'check-mark wait');choose('저장 후 복원 실패');
   await run("sendTaskAction('submit')");assert.equal(starts,0);assert.match(message(),/실패한 항목/);
   type('저장 후 복원 문제 상황과 재현 방법','저장 → 재개 후 원점으로 이동');choose('부활 시 적 재생성 통과');
-  await run("sendTaskAction('submit')");assert.equal(starts,0);assert.match(message(),/이름을 입력/);
-  type('이름','테스터');
+  await run("sendTaskAction('submit')");assert.equal(starts,0);assert.match(message(),/작성자를 입력/);
+  type('작성자','테스터');
   await run('openTaskPanel(item)');
-  assert.equal(input('이름').value,'테스터');assert.equal(input('저장 후 복원 실패').checked,true);assert.equal(input('부활 시 적 재생성 통과').checked,true);
+  assert.equal(input('작성자').value,'테스터');assert.equal(input('저장 후 복원 실패').checked,true);assert.equal(input('부활 시 적 재생성 통과').checked,true);
   assert.match(input('저장 후 복원 문제 상황과 재현 방법').value,/원점/);assert.equal(aiChoice().value,'claude');
   await byId('test-feedback-submit').onclick();assert.equal(starts,1);
   assert.deepEqual(savedRequest.checks,[{index:1,result:'실패',note:'저장 → 재개 후 원점으로 이동'},{index:2,result:'통과',note:''}]);
@@ -141,7 +144,7 @@ const held=()=>[...storage.keys()].some(key=>key.includes('pending'));
   // 승인 단계: 계획을 보여주고 권한을 알린 뒤 승인만 보낸다.
   t.questions=t.questions.map(q=>({...q,answer:q.answer||'답 · 테스터'}));t.plan={text:'1. 지연 감소 추가\n- 검증: 자동화 테스트',approval:''};t.latest={...t.latest,status:'approval'};t.revision++;
   await run('loadTaskJobs()');
-  assert.equal(byId('test-feedback-submit').textContent,'구현 승인');assert.match(text('task-phase'),/1\. 지연 감소 추가\n- 검증: 자동화 테스트/);assert.match(text('task-phase'),/모든 명령/);
+  assert.equal(byId('test-feedback-submit').textContent,'구현 승인');assert.equal(markdownCalls.at(-1),item.path,'the plan renders as Markdown relative to its record');assert.match(text('task-phase'),/1\. 지연 감소 추가\n- 검증: 자동화 테스트/);assert.match(text('task-phase'),/모든 명령/);
   assert.equal(byId('task-plan').hidden,true,'a plan waiting for approval is shown in the phase, not folded');
   await byId('test-feedback-submit').onclick();assert.equal(savedRequest.action,'approve');assert.equal(savedRequest.actor,'테스터');
   assert.ok(!['answers','checks','message'].some(key=>Object.hasOwn(savedRequest,key)),'approval sends no other input');
@@ -170,10 +173,10 @@ const held=()=>[...storage.keys()].some(key=>key.includes('pending'));
   const opening=terminals.length;await Promise.all([byId('task-terminal').onclick(),byId('task-terminal').onclick()]);assert.equal(terminals.length,opening+1,'a double click opens one terminal');
   assert.deepEqual(terminals.at(-1),{action:'terminal',taskPath:item.path,provider:'gemini'});assert.match(message(),/Gemini CLI 터미널 창을 열었습니다/);
 
-  // 새 작업: 브라우저 저장소를 못 써도 입력을 메모리로 이어가고, 만든 뒤 작업 진행 패널로 넘어간다.
+  // 새 작업: 브라우저 저장소를 못 써도 입력을 메모리로 이어가고, 만든 뒤 작업 탭에서 그 작업으로 넘어간다.
   storageBroken=true;
   run('openNewTask()');
-  assert.equal(descendants(byId('test-feedback-panel')).find(node=>node.tagName==='H2').textContent,'새 작업');assert.equal(input('이름').value,'테스터','the name is remembered across tasks');
+  assert.equal(descendants(byId('test-feedback-panel')).find(node=>node.tagName==='H2').textContent,'새 작업');assert.equal(input('작성자').value,'테스터','the name is remembered across tasks');
   await button('AI에게 전달').onclick();assert.match(message(),/제목을 입력/);
   type('제목','Boss HP');await button('AI에게 전달').onclick();assert.match(message(),/요청을 입력/);
   type('요청','보스 체력바를 지연 감소로');
@@ -190,5 +193,11 @@ const held=()=>[...storage.keys()].some(key=>key.includes('pending'));
   const beforeLostCreate=starts;await button('AI에게 전달').onclick();assert.equal(starts,beforeLostCreate+1);assert.match(message(),/연결 끊김/);
   assert.equal(byId('new-task-fields').disabled,false);assert.equal(input('제목').value,'Second');
   await button('AI에게 전달').onclick();assert.equal(starts,beforeLostCreate+1,'a resent creation is refused while the first one is researched');assert.match(message(),/다른 AI/);
-  console.log('PASS task panel phases (checklist, questions, approval, complete, empty), next action and folded approved plan, instant completion and record-only messages, read-only AI rows, required failure notes and answers, clearable choices, draft preservation without browser storage, remembered name, lost responses keep inputs without resend, quiet polling, running lock, result refresh and announcement, local times, retry, additional requests (read-only before approval, hidden after completion), AI-only failure guidance and single terminal opening');
+  // 작업 탭을 주소 없이 열면 지금 연 작업, 없으면 마지막으로 연 작업, 그것도 없으면 대시보드로 안내한다.
+  run("openWork('')");assert.equal(byId('task-title').textContent,'새 작업','what is open stays when the work tab is reopened');assert.equal(input('제목').value,'Second');
+  run("taskSelected=null;newTaskOpen=false;liveTaskRecords=[{path:item.path,title:item.title}];storageSet(taskKey('last'),item.path)");await run("openWork('')");assert.equal(run('taskSelected.path'),item.path,'the last opened task comes back');
+  run("taskSelected=null;newTaskOpen=false;storageRemove(taskKey('last'));openWork('')");assert.match(text('test-feedback-panel'),/열린 작업이 없습니다/);assert.ok(button('대시보드로'));
+  await run("openWork('new')");assert.equal(byId('task-title').textContent,'새 작업');
+  run("taskSelected=null;newTaskOpen=false;liveTaskRecords=null");const openingByAddress=run("openWork(item.path)");assert.equal(byId('task-title').textContent,'example','an address-only task starts with its file name');await openingByAddress;assert.equal(byId('task-title').textContent,item.title,'then shows the record title');
+  console.log('PASS work tab (last task, empty state, back to dashboard), task panel phases (checklist, questions, approval, complete, empty), next action and folded approved plan, instant completion and record-only messages, read-only AI rows, required failure notes and answers, clearable choices, draft preservation without browser storage, remembered name, lost responses keep inputs without resend, quiet polling, running lock, result refresh and announcement, local times, retry, additional requests (read-only before approval, hidden after completion), AI-only failure guidance and single terminal opening');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -63,7 +63,7 @@ Wiki 갱신은 매일 06:30(KST)에 도는 클라우드 Routine 「Wiki 정기 �
 - Windows 드라이브 연결: 래퍼(`.agents/scripts/Wiki-Obsidian.cjs`)가 명령마다 저장소 드라이브를 `metadata` 옵션으로 `/mnt/wx-<드라이브>`에 붙입니다. 기본 `/mnt/c`는 파일 권한을 저장하지 못해 claude-obsidian 쓰기가 `RESULT_DRIFT`로 되돌려지기 때문입니다. WSL 설정 파일은 바꾸지 않습니다. WSL을 다시 시작하면 연결이 사라지고, 다음 명령에서 다시 붙습니다.
 - claude-obsidian: 아래 설정 스크립트의 태그를 `Saved/Workflow/claude-obsidian/<태그>/`에 자동으로 받습니다.
 - 전용 작업 트리: `Saved/Workflow/wiki-update-tree`를 자동으로 만들고 매번 origin/main으로 맞춥니다. 이때 저장소 설정에 `extensions.worktreeConfig`가 켜지고, 이 작업 트리에만 `core.autocrlf=false`가 붙습니다. `git worktree list`에 이 작업 트리가 보입니다.
-- AI: 작업 절차의 작업 진행 화면 절에 따라 고른 AI가 Windows에서 그대로 갱신합니다. WSL에는 AI를 설치하지 않습니다.
+- AI: 작업 절차의 작업 탭 절에 따라 고른 AI가 Windows에서 그대로 갱신합니다. WSL에는 AI를 설치하지 않습니다.
 
 ## Routine 환경
 

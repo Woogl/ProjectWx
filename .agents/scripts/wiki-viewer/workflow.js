@@ -66,12 +66,12 @@ async function startWikiUpdate() {
 function renderTaskRecords() {
   const panel=$('task-records');panel.replaceChildren();
   const groups=taskRecordGroups(),total=groups.reduce((n,g)=>n+g.items.length,0);
-  const heading=el('div',undefined,'record-heading'),start=workflowButton('새 작업',()=>openNewTask());start.id='new-task-open';
+  const heading=el('div',undefined,'record-heading'),start=workflowButton('새 작업',()=>{location.hash='#work!new';});start.id='new-task-open';
   const update=workflowButton('Wiki 갱신',()=>startWikiUpdate());update.id='wiki-update';
   const progress=el('p','','notice');progress.id='wiki-update-status';progress.setAttribute('role','status');
   heading.append(el('h2','확인할 일과 작업 기록'),start,update);panel.append(heading,progress);showWikiUpdate();
   if(!total){panel.append(el('p','작업 기록이 없습니다. 새 작업으로 시작하세요.','notice'));return;}
-  panel.append(el('p',total+'개 기록. 최근에 바뀐 기록부터 보여줍니다. 작업 진행에서 질문 답변·구현 승인·테스트 결과 전달을 하고, 새 일은 새 작업으로 시작하세요.','notice'));
+  panel.append(el('p',total+'개 기록. 최근에 바뀐 기록부터 보여줍니다. 이어서 작업을 누르면 작업 탭에서 질문 답변·구현 승인·테스트 결과 전달을 하고, 새 일은 새 작업으로 시작하세요.','notice'));
   const filters=el('div',undefined,'record-filters');filters.setAttribute('role','group');filters.setAttribute('aria-label','작업 상태');
   for(const group of groups){
     const button=workflowButton(group.title+' · '+group.items.length,()=>{taskRecordFilter=group.id;renderTaskRecords();$('task-record-list').focus();});
@@ -84,14 +84,14 @@ function renderTaskRecords() {
   if(group.id==='complete')list.append(el('p','기록 당시 완료·사용자 확인 범위입니다. 남은 제약은 상세 기록에 보존되어 있습니다. 새 문제는 새 작업으로 요청하세요.','notice'));
   if(group.id==='reference')list.append(el('p','상태 줄이 없는 기록입니다. 모듈 리뷰의 지적을 고치려면 새 작업으로 요청하세요.','notice'));
   if(!group.items.length)list.append(el('p','이 상태의 작업이 없습니다.','notice'));
-  // 확인 대기·진행 중은 작업 진행에서 이어가며 AI 처리 상태를 붙이고, 완료·리뷰·참고는 기록을 읽기만 한다. 행마다 같은 버튼 이름에 작업 제목을 붙여 읽는다.
+  // 확인 대기·진행 중은 작업 탭에서 이어가며 AI 처리 상태를 붙이고, 완료·리뷰·참고는 기록을 읽기만 한다. 행마다 같은 버튼 이름에 작업 제목을 붙여 읽는다.
   const working=group.id==='waiting'||group.id==='active';
   for(const item of group.items){
     const link=el('div',undefined,'record-item');
     const summary=el('div');summary.append(el('strong',item.title),el('span',item.evidence||'','record-evidence'));
     const next=el('div',undefined,'record-next');next.append(el('span',group.id==='complete'?'참고할 때':'다음 행동','record-label'),el('span',item.next||'-'));
     const actions=el('div',undefined,'record-actions');
-    if(working){const open=workflowButton('작업 진행',()=>openTaskPanel(item));open.setAttribute('aria-label','작업 진행: '+item.title);actions.append(open);}
+    if(working){const open=workflowButton('이어서 작업',()=>{location.hash=route('work',item.path);});open.setAttribute('aria-label','이어서 작업: '+item.title);actions.append(open);}
     else if(data.documents.some(d=>d.path===item.path)){const open=el('a','기록 열기 →');open.href=route(item.path);open.setAttribute('aria-label','기록 열기: '+item.title);actions.append(open);}
     else actions.append(el('span','새 기록 · OpenWorkflow.bat을 다시 실행하면 열립니다.','notice'));
     const latest=taskJobs[item.path]?.latest;if(working&&latest)actions.append(el('span',taskStatusText(latest.status),'notice'));
@@ -101,7 +101,6 @@ function renderTaskRecords() {
 }
 function renderWorkSummary() {
   renderTaskRecords();
-  $('test-feedback-panel').hidden=!taskSelected&&!newTaskOpen;
   if(!taskJobsLoaded)loadTaskJobs();
   if(data.ai&&!wikiUpdate.loaded)loadWikiUpdate();
 }

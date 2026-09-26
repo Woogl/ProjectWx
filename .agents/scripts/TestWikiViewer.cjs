@@ -81,7 +81,7 @@ for (const item of byId('task-records').children.at(-1).children.filter(n => n.c
   assert.ok(!item.children.find(c => c.className === 'record-actions').children.some(c => c.tagName === 'BUTTON'), 'reference records have no task panel');
 assert.deepEqual(byId('task-records').children[0].children.map(c => c.tagName + ':' + c.textContent), ['H2:확인할 일과 작업 기록', 'BUTTON:새 작업', 'BUTTON:Wiki 갱신'], 'the dashboard heading starts new tasks and the Wiki update');
 assert.ok(html.includes('id="test-feedback-panel"'), 'generated page includes the task panel');
-// 확인 대기·진행 중은 작업 진행 버튼과 AI 처리 상태만 두고, 완료는 기록 열기만 둔다.
+// 확인 대기·진행 중은 이어서 작업 버튼과 AI 처리 상태만 두고, 완료는 기록 열기만 둔다.
 const rowActions = (filter, title) => {
   vm.runInContext(String.raw`{
    data.documents.push({path:'.agents/workflow/tasks/zz-waiting.md',text:'# 대기 작업\n\n상태: 확인 대기 · 질문 1개\n다음 행동: 질문에 답한다.\n',modified:'9999'},{path:'.agents/workflow/tasks/zz-running.md',text:'# 처리 작업\n\n상태: 진행 중 · AI 구현 중\n다음 행동: 기다린다.\n',modified:'9999'},{path:'.agents/workflow/tasks/zz-done.md',text:'# 끝난 작업\n\n상태: 완료 · 체크리스트 1/1 통과\n다음 행동: 참고한다.\n',modified:'9999'});
@@ -91,9 +91,9 @@ const rowActions = (filter, title) => {
   const row = byId('task-records').children.at(-1).children.find(n => n.className === 'record-item' && n.children[0].children[0].textContent === title);
   return row.children.find(c => c.className === 'record-actions').children.map(c => c.tagName + ':' + c.textContent);
 };
-assert.deepEqual(rowActions(0, '대기 작업'), ['BUTTON:작업 진행', 'SPAN:질문 답변 필요'], 'waiting records are handled in the task panel with their AI status');
-assert.equal(byId('task-records').children.at(-1).children.find(n => n.className === 'record-item' && n.children[0].children[0].textContent === '대기 작업').children.at(-1).children[0].attributes['aria-label'], '작업 진행: 대기 작업', 'row buttons are named after their task');
-assert.deepEqual(rowActions(1, '처리 작업'), ['BUTTON:작업 진행'], 'running records are followed in the task panel');
+assert.deepEqual(rowActions(0, '대기 작업'), ['BUTTON:이어서 작업', 'SPAN:질문 답변 필요'], 'waiting records are handled in the task panel with their AI status');
+assert.equal(byId('task-records').children.at(-1).children.find(n => n.className === 'record-item' && n.children[0].children[0].textContent === '대기 작업').children.at(-1).children[0].attributes['aria-label'], '이어서 작업: 대기 작업', 'row buttons are named after their task');
+assert.deepEqual(rowActions(1, '처리 작업'), ['BUTTON:이어서 작업'], 'running records are followed in the task panel');
 assert.deepEqual(rowActions(2, '끝난 작업'), ['A:기록 열기 →'], 'completed records show no AI status');
 recordFilters()[0].onclick();
 vm.runInContext(String.raw`{
@@ -107,8 +107,8 @@ assert.ok(context.referenceTitles.includes('리뷰'), 'a free-form legacy status
 const viewerSources = fs.readFileSync(path.join(__dirname, 'wiki-viewer/index.html'), 'utf8') + fs.readFileSync(path.join(__dirname, 'Export-Wiki.ps1'), 'utf8');
 for (const removed of ['id="search-page"', 'knowledge.html', 'isWorkflow', "'.wiki'"]) assert.ok(!viewerSources.includes(removed), 'the retired Wiki page must not come back: ' + removed);
 const menu = byId('nav').children[0].children;
-assert.deepEqual(menu.map(link => link.textContent), ['작업 현황 대시보드', '작업 절차']);
-assert.deepEqual(menu.map(link => link.href), ['#', '#' + encodeURIComponent('.agents/workflow/process/index.md')]);
+assert.deepEqual(menu.map(link => link.textContent), ['대시보드', '작업', '작업 절차']);
+assert.deepEqual(menu.map(link => link.href), ['#', '#work', '#' + encodeURIComponent('.agents/workflow/process/index.md')]);
 // Workflow launcher starts the local AI server before opening the generated page.
 const launcher = fs.readFileSync(path.join(root, 'BatchFiles', 'OpenWorkflow.bat'), 'utf8');
 assert.ok(launcher.includes('Start-WikiAI.ps1') && launcher.includes('Export-Wiki.ps1" -Open'));
@@ -134,10 +134,10 @@ assert.equal(byId('article').children[0].textContent, '문서를 찾을 수 없�
   assert.deepEqual(aiChoice.children.map(option => option.value), ['claude', 'codex']);
   aiChoice.value = 'codex'; aiChoice.onchange();
   assert.equal(headingButtons()[1].disabled, false);
-  byId('test-feedback-panel').hidden = true;
+  const hashBefore = context.location.hash;
   await headingButtons()[1].onclick();
   assert.deepEqual(JSON.parse(JSON.stringify(context.fired.at(-1))), ['/wiki-update', { action: 'start', provider: 'codex' }]);
-  assert.equal(byId('test-feedback-panel').hidden, true, 'the Wiki update starts without opening a panel');
+  assert.equal(context.location.hash, hashBefore, 'the Wiki update starts without leaving the dashboard');
   assert.equal(headingButtons()[1].disabled, true, 'a running Wiki update cannot start again');
   assert.equal(wikiNotice(), 'Wiki 갱신 중 · Codex · AI가 작업하는 중입니다.');
   vm.runInContext("wikiState={status:'complete',provider:'codex',summary:'원자료 1건을 수집했습니다.'};", context);
@@ -158,5 +158,15 @@ assert.equal(byId('article').children[0].textContent, '문서를 찾을 수 없�
   vm.runInContext("taskProviders=[{id:'claude',label:'Claude Code'}];renderProviderChoice();", context);
   await headingButtons()[1].onclick();
   assert.equal(context.fired.length, before); assert.match(wikiNotice(), /연결되어 있지 않습니다/);
-  console.log(`PASS ${data.documents.length} document snapshots, JS syntax, task states, new task and task panel entries, row button names, Wiki update button (progress line only, single start), launcher, routing and missing-document handling`);
+  // 대시보드와 작업 탭: 버튼은 주소만 바꾸고 주소가 화면을 정한다.
+  context.location.hash = ''; vm.runInContext('readRoute()', context);
+  assert.deepEqual([byId('dashboard').hidden, byId('work').hidden, byId('reader').hidden], [false, true, true], 'the dashboard shows only the task overview');
+  headingButtons()[0].onclick(); assert.equal(context.location.hash, '#work!new', 'new task switches to the work tab');
+  vm.runInContext('readRoute()', context);
+  assert.deepEqual([byId('dashboard').hidden, byId('work').hidden], [true, false]); assert.equal(byId('task-title').textContent, '새 작업');
+  vm.runInContext(String.raw`{data.documents.push({path:'.agents/workflow/tasks/zz-waiting.md',text:'# 대기 작업\n\n상태: 확인 대기 · 질문 1개\n다음 행동: 질문에 답한다.\n',modified:'9999'});liveTaskRecords=null;taskRecordFilter='waiting';renderTaskRecords();}`, context);
+  const continueButton = byId('task-records').children.at(-1).children.find(n => n.className === 'record-item' && n.children[0].children[0].textContent === '대기 작업').children.at(-1).children[0];
+  continueButton.onclick(); assert.equal(context.location.hash, '#work!' + encodeURIComponent('.agents/workflow/tasks/zz-waiting.md'), '이어서 작업 switches to the work tab for that task');
+  vm.runInContext('data.documents.pop()', context);
+  console.log(`PASS dashboard and work tab routes, ${data.documents.length} document snapshots, JS syntax, task states, new task and task panel entries, row button names, Wiki update button (progress line only, single start), launcher, routing and missing-document handling`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

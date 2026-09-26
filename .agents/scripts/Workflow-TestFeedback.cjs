@@ -213,7 +213,7 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
   function records(){return fs.readdirSync(stateFolder(root)).filter(name=>/^test_feedback_[a-f0-9]{64}\.json$/.test(name)).map(name=>parse(path.join(stateFolder(root),name))).filter(Boolean);}
   // AI 처리가 결과 없이 끝나면 기록 상태 줄에 남겨 작업 현황에서 보이게 한다.
   function markStopped(relative,detail){
-    try{const file=taskFile(root,relative);fs.writeFileSync(file,writeHead(fs.readFileSync(file,'utf8'),'확인 대기',detail,'작업 진행 화면에서 다시 시도한다.'),'utf8');}catch{}
+    try{const file=taskFile(root,relative);fs.writeFileSync(file,writeHead(fs.readFileSync(file,'utf8'),'확인 대기',detail,'작업 탭에서 다시 시도한다.'),'utf8');}catch{}
   }
   for(const record of records()){
     for(const request of record.requests){
@@ -296,7 +296,7 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
     }).finally(()=>{active=null;save(record);}).catch(error=>console.error(error));
     return {...view(record),taskPath:record.taskPath};
   }
-  const actorOf=body=>{if(typeof body.actor!=='string'||!body.actor.trim()||body.actor.length>100||/[\r\n]/.test(body.actor))throw Error('이름을 1~100자로 입력하세요.');return body.actor.trim();};
+  const actorOf=body=>{if(typeof body.actor!=='string'||!body.actor.trim()||body.actor.length>100||/[\r\n]/.test(body.actor))throw Error('작성자를 1~100자로 입력하세요.');return body.actor.trim();};
   const providerOf=(body,fallback='codex')=>{const provider=body.provider??fallback;if(!Object.hasOwn(labels,provider)||!providers.includes(provider))throw Error('선택한 AI를 사용할 수 없습니다. 설치 후 OpenWorkflow.bat을 다시 실행하세요.');return provider;};
   const quoteLines=value=>value.trim().split(/\r?\n/).map(line=>'> '+line);
   // 새 기록 이름은 제목 그대로(글자·숫자 외는 -)이고 같은 이름이 있으면 -2, -3을 붙인다. 같은 접수를 다시 받으면 처리 이력에서 찾아 같은 기록을 돌려준다.

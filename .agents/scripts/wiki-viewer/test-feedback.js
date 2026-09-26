@@ -1,5 +1,5 @@
 // Copyright Woogle. All Rights Reserved.
-// 작업 진행 패널: 새 작업 요청, 질문 답변, 구현 승인, 사람 항목 테스트 결과, 추가 요청을 로컬 서버를 거쳐 AI에게 전달한다.
+// 작업 탭: 새 작업 요청, 질문 답변, 구현 승인, 사람 항목 테스트 결과, 추가 요청을 로컬 서버를 거쳐 AI에게 전달한다.
 let taskJobs=Object.create(null),taskSelected=null,taskContext=null,newTaskOpen=false;
 let taskJobsLoaded=false,taskJobsLoading=false,taskSending=false,terminalOpening=false,taskPoll=null,taskProviders=null,providerChoice='',taskListSignature='';
 const taskDrafts=Object.create(null);
@@ -27,7 +27,7 @@ function rememberDraft(taskPath){if(!storageSet(taskKey('draft',taskPath),taskDr
 function taskActor(){const actor=storageGet(taskKey('actor'));return typeof actor==='string'?actor:'';}
 function taskField(label,control){const row=el('label',undefined,'feedback-field');row.append(el('span',label),control);return row;}
 function taskInput(tag,label,value,maxLength,onInput){const input=el(tag);if(tag==='input')input.type='text';input.maxLength=maxLength;input.value=value||'';input.setAttribute('aria-label',label);input.oninput=()=>onInput(input.value);return input;}
-function actorField(){return taskField('이름',taskInput('input','이름',taskActor(),100,value=>storageSet(taskKey('actor'),value)));}
+function actorField(){return taskField('작성자',taskInput('input','작성자',taskActor(),100,value=>storageSet(taskKey('actor'),value)));}
 // 연결되지 않은 AI가 골라져 있으면 다른 AI로 몰래 바꾸지 않고 연결 없음으로 보여준다.
 function fillProviders(select,selected){
   select.replaceChildren();
@@ -35,7 +35,7 @@ function fillProviders(select,selected){
   if(!availableProviders().some(provider=>provider.id===selected)){const option=el('option',providerLabel(selected)+' · 연결 없음');option.value=selected;option.disabled=true;select.append(option);}
   select.value=selected;
 }
-// 처리할 AI는 왼쪽 메뉴 아래에서 한 번 고르고, 새 작업·작업 진행·Wiki 갱신이 모두 따른다.
+// 처리할 AI는 왼쪽 메뉴 아래에서 한 번 고르고, 새 작업·작업 탭·Wiki 갱신이 모두 따른다.
 function selectedProvider(){
   if(!providerChoice){const saved=storageGet(taskKey('provider'));providerChoice=typeof saved==='string'?saved:'';}
   return providerChoice||availableProviders()[0]?.id||'codex';
@@ -71,11 +71,24 @@ function watchTaskJobs(){
 }
 // 패널을 열면 제목으로 포커스를 옮겨 키보드·화면 읽기 사용자가 바로 이어간다.
 function openTaskShell(title){
-  const panel=$('test-feedback-panel'),heading=el('h2',title);heading.tabIndex=-1;panel.hidden=false;panel.replaceChildren(heading);
+  const panel=$('test-feedback-panel'),heading=el('h2',title);heading.id='task-title';heading.tabIndex=-1;panel.hidden=false;panel.replaceChildren(heading);
   const message=el('p','','notice');message.id='test-feedback-message';message.setAttribute('role','status');
   return {panel,heading,message};
 }
-function showTaskShell(panel,heading){panel.scrollIntoView?.({block:'start',behavior:'smooth'});heading.focus?.({preventScroll:true});}
+function showTaskShell(heading){heading.focus?.({preventScroll:true});}
+// 작업 탭: #work!new는 새 작업, #work!기록 경로는 그 작업이다. 주소에 작업이 없으면 지금 연 것, 없으면 마지막으로 연 작업을 보인다.
+function openWork(target){
+  if(target==='new'){if(!newTaskOpen)openNewTask();return;}
+  if(target){if(taskSelected?.path!==target)return openTaskPanel({title:taskTitle(target),path:target});return;}
+  if(taskSelected||newTaskOpen)return;
+  const last=storageGet(taskKey('last'));
+  if(typeof last==='string'&&taskTitle(last,null))return openTaskPanel({title:taskTitle(last),path:last});
+  const {panel,heading}=openTaskShell('작업');
+  panel.append(el('p','열린 작업이 없습니다. 대시보드에서 새 작업을 누르거나 목록의 이어서 작업을 고르세요.','notice'),workflowButton('대시보드로',()=>{location.hash='';}));
+  showTaskShell(heading);
+}
+// 기록 목록에서 제목을 찾는다. 목록에 없는 기록이면 fallback을 돌려준다.
+function taskTitle(path,fallback=path.split('/').pop().replace(/\.md$/,'')){return (liveTaskRecords||[]).find(t=>t.path===path)?.title||data.documents.find(d=>d.path===path)?.title||fallback;}
 function openNewTask(){
   if(taskSending)return;
   taskSelected=null;taskContext=null;newTaskOpen=true;
@@ -88,14 +101,14 @@ function openNewTask(){
     actorField());
   const submit=workflowButton('AI에게 전달',()=>sendNewTask());submit.id='new-task-submit';
   panel.append(el('p','요청을 적어 전달하면 왼쪽 메뉴 아래에서 고른 AI가 코드와 Wiki를 읽기 전용으로 조사한 뒤 질문이나 구현 계획을 돌려줍니다. 진행 과정은 새 터미널 창에 보입니다.','notice'),fields,message,submit,
-    workflowButton('닫기',()=>{newTaskOpen=false;panel.hidden=true;}));
-  renderSendState();showTaskShell(panel,heading);
+    workflowButton('대시보드로',()=>{location.hash='';}));
+  renderSendState();showTaskShell(heading);
 }
 function renderSendState(){
   if(!newTaskOpen)return renderTaskStatus();
   $('new-task-fields').disabled=taskSending;$('new-task-submit').disabled=taskSending;
 }
-// 새 작업은 기록을 만든 뒤 바로 작업 진행 패널로 넘어간다. 전달하지 못하면 입력을 그대로 두고 같은 버튼으로 다시 전달한다.
+// 새 작업은 기록을 만든 뒤 작업 탭에서 바로 그 작업으로 넘어간다. 전달하지 못하면 입력을 그대로 두고 같은 버튼으로 다시 전달한다.
 async function sendNewTask(){
   if(taskSending)return;
   taskSending=true;renderSendState();
@@ -103,13 +116,14 @@ async function sendNewTask(){
     const draft=storageGet(taskKey('new'))||{},title=(draft.title||'').trim(),text=(draft.request||'').trim(),actor=taskActor().trim(),provider=selectedProvider();
     if(!title)throw Error('제목을 입력하세요.');
     if(!text)throw Error('요청을 입력하세요.');
-    if(!actor)throw Error('이름을 입력하세요.');
+    if(!actor)throw Error('작성자를 입력하세요.');
     if(!availableProviders().some(p=>p.id===provider))throw Error(providerMissing);
     const record=await workflowRequest('/test-feedback',{action:'create',operationId:requestId(),title,request:text,actor,provider});
     storageRemove(taskKey('new'));
     taskJobs[record.taskPath]={taskPath:record.taskPath,revision:record.revision,latest:record.latest};
     taskRecordFilter='active';
     taskSending=false;await openTaskPanel({title,path:record.taskPath});
+    if(typeof history!=='undefined')history.replaceState(null,'','#work!'+encodeURIComponent(record.taskPath));
     showTaskMessage('새 작업을 만들었습니다. AI가 조사를 마치면 질문이나 구현 계획이 이 화면에 나타납니다.');
     await loadTaskJobs();
   }catch(error){showTaskMessage(error.message);}
@@ -117,7 +131,7 @@ async function sendNewTask(){
 }
 async function openTaskPanel(item){
   if(taskSending)return;
-  taskSelected=item;taskContext=null;newTaskOpen=false;
+  taskSelected=item;taskContext=null;newTaskOpen=false;storageSet(taskKey('last'),item.path);
   const {panel,heading,message}=openTaskShell(item.title),draft=taskDraft(item.path);
   const next=el('p','','record-next');next.id='task-next';
   const status=el('div');status.id='test-feedback-result';
@@ -133,8 +147,8 @@ async function openTaskPanel(item){
   const send=workflowButton('추가 요청 전달',()=>sendTaskAction('request'));send.id='task-request-send';
   extra.append(el('summary','AI에게 추가 요청'),hint,taskField('요청',note),send);
   const terminal=workflowButton('터미널에서 이어하기',()=>openTaskTerminal());terminal.id='task-terminal';
-  panel.append(next,status,origin,plan,fields,message,submit,terminal,workflowButton('최신 상태 불러오기',()=>refreshTaskContext()),workflowButton('닫기',()=>{taskSelected=null;panel.hidden=true;}),extra);
-  renderTaskPanel();showTaskShell(panel,heading);await refreshTaskContext();
+  panel.append(next,status,origin,plan,fields,message,submit,terminal,workflowButton('최신 상태 불러오기',()=>refreshTaskContext()),workflowButton('대시보드로',()=>{location.hash='';}),extra);
+  renderTaskPanel();showTaskShell(heading);await refreshTaskContext();
 }
 // 지금 사람이 할 일: 질문 답변 → 구현 승인 → 사람 항목 테스트. AI가 처리 중이면 기다린다.
 function taskPhase(){
@@ -149,10 +163,12 @@ function taskPhase(){
 }
 function renderTaskPanel(){
   if(!taskSelected)return;
+  if(taskContext?.title)$('task-title').textContent=taskContext.title;
   const next=$('task-next');next.textContent=taskContext?.next?'다음 행동 · '+taskContext.next:'';next.hidden=!taskContext?.next;
   const origin=$('task-origin');origin.replaceChildren(el('summary','요청 원문'),el('pre',taskContext?.request||'','plan-preview'));origin.hidden=!taskContext?.request;
-  // 승인된 계획은 접어 두고, 승인 전 계획은 승인 단계에서 펼쳐 보인다.
-  const plan=$('task-plan');plan.replaceChildren(el('summary','승인된 구현 계획 · '+(taskContext?.plan.approval||'')),el('pre',taskContext?.plan.text||'','plan-preview'));plan.hidden=!taskContext?.plan.approval;
+  // 승인된 계획은 접어 두고, 승인 전 계획은 승인 단계에서 펼쳐 보인다. 계획은 Markdown으로 그린다.
+  const plan=$('task-plan'),approval=taskContext?.plan.approval;plan.hidden=!approval;
+  plan.replaceChildren(el('summary','승인된 구현 계획 · '+(approval||'')),...(approval?[markdownView(taskContext.plan.text,taskSelected.path)]:[]));
   renderTaskPhase();renderTaskStatus();
 }
 function renderTaskPhase(){
@@ -196,7 +212,7 @@ function renderQuestions(box){
   box.append(done);
 }
 function renderPlan(box){
-  box.append(el('h3','구현 계획'),el('pre',taskContext.plan.text,'plan-preview'));
+  box.append(el('h3','구현 계획'),markdownView(taskContext.plan.text,taskSelected.path));
   box.append(el('p','승인하면 AI가 이 계획대로 구현하고 테스트 체크리스트를 만듭니다. 구현은 사용자 결정에 따라 권한 확인 없이 모든 명령을 실행하며 진행 과정은 터미널 창에 보입니다. 계획을 바꾸려면 승인하지 말고 AI에게 추가 요청에 적으세요.','notice'));
 }
 // 항목 왼쪽 체크 칸은 고른 결과(없으면 기록된 결과)를 보여준다. 결과는 글자로도 있으므로 읽기 도구에는 숨긴다.
@@ -290,7 +306,7 @@ async function sendTaskAction(action){
       if(missing.length)throw Error('답하지 않은 질문이 있습니다: '+missing.join(', '));
     }
     if(action==='request'){request.message=draft.message.trim();if(!request.message)throw Error('추가 요청을 입력하세요.');}
-    if(action!=='retry'){request.actor=taskActor().trim();if(!request.actor)throw Error('이름을 입력하세요.');}
+    if(action!=='retry'){request.actor=taskActor().trim();if(!request.actor)throw Error('작성자를 입력하세요.');}
     if(!availableProviders().some(p=>p.id===request.provider))throw Error(providerMissing);
     const record=await workflowRequest('/test-feedback',request);
     taskJobs[item.path]=record;

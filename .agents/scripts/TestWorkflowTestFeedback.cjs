@@ -58,7 +58,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.throws(()=>f.service.act(f.request({checks:[{index:1,result:'통과',note:''},{index:1,result:'실패',note:'중복'}]})),/담당이 사람/);
   assert.throws(()=>f.service.act(f.request({checks:[{index:1,result:'보류',note:''}]})),/통과 또는 실패/);
   assert.throws(()=>f.service.act(f.request({checks:[{index:1,result:'실패',note:' '}]})),/문제 상황/);
-  assert.throws(()=>f.service.act(f.request({actor:'\n사용자'})),/이름/);
+  assert.throws(()=>f.service.act(f.request({actor:'\n사용자'})),/작성자/);
   assert.throws(()=>f.service.act({action:'read',taskPath:'.agents/workflow/tasks/../process/index.md'}),/경로/);
   assert.throws(()=>f.service.act({action:'read',taskPath:'.agents/workflow/tasks/missing.md'}),/작업 기록 폴더/);
   const oldTask=f.request();fs.appendFileSync(path.join(f.root,taskPath),'\n새 결정\n');assert.throws(()=>f.service.act(oldTask),/바뀌었습니다/);
@@ -96,7 +96,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.deepEqual([multi.head().state,multi.head().detail],['진행 중','AI 수정 중']);assert.match(multi.task(),/> 실패 · 저장 후 복원: 문제 원문/,'the failure is recorded before the AI runs');
   assert.throws(()=>multi.service.act({action:'terminal',taskPath,provider:'claude'}),/처리하는 중/,'a running task cannot be opened in a terminal');
   multi.fail();await settle();
-  assert.deepEqual(multi.head(),{title:'예시 작업',state:'확인 대기',detail:'AI 처리 실패',next:'작업 진행 화면에서 다시 시도한다.'},'a failed run is visible in the task list');
+  assert.deepEqual(multi.head(),{title:'예시 작업',state:'확인 대기',detail:'AI 처리 실패',next:'작업 탭에서 다시 시도한다.'},'a failed run is visible in the task list');
   multi.restart();assert.equal(multi.context().latest.provider,'claude');
   const switchAI=multi.request({action:'retry',provider:'gemini'});multi.service.act(switchAI);await settle();
   assert.deepEqual([multi.input.provider,multi.input.kind],['gemini','fix']);assert.equal(multi.input.checks[0].note,'문제 원문');assert.equal(multi.input.attempts[0].provider,'claude');
@@ -177,7 +177,7 @@ function fixture(providers=['codex'],content=taskText){
   // 새 작업: 기록을 만들고 읽기 전용 조사 → 질문 → 답변 → 구현 계획 → 구현 승인 → 구현 → 추가 요청 순서로 진행한다.
   const n=fixture(['codex','claude']);
   const createBody={action:'create',operationId:'create-1',title:'Boss HP bar 개선',request:'보스 체력바가 늦게 줄어든다.\n## 제목처럼 보이는 줄',actor:'테스터',provider:'claude'};
-  for(const [label,body,error] of [['title',{title:' '},/제목/],['title-line',{title:'a\nb'},/제목/],['request',{request:' '},/요청/],['actor',{actor:''},/이름/],['provider',{provider:'gemini'},/선택한 AI/],['operation',{operationId:undefined},/접수 식별자/]])
+  for(const [label,body,error] of [['title',{title:' '},/제목/],['title-line',{title:'a\nb'},/제목/],['request',{request:' '},/요청/],['actor',{actor:''},/작성자/],['provider',{provider:'gemini'},/선택한 AI/],['operation',{operationId:undefined},/접수 식별자/]])
     assert.throws(()=>n.service.act({...createBody,...body}),error,label);
   assert.deepEqual(fs.readdirSync(n.folder).filter(name=>name.endsWith('.md')).sort(),['example.md'],'rejected creations write nothing');
   const created=n.service.act(createBody),newPath=created.taskPath;
@@ -211,7 +211,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.equal(current.plan.text,'1. WxBossHealthBar에 지연 감소 추가\n- 검증\n- 구현 승인: AI 스스로\n- 체크리스트 초안');
   assert.deepEqual(n.head(newPath),{title:'Boss HP bar 개선',state:'확인 대기',detail:'구현 승인 대기',next:'구현 계획을 확인하고 승인한다.'});
   order('## 요청','## 질문','## 구현 계획','## AI 조사 결과');
-  assert.throws(()=>n.send(newPath,'approve',{actor:''}),/이름/);
+  assert.throws(()=>n.send(newPath,'approve',{actor:''}),/작성자/);
   n.send(newPath,'approve');await settle();
   assert.deepEqual([n.input.action,n.input.kind],['approve','implement']);assert.match(n.context(newPath).plan.approval,/^테스터 \d{4}-\d{2}-\d{2}$/);assert.equal(n.head(newPath).detail,'AI 구현 중');
   // 구현 결과의 계획 칸은 버리고, 사람 항목이 없으면 결과 확인 항목을 둔다.
