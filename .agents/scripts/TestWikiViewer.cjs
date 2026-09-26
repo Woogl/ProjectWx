@@ -20,12 +20,12 @@ for (const line of fs.readFileSync(path.join(root, '.agents/workflow/index.md'),
 }
 assert.deepEqual(data.navigation, expectedNavigation, 'navigation must follow the current Wiki index');
 assert.equal(new Set(data.documents.map(d => d.path)).size, data.documents.length);
+assert.ok(data.documents.every(d => d.path.startsWith('.agents/workflow/')), 'the Workflow page bundles only workflow documents; the Wiki is read in Obsidian');
 for (const d of data.documents) {
   assert.equal(d.text, fs.readFileSync(path.join(root, d.path), 'utf8'));
   const frontmatter = d.text.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
   assert.equal(d.frontmatter, frontmatter?.[1] || '');
   assert.ok(!d.html.includes('<p>category:'), 'YAML must not render as article prose');
-  assert.ok(!d.html.includes('[['), 'paired Obsidian links must render once');
   assert.ok(!Object.hasOwn(d, 'status'), 'reader must not invent freshness from a separate manifest');
   assert.ok(d.html.length > 0);
 }
@@ -80,7 +80,7 @@ for (const item of completedItems) {
 recordFilters()[3].onclick();
 for (const item of byId('task-records').children.at(-1).children.filter(n => n.className === 'record-item'))
   assert.ok(!item.children.find(c => c.className === 'record-actions').children.some(c => c.tagName === 'BUTTON'), 'reference records have no task panel');
-assert.deepEqual(byId('task-records').children[0].children.map(c => c.tagName + ':' + c.textContent), ['H2:확인할 일과 작업 기록', 'BUTTON:새 작업'], 'the dashboard heading only starts new tasks');
+assert.deepEqual(byId('task-records').children[0].children.map(c => c.tagName + ':' + c.textContent), ['H2:확인할 일과 작업 기록', 'BUTTON:새 작업', 'BUTTON:Wiki 갱신'], 'the dashboard heading starts new tasks and the Wiki update');
 assert.ok(html.includes('id="test-feedback-panel"'), 'generated page includes the task panel');
 // 확인 대기·진행 중은 작업 진행 버튼과 AI 처리 상태만 두고, 완료는 기록 열기만 둔다.
 const rowActions = (filter, title) => {
@@ -104,26 +104,34 @@ vm.runInContext(String.raw`{
 }`, context);
 assert.deepEqual(JSON.parse(JSON.stringify(context.activeItem)), { title: '진행 작업', path: '.agents/workflow/tasks/zz-active.md', evidence: '구현', next: '빌드한다.' });
 assert.ok(context.referenceTitles.includes('리뷰'), 'a free-form legacy status is listed under reviews and references');
-assert.equal(byId('cards').children.length, 0, 'home must not list documents');
-context.location.hash = '#search';
-vm.runInContext('readRoute()', context);
-assert.equal(context.location.hash, '');
-assert.equal(byId('search-page').hidden, true);
-assert.equal(byId('dashboard').hidden, false);
-byId('search').value = 'WxCombat';
-byId('search').handlers.input();
-assert.equal(byId('cards').children.length, 0, 'Workflow must not search documents');
-assert.ok(!html.includes('문서 검색 →'));
+const viewerSources = fs.readFileSync(path.join(__dirname, 'wiki-viewer/index.html'), 'utf8') + fs.readFileSync(path.join(__dirname, 'Export-Wiki.ps1'), 'utf8');
+for (const removed of ['id="search-page"', 'knowledge.html', 'isWorkflow', "'.wiki'"]) assert.ok(!viewerSources.includes(removed), 'the retired Wiki page must not come back: ' + removed);
 const menu = byId('nav').children[0].children;
-assert.deepEqual(menu.map(link => link.textContent), ['작업 현황 대시보드', '작업 절차', 'LLM 위키 검색']);
-assert.deepEqual(menu.map(link => link.href), ['#', '#' + encodeURIComponent('.agents/workflow/process/index.md'), 'knowledge.html']);
-assert.equal(byId('other-space-row').hidden, true);
+assert.deepEqual(menu.map(link => link.textContent), ['작업 현황 대시보드', '작업 절차']);
+assert.deepEqual(menu.map(link => link.href), ['#', '#' + encodeURIComponent('.agents/workflow/process/index.md')]);
+// Workflow launcher starts the local AI server; the Wiki launcher only opens the vault in Obsidian.
+const launcher = name => fs.readFileSync(path.join(root, 'BatchFiles', name), 'utf8');
+assert.ok(launcher('OpenWorkflow.bat').includes('Start-WikiAI.ps1') && launcher('OpenWorkflow.bat').includes('Export-Wiki.ps1" -Open'));
+assert.ok(launcher('OpenWiki.bat').includes('obsidian://open') && !launcher('OpenWiki.bat').includes('Export-Wiki.ps1'));
+assert.ok(html.includes("const workflowKey = 'wx-wiki-workflow-v1:' + location.pathname"), 'the storage key keeps saved drafts');
 // The retired web task path must not come back through the generated page.
 for (const removed of ['/analyze', '/handoff', '/execution', "'/tasks'", '새 작업 만들기', '기존 작업 이어하기']) assert.ok(!script.includes(removed), removed);
-assert.equal(vm.runInContext("resolvePath('.wiki/wiki/topics/ai.md', '../concepts/combat-groggy.md')", context), '.wiki/wiki/concepts/combat-groggy.md');
-assert.equal(vm.runInContext("resolvePath('.wiki/_index.md', '../.agents/workflow/process/index.md')", context), '.agents/workflow/process/index.md');
-assert.equal(vm.runInContext("route('.wiki/wiki/topics/한글 문서.md','절 제목')", context), '#' + encodeURIComponent('.wiki/wiki/topics/한글 문서.md') + '!' + encodeURIComponent('절 제목'));
+assert.equal(vm.runInContext("resolvePath('.agents/workflow/tasks/a.md', '../process/index.md')", context), '.agents/workflow/process/index.md');
+assert.equal(vm.runInContext("resolvePath('.agents/workflow/index.md', '../../README.md')", context), 'README.md');
+assert.equal(vm.runInContext("route('.agents/workflow/tasks/한글 작업.md','절 제목')", context), '#' + encodeURIComponent('.agents/workflow/tasks/한글 작업.md') + '!' + encodeURIComponent('절 제목'));
 context.location.hash = '#missing-document';
 vm.runInContext('readRoute()', context);
 assert.equal(byId('article').children[0].textContent, '문서를 찾을 수 없습니다.');
-console.log(`PASS ${data.documents.length} document snapshots, metadata, JS syntax, task states, new task and task panel entries, index navigation, routing and missing-document handling`);
+(async () => {
+  // Wiki 갱신: Routine 토큰이 없으면 꺼져 있고, 켜지면 한 번 요청해 Routine 세션 링크를 보여준다.
+  const headingButtons = () => byId('task-records').children[0].children.filter(n => n.tagName === 'BUTTON');
+  assert.equal(headingButtons()[1].disabled, true, 'Wiki update stays off without a routine token');
+  vm.runInContext("wikiUpdate.configured=true;workflowRequest=async(endpoint,body)=>{globalThis.fired=[endpoint,body];return {sessionUrl:'https://claude.ai/code/session_test'};};renderTaskRecords();", context);
+  assert.equal(headingButtons()[1].disabled, false);
+  await headingButtons()[1].onclick();
+  assert.deepEqual(JSON.parse(JSON.stringify(context.fired)), ['/wiki-update', { action: 'fire' }]);
+  const note = byId('task-records').children[1];
+  assert.match(note.textContent, /Wiki 갱신을 시작했습니다/);
+  assert.equal(note.children.find(n => n.tagName === 'A').href, 'https://claude.ai/code/session_test');
+  console.log(`PASS ${data.documents.length} document snapshots, metadata, JS syntax, task states, new task and task panel entries, Wiki update button, index navigation, launchers, routing and missing-document handling`);
+})().catch(error => { console.error(error); process.exitCode = 1; });

@@ -13,7 +13,7 @@ if not errorlevel 1 (
 )
 "%WX_WIKI_PWSH%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\.agents\scripts\Start-WikiAI.ps1"
 if errorlevel 1 echo AI connection unavailable. Document browsing is still available.
-"%WX_WIKI_PWSH%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\.agents\scripts\Export-Wiki.ps1" -View Workflow -Open
+"%WX_WIKI_PWSH%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\.agents\scripts\Export-Wiki.ps1" -Open
 if errorlevel 1 (
   pause
   exit /b 1

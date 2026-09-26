@@ -131,10 +131,10 @@ async function openTaskPanel(item){
   panel.append(status,origin,fields,message,submit,terminal,workflowButton('최신 상태 불러오기',()=>refreshTaskContext()),workflowButton('닫기',()=>{taskSelected=null;panel.hidden=true;}),extra);
   renderTaskPanel();panel.scrollIntoView?.({block:'start',behavior:'smooth'});await refreshTaskContext();
 }
-// 지금 사람이 할 일: 질문 답변 → 구현 승인 → 사람 항목 테스트. AI가 처리 중이면 기다린다. 완료 뒤 정리는 기다리지 않는다.
+// 지금 사람이 할 일: 질문 답변 → 구현 승인 → 사람 항목 테스트. AI가 처리 중이면 기다린다.
 function taskPhase(){
   const latest=taskJobs[taskSelected.path]?.latest;
-  if(latest?.status==='running'&&latest.kind!=='cleanup')return 'running';
+  if(latest?.status==='running')return 'running';
   if(!taskContext)return 'loading';
   if(taskContext.checklistError)return 'error';
   if(taskContext.questions.some(q=>!q.answer))return 'questions';
@@ -156,7 +156,7 @@ function renderTaskPhase(){
   if(phase==='questions')return renderQuestions(box);
   if(phase==='approval')return renderPlan(box);
   if(phase==='checklist')return renderChecklist(box);
-  if(phase==='complete')return box.append(el('p','모든 항목이 통과해 완료된 작업입니다. 완료 뒤 AI가 Wiki를 정리합니다. 새 문제는 새 작업으로 요청하세요.','notice'));
+  if(phase==='complete')return box.append(el('p','모든 항목이 통과해 완료된 작업입니다. 재사용할 지식은 매일 정기 갱신이 Wiki에 반영합니다. 새 문제는 새 작업으로 요청하세요.','notice'));
   box.append(el('p','지금 답하거나 확인할 항목이 없습니다. 아래 AI에게 추가 요청으로 이어서 맡기세요.','notice'));
 }
 // 질문마다 선택지를 고르거나 직접 적는다. 추천은 보여주기만 하고 미리 고르지 않는다.
@@ -289,7 +289,7 @@ async function sendTaskAction(action){
     if(request.action==='answer')draft.answers={};
     if(request.action==='request')draft.message='';
     rememberDraft(item.path);
-    showTaskMessage(record.latest?.kind==='cleanup'?'모든 항목이 통과해 완료했습니다. AI가 Wiki를 정리하는 과정은 터미널 창에서 볼 수 있습니다.'
+    showTaskMessage(record.latest?.status==='complete'?'모든 항목이 통과해 완료했습니다.'
       :record.latest?.status==='recorded'?'테스트 결과를 기록했습니다. 남은 항목을 확인하면 다시 전달하세요.'
       :request.action==='approve'?'구현을 승인했습니다. AI가 구현하는 과정은 터미널 창에서 볼 수 있습니다.':'AI에게 전달했습니다. 처리 과정은 터미널 창에서 볼 수 있고, 끝나면 이 화면이 갱신됩니다.');
     if(taskSelected?.path===item.path)renderTaskPanel();

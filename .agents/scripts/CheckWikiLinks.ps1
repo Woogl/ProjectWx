@@ -5,12 +5,8 @@ $ErrorActionPreference = 'Stop'
 try {
     if (!$RepoRoot) { $RepoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent }
     $repo = [IO.Path]::GetFullPath($RepoRoot).TrimEnd('\', '/')
-    # Raw preserves imported source text and its original relative paths; lint articles, not immutable inputs.
-    $files = @(foreach ($folder in @('.wiki/wiki', '.agents/workflow')) {
-        if (!(Test-Path -LiteralPath (Join-Path $repo $folder))) { continue }
-        Get-ChildItem -LiteralPath (Join-Path $repo $folder) -Filter '*.md' -File -Recurse
-    })
-    $files += @(Get-ChildItem -LiteralPath (Join-Path $repo '.wiki') -Filter '*.md' -File)
+    # The Wiki vault is checked by claude-obsidian lint; this covers workflow documents and READMEs.
+    $files = @(Get-ChildItem -LiteralPath (Join-Path $repo '.agents/workflow') -Filter '*.md' -File -Recurse)
     $files += @(Get-Item -LiteralPath (Join-Path $repo 'README.md') -ErrorAction SilentlyContinue)
     foreach ($folder in @('Plugins', 'Source')) {
         foreach ($module in Get-ChildItem -LiteralPath (Join-Path $repo $folder) -Directory -ErrorAction SilentlyContinue) {
@@ -33,7 +29,7 @@ try {
             }
         }
     }
-    Write-Output "Wiki links: $errors errors, $($files.Count) documents."
+    Write-Output "Document links: $errors errors, $($files.Count) documents."
     if ($errors) { exit 1 }
     exit 0
 } catch {

@@ -20,11 +20,28 @@ function taskRecordGroups() {
   for(const record of records)(groups.find(g=>g.title===record.state)||groups[3]).items.push({title:record.title,path:record.path,evidence:record.summary,next:record.next});
   return groups;
 }
+// Wiki 갱신: 정기 갱신 Routine을 지금 실행한다. 토큰이 없으면 꺼 두고, 요청 중에는 다시 누를 수 없다.
+const wikiUpdate={loaded:false,configured:false,sending:false,message:'',url:''};
+async function loadWikiUpdate() {
+  wikiUpdate.loaded=true;
+  try{wikiUpdate.configured=!!(await workflowRequest('/wiki-update',{action:'status'})).configured;}catch{wikiUpdate.configured=false;}
+  renderTaskRecords();
+}
+async function fireWikiUpdate() {
+  if(wikiUpdate.sending)return;
+  wikiUpdate.sending=true;wikiUpdate.message='Wiki 갱신을 요청하는 중입니다.';wikiUpdate.url='';renderTaskRecords();
+  try{const result=await workflowRequest('/wiki-update',{action:'fire'});wikiUpdate.message='Wiki 갱신을 시작했습니다. 결과가 main에 푸시된 뒤 pull하면 Obsidian에서 볼 수 있습니다.';wikiUpdate.url=result.sessionUrl||'';}
+  catch(error){wikiUpdate.message=error.message;}
+  finally{wikiUpdate.sending=false;renderTaskRecords();}
+}
 function renderTaskRecords() {
   const panel=$('task-records');panel.replaceChildren();
   const groups=taskRecordGroups(),total=groups.reduce((n,g)=>n+g.items.length,0);
   const heading=el('div',undefined,'record-heading'),start=workflowButton('새 작업',()=>openNewTask());start.id='new-task-open';
-  heading.append(el('h2','확인할 일과 작업 기록'),start);panel.append(heading);
+  const update=workflowButton('Wiki 갱신',()=>fireWikiUpdate());update.id='wiki-update';update.disabled=!wikiUpdate.configured||wikiUpdate.sending;
+  if(!wikiUpdate.configured)update.title=data.ai?'Saved/Wiki/wiki-routine.json에 Routine의 trigger와 token을 넣으면 켜집니다.':'OpenWorkflow.bat을 다시 실행해 AI 연결을 시작하세요.';
+  heading.append(el('h2','확인할 일과 작업 기록'),start,update);panel.append(heading);
+  if(wikiUpdate.message){const note=el('p',wikiUpdate.message,'notice');if(wikiUpdate.url){const link=el('a','Routine 세션 열기');link.href=wikiUpdate.url;link.target='_blank';link.rel='noopener noreferrer';note.append(' ',link);}panel.append(note);}
   if(!total){panel.append(el('p','작업 기록이 없습니다. 새 작업으로 시작하세요.','notice'));return;}
   panel.append(el('p',total+'개 기록. 최근에 바뀐 기록부터 보여줍니다. 작업 진행에서 질문 답변·구현 승인·테스트 결과 전달을 하고, 새 일은 새 작업으로 시작하세요.','notice'));
   const filters=el('div',undefined,'record-filters');filters.setAttribute('role','group');filters.setAttribute('aria-label','작업 상태');
@@ -58,4 +75,5 @@ function renderWorkSummary() {
   renderTaskRecords();
   $('test-feedback-panel').hidden=!taskSelected&&!newTaskOpen;
   if(!taskJobsLoaded)loadTaskJobs();
+  if(data.ai&&!wikiUpdate.loaded)loadWikiUpdate();
 }

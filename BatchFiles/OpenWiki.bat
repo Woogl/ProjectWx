@@ -1,20 +1,9 @@
 @echo off
 setlocal
-rem The second candidate is the PowerShell 7 bundled with the Codex runtime: a fallback for machines without pwsh on PATH.
-where pwsh.exe >nul 2>nul
-if not errorlevel 1 (
-  set "WX_WIKI_PWSH=pwsh.exe"
-) else if exist "%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.exe" (
-  set "WX_WIKI_PWSH=%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.exe"
-) else (
-  echo PowerShell 7 is required. Install it, then reopen this file.
-  pause
-  exit /b 1
-)
-"%WX_WIKI_PWSH%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\.agents\scripts\Export-AbilitySystemLists.ps1"
-if errorlevel 1 echo Ability, effect and character list update failed. Opening the wiki with the previous lists.
-"%WX_WIKI_PWSH%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\.agents\scripts\Export-Wiki.ps1" -Open
+rem Opens the Wiki vault in Obsidian. Obsidian only finds vaults it already knows, so add the Wiki folder once with "Open folder as vault".
+powershell.exe -NoProfile -Command "Start-Process ('obsidian://open?path=' + [uri]::EscapeDataString((Resolve-Path -LiteralPath '%~dp0..\Wiki\README.md').Path))"
 if errorlevel 1 (
+  echo Obsidian could not be opened. Install Obsidian, then open the Wiki folder once with "Open folder as vault".
   pause
   exit /b 1
 )

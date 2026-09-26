@@ -31,10 +31,10 @@ const api=async(route,body)=>{
     if(body.action==='create')tasks[newPath]={title:body.title,request:'- 요청자: '+body.actor+'\n\n> '+body.request,questions:[],plan:{text:'',approval:''},checklist:[],derived:false,revision:0,latest:null};
     else assert.equal(body.expectedRevision,tasks[taskPath].revision);
     const task=tasks[taskPath];starts++;task.revision++;savedRequest=structuredClone(body);
-    // 서버처럼 테스트 결과는 실패가 있으면 AI 수정, 모두 통과면 완료 뒤 정리, 나머지는 결과만 기록한다.
+    // 서버처럼 테스트 결과는 실패가 있으면 AI 수정, 모두 통과면 그 자리에서 완료, 나머지는 결과만 기록한다.
     const checks=body.checks?.map(check=>({item:task.checklist[check.index].item,result:check.result,note:check.note}));
     const after=task.checklist.map((row,index)=>({...row,result:body.checks?.find(check=>check.index===index)?.result||row.result}));
-    const outcome=body.action!=='submit'||checks.some(check=>check.result==='실패')?{status:'running'}:after.every(row=>row.result==='통과')?{action:'cleanup',kind:'cleanup',status:'running'}:{status:'recorded'};
+    const outcome=body.action!=='submit'||checks.some(check=>check.result==='실패')?{status:'running'}:after.every(row=>row.result==='통과')?{kind:'record',status:'complete'}:{status:'recorded'};
     task.latest={...body,checks,...outcome,at:'2026-09-25',startedAt:new Date(Date.now()-3*60000).toISOString(),report:null,error:''};
   }else assert.deepEqual(body,savedRequest,'unknown response retries must use the original request');
   if(loss){loss=false;throw Error('연결 끊김');}

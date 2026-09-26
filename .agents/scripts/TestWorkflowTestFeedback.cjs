@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const {spawn}=require('node:child_process');
 const {createFeedbackService,runJob,openTerminal,openSession,taskPrompt,schemaFor,readTasks,writeChecklist,writeHead}=require('./Workflow-TestFeedback.cjs');
 const {readChecklist,readHead,readTaskRecord}=require('./wiki-viewer/task-records.js');
-const {createServer}=require('./Wiki-AI.cjs');
+const {createServer,createWikiUpdate}=require('./Wiki-AI.cjs');
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'wx-test-feedback-'));
 const taskPath='.agents/workflow/tasks/example.md';
 const checklistText='## 테스트 체크리스트\n\n| 항목 | 확인 방법 | 담당 | 결과 | 근거 |\n| --- | --- | --- | --- | --- |\n| 빌드 | Development 빌드 | AI | 통과 | 빌드 exit 0 |\n| 저장 후 복원 | 저장 → 종료 → 재개, 저장 위치에서 시작한다. | 사람 | 대기 |  |\n';
@@ -12,7 +12,6 @@ const row=(item,owner,result,evidence='')=>({item,method:'확인 방법',owner,r
 const passedRows=[row('빌드','AI','통과','빌드 exit 0'),row('저장 후 복원','사람','통과','테스터')];
 // 단계마다 AI가 돌려주는 결과 모양
 const fixReport=(checklist,extra={})=>({summary:'수정',evidence:['회귀 테스트 exit 0'],changes:['좌표 복원 순서 수정'],questions:[],checklist,...extra});
-const cleanupReport={summary:'Wiki 정리',evidence:['wiki lint 0건'],changes:['world.md 갱신']};
 const research={summary:'조사',evidence:['관련 코드 읽음'],questions:[],plan:''};
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 let sequence=0,server;
@@ -43,11 +42,10 @@ function fixture(providers=['codex'],content=taskText){
   assert.throws(()=>readChecklist(checklistText.replace('| 사람 | 대기 |','| 테스터 | 대기 |')),/2번째 행/);
   assert.deepEqual(readChecklist(writeChecklist(taskText,[row('줄|바꿈\n항목','사람','대기')])).rows,[row('줄 바꿈 항목','사람','대기')]);
   assert.match(writeChecklist('# 제목\n\n본문\n\n## 이력\n',[row('새 항목','사람','대기')]),/본문\n\n## 테스트 체크리스트\n\n\| 항목[\s\S]*\| 새 항목 [\s\S]*\n\n## 이력/);
-  // 단계마다 AI가 채울 수 있는 칸: 정리에는 상태를 바꾸는 칸이 없다.
+  // 단계마다 AI가 채울 수 있는 칸
   assert.deepEqual(schemaFor('plan').required,['summary','evidence','questions','plan']);
   assert.deepEqual(schemaFor('implement').required,['summary','evidence','changes','questions','checklist']);
-  assert.deepEqual(schemaFor('cleanup').required,['summary','evidence','changes']);
-  for(const kind of ['plan','implement','request','fix','cleanup'])assert.ok(!('blockers' in schemaFor(kind).properties)&&!('checks' in schemaFor(kind).properties),kind);
+  for(const kind of ['plan','implement','request','fix'])assert.ok(!('blockers' in schemaFor(kind).properties)&&!('checks' in schemaFor(kind).properties),kind);
 
   const f=fixture();
   assert.deepEqual(f.context().checklist.map(r=>[r.item,r.owner,r.result]),[['빌드','AI','통과'],['저장 후 복원','사람','대기']]);
@@ -64,24 +62,18 @@ function fixture(providers=['codex'],content=taskText){
   assert.throws(()=>f.service.act({action:'read',taskPath:'.agents/workflow/tasks/missing.md'}),/작업 기록 폴더/);
   const oldTask=f.request();fs.appendFileSync(path.join(f.root,taskPath),'\n새 결정\n');assert.throws(()=>f.service.act(oldTask),/바뀌었습니다/);
   assert.equal(f.task().includes('| 사람 | 대기 |'),true,'rejected submissions must not touch the checklist');
-  // 모든 항목이 통과하면 서버가 바로 완료하고, 완료 뒤 AI가 Wiki를 정리한다. 정리는 상태를 바꾸지 못한다.
+  // 모든 항목이 통과하면 서버가 AI를 부르지 않고 그 자리에서 완료한다.
   const sent=f.request(),accepted=f.service.act(sent);
-  assert.deepEqual([accepted.latest.kind,accepted.latest.status],['cleanup','running']);
+  assert.deepEqual([accepted.latest.kind,accepted.latest.status],['record','complete']);
   assert.deepEqual(f.head(),{title:'예시 작업',state:'완료',detail:'체크리스트 2/2 통과',next:'변경 시 기록된 테스트 범위와 제약을 참고한다.'},'the human result completes the task at once');
   await settle();
   assert.equal(f.rows()[1].result,'통과');assert.match(f.rows()[1].evidence,/^테스터 \d{4}-\d{2}-\d{2}$/);
-  assert.equal(f.runs,1);assert.deepEqual([f.input.action,f.input.kind,f.input.provider],['cleanup','cleanup','codex']);
+  assert.equal(f.runs,0,'completion calls no AI');assert.equal(f.service.isBusy(),false);assert.doesNotMatch(f.task(),/AI 완료 정리/);
   assert.match(f.task(),/\n## 사용자 테스트 결과 · [^\n]+\n\n<!-- test-feedback:op-\d+:submitted -->\n- 전달한 사람: 테스터\n\n> 통과 · 저장 후 복원\n/,'the human result is recorded at once');
-  assert.equal(f.service.act(sent).latest.kind,'cleanup','a replay returns the same processing');assert.equal(f.runs,1);
+  assert.equal(f.service.act(sent).latest.status,'complete','a replay returns the same record');assert.equal(f.runs,0);
   assert.throws(()=>f.service.act({...sent,actor:'다른 사람'}),/같은 접수/);
-  assert.throws(()=>f.service.act(f.request()),/다른 AI/);
-  assert.throws(()=>f.service.act({action:'terminal',taskPath,provider:'codex'}),/처리하는 중/,'a running task cannot be opened in a terminal');
-  f.finish({...cleanupReport,plan:'이번 작업은 완료입니다.',questions:[{id:'Q1',question:'더 할 일?',options:['예','아니오'],recommendation:'아니오'}],checklist:[row('빌드','AI','실패','다른 문서 경고')],blockers:['무관한 lint 경고']});await settle();
-  assert.equal(f.context().latest.status,'complete');assert.equal(f.service.isBusy(),false);assert.equal(f.head().state,'완료');
-  assert.doesNotMatch(f.task(),/## 구현 계획|## 질문|무관한 lint 경고/,'a cleanup cannot add a plan, questions or blockers');assert.equal(f.rows()[0].result,'통과','a cleanup cannot touch the checklist');
-  assert.match(f.task(),/\n## AI 완료 정리 · [^\n]+\n\n<!-- test-feedback:op-\d+-cleanup:1 -->\n- 전달한 사람: 테스터\n- 처리 AI: Codex\n- 처리 결과: 정리 완료\n/);
   assert.deepEqual(f.service.act({action:'list'}).tasks.map(t=>[t.path,t.state,t.summary]),[[taskPath,'완료','체크리스트 2/2 통과']],'the task list is built from records');
-  const recorded=f.task();f.service.act(sent);await settle();assert.equal(f.runs,1);assert.equal(f.task(),recorded);
+  const recorded=f.task();f.service.act(sent);await settle();assert.equal(f.runs,0);assert.equal(f.task(),recorded);
   f.restart();assert.equal(f.context().latest.status,'complete');
   f.service.act({action:'terminal',taskPath,provider:'codex'});assert.deepEqual(f.opened,[[taskPath,'codex','예시 작업']]);
   assert.throws(()=>f.service.act({action:'terminal',taskPath,provider:'gemini'}),/선택한 AI/);
@@ -93,7 +85,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.deepEqual(part.head(),{title:'부분 작업',state:'확인 대기',detail:'체크리스트 2/3 통과',next:'사람 확인: 복원 (대기)'});
   assert.match(part.task(),/## 사용자 테스트 결과[\s\S]*> 통과 · 저장/);
   const once=part.task();part.service.act(partial);assert.equal(part.task(),once,'a replay records nothing twice');
-  part.service.act(part.request({checks:[{index:2,result:'통과',note:''}]}));assert.equal(part.head().state,'완료');await settle();assert.deepEqual([part.runs,part.input.kind],[1,'cleanup']);
+  part.service.act(part.request({checks:[{index:2,result:'통과',note:''}]}));assert.equal(part.head().state,'완료');await settle();assert.equal(part.runs,0,'completion calls no AI');
 
   // 실패가 있으면 결과를 먼저 기록하고 AI가 고친다. 실패·재시도·AI 변경을 보존한다.
   const multi=fixture(['claude','gemini']);
@@ -101,6 +93,7 @@ function fixture(providers=['codex'],content=taskText){
   const claude=multi.request({provider:'claude',checks:[{index:1,result:'실패',note:'문제 원문'}]});
   multi.service.act(claude);await settle();assert.deepEqual([multi.input.provider,multi.input.kind],['claude','fix']);assert.equal(multi.rows()[1].result,'실패');
   assert.deepEqual([multi.head().state,multi.head().detail],['진행 중','AI 수정 중']);assert.match(multi.task(),/> 실패 · 저장 후 복원: 문제 원문/,'the failure is recorded before the AI runs');
+  assert.throws(()=>multi.service.act({action:'terminal',taskPath,provider:'claude'}),/처리하는 중/,'a running task cannot be opened in a terminal');
   multi.fail();await settle();
   assert.deepEqual(multi.head(),{title:'예시 작업',state:'확인 대기',detail:'AI 처리 실패',next:'작업 진행 화면에서 다시 시도한다.'},'a failed run is visible in the task list');
   multi.restart();assert.equal(multi.context().latest.provider,'claude');
@@ -121,7 +114,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.deepEqual(f.head(),{title:'예시 작업',state:'확인 대기',detail:'체크리스트 1/3 통과',next:'사람 확인: 저장 후 복원 (대기)'});
   assert.match(f.task(),/\| 코드 리뷰 \| 확인 방법 \| 사람 \| 대기 \|/,'a fix adds a human code review item');
   f.service.act(f.request({checks:[{index:1,result:'통과',note:''},{index:2,result:'통과',note:''}]}));assert.equal(f.head().state,'완료');await settle();
-  f.finish(cleanupReport);await settle();assert.equal(f.context().latest.status,'complete');
+  assert.equal(f.context().latest.status,'complete');
 
   // AI는 사람 항목을 통과시키거나 지우거나 담당을 바꿀 수 없다.
   const guard=fixture();guard.service.act(guard.request({checks:[{index:1,result:'실패',note:'원점 이동'}]}));await settle();
@@ -156,11 +149,6 @@ function fixture(providers=['codex'],content=taskText){
   const interrupted=fixture();interrupted.service.act(interrupted.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();interrupted.restart();assert.equal(interrupted.context().latest.status,'interrupted');
   assert.equal(interrupted.head().detail,'AI 처리 중단','an interrupted run is visible in the task list');
   interrupted.service.act(interrupted.request({action:'retry'}));await settle();interrupted.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')]));await settle();assert.equal(interrupted.context().latest.status,'retest');
-  // 완료 뒤 정리가 실패하거나 끊겨도 완료는 그대로다.
-  const tidy=fixture();tidy.service.act(tidy.request());await settle();tidy.fail();await settle();
-  assert.equal(tidy.context().latest.status,'failed');assert.equal(tidy.head().state,'완료','a failed cleanup keeps the task complete');assert.match(tidy.task(),/## AI 완료 정리[\s\S]*처리 결과: AI 처리 실패/);
-  tidy.service.act(tidy.request({action:'retry'}));await settle();assert.equal(tidy.input.kind,'cleanup');
-  tidy.restart();assert.equal(tidy.context().latest.status,'interrupted');assert.equal(tidy.head().state,'완료','an interrupted cleanup keeps the task complete');
   const orphan=fixture();orphan.service.act(orphan.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();
   const stateFile=fs.readdirSync(orphan.folder).find(name=>name.startsWith('test_feedback_'));
   const state=JSON.parse(fs.readFileSync(path.join(orphan.folder,stateFile)));state.requests[0].workerPid=process.pid;fs.writeFileSync(path.join(orphan.folder,stateFile),JSON.stringify(state));
@@ -171,8 +159,8 @@ function fixture(providers=['codex'],content=taskText){
   assert.equal(legacy.context().derived,true);assert.deepEqual(legacy.context().checklist.map(r=>[r.item,r.owner,r.result]),[['예시 작업','사람','대기']]);
   legacy.service.act(legacy.request({checks:[{index:0,result:'통과',note:''}]}));await settle();
   assert.match(legacy.task(),/원본 결정\n\n## 테스트 체크리스트\n\n\| 항목 \| 확인 방법 \| 담당 \| 결과 \| 근거 \|\n\| --- \| --- \| --- \| --- \| --- \|\n\| 예시 작업 \|  \| 사람 \| 통과 \| 테스터 /);
-  assert.match(legacy.task(),/^# 예시 작업\n\n상태: 완료 · 체크리스트 1\/1 통과\n다음 행동: /);assert.equal(legacy.input.kind,'cleanup');
-  legacy.finish(cleanupReport);await settle();assert.equal(legacy.context().latest.status,'complete');
+  assert.match(legacy.task(),/^# 예시 작업\n\n상태: 완료 · 체크리스트 1\/1 통과\n다음 행동: /);assert.equal(legacy.runs,0);
+  assert.equal(legacy.context().latest.status,'complete');
   assert.equal(fixture(['codex'],'# 예시\n\n다음 행동: 보스전을 확인한다.\n').context().checklist[0].item,'보스전을 확인한다.');
   const broken=fixture(['codex'],taskText.replace('| 사람 | 대기 |','| 누군가 | 대기 |'));
   assert.match(broken.context().checklistError,/2번째 행/);assert.throws(()=>broken.service.act(broken.request({checks:[{index:0,result:'통과',note:''}]})),/2번째 행/);
@@ -269,10 +257,9 @@ function fixture(providers=['codex'],content=taskText){
   assert.match(prompt('implement'),/구현 계획대로 구현/);assert.match(prompt('implement'),/questions로 물으세요/);
   assert.match(prompt('request'),/추가 요청/);assert.ok(prompt('request').includes('"message":"추가 요청 원문"'));assert.ok(prompt('plan').includes('"answers":[{"id":"Q1","answer":"A안"}]'));
   assert.match(prompt('fix'),/실패 원인을 조사/);assert.ok(prompt('fix').includes('재현: 저장 → 종료 → 재개'));
-  assert.match(prompt('cleanup'),/작업 상태를 바꾸지 않습니다/);assert.doesNotMatch(prompt('cleanup'),/질문으로 물으세요/);
-  for(const kind of ['implement','request','fix','cleanup'])assert.match(prompt(kind),/권한 확인 없이 명령을 실행/,kind);
+  for(const kind of ['implement','request','fix'])assert.match(prompt(kind),/권한 확인 없이 명령을 실행/,kind);
   for(const kind of ['implement','request','fix'])assert.match(prompt(kind),/작업 절차의 테스트 체크리스트 절을 따르세요/,kind);
-  for(const kind of ['plan','implement','request','fix','cleanup']){
+  for(const kind of ['plan','implement','request','fix']){
     const text=prompt(kind);
     assert.match(text,/관리자 정책과 CLI 설정을 바꾸지/,kind);assert.match(text,/Git 커밋·푸시/,kind);assert.doesNotMatch(text,/blockers/,kind);
     assert.match(text,/AGENTS\.md와 \.agents\/workflow\/process\/index\.md를 따르고/,kind);
@@ -286,8 +273,8 @@ function fixture(providers=['codex'],content=taskText){
     fs.writeFileSync(path.join(job,'pid.txt'),String(pid));if(result)fs.writeFileSync(path.join(job,'result.json'),JSON.stringify(result));
   };
   const jobRequest=(kind,extra={})=>({action:'x',kind,provider:'codex',operationId:'job-'+(++sequence),taskPath,title:'제목 "따옴표" & 기호',...extra});
-  const values={plan:{...research,plan:'계획'},implement:fixReport([passedRows[0]]),request:{summary:'설명',evidence:['읽음'],changes:[],questions:[],plan:'',checklist:[]},fix:fixReport([passedRows[0]]),cleanup:cleanupReport};
-  for(const [kind,mode] of [['plan','plan'],['implement','work'],['request','work'],['fix','work'],['cleanup','work']]){
+  const values={plan:{...research,plan:'계획'},implement:fixReport([passedRows[0]]),request:{summary:'설명',evidence:['읽음'],changes:[],questions:[],plan:'',checklist:[]},fix:fixReport([passedRows[0]])};
+  for(const [kind,mode] of [['plan','plan'],['implement','work'],['request','work'],['fix','work']]){
     let spawned;
     const value=await runJob({root:jobRoot,command:{file:'codex'},request:jobRequest(kind),onSpawn:pid=>{spawned=pid;},open:fakeRunner({ok:true,value:{...values[kind],blockers:['버릴 칸']}}),wait:5});
     assert.equal(value.summary,values[kind].summary);assert.ok(!('blockers' in value),'fields outside the step are dropped');assert.equal(seen.job.mode,mode,kind);assert.equal(seen.job.repo,jobRoot);assert.equal(spawned,process.pid);
@@ -326,22 +313,37 @@ function fixture(providers=['codex'],content=taskText){
   assert.throws(()=>openSession({root:'C:\\Wx',command:null,provider:'codex',taskPath:sessionPath,title:'보스',open:capture}),/Codex CLI/);
 
   const http=fixture(['codex','claude','gemini']),token='feedback-test',port=18746;
-  server=createServer({token,port,testFeedback:http.service});await new Promise(resolve=>server.listen(port,'127.0.0.1',resolve));
+  const routineFile=path.join(base,'wiki-routine.json'),fired=[];
+  const firePost=async(url,options)=>{fired.push({url,options});return {ok:true,status:200,json:async()=>({type:'routine_fire',claude_code_session_id:'s',claude_code_session_url:'https://claude.ai/code/session_test'})};};
+  server=createServer({token,port,testFeedback:http.service,wikiUpdate:createWikiUpdate({file:routineFile,post:firePost})});await new Promise(resolve=>server.listen(port,'127.0.0.1',resolve));
   const post=(route,body,headers={})=>fetch('http://127.0.0.1:'+port+route,{method:'POST',headers:{'Content-Type':'application/json','X-Wx-Token':token,Origin:'null',...headers},body:JSON.stringify(body)});
   assert.equal((await post('/test-feedback',{action:'list'},{'X-Wx-Token':'bad'})).status,403);
   assert.equal((await post('/test-feedback',{action:'list'},{Origin:'https://example.com'})).status,403);
   assert.equal((await post('/test-feedback',http.request({provider:'unknown'}))).status,400);
-  const response=await post('/test-feedback',http.request({provider:'claude'}));assert.equal(response.status,200);await settle();assert.deepEqual([http.input.provider,http.input.kind],['claude','cleanup']);
+  const response=await post('/test-feedback',http.request({provider:'claude',checks:[{index:1,result:'실패',note:'문제'}]}));assert.equal(response.status,200);await settle();assert.deepEqual([http.input.provider,http.input.kind],['claude','fix']);
   assert.equal((await post('/test-feedback',{action:'list'})).status,200);
   assert.equal((await post('/analyze',{})).status,404,'removed web task routes must not answer');
   assert.equal((await post('/execution',{})).status,404);
   const health=await (await fetch('http://127.0.0.1:'+port+'/health')).json();
   assert.equal(health.busy,true);assert.equal(health.protocol,4);assert.equal(health.revision.split(':').length,7);
-  http.finish(cleanupReport);await settle();assert.equal(http.context().latest.status,'complete');
+  http.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')]));await settle();assert.equal(http.context().latest.status,'retest');
   const createdByHttp=await (await post('/test-feedback',{...createBody,operationId:'http-create',provider:'gemini'})).json();
   assert.equal(createdByHttp.latest.status,'running');await settle();assert.deepEqual([http.input.provider,http.input.kind],['gemini','plan']);
   assert.deepEqual(await (await post('/test-feedback',{action:'terminal',taskPath,provider:'codex'})).json(),{opened:true});
-  console.log('PASS record state lines, checklist format, per-step result fields, instant completion with non-blocking cleanup, record-only partial results, fixes on failures, hand-over of unrunnable AI items, conflicts, new task flow, Korean record names, retry/restart, worker lock, prompts per step, terminal runner end to end, terminal launch and HTTP routing');
+  // Wiki 갱신: 설정이 없으면 꺼져 있고, 있으면 Routine을 실행해 세션 주소만 돌려준다. 토큰은 페이지로 돌아가지 않는다.
+  assert.deepEqual(await (await post('/wiki-update',{action:'status'})).json(),{configured:false});
+  assert.equal((await post('/wiki-update',{action:'fire'})).status,400);assert.equal(fired.length,0);
+  fs.writeFileSync(routineFile,JSON.stringify({trigger:'trig_test1',token:'secret-token'}));
+  assert.deepEqual(await (await post('/wiki-update',{action:'status'})).json(),{configured:true});
+  assert.equal((await post('/wiki-update',{action:'fire'},{'X-Wx-Token':'bad'})).status,403);assert.equal(fired.length,0);
+  const fireResult=await (await post('/wiki-update',{action:'fire'})).json();
+  assert.deepEqual(fireResult,{sessionUrl:'https://claude.ai/code/session_test'});
+  assert.equal(fired[0].url,'https://api.anthropic.com/v1/claude_code/routines/trig_test1/fire');
+  assert.deepEqual([fired[0].options.method,fired[0].options.headers.Authorization,fired[0].options.headers['anthropic-version']],['POST','Bearer secret-token','2023-06-01']);
+  let release;const slow=createWikiUpdate({file:routineFile,post:()=>new Promise(resolve=>{release=()=>resolve({ok:false,status:401,json:async()=>({error:{message:'invalid token'}})});})});
+  const first=slow.act({action:'fire'});await settle();await assert.rejects(slow.act({action:'fire'}),/요청하는 중/,'a second fire waits for the first');
+  release();await assert.rejects(first,/HTTP 401\)\. invalid token/);
+  console.log('PASS record state lines, checklist format, per-step result fields, instant completion without AI, record-only partial results, fixes on failures, hand-over of unrunnable AI items, conflicts, new task flow, Korean record names, retry/restart, worker lock, prompts per step, terminal runner end to end, terminal launch, HTTP routing and the Wiki update routine trigger');
 }finally{
   if(server){server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
   const resolved=path.resolve(base);assert.equal(path.dirname(resolved),path.resolve(os.tmpdir()));assert.ok(path.basename(resolved).startsWith('wx-test-feedback-'));fs.rmSync(resolved,{recursive:true,force:true});

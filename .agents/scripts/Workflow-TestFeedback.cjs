@@ -7,11 +7,11 @@ const {labels}=require('./Wiki-AI-Providers.cjs');
 const {owners,results,checklistHeading,checklistHeader,requestHeading,questionHeading,questionHeader,planHeading,sectionOrder,stateLine,nextLine,validRow,headRange,readHead,readSection,readChecklist,readQuestions,readPlan,readTaskRecord}=require('./wiki-viewer/task-records.js');
 const sha=value=>crypto.createHash('sha256').update(value).digest('hex');
 const folder=root=>path.join(root,'.agents/workflow/tasks');
-// 동작마다 AI에게 맡기는 일. plan만 읽기 전용이다. 테스트 결과는 실패가 있으면 fix, 모두 통과하면 완료 뒤 cleanup이다.
+// 동작마다 AI에게 맡기는 일. plan만 읽기 전용이다. 테스트 결과는 실패가 있을 때만 fix로 AI에게 맡긴다.
 const kinds={create:'plan',answer:'plan',approve:'implement',request:'request'};
 const doing={plan:'AI 조사 중',implement:'AI 구현 중',request:'AI 추가 요청 처리 중',fix:'AI 수정 중'};
 // 단계마다 AI가 돌려줄 수 있는 칸. 없는 칸은 채울 수 없고 서버도 읽지 않는다.
-const fields={plan:['questions','plan'],implement:['changes','questions','checklist'],request:['changes','questions','plan','checklist'],fix:['changes','questions','checklist'],cleanup:['changes']};
+const fields={plan:['questions','plan'],implement:['changes','questions','checklist'],request:['changes','questions','plan','checklist'],fix:['changes','questions','checklist']};
 const text={type:'string'},strings={type:'array',items:text};
 const shapes={summary:text,evidence:strings,changes:strings,plan:text,
   questions:{type:'array',items:{type:'object',additionalProperties:false,required:['id','question','options','recommendation'],properties:{id:text,question:text,options:strings,recommendation:text}}},
@@ -142,8 +142,7 @@ function taskPrompt(request){
     plan:'지금은 정하기입니다. 파일을 수정하지 말고 조사하세요. 사람에게 물을 판단은 questions에 넣습니다. id는 기존 질문과 겹치지 않는 Q번호로 하고, 선택지 2개 이상과 추천·이유를 적습니다. 더 물을 것이 없으면 questions를 비우고 plan에 구현 계획(무엇을 어디에 어떻게 바꾸는지, 검증 방법, 테스트 체크리스트 초안)을 목록으로 적으세요. # 제목은 쓰지 마세요.',
     implement:'사람이 구현을 승인했습니다. 작업 기록의 구현 계획대로 구현하고 checklist를 돌려주세요. 판단이 필요하면 questions로 물으세요.',
     request:'사람의 추가 요청(작업 기록 요청 절의 마지막 추가 요청)을 처리하세요. 승인된 범위 안의 수정이면 고치고 checklist를 돌려주세요. 범위나 방향을 바꾸는 요청이면 코드를 고치지 말고 판단할 것은 questions에, 바뀐 구현 계획은 plan에 적으세요. 설명만 필요하면 summary로 답하고 다른 칸은 비우세요.',
-    fix:'사람이 테스트 체크리스트에서 실패를 알렸고 서버가 표에 반영했습니다. 실패 원인을 조사해 고치고 checklist를 돌려주세요. 판단이 필요하면 questions로 물으세요.',
-    cleanup:'사람이 테스트 체크리스트의 모든 항목을 통과시켜 작업이 완료됐습니다. 게임 코드·에셋은 고치지 마세요. 재사용할 지식을 Wiki에 반영하고 changes와 evidence에 적으세요. 반영할 지식이 없으면 summary에 그렇게 적으세요. 이 처리는 작업 상태를 바꾸지 않습니다.'
+    fix:'사람이 테스트 체크리스트에서 실패를 알렸고 서버가 표에 반영했습니다. 실패 원인을 조사해 고치고 checklist를 돌려주세요. 판단이 필요하면 questions로 물으세요.'
   };
   const checklistRules='checklist는 기존 항목을 포함한 전체 체크리스트입니다. 작성 규칙은 작업 절차의 테스트 체크리스트 절을 따르세요.';
   return `한국어로 작업하세요. AGENTS.md와 .agents/workflow/process/index.md를 따르고 작업 기록 ${request.taskPath}를 읽으세요.
@@ -205,14 +204,14 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
   function save(record){record.revision++;atomicWrite(recordFile(record.taskPath),record);return record;}
   function records(){return fs.readdirSync(folder(root)).filter(name=>/^test_feedback_[a-f0-9]{64}\.json$/.test(name)).map(name=>JSON.parse(fs.readFileSync(path.join(folder(root),name),'utf8')));}
   const kindOf=request=>request.kind||kinds[request.action]||'fix';
-  // AI 처리가 결과 없이 끝나면 기록 상태 줄에 남겨 작업 현황에서 보이게 한다. 완료 뒤 정리는 상태를 바꾸지 않는다.
+  // AI 처리가 결과 없이 끝나면 기록 상태 줄에 남겨 작업 현황에서 보이게 한다.
   function markStopped(relative,detail){
     try{const file=taskFile(root,relative);fs.writeFileSync(file,writeHead(fs.readFileSync(file,'utf8'),'확인 대기',detail,'작업 진행 화면에서 다시 시도한다.'),'utf8');}catch{}
   }
   for(const record of records()){
     for(const request of record.requests){
       if(request.workerPid)workers.add(request.workerPid);
-      if(request.status==='running'){request.status='interrupted';request.error='AI 처리가 중단되었습니다. 저장된 요청으로 다시 시도할 수 있습니다.';save(record);if(kindOf(request)!=='cleanup')markStopped(record.taskPath,'AI 처리 중단');}
+      if(request.status==='running'){request.status='interrupted';request.error='AI 처리가 중단되었습니다. 저장된 요청으로 다시 시도할 수 있습니다.';save(record);markStopped(record.taskPath,'AI 처리 중단');}
     }
   }
   function isBusy(){
@@ -249,7 +248,7 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
       [`- 전달한 사람: ${request.actor}`,'',quote(request.checks.map(c=>`${c.result} · ${c.item}${c.note?': '+c.note:''}`).join('\n'))]);
   }
   function appendResult(record,request){
-    const kind=kindOf(request),lines=[`- 전달한 사람: ${request.actor}`,`- 처리 AI: ${labels[request.provider||'codex']}`,`- 처리 결과: ${kind==='cleanup'&&request.status==='complete'?'정리 완료':outcome[request.status]||request.status}`];
+    const kind=kindOf(request),lines=[`- 전달한 사람: ${request.actor}`,`- 처리 AI: ${labels[request.provider||'codex']}`,`- 처리 결과: ${outcome[request.status]||request.status}`];
     if(request.answers)lines.push('','답변:','',quote(request.answers.map(a=>`${a.id}: ${a.answer}`).join('\n')));
     if(request.message)lines.push('','요청:','',quote(request.message));
     if(request.report){
@@ -258,7 +257,7 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
       for(const item of request.report.evidence)lines.push('',quote('근거: '+item));
     }
     if(request.error)lines.push('',quote(request.error));
-    const heading={plan:'AI 조사 결과',implement:'AI 구현 결과',request:'AI 추가 요청 처리',fix:'AI 수정 결과',cleanup:'AI 완료 정리'}[kind];
+    const heading={plan:'AI 조사 결과',implement:'AI 구현 결과',request:'AI 추가 요청 처리',fix:'AI 수정 결과'}[kind];
     append(record.taskPath,`<!-- test-feedback:${request.operationId}:${request.attempt} -->`,`${heading} · ${request.at}`,lines);
   }
   // AI 결과를 기록에 반영하고 기록에서 상태를 다시 정한다. 처리 중 기록이 바뀌었으면 반영하지 않는다.
@@ -267,7 +266,7 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
     if(sha(content)!==request.taskHash){
       request.status='conflict';request.error='처리 중 다른 곳에서 작업 기록이 바뀌어 AI 결과를 반영하지 않았습니다.';
       fs.writeFileSync(file,writeHead(content,'확인 대기','기록 충돌','처리 중 다른 곳에서 이 기록이 바뀌어 AI 결과를 반영하지 않았다. 최신 기록을 확인하고 다시 전달한다.'),'utf8');
-      return request.status;
+      return;
     }
     let body=content;
     if(value.checklist?.length)body=writeChecklist(body,handOver(guardChecklist(readChecklist(body)?.rows||[],value.checklist)));
@@ -275,31 +274,24 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
     if(value.plan?.trim())body=writePlan(body,value.plan,'');
     const state=stateOf(body);request.status=state.status;
     fs.writeFileSync(file,writeHead(body,...state.head),'utf8');
-    return state.status;
   }
-  // 처리하는 동안 기록 상태는 진행 중이다. 완료 뒤 정리는 상태를 건드리지 않고, 끝나면 이력에만 남긴다.
+  // 처리하는 동안 기록 상태는 진행 중이다.
   function launch(record,request){
     const kind=kindOf(request),file=taskFile(root,record.taskPath);
-    if(kind!=='cleanup')fs.writeFileSync(file,writeHead(fs.readFileSync(file,'utf8'),'진행 중',doing[kind],'AI 처리 결과를 기다린다. 진행 과정은 터미널 창에 보인다.'),'utf8');
+    fs.writeFileSync(file,writeHead(fs.readFileSync(file,'utf8'),'진행 중',doing[kind],'AI 처리 결과를 기다린다. 진행 과정은 터미널 창에 보인다.'),'utf8');
     request.kind=kind;request.taskHash=sha(fs.readFileSync(file));request.status='running';request.error='';request.attempt=(request.attempt||0)+1;request.startedAt=new Date().toISOString();save(record);active=request.operationId;
-    const input=structuredClone(request);let completed=false;
+    const input=structuredClone(request);
     Promise.resolve().then(()=>run(input,pid=>{request.workerPid=pid;save(record);})).then(value=>{
       request.report=validateReport(value,kind);
-      if(kind==='cleanup')request.status='complete';
-      else completed=settle(record,request,request.report)==='complete';
+      settle(record,request,request.report);
       appendResult(record,request);
       save(record);
     }).catch(error=>{
       request.status='failed';request.error=error.message;
-      if(kind==='cleanup')appendResult(record,request);else markStopped(record.taskPath,'AI 처리 실패');
+      markStopped(record.taskPath,'AI 처리 실패');
       save(record);
-    }).finally(()=>{delete request.workerPid;save(record);active=null;if(completed)cleanUp(record,request);}).catch(error=>console.error(error));
+    }).finally(()=>{delete request.workerPid;save(record);active=null;}).catch(error=>console.error(error));
     return {...view(record),taskPath:record.taskPath};
-  }
-  // 완료된 작업의 Wiki 정리를 맡긴다. 같은 처리 AI와 전달한 사람을 쓴다.
-  function cleanUp(record,source){
-    const request={operationId:source.operationId+'-cleanup',action:'cleanup',kind:'cleanup',provider:source.provider||'codex',taskPath:record.taskPath,title:source.title,actor:source.actor,at:new Date().toISOString()};
-    record.requests.push(request);return launch(record,request);
   }
   const actorOf=body=>{if(typeof body.actor!=='string'||!body.actor.trim()||body.actor.length>100||/[\r\n]/.test(body.actor))throw Error('이름을 1~100자로 입력하세요.');return body.actor.trim();};
   const providerOf=(body,fallback='codex')=>{const provider=body.provider??fallback;if(!Object.hasOwn(labels,provider)||!providers.includes(provider))throw Error('선택한 AI를 사용할 수 없습니다. 설치 후 OpenWorkflow.bat을 다시 실행하세요.');return provider;};
@@ -386,15 +378,15 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
       }
       content=writeChecklist(content,rows);
       request.checks=checks.map(check=>({item:rows[check.index].item,result:check.result,note:check.note.trim()}));
-      // 실패가 있으면 AI가 고치고, 없으면 결과만 기록한다. 모든 항목이 통과하면 바로 완료하고 정리를 맡긴다.
+      // 실패가 있으면 AI가 고치고, 없으면 결과만 기록한다. 모든 항목이 통과하면 그 자리에서 완료다.
       if(request.checks.some(c=>c.result==='실패')){
         request.kind='fix';fs.writeFileSync(file,content,'utf8');record.requests.push(request);appendSubmission(record,request);
         return launch(record,request);
       }
       const state=stateOf(content);
       fs.writeFileSync(file,writeHead(content,...state.head),'utf8');
-      request.kind='record';request.status='recorded';record.requests.push(request);appendSubmission(record,request);save(record);
-      return state.status==='complete'?cleanUp(record,request):{...view(record),taskPath:relative};
+      request.kind='record';request.status=state.status==='complete'?'complete':'recorded';record.requests.push(request);appendSubmission(record,request);save(record);
+      return {...view(record),taskPath:relative};
     }
     fs.writeFileSync(file,content,'utf8');
     record.requests.push(request);return launch(record,request);
