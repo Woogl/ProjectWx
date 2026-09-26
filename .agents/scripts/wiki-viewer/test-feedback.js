@@ -181,13 +181,14 @@ function renderQuestions(box){
     const update=patch=>{draft.answers[question.id]={...(draft.answers[question.id]||{choice:'',note:''}),...patch};rememberDraft(taskSelected.path);};
     item.append(el('strong',question.id+'. '+question.question));
     if(question.recommendation)item.append(el('span','추천 · '+question.recommendation,'check-state'));
-    if(question.options.length)for(const [value,label] of [['','선택 안 함'],...question.options.map(option=>[option,option])]){
+    const hasOptions=question.options.length>0;
+    if(hasOptions)for(const [value,label] of [['','선택 안 함'],...question.options.map(option=>[option,option])]){
       const choice=el('label'),radio=el('input');radio.type='radio';radio.name='task-question-'+question.id;radio.value=value;radio.checked=(entry.choice||'')===value;radio.setAttribute('aria-label',question.id+' '+label);
       radio.onchange=()=>{for(const other of choices)other.checked=other===radio;update({choice:value});};
       choices.push(radio);choice.append(radio,el('span',label));options.append(choice);
     }
-    const note=Object.assign(taskInput('textarea',question.id+' 직접 답변',entry.note,1000,value=>update({note:value})),{rows:2,placeholder:'선택지에 덧붙이거나 다르게 답할 내용'});
-    item.append(options,taskField(question.options.length?'직접 답변(선택)':'답변',note));box.append(item);
+    const note=Object.assign(taskInput('textarea',question.id+(hasOptions?' 직접 답변':' 답변'),entry.note,1000,value=>update({note:value})),{rows:2,placeholder:hasOptions?'선택지에 덧붙이거나 다르게 답할 내용':'이 질문에 대한 답을 적어주세요.'});
+    item.append(options,taskField(hasOptions?'직접 답변(선택)':'답변',note));box.append(item);
   }
   if(!answered.length)return;
   const done=el('details');done.append(el('summary','답한 질문 · '+answered.length));
@@ -235,7 +236,8 @@ function renderTaskStatus(){
     const minutes=Math.max(0,Math.floor((Date.now()-Date.parse(latest.startedAt||latest.at))/60000));
     panel.append(el('p',`${providerLabel(latest.provider)} 처리 중 · ${minutes}분 경과 · 터미널 창에서 진행 과정을 볼 수 있습니다.`,'notice'));
   }else if(latest){
-    panel.append(el('p',`최근 전달 · ${latest.actor||'-'} · ${localTime(latest.at)} · 처리 AI ${providerLabel(latest.provider)}`,'notice'));
+    // 결과만 기록한 전달(record)은 AI를 부르지 않았으므로 처리 AI를 적지 않는다.
+    panel.append(el('p',`최근 전달 · ${latest.actor||'-'} · ${localTime(latest.at)}`+(latest.kind==='record'?'':` · 처리 AI ${providerLabel(latest.provider)}`),'notice'));
     if(latest.checks)for(const check of latest.checks)panel.append(el('p',check.result+' · '+check.item+(check.note?': '+check.note:'')));
     if(latest.answers)for(const answer of latest.answers)panel.append(el('p',answer.id+' 답변 · '+answer.answer));
     if(latest.message)panel.append(el('p','추가 요청 · '+latest.message));

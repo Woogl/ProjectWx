@@ -34,7 +34,7 @@ const api=async(route,body)=>{
   // 서버처럼 테스트 결과는 실패가 있으면 AI 수정, 모두 통과면 그 자리에서 완료, 나머지는 결과만 기록한다.
   const checks=body.checks?.map(check=>({item:task.checklist[check.index].item,result:check.result,note:check.note}));
   const after=task.checklist.map((row,index)=>({...row,result:body.checks?.find(check=>check.index===index)?.result||row.result}));
-  const outcome=body.action!=='submit'||checks.some(check=>check.result==='실패')?{status:'running'}:after.every(row=>row.result==='통과')?{kind:'record',status:'complete'}:{status:'recorded'};
+  const outcome=body.action!=='submit'||checks.some(check=>check.result==='실패')?{status:'running'}:after.every(row=>row.result==='통과')?{kind:'record',status:'complete'}:{kind:'record',status:'recorded'};
   task.latest={...body,checks,...outcome,at:'2026-09-25',startedAt:new Date(Date.now()-3*60000).toISOString(),report:null,error:''};
   if(loss){loss=false;throw Error('연결 끊김');}
   return {...view(taskPath),taskPath};
@@ -109,6 +109,7 @@ const held=()=>[...storage.keys()].some(key=>key.includes('pending'));
   // 일부만 통과하면 AI 없이 결과만 기록한다.
   t.checklist=[row('빌드','AI','통과','exit 0'),row('저장 후 복원','사람','대기'),row('부활 시 적 재생성','사람','대기')];t.latest={...t.latest,status:'complete'};t.revision++;await run('loadTaskJobs()');
   choose('저장 후 복원 통과');await byId('test-feedback-submit').onclick();assert.equal(t.latest.status,'recorded');assert.match(message(),/테스트 결과를 기록했습니다/);
+  assert.match(text('test-feedback-result'),/최근 전달 · 테스터 · /);assert.doesNotMatch(text('test-feedback-result'),/처리 AI/,'a record-only submission names no processing AI');
   t.latest={...t.latest,status:'failed',error:'로그인 확인 필요'};t.revision++;await run('loadTaskJobs()');
   aiChoice().value='gemini';aiChoice().onchange();
   const retry=byId('test-feedback-result').children.find(node=>node.textContent==='저장된 요청으로 AI 다시 시도');assert.ok(retry);await retry.onclick();assert.equal(savedRequest.action,'retry');
@@ -131,7 +132,8 @@ const held=()=>[...storage.keys()].some(key=>key.includes('pending'));
   assert.match(text('task-request'),/읽기 전용으로 조사/,'extra requests before approval are read-only research');
   await byId('test-feedback-submit').onclick();assert.match(message(),/답하지 않은 질문이 있습니다: Q1, Q2/);
   choose('Q1 지연');choose('Q1 선택 안 함');assert.equal(run('taskDraft(item.path).answers.Q1.choice'),'','a chosen option can be cleared');
-  choose('Q1 지연');type('Q1 직접 답변','0.5초 뒤');type('Q2 직접 답변','보스만');
+  assert.equal(input('Q1 직접 답변').placeholder,'선택지에 덧붙이거나 다르게 답할 내용');assert.equal(input('Q2 답변').placeholder,'이 질문에 대한 답을 적어주세요.','a free-text question has its own hint and name');assert.ok(!input('Q2 직접 답변'));
+  choose('Q1 지연');type('Q1 직접 답변','0.5초 뒤');type('Q2 답변','보스만');
   const beforeAnswer=starts;await byId('test-feedback-submit').onclick();assert.equal(starts,beforeAnswer+1);
   assert.equal(savedRequest.action,'answer');assert.deepEqual(savedRequest.answers,[{id:'Q1',answer:'지연 — 0.5초 뒤'},{id:'Q2',answer:'보스만'}]);assert.equal(savedRequest.actor,'테스터');
   assert.deepEqual(JSON.parse(JSON.stringify(run('taskDraft(item.path).answers'))),{},'sent answers are cleared');
