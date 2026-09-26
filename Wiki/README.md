@@ -9,7 +9,7 @@ WX의 게임 규칙·구현·결정과 검증 범위를 모은 팀 공유 지식
 
 ## 갱신
 
-이 폴더는 Wiki 갱신만 씁니다. 매일 06:30(KST)에 클라우드 Routine 「Wiki 정기 갱신」이 돌고, 바로 갱신해야 하면 Workflow 대시보드의 **Wiki 갱신**에서 고른 AI가 이 PC에서 돕니다. 둘 다 아래 절차를 되묻지 않고 끝까지 진행합니다.
+이 폴더는 Wiki 갱신만 씁니다. 매일 06:30(KST)에 클라우드 Routine 「Wiki 정기 갱신」이 돌고, 바로 갱신해야 하면 Workflow 대시보드의 **Wiki 갱신**으로 대시보드에서 고른 AI가 이 PC에서 돕니다. 둘 다 아래 절차를 되묻지 않고 끝까지 진행합니다.
 
 - claude-obsidian은 순정 코드를 그대로 씁니다. 지금 버전은 `v2.2.0`입니다.
   - Routine: 클라우드 환경 `Wiki`의 설정 스크립트가 세션 시작 전에 이 태그로 플러그인을 설치합니다(아래 Routine 환경 절). 플러그인 스킬(`claude-obsidian:wiki-ingest`·`claude-obsidian:wiki-lint` 등)과 그 설치본의 `scripts/claude-obsidian.py` CLI를 씁니다.

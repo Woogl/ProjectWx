@@ -54,6 +54,7 @@ const type=(label,value)=>{const field=input(label);field.value=value;field.onin
 const choose=label=>input(label).onchange();
 const noteRow=name=>input(name+' 문제 상황과 재현 방법').parentElement;
 const message=()=>byId('test-feedback-message').textContent;
+const aiChoice=()=>byId('ai-provider');
 const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.className).startsWith('check-item')&&node.children.some(child=>child.tagName==='STRONG'&&child.textContent===title)).children[0].className;
 (async()=>{
   // 체크리스트 단계: 사람 항목만 고르고, 실패에는 재현 방법을 적는다.
@@ -64,7 +65,8 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   assert.ok(descendants(byId('task-phase')).some(node=>node.textContent==='통과 · exit 0'));
   assert.equal(markOf('빌드'),'check-mark pass','each item is a box whose check shows the result');assert.equal(markOf('저장 후 복원'),'check-mark wait');
   assert.equal(input('저장 후 복원 이번에 확인 안 함').checked,true);assert.equal(noteRow('저장 후 복원').hidden,true);
-  assert.equal(input('처리할 AI').children.length,3);input('처리할 AI').value='claude';input('처리할 AI').onchange();
+  assert.ok(!input('처리할 AI'),'the AI is chosen once at the top of the page, not per panel');
+  assert.equal(aiChoice().children.length,3);aiChoice().value='claude';aiChoice().onchange();
   await run("sendTaskAction('submit')");assert.equal(starts,0);assert.match(message(),/하나 이상/);
   choose('저장 후 복원 실패');assert.equal(noteRow('저장 후 복원').hidden,false);assert.equal(markOf('저장 후 복원'),'check-mark fail','the chosen result fills the check box');
   choose('저장 후 복원 이번에 확인 안 함');assert.equal(markOf('저장 후 복원'),'check-mark wait');choose('저장 후 복원 실패');
@@ -74,7 +76,7 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   type('이름','테스터');
   await run('openTaskPanel(item)');
   assert.equal(input('이름').value,'테스터');assert.equal(input('저장 후 복원 실패').checked,true);assert.equal(input('부활 시 적 재생성 통과').checked,true);
-  assert.match(input('저장 후 복원 문제 상황과 재현 방법').value,/원점/);assert.equal(input('처리할 AI').value,'claude');
+  assert.match(input('저장 후 복원 문제 상황과 재현 방법').value,/원점/);assert.equal(aiChoice().value,'claude');
   loss=true;await byId('test-feedback-submit').onclick();assert.equal(starts,1);
   assert.deepEqual(savedRequest.checks,[{index:1,result:'실패',note:'저장 → 재개 후 원점으로 이동'},{index:2,result:'통과',note:''}]);
   assert.equal(savedRequest.action,'submit');assert.equal(savedRequest.actor,'테스터');assert.equal(savedRequest.provider,'claude');
@@ -101,11 +103,11 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   t.checklist=[row('빌드','AI','통과','exit 0'),row('저장 후 복원','사람','대기'),row('부활 시 적 재생성','사람','대기')];t.latest={...t.latest,status:'complete'};t.revision++;await run('loadTaskJobs()');
   choose('저장 후 복원 통과');await byId('test-feedback-submit').onclick();assert.equal(t.latest.status,'recorded');assert.match(message(),/테스트 결과를 기록했습니다/);
   t.latest={...t.latest,status:'failed',error:'로그인 확인 필요'};t.revision++;await run('loadTaskJobs()');
-  input('처리할 AI').value='gemini';input('처리할 AI').onchange();
+  aiChoice().value='gemini';aiChoice().onchange();
   const retry=byId('test-feedback-result').children.find(node=>node.textContent==='저장된 요청으로 AI 다시 시도');assert.ok(retry);await retry.onclick();assert.equal(savedRequest.action,'retry');
   assert.equal(savedRequest.provider,'gemini');assert.ok(!Object.hasOwn(savedRequest,'actor'),'a retry reuses the stored request');
   t.latest={...t.latest,status:'failed'};t.revision++;providers=[providers[0]];await run('loadTaskJobs()');
-  assert.equal(input('처리할 AI').value,'gemini','unavailable selection must not silently fall back to another AI');
+  assert.equal(aiChoice().value,'gemini','unavailable selection must not silently fall back to another AI');
   const before=starts;await run("sendTaskAction('retry')");assert.equal(starts,before);assert.match(message(),/연결되어 있지/);
   providers=undefined;await run('refreshTaskContext()');assert.equal(run('availableProviders().length'),1,'old server capabilities allow only the original Codex route');
   t.derived=true;t.checklist=[row(item.next,'사람','대기')];await run('refreshTaskContext()');
@@ -150,7 +152,7 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   type('요청','보스 체력바를 지연 감소로');
   run('openNewTask()');assert.equal(input('제목').value,'Boss HP','the new task draft is kept');
   const beforeCreate=starts;loss=true;await button('AI에게 전달').onclick();assert.equal(starts,beforeCreate+1);assert.match(message(),/보존/);
-  assert.deepEqual(JSON.parse(JSON.stringify(savedRequest)),{action:'create',operationId:savedRequest.operationId,title:'Boss HP',request:'보스 체력바를 지연 감소로',actor:'테스터',provider:'codex'});
+  assert.deepEqual(JSON.parse(JSON.stringify(savedRequest)),{action:'create',operationId:savedRequest.operationId,title:'Boss HP',request:'보스 체력바를 지연 감소로',actor:'테스터',provider:'gemini'},'a new task also follows the AI chosen at the top');
   assert.ok(storage.has('test:test-feedback:pending'));assert.equal(byId('new-task-fields').disabled,true);
   await button('AI에게 전달').onclick();assert.equal(starts,beforeCreate+1,'a replayed creation does not start twice');
   assert.equal(storage.has('test:test-feedback:pending'),false);assert.equal(storage.has('test:test-feedback:new'),false);

@@ -129,18 +129,23 @@ assert.equal(byId('article').children[0].textContent, '문서를 찾을 수 없�
   const panelMessage = () => panel.children.find(n => n.id === 'test-feedback-message').textContent;
   vm.runInContext('data.ai=null;renderTaskRecords();', context);
   assert.equal(headingButtons()[1].disabled, true, 'Wiki update needs the local AI connection');
-  vm.runInContext("data.ai={token:'t',url:'http://127.0.0.1:1'};taskProviders=[{id:'claude',label:'Claude Code'},{id:'codex',label:'Codex'}];globalThis.fired=[];globalThis.wikiState={status:'idle'};workflowRequest=async(endpoint,body)=>{fired.push([endpoint,body]);if(body.action==='start')wikiState={status:'running',provider:body.provider,message:'Claude Code가 Wiki를 갱신하는 중입니다.'};return wikiState;};renderTaskRecords();", context);
+  vm.runInContext("data.ai={token:'t',url:'http://127.0.0.1:1'};taskProviders=[{id:'claude',label:'Claude Code'},{id:'codex',label:'Codex'}];renderProviderChoice();globalThis.fired=[];globalThis.wikiState={status:'idle'};workflowRequest=async(endpoint,body)=>{fired.push([endpoint,body]);if(body.action==='start')wikiState={status:'running',provider:body.provider,message:'Codex가 Wiki를 갱신하는 중입니다.'};return wikiState;};renderTaskRecords();", context);
+  // 처리할 AI는 페이지 맨 위에서 한 번 고르고 Wiki 갱신도 그 선택을 따른다.
+  const aiChoice = byId('ai-provider');
+  assert.deepEqual(aiChoice.children.map(option => option.value), ['claude', 'codex']);
+  aiChoice.value = 'codex'; aiChoice.onchange();
   assert.equal(headingButtons()[1].disabled, false);
   headingButtons()[1].onclick(); await new Promise(resolve => setImmediate(resolve));
   assert.equal(panel.children[0].textContent, 'Wiki 갱신');
+  assert.ok(!panel.children.some(n => n.tagName === 'FIELDSET'), 'the Wiki update panel has no AI field of its own');
   await panelButton('갱신 시작').onclick();
-  assert.deepEqual(JSON.parse(JSON.stringify(context.fired.at(-1))), ['/wiki-update', { action: 'start', provider: 'claude' }]);
+  assert.deepEqual(JSON.parse(JSON.stringify(context.fired.at(-1))), ['/wiki-update', { action: 'start', provider: 'codex' }]);
   assert.equal(panelButton('갱신 시작').disabled, true, 'a running Wiki update cannot start again');
   assert.match(panelMessage(), /갱신하는 중/);
-  vm.runInContext("wikiState={status:'complete',provider:'claude',summary:'원자료 1건을 수집했습니다.'};", context);
+  vm.runInContext("wikiState={status:'complete',provider:'codex',summary:'원자료 1건을 수집했습니다.'};", context);
   await vm.runInContext('loadWikiUpdate()', context);
   assert.equal(panelButton('갱신 시작').disabled, false);
-  assert.match(panelMessage(), /마쳤습니다\(Claude Code\)\. 원자료 1건을 수집했습니다\./);
+  assert.match(panelMessage(), /마쳤습니다\(Codex\)\. 원자료 1건을 수집했습니다\./);
   assert.match(byId('task-records').children[1].textContent, /마쳤습니다/, 'the dashboard keeps the last result');
   console.log(`PASS ${data.documents.length} document snapshots, metadata, JS syntax, task states, new task and task panel entries, Wiki update button, index navigation, launcher, routing and missing-document handling`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

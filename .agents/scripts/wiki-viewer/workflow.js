@@ -41,7 +41,6 @@ function wikiUpdateText() {
   if(wikiUpdate.status==='failed')return 'Wiki 갱신을 하지 못했습니다. '+wikiUpdate.error;
   return '';
 }
-function wikiUpdateProvider() {const saved=storageGet(taskKey('wiki-provider'));return typeof saved==='string'&&saved?saved:availableProviders()[0]?.id||'codex';}
 function openWikiUpdate() {
   taskSelected=null;taskContext=null;newTaskOpen=false;
   openTaskShell('Wiki 갱신','wiki-update');renderWikiUpdate();
@@ -52,16 +51,14 @@ function renderWikiUpdate() {
   const panel=$('test-feedback-panel');
   if(panel.hidden||taskPanelView!=='wiki-update')return;
   const {message}=openTaskShell('Wiki 갱신','wiki-update'),busy=wikiUpdateBusy();
-  const fields=el('fieldset');fields.id='wiki-update-fields';fields.disabled=busy;
-  fields.append(providerField('wiki-update-provider',wikiUpdateProvider(),value=>storageSet(taskKey('wiki-provider'),value)));
   const start=workflowButton('갱신 시작',()=>startWikiUpdate());start.id='wiki-update-start';start.disabled=busy;
   message.textContent=wikiUpdateText();
-  panel.append(el('p','고른 AI가 이 PC에서 Wiki/README.md 절차로 Wiki를 갱신하고 main에 푸시합니다. WSL과 claude-obsidian이 없으면 설치를 시작합니다. 진행 과정은 새 터미널 창에 보입니다.','notice'),fields,message,start,workflowButton('닫기',()=>{panel.hidden=true;}));
+  panel.append(el('p','맨 위에서 고른 AI가 이 PC에서 Wiki/README.md 절차로 Wiki를 갱신하고 main에 푸시합니다. WSL과 claude-obsidian이 없으면 설치를 시작합니다. 진행 과정은 새 터미널 창에 보입니다.','notice'),message,start,workflowButton('닫기',()=>{panel.hidden=true;}));
 }
 async function startWikiUpdate() {
   if(wikiUpdateBusy())return;
-  const provider=wikiUpdateProvider();
-  if(!availableProviders().some(p=>p.id===provider))return showTaskMessage('선택한 AI가 연결되어 있지 않습니다. 다른 AI를 선택하거나 OpenWorkflow.bat을 다시 실행하세요.');
+  const provider=selectedProvider();
+  if(!availableProviders().some(p=>p.id===provider))return showTaskMessage(providerMissing);
   Object.assign(wikiUpdate,{summary:'',error:''});
   try{Object.assign(wikiUpdate,await workflowRequest('/wiki-update',{action:'start',provider}));}
   catch(error){Object.assign(wikiUpdate,{status:'failed',error:error.message});}

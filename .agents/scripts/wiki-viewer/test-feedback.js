@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 // 작업 진행 패널: 새 작업 요청, 질문 답변, 구현 승인, 사람 항목 테스트 결과, 추가 요청을 로컬 서버를 거쳐 AI에게 전달한다.
 let taskJobs=Object.create(null),taskSelected=null,taskContext=null,newTaskOpen=false;
-let taskJobsLoaded=false,taskJobsLoading=false,taskSending=false,taskPoll=null,taskProviders=null,taskPanelView='';
+let taskJobsLoaded=false,taskJobsLoading=false,taskSending=false,taskPoll=null,taskProviders=null,taskPanelView='',providerChoice='';
 const taskDrafts=Object.create(null);
 function availableProviders(){return taskProviders||[{id:'codex',label:'Codex'}];}
 function providerLabel(id){return ({codex:'Codex',claude:'Claude Code',gemini:'Gemini CLI'})[id]||id;}
@@ -15,7 +15,7 @@ function showTaskMessage(text){$('test-feedback-message').textContent=text;}
 function taskDraft(taskPath){
   if(!taskDrafts[taskPath]){
     const draft=storageGet(taskKey('draft',taskPath))||{},object=value=>value&&typeof value==='object'?value:{};
-    taskDrafts[taskPath]={provider:typeof draft.provider==='string'?draft.provider:'',checks:object(draft.checks),answers:object(draft.answers),message:typeof draft.message==='string'?draft.message:''};
+    taskDrafts[taskPath]={checks:object(draft.checks),answers:object(draft.answers),message:typeof draft.message==='string'?draft.message:''};
   }
   return taskDrafts[taskPath];
 }
@@ -32,18 +32,22 @@ function fillProviders(select,selected){
   if(!availableProviders().some(provider=>provider.id===selected)){const option=el('option',providerLabel(selected)+' · 연결 없음');option.value=selected;option.disabled=true;select.append(option);}
   select.value=selected;
 }
-function providerField(id,selected,onChange){
-  const select=el('select');select.id=id;select.setAttribute('aria-label','처리할 AI');select.onchange=()=>onChange(select.value);
-  fillProviders(select,selected);
-  return taskField('처리할 AI',select);
+// 처리할 AI는 페이지 맨 위에서 한 번 고르고, 새 작업·작업 진행·Wiki 갱신이 모두 따른다.
+function selectedProvider(){
+  if(!providerChoice){const saved=storageGet(taskKey('provider'));providerChoice=typeof saved==='string'?saved:'';}
+  return providerChoice||availableProviders()[0]?.id||'codex';
 }
-function taskProviderChoice(){return taskDraft(taskSelected.path).provider||taskJobs[taskSelected.path]?.latest?.provider||availableProviders()[0]?.id||'codex';}
+function renderProviderChoice(){
+  const select=$('ai-provider');fillProviders(select,selectedProvider());select.disabled=!data.ai;
+  select.onchange=()=>{providerChoice=select.value;storageSet(taskKey('provider'),select.value);};
+}
+const providerMissing='맨 위에서 고른 AI가 연결되어 있지 않습니다. 다른 AI를 고르거나 OpenWorkflow.bat을 다시 실행하세요.';
 async function loadTaskJobs(){
   if(taskJobsLoading||typeof fetch==='undefined'||!data.ai)return;
   taskJobsLoading=true;
   try{
     const result=await workflowRequest('/test-feedback',{action:'list'});
-    taskProviders=result.providers||null;taskJobs=result.records;taskJobsLoaded=true;if(Array.isArray(result.tasks))liveTaskRecords=result.tasks;
+    taskProviders=result.providers||null;renderProviderChoice();taskJobs=result.records;taskJobsLoaded=true;if(Array.isArray(result.tasks))liveTaskRecords=result.tasks;
     if(!location.hash||location.hash==='#')renderTaskRecords();
     if(taskSelected){
       const job=taskJobs[taskSelected.path];
@@ -74,10 +78,9 @@ function openNewTask(){
   fields.append(
     taskField('제목',taskInput('input','제목',draft.title,80,value=>remember({title:value}))),
     taskField('요청',Object.assign(taskInput('textarea','요청',draft.request,20000,value=>remember({request:value})),{rows:8,placeholder:'무엇을 왜 바꾸고 싶은지, 알고 있는 제약이나 참고할 기록을 적어주세요.'})),
-    actorField(),
-    providerField('new-task-provider',draft.provider||availableProviders()[0]?.id||'codex',value=>remember({provider:value})));
+    actorField());
   const submit=workflowButton('AI에게 전달',()=>sendNewTask());submit.id='new-task-submit';
-  panel.append(el('p','요청을 적어 전달하면 AI가 코드와 Wiki를 읽기 전용으로 조사한 뒤 질문이나 구현 계획을 돌려줍니다. 진행 과정은 새 터미널 창에 보입니다.','notice'),fields,message,submit,
+  panel.append(el('p','요청을 적어 전달하면 맨 위에서 고른 AI가 코드와 Wiki를 읽기 전용으로 조사한 뒤 질문이나 구현 계획을 돌려줍니다. 진행 과정은 새 터미널 창에 보입니다.','notice'),fields,message,submit,
     workflowButton('닫기',()=>{newTaskOpen=false;panel.hidden=true;}));
   if(storageGet(taskKey('pending')))showTaskMessage('이전 전송의 응답을 확인하지 못했습니다. AI에게 전달을 다시 누르면 저장된 요청의 접수 여부를 확인합니다.');
   renderSendState();panel.scrollIntoView?.({block:'start',behavior:'smooth'});
@@ -95,18 +98,18 @@ async function sendNewTask(){
   try{
     let request=storageGet(key);
     if(!request){
-      const draft=storageGet(taskKey('new'))||{},title=(draft.title||'').trim(),text=(draft.request||'').trim(),actor=taskActor().trim(),provider=draft.provider||availableProviders()[0]?.id||'codex';
+      const draft=storageGet(taskKey('new'))||{},title=(draft.title||'').trim(),text=(draft.request||'').trim(),actor=taskActor().trim(),provider=selectedProvider();
       if(!title)throw Error('제목을 입력하세요.');
       if(!text)throw Error('요청을 입력하세요.');
       if(!actor)throw Error('이름을 입력하세요.');
-      if(!availableProviders().some(p=>p.id===provider))throw Error('선택한 AI가 연결되어 있지 않습니다. 다른 AI를 선택하거나 OpenWorkflow.bat을 다시 실행하세요.');
+      if(!availableProviders().some(p=>p.id===provider))throw Error(providerMissing);
       request={action:'create',operationId:requestId(),title,request:text,actor,provider};
       storageSet(key,request);
     }
     const record=await workflowRequest('/test-feedback',request);
     storageRemove(key);storageRemove(taskKey('new'));
     taskJobs[record.taskPath]={taskPath:record.taskPath,revision:record.revision,latest:record.latest};
-    taskDraft(record.taskPath).provider=request.provider;taskRecordFilter='active';
+    taskRecordFilter='active';
     taskSending=false;await openTaskPanel({title:request.title,path:record.taskPath});
     showTaskMessage('새 작업을 만들었습니다. AI가 조사를 마치면 질문이나 구현 계획이 이 화면에 나타납니다.');
     await loadTaskJobs();
@@ -123,7 +126,7 @@ async function openTaskPanel(item){
   const origin=el('details');origin.id='task-origin';origin.hidden=true;
   const fields=el('fieldset');fields.id='test-feedback-fields';fields.setAttribute('aria-label','작업 입력');
   const phase=el('div');phase.id='task-phase';
-  fields.append(phase,actorField(),providerField('test-feedback-provider',taskProviderChoice(),value=>{draft.provider=value;rememberDraft(item.path);}));
+  fields.append(phase,actorField());
   const submit=workflowButton('',()=>sendTaskAction(({questions:'answer',approval:'approve'})[taskPhase()]||'submit'));submit.id='test-feedback-submit';
   const extra=el('details');extra.id='task-request';
   const note=Object.assign(taskInput('textarea','추가 요청',draft.message,10000,value=>{draft.message=value;rememberDraft(item.path);}),{rows:4});
@@ -219,7 +222,6 @@ function renderChecklist(box){
 function renderTaskStatus(){
   if(!taskSelected)return;
   const panel=$('test-feedback-result'),latest=taskJobs[taskSelected.path]?.latest;panel.replaceChildren();
-  fillProviders($('test-feedback-provider'),taskProviderChoice());
   panel.append(el('h3',latest?taskStatusText(latest.status):'아직 AI에게 맡긴 일 없음'));
   if(latest?.status==='running'){
     const minutes=Math.max(0,Math.floor((Date.now()-Date.parse(latest.startedAt||latest.at))/60000));
@@ -251,7 +253,7 @@ async function refreshTaskContext(announce=true){
   try{
     const context=await workflowRequest('/test-feedback',{action:'read',taskPath});
     if(taskSelected?.path!==taskPath)return;
-    taskContext=context;taskProviders=context.providers||null;taskJobs[taskPath]={taskPath,revision:context.revision,latest:context.latest};
+    taskContext=context;taskProviders=context.providers||null;renderProviderChoice();taskJobs[taskPath]={taskPath,revision:context.revision,latest:context.latest};
     const pending=storageGet(taskKey('pending',taskPath));
     if(pending||announce)showTaskMessage(pending?'이전 전송의 응답을 확인하지 못했습니다. 같은 버튼을 다시 누르면 저장된 요청의 접수 여부를 확인합니다.':'최신 작업 기록을 불러왔습니다.');
     renderTaskPanel();watchTaskJobs();
@@ -267,7 +269,7 @@ async function sendTaskAction(action){
     if(!request){
       if(action==='retry')await refreshTaskContext();
       if(!taskContext)throw Error('최신 상태를 먼저 불러오세요.');
-      request={action,provider:taskProviderChoice(),taskPath:item.path,operationId:requestId(),expectedRevision:taskContext.revision,taskHash:taskContext.taskHash};
+      request={action,provider:selectedProvider(),taskPath:item.path,operationId:requestId(),expectedRevision:taskContext.revision,taskHash:taskContext.taskHash};
       if(action==='submit'){
         const checks=[];
         taskContext.checklist.forEach((row,index)=>{const entry=draft.checks[row.item];if(row.owner==='사람'&&entry?.result)checks.push({index,result:entry.result,note:entry.result==='실패'?entry.note||'':''});});
@@ -282,7 +284,7 @@ async function sendTaskAction(action){
       }
       if(action==='request'){request.message=draft.message.trim();if(!request.message)throw Error('추가 요청을 입력하세요.');}
       if(action!=='retry'){request.actor=taskActor().trim();if(!request.actor)throw Error('이름을 입력하세요.');}
-      if(!availableProviders().some(p=>p.id===request.provider))throw Error('선택한 AI가 연결되어 있지 않습니다. 다른 AI를 선택하거나 OpenWorkflow.bat을 다시 실행하세요.');
+      if(!availableProviders().some(p=>p.id===request.provider))throw Error(providerMissing);
       storageSet(key,request);
     }
     const record=await workflowRequest('/test-feedback',request);
@@ -304,9 +306,9 @@ async function sendTaskAction(action){
 // 사람이 AI와 직접 대화하며 이어갈 터미널 창을 연다. 권한 확인은 평소 CLI 설정을 따른다.
 async function openTaskTerminal(){
   if(!taskSelected)return;
-  const provider=taskProviderChoice();
+  const provider=selectedProvider();
   try{
-    if(!availableProviders().some(p=>p.id===provider))throw Error('선택한 AI가 연결되어 있지 않습니다. 다른 AI를 선택하거나 OpenWorkflow.bat을 다시 실행하세요.');
+    if(!availableProviders().some(p=>p.id===provider))throw Error(providerMissing);
     await workflowRequest('/test-feedback',{action:'terminal',taskPath:taskSelected.path,provider});
     showTaskMessage(providerLabel(provider)+' 터미널 창을 열었습니다. 창에서 AI와 대화하며 이어가고, 끝나면 최신 상태 불러오기를 누르세요.');
   }catch(error){showTaskMessage(error.message);}
