@@ -9,7 +9,10 @@ const html = fs.readFileSync(path.join(root, 'Saved/Workflow/index.html'), 'utf8
 const payload = html.match(/<script id="wiki-data" type="application\/json">([\s\S]*?)<\/script>/)[1];
 const data = JSON.parse(payload);
 assert.ok(!/[<>&]/.test(payload), 'the data block escapes <, > and & so record text cannot close the script tag');
-const script = html.match(/<script>\s*([\s\S]*?)<\/script>/)[1];
+// 페이지에는 순정 marked, 뷰어 스크립트, mermaid가 차례로 실린다.
+const scripts = [...html.matchAll(/<script>\s*([\s\S]*?)<\/script>/g)].map(match => match[1]);
+const markedScript = scripts.find(s => s.includes('marked v18.0.14')), script = scripts.find(s => s.includes('function readRoute'));
+assert.ok(markedScript && scripts.indexOf(markedScript) < scripts.indexOf(script), 'marked loads before the viewer script');
 new vm.Script(script);
 assert.deepEqual(Object.keys(data).sort(), ['ai', 'documents', 'generated'], 'the page carries only what the viewer uses');
 assert.equal(new Set(data.documents.map(d => d.path)).size, data.documents.length);
@@ -17,7 +20,7 @@ assert.ok(data.documents.every(d => d.path.startsWith('.agents/workflow/')), 'th
 for (const d of data.documents) {
   assert.equal(d.text, fs.readFileSync(path.join(root, d.path), 'utf8'));
   assert.ok(!Object.hasOwn(d, 'status'), 'reader must not invent freshness from a separate manifest');
-  assert.ok(d.html.length > 0);
+  assert.ok(!Object.hasOwn(d, 'html'), 'documents carry only their source; the page renders Markdown');
 }
 class Element {
   constructor(tag) { this.tagName = tag.toUpperCase(); this.children = []; this.value = ''; this.dataset = {}; this.style = {}; this.classList = { toggle() {} }; this.handlers = {}; }
@@ -39,7 +42,10 @@ const context = vm.createContext({
   }, addEventListener() {} },
   location: { hash: '' }, window: { addEventListener() {}, scrollTo() {} },
 });
+vm.runInContext(markedScript, context);
 vm.runInContext(script, context);
+assert.equal(vm.runInContext("marked.parse('**굵게**')", context).trim(), '<p><strong>굵게</strong></p>', 'documents render with the vendored marked');
+assert.equal(vm.runInContext("marked.parse('1~2단계와 3~4단계, ~~지운 말~~')", context).trim(), '<p>1~2단계와 3~4단계, <del>지운 말</del></p>', 'Korean ranges keep their tildes; only double tildes strike through');
 // Markdown images are not shown; generated diagrams are the only data: images.
 let removedImage = false;
 const imageNode = { tagName: 'IMG', remove: () => { removedImage = true; } };

@@ -25,6 +25,7 @@
 <section id="reader" hidden><button class="back" id="back">← 작업 현황</button><div class="reader-grid"><article id="article"></article><nav id="toc" aria-label="현재 문서 목차"></nav></div><div id="metadata" class="notice"></div></section>
 </main></div>
 <script id="wiki-data" type="application/json">__WX_WIKI_DATA__</script>
+<script>__WX_MARKED_VENDOR__</script>
 <script>
 'use strict';
 const data=JSON.parse(document.getElementById('wiki-data').textContent), docs=data.documents;
@@ -37,6 +38,10 @@ $('stamp').textContent='생성 · '+data.generated;
 {const section=el('div',undefined,'nav-group');
 for(const [title,href] of [['작업 현황 대시보드','#'],['작업 절차',route('.agents/workflow/process/index.md')]]){const link=el('a',title);link.href=href;link.dataset.route=href;section.append(link);}$('nav').append(section);}
 // Markdown is content, never an executable part of the viewer.
+// 문서와 구현 계획의 Markdown은 순정 marked로 그리고, 결과는 안전 필터를 거친다.
+// 한국어 범위 표기(1~3)의 물결표가 짝지어 취소선이 되지 않도록 취소선은 ~~두 개~~만 인정한다.
+marked.use({ tokenizer: { del(src) { return src[0] === '~' && src[1] !== '~' ? { type: 'text', raw: '~', text: '~' } : false; } } });
+function renderMarkdown(text) { return safeFragment(marked.parse(text)); }
 function safeFragment(html) {
   const parsed = new DOMParser().parseFromString(html, 'text/html');
   const allowed = new Set('P H1 H2 H3 H4 H5 H6 UL OL LI BLOCKQUOTE PRE CODE TABLE THEAD TBODY TR TH TD STRONG EM DEL A HR BR DIV SPAN SUP SUB DETAILS SUMMARY'.split(' '));
@@ -56,7 +61,7 @@ function renderDocumentNotes(doc) {
   metadata.replaceChildren(el('p','문서 경로: '+doc.path));
   notes.append(metadata);
 }
-function readRoute(){document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',(location.hash.split('!')[0]||'#')===a.dataset.route));if(!location.hash||location.hash==='#'){$('dashboard').hidden=false;$('reader').hidden=true;document.title=appTitle;renderWorkSummary();return;}let path,anchor;try{[path,anchor]=location.hash.slice(1).split('!').map(decodeURIComponent);}catch{location.hash='';return;}const d=docs.find(x=>x.path===path);$('dashboard').hidden=true;$('reader').hidden=false;$('toc').replaceChildren();if(!d){$('reader').append($('metadata'));$('metadata').textContent='';$('article').replaceChildren(el('h1','문서를 찾을 수 없습니다.'),el('p',path));return;}document.title=d.title+' · '+appTitle;const body=safeFragment(d.html);$('reader').append($('metadata'));$('article').replaceChildren(...body.childNodes);renderDocumentNotes(d);renderWikiDiagrams();for(const a of $('article').querySelectorAll('a')){const href=a.getAttribute('href')||'';a.removeAttribute('href');if(/^https?:\/\//i.test(href)){a.href=href;a.target='_blank';a.rel='noopener noreferrer';continue;}if(/^[a-z][a-z0-9+.-]*:/i.test(href)||href.startsWith('//'))continue;let target,section;try{[target,section]=href.split('#').map(decodeURIComponent);}catch{continue;}const dest=target?resolvePath(d.path,target):d.path;if(docs.some(x=>x.path===dest)){a.href=route(dest,section);continue;}if(/\.(?:h|hpp|cpp|c|cs|ini|json|uplugin|uproject|ps1|cjs|js|bat|txt)$/i.test(dest)){a.replaceWith(el('code',a.textContent));}else{a.replaceWith(...a.childNodes);}}
+function readRoute(){document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',(location.hash.split('!')[0]||'#')===a.dataset.route));if(!location.hash||location.hash==='#'){$('dashboard').hidden=false;$('reader').hidden=true;document.title=appTitle;renderWorkSummary();return;}let path,anchor;try{[path,anchor]=location.hash.slice(1).split('!').map(decodeURIComponent);}catch{location.hash='';return;}const d=docs.find(x=>x.path===path);$('dashboard').hidden=true;$('reader').hidden=false;$('toc').replaceChildren();if(!d){$('reader').append($('metadata'));$('metadata').textContent='';$('article').replaceChildren(el('h1','문서를 찾을 수 없습니다.'),el('p',path));return;}document.title=d.title+' · '+appTitle;const body=renderMarkdown(d.text);$('reader').append($('metadata'));$('article').replaceChildren(...body.childNodes);renderDocumentNotes(d);renderWikiDiagrams();for(const a of $('article').querySelectorAll('a')){const href=a.getAttribute('href')||'';a.removeAttribute('href');if(/^https?:\/\//i.test(href)){a.href=href;a.target='_blank';a.rel='noopener noreferrer';continue;}if(/^[a-z][a-z0-9+.-]*:/i.test(href)||href.startsWith('//'))continue;let target,section;try{[target,section]=href.split('#').map(decodeURIComponent);}catch{continue;}const dest=target?resolvePath(d.path,target):d.path;if(docs.some(x=>x.path===dest)){a.href=route(dest,section);continue;}if(/\.(?:h|hpp|cpp|c|cs|ini|json|uplugin|uproject|ps1|cjs|js|bat|txt)$/i.test(dest)){a.replaceWith(el('code',a.textContent));}else{a.replaceWith(...a.childNodes);}}
 let i=0;for(const heading of $('article').querySelectorAll('h2,h3')){if(heading.closest('details'))continue;if(!heading.id)heading.id='section-'+(++i);const a=el('a',heading.textContent);a.href=route(d.path,heading.id);if(heading.tagName==='H3')a.style.paddingLeft='12px';$('toc').append(a);}if(anchor){const target=[...$('article').querySelectorAll('[id]')].find(n=>n.id===anchor);if(target){for(let parent=target.parentElement;parent;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true;target.scrollIntoView();}}else window.scrollTo(0,0);}
 __WX_WORKFLOW_SCRIPT__
 $('back').onclick=()=>{location.hash='';};window.addEventListener('hashchange',readRoute);renderProviderChoice();readRoute();

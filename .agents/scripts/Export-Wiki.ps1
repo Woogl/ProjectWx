@@ -15,7 +15,6 @@ $documents = @(
             title = if ($heading.Success) { $heading.Groups[1].Value.Trim() } else { $file.BaseName }
             text = $raw
             modified = $file.LastWriteTimeUtc.ToString('o')
-            html = (ConvertFrom-Markdown -InputObject $raw).Html
         }
     }
 )
@@ -25,8 +24,9 @@ $payload = @{ ai = $ai; generated = (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'); do
 $template = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/index.html'))
 $diagramScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/diagrams.js'))
 $mermaidVendor = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/vendor/mermaid-11.12.0.min.js')).Replace('</script', '<\/script')
+$markedVendor = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/vendor/marked-18.0.14.umd.js')).Replace('</script', '<\/script')
 $workflowScript = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/task-records.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/workflow.js')) + "`n" + [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'wiki-viewer/test-feedback.js'))
-$page = $template.Replace('__WX_WORKFLOW_SCRIPT__', $workflowScript).Replace('__WX_DIAGRAM_SCRIPT__', $diagramScript).Replace('__WX_MERMAID_VENDOR__', $mermaidVendor).Replace('__WX_WIKI_DATA__', $payload)
+$page = $template.Replace('__WX_WORKFLOW_SCRIPT__', $workflowScript).Replace('__WX_DIAGRAM_SCRIPT__', $diagramScript).Replace('__WX_MERMAID_VENDOR__', $mermaidVendor).Replace('__WX_MARKED_VENDOR__', $markedVendor).Replace('__WX_WIKI_DATA__', $payload)
 # 기존 파일 URL을 유지해 브라우저에 보존된 테스트 결과 입력을 잃지 않는다.
 $output = Join-Path $repo 'Saved/Workflow/index.html'
 New-Item -ItemType Directory -Path (Split-Path $output -Parent) -Force | Out-Null
