@@ -65,7 +65,7 @@ function createWikiUpdate({root,providers,commands,exec=execText,launch=spawn,ru
       const {tag,dir}=await plugin();
       const wsl=file=>exec('wsl.exe',['-e','wslpath','-a',file]);
       const info={worktree:tree,worktreeWsl:await wsl(tree),claudeObsidian:{tag,path:dir,wslPath:await wsl(dir)}};
-      state={...state,status:'running',message:`${labels[provider]}가 Wiki를 갱신하는 중입니다. 진행 과정은 터미널 창에 보입니다.`};
+      state={...state,status:'running',message:'AI가 작업하는 중입니다. 진행 과정은 터미널 창에 보입니다.'};
       const prompt=`한국어로 작업하세요. 지금 폴더는 Wiki 즉시 갱신용 작업 트리입니다(origin/main을 받은 sparse 사본). Wiki/README.md의 정기 갱신 절차와 서술 규칙을 따라 지금 Wiki를 갱신하세요. 이 PC(Windows)에서 도는 경우의 규칙도 그 문서에 있습니다.
 이 PC 정보(JSON): ${JSON.stringify(info)}
 관리자 정책과 CLI 설정을 바꾸지 마세요. 이 작업 트리 밖의 파일은 고치지 마세요.

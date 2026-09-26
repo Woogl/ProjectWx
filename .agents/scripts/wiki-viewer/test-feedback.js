@@ -1,7 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 // 작업 진행 패널: 새 작업 요청, 질문 답변, 구현 승인, 사람 항목 테스트 결과, 추가 요청을 로컬 서버를 거쳐 AI에게 전달한다.
 let taskJobs=Object.create(null),taskSelected=null,taskContext=null,newTaskOpen=false;
-let taskJobsLoaded=false,taskJobsLoading=false,taskSending=false,taskPoll=null,taskProviders=null,taskPanelView='',providerChoice='';
+let taskJobsLoaded=false,taskJobsLoading=false,taskSending=false,taskPoll=null,taskProviders=null,providerChoice='';
 const taskDrafts=Object.create(null);
 function availableProviders(){return taskProviders||[{id:'codex',label:'Codex'}];}
 function providerLabel(id){return ({codex:'Codex',claude:'Claude Code',gemini:'Gemini CLI'})[id]||id;}
@@ -32,7 +32,7 @@ function fillProviders(select,selected){
   if(!availableProviders().some(provider=>provider.id===selected)){const option=el('option',providerLabel(selected)+' · 연결 없음');option.value=selected;option.disabled=true;select.append(option);}
   select.value=selected;
 }
-// 처리할 AI는 페이지 맨 위에서 한 번 고르고, 새 작업·작업 진행·Wiki 갱신이 모두 따른다.
+// 처리할 AI는 왼쪽 메뉴 아래에서 한 번 고르고, 새 작업·작업 진행·Wiki 갱신이 모두 따른다.
 function selectedProvider(){
   if(!providerChoice){const saved=storageGet(taskKey('provider'));providerChoice=typeof saved==='string'?saved:'';}
   return providerChoice||availableProviders()[0]?.id||'codex';
@@ -41,7 +41,7 @@ function renderProviderChoice(){
   const select=$('ai-provider');fillProviders(select,selectedProvider());select.disabled=!data.ai;
   select.onchange=()=>{providerChoice=select.value;storageSet(taskKey('provider'),select.value);};
 }
-const providerMissing='맨 위에서 고른 AI가 연결되어 있지 않습니다. 다른 AI를 고르거나 OpenWorkflow.bat을 다시 실행하세요.';
+const providerMissing='왼쪽 메뉴 아래에서 고른 AI가 연결되어 있지 않습니다. 다른 AI를 고르거나 OpenWorkflow.bat을 다시 실행하세요.';
 async function loadTaskJobs(){
   if(taskJobsLoading||typeof fetch==='undefined'||!data.ai)return;
   taskJobsLoading=true;
@@ -62,9 +62,7 @@ function watchTaskJobs(){
   if(!Object.values(taskJobs).some(job=>job.latest?.status==='running'))return;
   taskPoll=setTimeout(()=>{taskPoll=null;loadTaskJobs();},3000);
 }
-// 패널 하나를 작업·새 작업·Wiki 갱신이 번갈아 쓴다. view는 지금 무엇을 보여주는지다.
-function openTaskShell(title,view='task'){
-  taskPanelView=view;
+function openTaskShell(title){
   const panel=$('test-feedback-panel');panel.hidden=false;panel.replaceChildren(el('h2',title));
   const message=el('p','','notice');message.id='test-feedback-message';message.setAttribute('role','status');
   return {panel,message};
@@ -80,7 +78,7 @@ function openNewTask(){
     taskField('요청',Object.assign(taskInput('textarea','요청',draft.request,20000,value=>remember({request:value})),{rows:8,placeholder:'무엇을 왜 바꾸고 싶은지, 알고 있는 제약이나 참고할 기록을 적어주세요.'})),
     actorField());
   const submit=workflowButton('AI에게 전달',()=>sendNewTask());submit.id='new-task-submit';
-  panel.append(el('p','요청을 적어 전달하면 맨 위에서 고른 AI가 코드와 Wiki를 읽기 전용으로 조사한 뒤 질문이나 구현 계획을 돌려줍니다. 진행 과정은 새 터미널 창에 보입니다.','notice'),fields,message,submit,
+  panel.append(el('p','요청을 적어 전달하면 왼쪽 메뉴 아래에서 고른 AI가 코드와 Wiki를 읽기 전용으로 조사한 뒤 질문이나 구현 계획을 돌려줍니다. 진행 과정은 새 터미널 창에 보입니다.','notice'),fields,message,submit,
     workflowButton('닫기',()=>{newTaskOpen=false;panel.hidden=true;}));
   if(storageGet(taskKey('pending')))showTaskMessage('이전 전송의 응답을 확인하지 못했습니다. AI에게 전달을 다시 누르면 저장된 요청의 접수 여부를 확인합니다.');
   renderSendState();panel.scrollIntoView?.({block:'start',behavior:'smooth'});

@@ -122,30 +122,32 @@ context.location.hash = '#missing-document';
 vm.runInContext('readRoute()', context);
 assert.equal(byId('article').children[0].textContent, '문서를 찾을 수 없습니다.');
 (async () => {
-  // Wiki 갱신: AI 연결이 없으면 꺼져 있고, 있으면 패널에서 고른 AI로 시작을 요청하며, 진행 중에는 다시 시작할 수 없다.
+  // Wiki 갱신: AI 연결이 없으면 꺼져 있고, 있으면 누르는 즉시 고른 AI로 시작하며, 진행 중에는 다시 누를 수 없다.
   await new Promise(resolve => setImmediate(resolve)); // 첫 렌더가 시작한 상태 확인이 끝난 뒤에 상태를 바꾼다.
   const headingButtons = () => byId('task-records').children[0].children.filter(n => n.tagName === 'BUTTON');
-  const panel = byId('test-feedback-panel'), panelButton = text => panel.children.find(n => n.tagName === 'BUTTON' && n.textContent === text);
-  const panelMessage = () => panel.children.find(n => n.id === 'test-feedback-message').textContent;
+  const wikiNotice = () => byId('task-records').children[1].textContent;
   vm.runInContext('data.ai=null;renderTaskRecords();', context);
   assert.equal(headingButtons()[1].disabled, true, 'Wiki update needs the local AI connection');
-  vm.runInContext("data.ai={token:'t',url:'http://127.0.0.1:1'};taskProviders=[{id:'claude',label:'Claude Code'},{id:'codex',label:'Codex'}];renderProviderChoice();globalThis.fired=[];globalThis.wikiState={status:'idle'};workflowRequest=async(endpoint,body)=>{fired.push([endpoint,body]);if(body.action==='start')wikiState={status:'running',provider:body.provider,message:'Codex가 Wiki를 갱신하는 중입니다.'};return wikiState;};renderTaskRecords();", context);
-  // 처리할 AI는 페이지 맨 위에서 한 번 고르고 Wiki 갱신도 그 선택을 따른다.
+  vm.runInContext("data.ai={token:'t',url:'http://127.0.0.1:1'};taskProviders=[{id:'claude',label:'Claude Code'},{id:'codex',label:'Codex'}];renderProviderChoice();globalThis.fired=[];globalThis.wikiState={status:'idle'};workflowRequest=async(endpoint,body)=>{fired.push([endpoint,body]);if(body.action==='start')wikiState={status:'running',provider:body.provider,message:'AI가 작업하는 중입니다.'};return wikiState;};renderTaskRecords();", context);
+  // 처리할 AI는 왼쪽 메뉴 아래에서 한 번 고르고 Wiki 갱신도 그 선택을 따른다.
   const aiChoice = byId('ai-provider');
   assert.deepEqual(aiChoice.children.map(option => option.value), ['claude', 'codex']);
   aiChoice.value = 'codex'; aiChoice.onchange();
   assert.equal(headingButtons()[1].disabled, false);
-  headingButtons()[1].onclick(); await new Promise(resolve => setImmediate(resolve));
-  assert.equal(panel.children[0].textContent, 'Wiki 갱신');
-  assert.ok(!panel.children.some(n => n.tagName === 'FIELDSET'), 'the Wiki update panel has no AI field of its own');
-  await panelButton('갱신 시작').onclick();
+  byId('test-feedback-panel').hidden = true;
+  await headingButtons()[1].onclick();
   assert.deepEqual(JSON.parse(JSON.stringify(context.fired.at(-1))), ['/wiki-update', { action: 'start', provider: 'codex' }]);
-  assert.equal(panelButton('갱신 시작').disabled, true, 'a running Wiki update cannot start again');
-  assert.match(panelMessage(), /갱신하는 중/);
+  assert.equal(byId('test-feedback-panel').hidden, true, 'the Wiki update starts without opening a panel');
+  assert.equal(headingButtons()[1].disabled, true, 'a running Wiki update cannot start again');
+  assert.equal(wikiNotice(), 'Wiki 갱신 중 · Codex · AI가 작업하는 중입니다.');
   vm.runInContext("wikiState={status:'complete',provider:'codex',summary:'원자료 1건을 수집했습니다.'};", context);
   await vm.runInContext('loadWikiUpdate()', context);
-  assert.equal(panelButton('갱신 시작').disabled, false);
-  assert.match(panelMessage(), /마쳤습니다\(Codex\)\. 원자료 1건을 수집했습니다\./);
-  assert.match(byId('task-records').children[1].textContent, /마쳤습니다/, 'the dashboard keeps the last result');
+  assert.equal(headingButtons()[1].disabled, false);
+  assert.match(wikiNotice(), /마쳤습니다\(Codex\)\. 원자료 1건을 수집했습니다\./, 'the dashboard keeps the last result');
+  // 고른 AI가 연결되어 있지 않으면 요청하지 않고 그 이유를 같은 자리에 보여준다.
+  const before = context.fired.length;
+  vm.runInContext("taskProviders=[{id:'claude',label:'Claude Code'}];renderProviderChoice();", context);
+  await headingButtons()[1].onclick();
+  assert.equal(context.fired.length, before); assert.match(wikiNotice(), /연결되어 있지 않습니다/);
   console.log(`PASS ${data.documents.length} document snapshots, metadata, JS syntax, task states, new task and task panel entries, Wiki update button, index navigation, launcher, routing and missing-document handling`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -30,36 +30,23 @@ async function loadWikiUpdate() {
   showWikiUpdate();
 }
 function showWikiUpdate() {
-  renderTaskRecords();renderWikiUpdate();
+  renderTaskRecords();
   if(wikiUpdateBusy()&&!wikiUpdatePoll&&typeof setTimeout!=='undefined')wikiUpdatePoll=setTimeout(()=>{wikiUpdatePoll=null;loadWikiUpdate();},3000);
 }
 function wikiUpdateText() {
   const who=providerLabel(wikiUpdate.provider||'');
-  if(wikiUpdateBusy())return wikiUpdate.message+' · '+who;
+  if(wikiUpdateBusy())return `Wiki 갱신 중 · ${who} · ${wikiUpdate.message}`;
   if(wikiUpdate.status==='setup')return wikiUpdate.message;
   if(wikiUpdate.status==='complete')return `Wiki 갱신을 마쳤습니다(${who}). ${wikiUpdate.summary} main에 올라간 결과는 pull하면 Obsidian에서 볼 수 있습니다.`;
   if(wikiUpdate.status==='failed')return 'Wiki 갱신을 하지 못했습니다. '+wikiUpdate.error;
   return '';
 }
-function openWikiUpdate() {
-  taskSelected=null;taskContext=null;newTaskOpen=false;
-  openTaskShell('Wiki 갱신','wiki-update');renderWikiUpdate();
-  if(!wikiUpdateBusy())loadWikiUpdate();
-}
-// 패널이 Wiki 갱신을 보여주는 동안에만 다시 그린다.
-function renderWikiUpdate() {
-  const panel=$('test-feedback-panel');
-  if(panel.hidden||taskPanelView!=='wiki-update')return;
-  const {message}=openTaskShell('Wiki 갱신','wiki-update'),busy=wikiUpdateBusy();
-  const start=workflowButton('갱신 시작',()=>startWikiUpdate());start.id='wiki-update-start';start.disabled=busy;
-  message.textContent=wikiUpdateText();
-  panel.append(el('p','맨 위에서 고른 AI가 이 PC에서 Wiki/README.md 절차로 Wiki를 갱신하고 main에 푸시합니다. WSL과 claude-obsidian이 없으면 설치를 시작합니다. 진행 과정은 새 터미널 창에 보입니다.','notice'),message,start,workflowButton('닫기',()=>{panel.hidden=true;}));
-}
+// 버튼을 누르면 바로 시작하고, 진행과 결과는 작업 기록 제목 아래 한 줄로 보여준다.
 async function startWikiUpdate() {
   if(wikiUpdateBusy())return;
   const provider=selectedProvider();
-  if(!availableProviders().some(p=>p.id===provider))return showTaskMessage(providerMissing);
   Object.assign(wikiUpdate,{summary:'',error:''});
+  if(!availableProviders().some(p=>p.id===provider)){Object.assign(wikiUpdate,{status:'failed',provider,error:providerMissing});return showWikiUpdate();}
   try{Object.assign(wikiUpdate,await workflowRequest('/wiki-update',{action:'start',provider}));}
   catch(error){Object.assign(wikiUpdate,{status:'failed',error:error.message});}
   showWikiUpdate();
@@ -68,8 +55,8 @@ function renderTaskRecords() {
   const panel=$('task-records');panel.replaceChildren();
   const groups=taskRecordGroups(),total=groups.reduce((n,g)=>n+g.items.length,0);
   const heading=el('div',undefined,'record-heading'),start=workflowButton('새 작업',()=>openNewTask());start.id='new-task-open';
-  const update=workflowButton('Wiki 갱신',()=>openWikiUpdate());update.id='wiki-update';update.disabled=!data.ai;
-  if(!data.ai)update.title='OpenWorkflow.bat을 다시 실행해 AI 연결을 시작하세요.';
+  const update=workflowButton('Wiki 갱신',()=>startWikiUpdate());update.id='wiki-update';update.disabled=!data.ai||wikiUpdateBusy();
+  update.title=!data.ai?'OpenWorkflow.bat을 다시 실행해 AI 연결을 시작하세요.':wikiUpdateBusy()?'Wiki를 갱신하는 중입니다.':'왼쪽 메뉴 아래에서 고른 AI가 이 PC에서 Wiki를 갱신하고 main에 푸시합니다. WSL과 claude-obsidian이 없으면 설치를 시작합니다.';
   heading.append(el('h2','확인할 일과 작업 기록'),start,update);panel.append(heading);
   if(wikiUpdate.status!=='idle')panel.append(el('p',wikiUpdateText(),'notice'));
   if(!total){panel.append(el('p','작업 기록이 없습니다. 새 작업으로 시작하세요.','notice'));return;}
