@@ -2,6 +2,16 @@
   "address_map": {},
   "description": "Ingest delta tracker. Source payloads are create-only.",
   "sources": {
+    ".raw/captured/02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - nameplate-manager.md"
+      ],
+      "sha256": "02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83",
+      "source_id": "src-73d4725c30558f841f13",
+      "supersedes": ".raw/captured/b6020103ecffc7507a7ae78cb774df9d1287a01763acc6ca9fd2a9394ac2ce64.md",
+      "title": ".agents/workflow/tasks/nameplate-manager.md"
+    },
     ".raw/captured/043c6ec9f9ee4795580b7262c786ba60fd3d28ce48e7352cc8ade80748120739.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -342,6 +352,7 @@
       ],
       "sha256": "59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206",
       "source_id": "src-997f58c17998f689ab53",
+      "superseded_by": ".raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md",
       "title": ".agents/workflow/tasks/workflow-review.md"
     },
     ".raw/captured/5b170df115d5c1ae53a3e41757022e59a6545aaba8cfb473f85312e0947daf4e.md": {
@@ -434,6 +445,16 @@
       "source_id": "src-4f16d3cb7a443cee86ee",
       "title": ".agents/workflow/tasks/dialogue-presentation-vm.md"
     },
+    ".raw/captured/6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - animnotify-labels.md"
+      ],
+      "sha256": "6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48",
+      "source_id": "src-fef53e6d8e58e757609b",
+      "supersedes": ".raw/captured/6d65717f2c0a5202d98bd731bd6bb04b1303101563323c07be80adcf6b8a9ba8.md",
+      "title": ".agents/workflow/tasks/animnotify-labels.md"
+    },
     ".raw/captured/6c2fab2cbaa84fc91b4b4504af7630f3863d76ffdc4483006a2ea428ba725081.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -450,6 +471,7 @@
       ],
       "sha256": "6d65717f2c0a5202d98bd731bd6bb04b1303101563323c07be80adcf6b8a9ba8",
       "source_id": "src-a23a1d7fb94ec48c6dd4",
+      "superseded_by": ".raw/captured/6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48.md",
       "title": ".agents/workflow/tasks/animnotify-labels.md"
     },
     ".raw/captured/6e39decd79a407896d145cd14ef97abfd7feaf7cf6f2073376b04e3b5a35c9e7.md": {
@@ -684,6 +706,7 @@
       ],
       "sha256": "b6020103ecffc7507a7ae78cb774df9d1287a01763acc6ca9fd2a9394ac2ce64",
       "source_id": "src-adaaf5f0488283bcc1c8",
+      "superseded_by": ".raw/captured/02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83.md",
       "title": ".agents/workflow/tasks/nameplate-manager.md"
     },
     ".raw/captured/b7733e6d5d5e9775110e5b2f8a574f9255ac6cfe5453bf6b0cc165287d9a2a6d.md": {
@@ -937,6 +960,16 @@
       "sha256": "e6adb3fe5b44c4d5f4f471ab1882e658b847413a077763d317542c1f10905d61",
       "source_id": "src-1497f4b6d288822484cc",
       "title": "Docs/CombatDesign/전투 방향 변경에  따른 시스템 수정 요구사항.md"
+    },
+    ".raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - workflow-review.md"
+      ],
+      "sha256": "e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7",
+      "source_id": "src-0a7e533be98a72a495b5",
+      "supersedes": ".raw/captured/59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206.md",
+      "title": ".agents/workflow/tasks/workflow-review.md"
     },
     ".raw/captured/ef0aa55fead92e04406ea9314857498ef630e94fee3d4ae87ce744265f7b365f.md": {
       "ingested": "2026-09-26",

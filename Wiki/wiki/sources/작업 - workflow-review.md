@@ -11,15 +11,15 @@ tags:
   - "Wiki"
 summary: "AI 작업 워크플로우를 점검하고 작업 절차 한 장·세 단계·테스트 체크리스트·웹 새 작업과 이어하기로 단순화한 2026-09-22~26 완료 작업 기록"
 source_type: task-record
-source_id: src-997f58c17998f689ab53
-sha256: 59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206
+source_id: src-0a7e533be98a72a495b5
+sha256: e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7
 authority: primary
 independence_key: ".agents/workflow/tasks/workflow-review.md"
 review_state: active
 refresh_due: 2026-10-26
 original_paths:
   - ".agents/workflow/tasks/workflow-review.md"
-raw_copy: ".raw/captured/59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206.md"
+raw_copy: ".raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md"
 claim_ids:
   - clm-d1d69945aa-c1
   - clm-d1d69945aa-c2
@@ -35,7 +35,8 @@ key_claims:
 # 작업 - workflow-review
 
 - 원본: `.agents/workflow/tasks/workflow-review.md`
-- 원자료 사본: `.raw/captured/59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원자료 사본: `.raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원본 갱신(2026-09-26): 옛 원자료 사본 `.raw/captured/59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206.md`를 대체했다. 바뀐 곳은 지식 반영 줄 두 곳의 옛 `.wiki` 링크를 링크 없는 텍스트로 바꾼 것뿐이며, 작업 내용·상태·검증 범위는 그대로다.
 
 ## 개요
 

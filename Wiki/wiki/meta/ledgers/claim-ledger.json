@@ -3985,9 +3985,9 @@
       "confidence": "high",
       "evidence": [
         {
-          "locator": ".agents/workflow/tasks/animnotify-labels.md",
+          "locator": ".raw/captured/6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48.md",
           "relation": "supports",
-          "source_id": "src-a23a1d7fb94ec48c6dd4"
+          "source_id": "src-fef53e6d8e58e757609b"
         }
       ],
       "location": {
@@ -4005,9 +4005,9 @@
       "confidence": "high",
       "evidence": [
         {
-          "locator": ".agents/workflow/tasks/animnotify-labels.md",
+          "locator": ".raw/captured/6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48.md",
           "relation": "supports",
-          "source_id": "src-a23a1d7fb94ec48c6dd4"
+          "source_id": "src-fef53e6d8e58e757609b"
         }
       ],
       "location": {
@@ -4025,9 +4025,9 @@
       "confidence": "high",
       "evidence": [
         {
-          "locator": ".agents/workflow/tasks/animnotify-labels.md",
+          "locator": ".raw/captured/6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48.md",
           "relation": "supports",
-          "source_id": "src-a23a1d7fb94ec48c6dd4"
+          "source_id": "src-fef53e6d8e58e757609b"
         }
       ],
       "location": {
@@ -4245,9 +4245,9 @@
       "confidence": "high",
       "evidence": [
         {
-          "locator": ".agents/workflow/tasks/nameplate-manager.md",
+          "locator": ".raw/captured/02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83.md",
           "relation": "supports",
-          "source_id": "src-adaaf5f0488283bcc1c8"
+          "source_id": "src-73d4725c30558f841f13"
         }
       ],
       "location": {
@@ -4265,9 +4265,9 @@
       "confidence": "high",
       "evidence": [
         {
-          "locator": ".agents/workflow/tasks/nameplate-manager.md",
+          "locator": ".raw/captured/02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83.md",
           "relation": "supports",
-          "source_id": "src-adaaf5f0488283bcc1c8"
+          "source_id": "src-73d4725c30558f841f13"
         }
       ],
       "location": {
@@ -4285,9 +4285,9 @@
       "confidence": "high",
       "evidence": [
         {
-          "locator": ".agents/workflow/tasks/nameplate-manager.md",
+          "locator": ".raw/captured/02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83.md",
           "relation": "supports",
-          "source_id": "src-adaaf5f0488283bcc1c8"
+          "source_id": "src-73d4725c30558f841f13"
         }
       ],
       "location": {
@@ -4305,9 +4305,9 @@
       "confidence": "high",
       "evidence": [
         {
-          "locator": ".agents/workflow/tasks/nameplate-manager.md",
+          "locator": ".raw/captured/02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83.md",
           "relation": "supports",
-          "source_id": "src-adaaf5f0488283bcc1c8"
+          "source_id": "src-73d4725c30558f841f13"
         }
       ],
       "location": {
@@ -5605,9 +5605,9 @@
       "confidence": "high",
       "evidence": [
         {
-          "locator": ".agents/workflow/tasks/workflow-review.md",
+          "locator": ".raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md",
           "relation": "supports",
-          "source_id": "src-997f58c17998f689ab53"
+          "source_id": "src-0a7e533be98a72a495b5"
         }
       ],
       "location": {
@@ -5625,9 +5625,9 @@
       "confidence": "high",
       "evidence": [
         {
-          "locator": ".agents/workflow/tasks/workflow-review.md",
+          "locator": ".raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md",
           "relation": "supports",
-          "source_id": "src-997f58c17998f689ab53"
+          "source_id": "src-0a7e533be98a72a495b5"
         }
       ],
       "location": {
@@ -5645,9 +5645,9 @@
       "confidence": "high",
       "evidence": [
         {
-          "locator": ".agents/workflow/tasks/workflow-review.md",
+          "locator": ".raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md",
           "relation": "supports",
-          "source_id": "src-997f58c17998f689ab53"
+          "source_id": "src-0a7e533be98a72a495b5"
         }
       ],
       "location": {
@@ -5665,9 +5665,9 @@
       "confidence": "high",
       "evidence": [
         {
-          "locator": ".agents/workflow/tasks/workflow-review.md",
+          "locator": ".raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md",
           "relation": "supports",
-          "source_id": "src-997f58c17998f689ab53"
+          "source_id": "src-0a7e533be98a72a495b5"
         }
       ],
       "location": {
@@ -7541,6 +7541,6 @@
       "text": "퀘스트 추적기 리졸버 구조는 2026-09-23 사용자가 인게임에서 문제없다고 확인했다."
     }
   },
-  "generated_at": "2026-09-26T05:51:41Z",
+  "generated_at": "2026-09-26T06:17:47Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }

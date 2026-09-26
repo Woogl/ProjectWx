@@ -13,6 +13,10 @@ tags:
 
 Newest completed operations appear first.
 
+## 2026-09-26 · ingest-20260926-task-link-refresh
+
+완료 작업 기록 3건의 원본이 바뀌어 원자료를 새로 수집하고 옛 사본을 대체했다: [[작업 - animnotify-labels]], [[작업 - nameplate-manager]], [[작업 - workflow-review]]. 옛 LLM Wiki(`.wiki`) 제거에 따라 링크를 텍스트로 바꾼 변경뿐이라 주제 페이지는 고치지 않았다.
+
 ## 2026-09-26 · ingest-20260926-overview
 
 첫 전체 수집(기획서 29건, 완료 작업 기록 14건, 옛 Wiki 결정 노트 66건)을 마치고 vault 개요를 한국어로 채웠다.

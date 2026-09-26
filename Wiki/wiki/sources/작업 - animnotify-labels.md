@@ -11,15 +11,15 @@ tags:
   - "에디터"
 summary: "AnimNotify 17종의 타임라인 표시 이름을 종류: 대표 값 형식의 짧은 라벨로 바꾼 작업 기록으로, 사람 확인 2/2 통과로 완료됐다."
 source_type: task-record
-source_id: src-a23a1d7fb94ec48c6dd4
-sha256: 6d65717f2c0a5202d98bd731bd6bb04b1303101563323c07be80adcf6b8a9ba8
+source_id: src-fef53e6d8e58e757609b
+sha256: 6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48
 authority: primary
 independence_key: ".agents/workflow/tasks/animnotify-labels.md"
 review_state: active
 refresh_due: 2026-10-26
 original_paths:
   - ".agents/workflow/tasks/animnotify-labels.md"
-raw_copy: ".raw/captured/6d65717f2c0a5202d98bd731bd6bb04b1303101563323c07be80adcf6b8a9ba8.md"
+raw_copy: ".raw/captured/6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48.md"
 claim_ids:
   - clm-9d2b6fff03-c1
   - clm-9d2b6fff03-c2
@@ -33,7 +33,8 @@ key_claims:
 # 작업 - animnotify-labels
 
 - 원본: `.agents/workflow/tasks/animnotify-labels.md`
-- 원자료 사본: `.raw/captured/6d65717f2c0a5202d98bd731bd6bb04b1303101563323c07be80adcf6b8a9ba8.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원자료 사본: `.raw/captured/6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원본 갱신(2026-09-26): 옛 원자료 사본 `.raw/captured/6d65717f2c0a5202d98bd731bd6bb04b1303101563323c07be80adcf6b8a9ba8.md`를 대체했다. 바뀐 곳은 재사용 지식 줄의 옛 `.wiki` 링크 두 개를 링크 없는 텍스트로 바꾼 것뿐이며, 작업 내용·상태·검증 범위는 그대로다.
 
 ## 개요
 

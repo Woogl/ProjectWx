@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T05:51:41Z",
+  "generated_at": "2026-09-26T06:17:47Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
     "src-016c4f4d42be310c6137": {
@@ -172,6 +172,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/명조 PC 시스템 역기획서.md"
+    },
+    "src-0a7e533be98a72a495b5": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7",
+      "independence_key": ".agents/workflow/tasks/workflow-review.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/e953247a056ff035e4cfdb02cd99f7391836418989e01c8b00cd6d1aff3035b7.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - workflow-review.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": "src-997f58c17998f689ab53",
+      "title": ".agents/workflow/tasks/workflow-review.md"
     },
     "src-0b2c75e17de191705e7f": {
       "authority": "primary",
@@ -895,6 +914,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-22-workflow-dashboard.md"
     },
+    "src-73d4725c30558f841f13": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83",
+      "independence_key": ".agents/workflow/tasks/nameplate-manager.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/02468f407ad2c463e35996ba2d594da2ef477fb7b90bdd3ee4b9980fd4117a83.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - nameplate-manager.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": "src-adaaf5f0488283bcc1c8",
+      "title": ".agents/workflow/tasks/nameplate-manager.md"
+    },
     "src-757f477d3daaafa3f171": {
       "authority": "primary",
       "content_kind": "document",
@@ -1233,7 +1271,7 @@
       ],
       "refresh_due": "2026-10-26",
       "retrieved_at": "2026-09-26",
-      "review_status": "active",
+      "review_status": "superseded",
       "supersedes": null,
       "title": ".agents/workflow/tasks/workflow-review.md"
     },
@@ -1328,7 +1366,7 @@
       ],
       "refresh_due": "2026-10-26",
       "retrieved_at": "2026-09-26",
-      "review_status": "active",
+      "review_status": "superseded",
       "supersedes": null,
       "title": ".agents/workflow/tasks/animnotify-labels.md"
     },
@@ -1442,7 +1480,7 @@
       ],
       "refresh_due": "2026-10-26",
       "retrieved_at": "2026-09-26",
-      "review_status": "active",
+      "review_status": "superseded",
       "supersedes": null,
       "title": ".agents/workflow/tasks/nameplate-manager.md"
     },
@@ -2072,6 +2110,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/Elite_monster.md"
+    },
+    "src-fef53e6d8e58e757609b": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48",
+      "independence_key": ".agents/workflow/tasks/animnotify-labels.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - animnotify-labels.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": "src-a23a1d7fb94ec48c6dd4",
+      "title": ".agents/workflow/tasks/animnotify-labels.md"
     }
   }
 }

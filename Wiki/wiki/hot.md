@@ -13,7 +13,7 @@ tags:
 
 ## Last Updated
 
-2026-09-26 · ingest-20260926-overview
+2026-09-26 · ingest-20260926-task-link-refresh
 
 ## Key Recent Facts
 
@@ -23,7 +23,7 @@ tags:
 
 ## Recent Changes
 
-- 새 원자료 없음(링크·목록 정리만)
+- 작업 기록 3건(animnotify-labels, nameplate-manager, workflow-review)의 원자료를 새 사본으로 대체했다. 옛 `.wiki` 링크를 텍스트로 바꾼 변경뿐이라 지식 내용은 같다.
 
 ## Active Threads
 
