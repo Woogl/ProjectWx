@@ -104,7 +104,7 @@ AI 검증은 위 체크리스트와 아래 로그에 기록했다. 렌더링·�
 - [GAS 회귀 로그](../../../Saved/Logs/ExclusiveAbilityBlocking-AscHook.log)와 [JSON 결과](../../../Saved/Tests/ExclusiveAbilityBlocking-AscHook/index.json): AssetDefaults·HookRules·Lifecycle 성공 3, 실패·경고 0. 프로세스 exit 0.
 - [기존 GA 재로드 로그](../../../Saved/Logs/ExclusiveAbilityAssets-AscHook.log)와 [계산·선언 목록](../../../Saved/Tests/ExclusiveAbilityAssets-AscHook.json): GA 40개, 쌍 1,600건, 점프 40건, 도플갱어 네 효과 참조 확인. 프로세스 exit 0.
 - 공통 규칙은 에셋/CDO를 수정하지 않는다. 명시 차단은 GA_Shared_Death의 Ability만 남고 나머지는 공통 계산으로 적용된다. GA 재저장 없이 같은 관계가 유지됨을 확인했다.
-- 재사용할 계약과 확인 한계를 [전투 어빌리티](../../../.wiki/wiki/concepts/combat-abilities.md)에 반영했다. 생성자 방식 원자료는 보존하고 새 [ASC 공통화 원자료](../../../.wiki/raw/notes/2026-09-25-ability-block-policy-centralization.md)를 추가했다.
+- 재사용할 계약과 확인 한계를 전투 어빌리티에 반영했다. 생성자 방식 원자료는 보존하고 새 ASC 공통화 원자료를 추가했다.
 
 ### 이전 생성자 선언 방식 검증
 
@@ -114,7 +114,7 @@ AI 검증은 위 체크리스트와 아래 로그에 기록했다. 렌더링·�
 - 에셋 이관: [이관 로그](../../../Saved/Logs/ExclusiveTagMigration.log), [리다이렉트 없는 검증 로그](../../../Saved/Logs/ExclusiveTagValidation.log).
 - GAS 회귀: [성공 로그](../../../Saved/Logs/ExclusiveAbilityBlocking-Retry.log), [JSON 보고서](../../../Saved/Tests/ExclusiveAbilityBlocking/index.json). `AssetDefaults`·`Lifecycle` 모두 Success, 실패·경고 0.
 - 생성 목록: `Export-AbilitySystemLists.ps1` 실행, GA 40·세트 9·캐릭터 7·몽타주 34·C++ 효과 26·GE 6·피해 표 1. `character-list`·`effect-list`에 새 효과 참조를 반영했다.
-- 지식: [.wiki 전투 문서](../../../.wiki/wiki/concepts/combat-abilities.md)와 [AI 문서](../../../.wiki/wiki/topics/ai.md)에 구현 계약과 미확인 범위를 반영했다.
+- 지식: .wiki 전투 문서와 AI 문서에 구현 계약과 미확인 범위를 반영했다.
 
 ## 근거
 

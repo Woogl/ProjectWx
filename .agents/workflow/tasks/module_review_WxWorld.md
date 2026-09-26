@@ -41,7 +41,7 @@
 - **위치**: `Plugins/WxWorld/Source/WxWorld/Private/Device/WxDeviceStateTreeComponent.cpp:60`
 - **범주**: 설계/구조
 - **문제**: 서버는 루트에서 트리를 시작한 뒤 `InitialState`로 복원 전이를 요청한다. 엔진은 틱 밖 전이 요청에 활성 상태의 `SourceStateID`를 채운다(UE 5.8 `StateTreeExecutionContext.cpp:2228`). WxInventory `WxStateTreeTask_GiveRewards.cpp:23`와 `WxStateTreeTask_RefillItemCharges.cpp:23`은 `SourceStateID` 무효만 복원으로 보므로, 이런 태스크를 InitialState 목적 상태에 두면 시작 시 실제 효과를 실행할 수 있다. WxWorld 자체의 태스크는 `IsRestoring`을 보지만 다른 도메인은 이 컴포넌트의 `bRestoringState`를 알지 못한다. 특정 현행 에셋에서 보상이 지급된다고 단정하지 않는다.
-- **제안**: 현재 저작 규칙인 “그 상태에 일회성 효과를 두지 않는다”를 유지한다(`WxDeviceStateTreeComponent.h:74`). [2026-09-24 사용자 결정의 근거](../../../.wiki/raw/notes/2026-09-24-device-statetree-cleanup.md)에 따라 **엔진이 컴포넌트에 시작 상태 지정을 열 때까지 보류한다**. 순정 해결은 `FStartParameters::SelectStateOverrideArgs`로 목적 상태에서 시작하는 것이지만, 현재 `UStateTreeComponent::StartTree`는 이를 전달하지 않는다. 현시점 적용에는 시작 루틴과 공개되지 않은 `FStateTreeComponentExecutionExtension`의 복제가 필요하므로 임의로 우회하지 않는다. 컴포넌트가 시작 상태 인자를 제공하면 재개해 모든 도메인이 동일한 초기 진입 판정을 받도록 한다.
+- **제안**: 현재 저작 규칙인 “그 상태에 일회성 효과를 두지 않는다”를 유지한다(`WxDeviceStateTreeComponent.h:74`). 2026-09-24 사용자 결정의 근거에 따라 **엔진이 컴포넌트에 시작 상태 지정을 열 때까지 보류한다**. 순정 해결은 `FStartParameters::SelectStateOverrideArgs`로 목적 상태에서 시작하는 것이지만, 현재 `UStateTreeComponent::StartTree`는 이를 전달하지 않는다. 현시점 적용에는 시작 루틴과 공개되지 않은 `FStateTreeComponentExecutionExtension`의 복제가 필요하므로 임의로 우회하지 않는다. 컴포넌트가 시작 상태 인자를 제공하면 재개해 모든 도메인이 동일한 초기 진입 판정을 받도록 한다.
 - **확신도**: 높음. 현재 컴포넌트·소비 태스크·엔진 시작/전이 경로와 기존 보류 근거를 대조했다.
 
 ## 검토 범위

@@ -153,7 +153,7 @@
 - 정본: `.agents/workflow/tasks/index.md`의 네 표를 읽으므로 별도 현황 JSON을 만들지 않는다. 공통 기록 절차에 목차의 분류·확인 범위·다음 행동 갱신을 연결했다. 과거 승인이나 원문을 변경하지 않는다.
 - 검증: TestWikiViewer·TestWikiSpaces·TestWikiTasks·TestWorkflowExecution 통과. 21개 기록의 누락·중복, 분류 전환, 서버 연결 전 표시, 기존 승인 상태 불변, 잘못된 기록 링크 제외, 웹 작업 생성·재개 시 기록 숨김, 기존 실행·저장 회귀를 확인했다. 저장소 링크 검사 통과.
 - 제한: Browser Use의 로컬 파일 URL 보안 정책으로 실제 브라우저 육안 확인은 수행하지 못했다. 우회하지 않았으며 레이아웃은 사용자 화면 확인 대상이다. 게임 코드·에셋은 수정하지 않았다.
-- 지식 반영: [Wiki 도구 구조](../../../.wiki/wiki/references/wiki-workflow.md)에 표시 원본·분류·갱신 절차·승인 경계를 통합했다. 순정 Wiki Lint는 critical/warning/suggestion/info 모두 0건이다.
+- 지식 반영: Wiki 도구 구조에 표시 원본·분류·갱신 절차·승인 경계를 통합했다. 순정 Wiki Lint는 critical/warning/suggestion/info 모두 0건이다.
 
 ## 현재 점검 · 2026-09-25
 
@@ -176,7 +176,7 @@
 - 판단: 기획자 직접 사용 대신 개발자가 전달받은 기획서를 검토한다. Workflow 문서 검색을 제거한다.
 - 구현: 단계 안내·AI 지침·검토 버튼 수정, 검색 링크·단축키·검색 주소 진입 제거. 기존 저장 키와 확정 인계 보존.
 - 검증: TestWikiViewer.cjs, TestWikiSpaces.cjs, TestWikiAI.cjs 통과. 실제 AI 응답 품질·브라우저 육안 검증은 미실시.
-- 지식 반영: [도구 구조](../../../.wiki/wiki/references/wiki-workflow.md).
+- 지식 반영: 도구 구조.
 - 별도 기존 오류: CheckWikiLinks.ps1에서 tasks/index.md의 두쫀쿠 회복 아이템 만들기 기획 인계 링크 1건 실패. 이번 변경 대상 밖이며 수정하지 않았다.
 
 ## 실행과 저장 안내 이미지 전환 · 2026-09-22

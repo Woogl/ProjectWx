@@ -22,7 +22,7 @@
 - **문제**: 발동 통지에서 `ConditionalFlowAbort`가 조건을 즉시 평가한다. UE 5.8의 `GameplayAbility.cpp:997`은 `NotifyAbilityActivated`를 `:1012`의 `Spec->ActiveCount++`보다 먼저 호출한다. 이 Decorator는 PerActor 외 정책을 `Spec.IsActive()`로 판정하므로, 기존 실행이 없는 PerExecution 스펙은 발동 통지 시점에 거짓이다. 이후 ActiveCount 증가에 대한 재평가 통지가 없어 해당 발동을 계기로 한 분기 전환을 놓친다.
 - **제안**: 현재는 조치하지 않는다. 관찰 대상에 PerExecution 어빌리티를 도입하면 인스턴스들의 `IsActive()`를 검사하도록 정책 분기를 보완하고, 첫 발동과 동시 실행·종료에 대한 BT 관찰자 중단을 검증한다.
 - **확신도**: 높음 — 엔진 호출 순서와 `FGameplayAbilitySpec::IsActive()`의 ActiveCount 판정을 정적으로 확인했다.
-- **판단**: 수용(2026-09-23 사용자) — "InstancedPerExecution인 어빌리티를 안 쓰기 때문". [당시 판단 원문](../../../.wiki/raw/notes/2026-09-23-wxai-review-followups.md)을 보존한다.
+- **판단**: 수용(2026-09-23 사용자) — "InstancedPerExecution인 어빌리티를 안 쓰기 때문". 당시 판단 원문을 보존한다.
 - **재개 조건**: 관찰 대상 어빌리티의 인스턴싱 정책을 InstancedPerExecution으로 바꾸거나 해당 정책의 신규 어빌리티를 도입할 때 재검토한다. 이번 리뷰는 기존 수용 범위를 변경하지 않는다.
 
 ## 검토 범위

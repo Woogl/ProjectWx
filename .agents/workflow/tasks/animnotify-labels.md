@@ -12,7 +12,7 @@
 - 재실행: `& 'C:/Wx/.agents/skills/build-doctor/scripts/Invoke-WxEditorBuild.ps1' -ProjectRoot 'C:/Wx'`.
 - 제출 범위: 본 세션 Notify 코드 24개와 관련 문서 7개만 단일 커밋. 사용자가 본 세션 작업물만 제출하도록 명시했으며 기존 스테이징 항목은 유지한다.
 - 기존 어빌리티·에셋 변경은 이번 수정에 포함하지 않는다. 현재 작업 트리 전체 빌드임을 구분한다.
-- 재사용 지식: [편집기 표시 규칙](../../../.wiki/wiki/references/editor-tools.md), [구현 근거](../../../.wiki/raw/notes/2026-09-25-animnotify-labels.md).
+- 재사용 지식: 편집기 표시 규칙, 구현 근거.
 
 
 ## 테스트 체크리스트

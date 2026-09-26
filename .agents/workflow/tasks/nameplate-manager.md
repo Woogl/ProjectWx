@@ -3,7 +3,7 @@
 상태: 완료 · 체크리스트 6/6 통과
 다음 행동: 변경 시 기록된 테스트 범위와 제약을 참고한다.
 
-이전 상태: 제출(2026-09-24, 사용자 "제출하려고 합니다") — 인게임 확인 대기. 이어서 NameplateManager를 WxGame으로 옮기고 오래된 CoreRedirects를 제거해 제출했다(2026-09-24, 사용자 "제출해주세요", 아래 "NameplateManager WxGame 이동" 절, Wiki 반영: raw `2026-09-24-nameplate-manager-wxgame.md`와 UI·게임 조립·전투 문서). Wiki 반영 완료(2026-09-24, [UI](../../../.wiki/wiki/topics/ui.md)의 머리 위 Nameplate 절·[게임 조립](../../../.wiki/wiki/topics/game.md)·[전투](../../../.wiki/wiki/topics/combat.md))
+이전 상태: 제출(2026-09-24, 사용자 "제출하려고 합니다") — 인게임 확인 대기. 이어서 NameplateManager를 WxGame으로 옮기고 오래된 CoreRedirects를 제거해 제출했다(2026-09-24, 사용자 "제출해주세요", 아래 "NameplateManager WxGame 이동" 절, Wiki 반영: raw `2026-09-24-nameplate-manager-wxgame.md`와 UI·게임 조립·전투 문서). Wiki 반영 완료(2026-09-24, UI의 머리 위 Nameplate 절·게임 조립·전투)
 
 - 날짜: 2026-09-23
 - 계기: [WxCombat 모듈 리뷰](module_review_WxCombat.md)의 "락온 표시가 대상 ASC 루즈 태그와 태스크가 만든 레티클 위젯으로 흩어져 있다".
