@@ -1,7 +1,7 @@
 # Wiki를 claude-obsidian으로 전환하고 정기 갱신으로 운영
 
-상태: 확인 대기 · 체크리스트 16/22 통과
-다음 행동: 사람은 이 PC의 WSL(Ubuntu) 설치를 마치고 알린다. 그 뒤 AI가 WSL 쓰기 시험과 이 PC 실제 갱신을 한다. 남은 사람 항목은 코드 리뷰, Routine 첫 실행, Wiki 갱신 버튼, 다음 날 예약 실행이다.
+상태: 확인 대기 · 체크리스트 20/25 통과
+다음 행동: AI는 커밋·푸시 뒤 대시보드로 이 PC 실제 갱신을 확인한다. 사람은 코드 리뷰, Routine 첫 실행, Wiki 갱신 버튼(새 방식), 다음 날 예약 실행을 확인한다.
 
 - 날짜: 2026-09-26
 - 계기: AI 게임 개발 워크플로우에 claude-obsidian과 llm-wiki 중 무엇이 맞는지 묻는 사용자 질문에서 시작했다. 조사와 결정은 Claude Code 클라우드 세션에서 진행했고, 구현은 사용자가 새 세션에서 이어서 한다.
@@ -44,6 +44,8 @@
 | Q6 | 웹에서 사람이 남기는 체크리스트 갱신과 의견을 어디까지 받는가 | 지금 기능 그대로(사람 항목 통과·실패, 설명은 실패에만, AI에게 추가 요청은 항상 AI 실행) / 의견 추가(통과 항목에도 의견을 적고, AI를 부르지 않고 기록만 남기는 의견 남기기를 더함) / 체크리스트 편집까지(의견 추가에 더해 사람이 항목을 추가·수정) | 의견 추가 | 사용자 2026-09-26: "지금 그대로 둡시다. 필요하면 나중에 추가할게요." |
 | D9 | 대시보드 Wiki 갱신을 무엇으로 하는가 | 클라우드 Routine 호출 / 대시보드에서 고른 AI가 이 PC에서(WSL 필요) | 사용자 결정 | 사용자 2026-09-26: ""Wiki 갱신" 버튼이 클로드 Routine을 실행하는 것이 아니라, 선택된 AI 서비스로 처리했으면 해요. Dailiy 갱신은 클로드 Routine으로 처리하겠지만, 필요에 따라서는 즉시 갱신하는 것이 필요할 수도 있으니까요." · WSL 전제 확인에 "네 설치해주세요" |
 | D10 | 다른 PC의 준비물 | 사람이 미리 설치 / 버튼이 없으면 설치 시작 | 사용자 결정 | 사용자 2026-09-26: "네, 다른 사람도 워크플로우에서 위키 갱신 버튼 눌렀을 때 설치 안되어있으면 자동 설치되게 합시다." |
+| D11 | 즉시 갱신도 Routine(Claude)으로 하는가 | Routine만 / 각자 고른 AI | Routine만(처음 추천, 철회) | 사용자 2026-09-26: "우리의 워크플로우를 claude 전용으로 고정시키고 싶지 않아요" · "Routine 링크는 순수하게 데일리 갱신 용도로만 씁시다" |
+| D12 | 이 PC에서 claude-obsidian 쓰기를 어떻게 하는가 | Windows의 AI가 `wsl.exe`를 직접 부름 / AI를 WSL 안에 설치 / WSL 없이 Wiki 파일을 직접 쓰는 스킬 / AI는 Windows 그대로, claude-obsidian 명령만 래퍼가 WSL(metadata 마운트)에서 실행 | 래퍼 | 사용자 2026-09-26: "혹시 WSL 없이 위키 갱신하는 스킬을 만들 수는 없을까요? 절차가 너부 복잡해지는 것 같아서요." → 래퍼 안과 사용자 쪽 부담을 설명한 뒤 "네 진행합시다" |
 
 - Q1 이유: 새로 수집하는 동안 기존 `.wiki/`를 읽기 전용 비교 기준으로 둘 수 있다. vault는 저장소 루트가 아니라 하위 폴더여야 한다(`Content/` 4GB 제외). 하위 폴더 vault는 저장소 루트에서 자동으로 찾지 못하므로 명령마다 `--vault Wiki`를 붙인다. 처음 이유의 "Obsidian은 점 폴더를 숨긴다"는 vault 안의 폴더 이야기라 vault 폴더 이름을 고르는 근거가 아니어서 뺐다.
 - Q2 이유(검토에서 정정): claude-obsidian은 실행 사이의 사람 편집을 감지하지 않는다. 충돌 확인은 한 실행 안의 계획→적용 사이뿐이다. 그래서 다음 갱신이 사람이 고친 페이지를 통째로 교체할 수 있고, 제목·블록 anchor나 레저가 가리키는 페이지를 지우면 이후 레저 쓰기가 모두 막힌다(`INVALID_PROVENANCE_LEDGER`). 처음 이유("바뀐 파일을 충돌로 거부해 갱신이 멈춘다")는 틀렸다.
@@ -51,6 +53,9 @@
 - Q3 이유: 헤더(`.h`)는 수집할 때 `.bin` 사본으로만 저장되고 내용 추출이 없다. 원자료 사본은 모두 커밋해야 해서(레저가 쓰기마다 사본 바이트를 검증) 헤더가 바뀔 때마다 새 사본과 재수집이 쌓인다. 추천안이면 첫 실행 규모가 약 250개에서 약 44개로 준다. 기획서의 PDF·docx·html·이미지는 내용 추출이 안 되어 Markdown만 수집한다. 헤더와 회의록은 운영해 본 뒤 더할 수 있다.
 - Q4 이유: D7 결정 뒤에 확인한 사실로 다시 묻는다. 기존 Routine은 main에 직접 푸시해 왔다(2026-09-25 실행 `6a6f0b1..cb8279e main -> main`). Routine이 PR을 스스로 병합하거나 auto-merge를 켜는 방법은 공식 문서에 없고, 저장소에 CI(`.github/`)가 없어 PR의 검사 관문은 Routine 자신의 lint뿐이다. 두 방식 모두 사람 확인 없이 반영되므로 D7의 뜻은 같다.
 - Q5 이유: 생성 목록은 claude-obsidian 트랜잭션 밖에서 쓰는 파일이다. vault에 두면 필수 속성 6개가 없어 lint 지적이 계속 나고, 로컬 AI가 조사할 때마다 다시 만들면 D1(쓰기는 정기 갱신만)과 어긋난다. AGENTS.md가 이미 조사 전에 스크립트를 실행하게 하므로 커밋할 필요가 없고, Routine에 PowerShell을 설치하지 않아도 된다.
+- D12 이유: claude-obsidian은 vault 쓰기를 Linux에서만 한다(Windows는 `UNSUPPORTED_PLATFORM`, 잠금이 POSIX 전용). 래퍼 안은 쓰기만 WSL에서 하므로 순정 규칙을 지키고, 팀원은 이미 로그인한 Windows AI를 그대로 쓴다.
+  - 기각한 안: `wsl.exe` 직접 호출은 AI마다 경로·따옴표 문제가 실측되었다(Git Bash 경로 변환 실패, `--cd ~`가 Windows 홈으로 조용히 감, PS 5.1 따옴표 깨짐). AI를 WSL에 설치하는 안은 팀원마다 AI 재설치·재로그인·Node가 필요하다. WSL 없는 스킬은 트랜잭션을 건너뛰고 레저를 직접 고쳐야 해서 순정 규칙("공유 변경은 트랜잭션 번들로만")을 어긴다.
+  - 기본 `/mnt/c`에서 쓰기가 되돌려진 원인은 권한 저장이 안 되는 마운트였고, metadata 마운트로 해결됨을 실측했다(체크리스트 「WSL 쓰기 시험」).
 - Q6 이유: 지금 화면은 통과 항목의 의견 칸을 숨기고(서버는 받는다, `wiki-viewer/test-feedback.js:205, 271`), 의견만 남기는 방법이 없다(추가 요청은 항상 모든 권한으로 AI를 실행). 의견 추가는 화면과 기록 동작 하나를 더하는 작은 변경이다. 체크리스트 편집까지 하면 "체크리스트는 AI가 만든다"는 작업 절차를 바꾸게 된다. 어느 쪽이든 Routine은 완료된 작업 기록이 바뀌면 다시 수집하므로 체크리스트 결과와 의견이 Wiki에 반영된다. 단 웹 입력은 로컬 파일에 저장되므로 작업 기록이 main에 푸시된 뒤에 반영된다.
 
 ## 구현 계획
@@ -103,8 +108,8 @@
 | 항목 | 확인 방법 | 담당 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
 | 완료 뒤 Wiki 정리 제거 | TestWorkflowTestFeedback.cjs·TestWorkflowFeedbackUI.cjs | AI | 통과 | node exit 0. 사람 항목이 모두 통과하면 AI 호출 없이 완료(record·complete)로 기록한다 |
-| Wiki 갱신 서버 경로 | TestWorkflowTestFeedback.cjs의 Wiki 갱신 검사(가짜 명령·실행기) → 잠금 제거·WSL 확인 생략 결함을 넣어 다시 실행 | AI | 통과 | WSL 배포판이 없으면 관리자 승인 설치 창만 열고 Git은 안 건드림, 첫 설정 전이면 이유만 알림, sparse 작업 트리 생성과 origin/main 맞춤, README 태그로 claude-obsidian을 받고 다시 받지 않음, 고른 AI를 작업 트리에서 work 모드로 실행, 한 번에 하나, AI 실패 이유 기록, 작업 트리 자리의 다른 폴더는 지우지 않음, 잘못된 접속 토큰 403, 진행 중 health busy. 넣은 결함 2건 모두 테스트 실패 |
-| Workflow 전용 화면 | Export-Wiki.ps1 실행 뒤 TestWikiViewer.cjs | AI | 통과 | 31개 문서가 모두 .agents/workflow, knowledge.html 없음, Wiki 갱신 버튼은 토큰이 없으면 꺼지고 켜지면 세션 링크를 보여준다 |
+| Wiki 갱신 서버 경로 | TestWorkflowTestFeedback.cjs의 Wiki 갱신 검사(가짜 명령·실행기) → `--no-launch` 제거·작업 트리 LF 설정 제거 결함을 넣어 다시 실행 | AI | 통과 | WSL이 없으면 관리자 승인 설치 창(WSL과 Ubuntu, `--no-launch`)만 열고 Git은 안 건드림, Ubuntu만 없으면 승인 없는 설치 창, 재부팅 대기 안내, Ubuntu가 있는데 python3 실패면 이유만 알림, LF sparse 작업 트리(작업 트리만 `core.autocrlf=false`), README 태그로 claude-obsidian을 받고 다시 받지 않음, AI 전에 래퍼로 WSL 실행 확인(실패면 AI를 돌리지 않음), 요청문에 래퍼 명령, 고른 AI를 작업 트리에서 work 모드로 실행, 한 번에 하나, AI 실패 이유 기록, 작업 트리 자리의 다른 폴더는 지우지 않음, 래퍼의 경로 변환과 인자, 잘못된 접속 토큰 403, 진행 중 health busy. 넣은 결함 2건 모두 테스트 실패 |
+| Workflow 전용 화면 | Export-Wiki.ps1 실행 뒤 TestWikiViewer.cjs | AI | 통과 | 31개 문서가 모두 .agents/workflow, knowledge.html 없음. Wiki 갱신 버튼 동작은 아래 「Wiki 갱신 버튼 동작」 행 |
 | 문서 링크 | CheckWikiLinks.ps1 | AI | 통과 | 32개 문서 오류 0 |
 | 목록 생성 위치 | Export-AbilitySystemLists.ps1 | AI | 통과 | Saved/AbilitySystemLists에 목록 3개 생성, 링크 13개 모두 존재, .wiki는 바뀌지 않음 |
 | 하네스 | TestAgentHarness.ps1 | AI | 통과 | exit 0 |
@@ -114,11 +119,14 @@
 | Wiki 갱신 버튼 동작 | Export-Wiki.ps1 → TestWikiViewer.cjs | AI | 통과 | AI 연결이 없으면 버튼이 꺼지고, 있으면 누르는 즉시(패널 없이) 왼쪽 메뉴 아래에서 고른 AI로 시작을 요청하며, 진행 중에는 버튼이 꺼지고, 진행·결과는 작업 기록 제목 아래 한 줄로 보임. 고른 AI가 연결되어 있지 않으면 요청하지 않고 이유를 같은 자리에 보임. 워크플로우 Node 테스트 4개 통과 |
 | 처리할 AI 한 곳에서 고르기 | TestWorkflowFeedbackUI.cjs·TestWikiViewer.cjs → 헤드리스 Edge 캡처 | AI | 통과 | 패널마다 있던 AI 칸이 없어지고 왼쪽 메뉴 아래 드롭다운 하나를 테스트 결과 전달·재시도·터미널·새 작업·Wiki 갱신이 모두 따름, 연결 안 된 선택은 다른 AI로 바꾸지 않고 연결 없음으로 보임, 캡처에서 왼쪽 메뉴 아래 위치 확인 |
 | Saved/Workflow 이동 | 경로 변경 → 페이지 재생성 → 워크플로우 Node 테스트 4개 → 서버 재시작 revision 대조 | AI | 통과 | 페이지·접속 정보·로그·AI 작업 폴더·Wiki 갱신 작업 트리(wiki-update-tree)·claude-obsidian 사본이 Saved/Workflow 아래로, 서버가 새 코드와 새 위치로 뜸, 옛 Saved/Wiki(생성 파일 5개)는 휴지통, 문서 링크 오류 0 |
-| WSL 쓰기 시험 | WSL 설치 뒤 임시 vault(저장소 밖)에 claude-obsidian init 적용 → /mnt/c의 NTFS에서 쓰기가 거부되지 않는지 | AI | 대기 |  |
-| 이 PC 실제 갱신 | WSL 설치 뒤 대시보드 서버에 Wiki 갱신을 요청해 준비물 확인·작업 트리·태그 받기·AI 실행·lint까지 끝나는지 | AI | 대기 |  |
-| 코드 리뷰 | 변경 파일은 구현 결과 절의 목록과 전환 마무리 절의 버튼 수정·대시보드 갱신 전환(Wiki-AI.cjs, Workflow-TestFeedback.cjs의 runTerminalJob, wiki-viewer/workflow.js·test-feedback.js, 테스트 2개, Wiki/README.md, process/index.md). 볼 점: 완료 처리(record·complete), Workflow 전용 화면 정리, Wiki/README.md의 갱신 절차, 준비물 자동 설치(관리자 승인 창), sparse 작업 트리와 HEAD:main 푸시, 처리할 AI 드롭다운(index.html·test-feedback.js), Saved/Workflow 경로 | 사람 | 대기 |  |
+| WSL 쓰기 시험 | 저장소 밖 임시 vault에 claude-obsidian init·capture 적용·lint를 기본 `/mnt/c`, metadata 임시 마운트(Linux 사용자·root), WSL 파일 시스템에서 각각 실행 | AI | 통과 | 기본 `/mnt/c`는 init 적용이 `RESULT_DRIFT`(플러그인이 쓴 0600이 0777로 읽힘). metadata 마운트는 사용자·root 모두 init·capture·lint 통과, 파일 모드 600 유지, root가 만든 파일도 Windows에서 읽힘. WSL 파일 시스템도 통과. 버리는 사본에서 WSL 안 Claude(169초)·Codex(181초)가 시험 원자료 수집·반영·lint 0·로컬 커밋까지 함(푸시 안 함) |
+| Wiki-Obsidian 래퍼 | 작업 트리에서 `node .agents/scripts/Wiki-Obsidian.cjs --version`과 `lint --vault Wiki` | AI | 통과 | WSL에서 claude-obsidian 2.2.0 실행, lint 131쪽·링크 1630개 이슈 0, `/mnt/wx-c`에 metadata 마운트가 자동으로 붙음 |
+| 첫 설치 흐름 | 시험 배포판을 `wsl --install Ubuntu --name WxProbe --no-launch`로 설치 → root로 python3 → 지움 | AI | 통과 | 창 없이 98초에 설치, 한 번도 실행하지 않은 배포판에서 root로 Python 3.14.4, Linux 사용자 0명, 지움 완료 |
+| Windows AI 시범 갱신 | 새 서버 코드의 준비 단계를 가짜 AI로 실행 → 작업 트리에 시험 원자료와 새 README를 넣고 이 작업 트리만 푸시 주소를 막음 → Windows의 Codex(표준 입력 요청문)가 README대로 갱신 → 되돌림 | AI | 통과 | 준비 단계 8초(LF 작업 트리, 기획서 CRLF 0개, 래퍼 확인 통과). Codex 258초: `transaction inspect`·`apply`·`lint`를 모두 래퍼로 실행, 원자료 1건 수집·노트 반영·lint 132쪽 이슈 0, 커밋 메시지 새 형식, 바뀐 Wiki 파일에 CRLF 없음, README와 원자료는 커밋에서 뺌. 푸시 없음, 작업 트리는 origin/main으로 되돌림 |
+| 이 PC 실제 갱신 | 커밋·푸시 뒤 대시보드 서버를 새로 띄우고 Wiki 갱신을 요청해 준비물 확인·LF 작업 트리·태그·래퍼 확인·AI 실행·lint까지 끝나는지 | AI | 대기 |  |
+| 코드 리뷰 | 변경 파일은 구현 결과 절의 목록과 전환 마무리 절의 버튼 수정·대시보드 갱신 전환(Wiki-AI.cjs, Wiki-Obsidian.cjs, Workflow-TestFeedback.cjs의 runTerminalJob, wiki-viewer/workflow.js·test-feedback.js, 테스트 2개, Wiki/README.md, process/index.md). 볼 점: 완료 처리(record·complete), Workflow 전용 화면 정리, Wiki/README.md의 갱신 절차(래퍼·LF·거절 시 다시 하기·커밋 메시지), 준비물 자동 설치(`--no-launch`, 관리자 승인은 WSL이 없을 때만), 래퍼의 metadata 마운트와 root 실행, LF sparse 작업 트리와 HEAD:main 푸시, 처리할 AI 드롭다운(index.html·test-feedback.js), Saved/Workflow 경로 | 사람 | 대기 |  |
 | Routine 첫 실행 | 커밋·푸시 → AI에게 Routine 전환 요청 → 웹에서 Run now. Wiki/가 init되고 기획서·완료 기록이 수집되어 main에 푸시되며 lint의 provenance_errors·dead_links가 0이다. | 사람 | 대기 | AI 확인: 두 번째 실행(cse_017DwwnfEBCVpWtgefGEpA4H)이 원자료 109건을 수집해 커밋 20b0751~33cb7ea로 푸시했고 lint는 전 항목 0이다(이 PC 재검사도 0). 첫 실행은 외부 코드 거부로 실패했다. |
-| Wiki 갱신 버튼 | OpenWorkflow.bat → 왼쪽 메뉴 아래에서 AI를 고르고 Wiki 갱신을 누른다. 준비물이 없으면 설치 안내가 나오고, 있으면 터미널 창에서 그 AI가 갱신한다. 진행 중에는 버튼이 꺼지고, 끝나면 작업 기록 제목 아래에 결과가 보이며 바뀐 것이 있으면 main에 Wiki 커밋이 올라간다. | 사람 | 대기 | 방식이 바뀌었다(D9·D10). Routine을 부르던 이전 방식의 확인 근거는 전환 마무리 절에 있다. |
+| Wiki 갱신 버튼 | OpenWorkflow.bat → 왼쪽 메뉴 아래에서 AI를 고르고 Wiki 갱신을 누른다. 준비물이 없으면 설치 창이 열리고(WSL이 없을 때만 관리자 승인, Linux 사용자 만들기 없음), 있으면 터미널 창에서 그 AI가 갱신한다. 진행 중에는 버튼이 꺼지고, 끝나면 작업 기록 제목 아래에 결과가 보이며 바뀐 것이 있으면 main에 Wiki 커밋이 올라간다. | 사람 | 대기 | 방식이 바뀌었다(D9·D10·D12). Routine을 부르던 이전 방식의 확인 근거는 전환 마무리 절에 있다. |
 | Obsidian으로 읽기 | pull → Obsidian에서 Wiki 폴더를 vault로 한 번 열기 → Obsidian을 다시 열면 Wiki vault가 열린다. 그래프·백링크·속성이 보이고 링크가 깨지지 않으며, 노트를 읽고 닫은 뒤 `git status`에 Wiki 노트 변경이 없다. | 사람 | 통과 | 이우성 2026-09-26 |
 | Wiki 줄바꿈·무시 규칙 | 규칙 추가 → Wiki 파일 다시 받기 → 노트 3개를 같은 내용의 LF로 다시 저장 → git status → lint --vault Wiki | AI | 통과 | 다시 저장한 노트가 변경으로 잡히지 않음, core-plugins.json은 무시, 원자료 사본은 -text 유지, lint 전 항목 0 |
 | Routine 순정 플러그인 설치 | 웹에서 Wiki 전용 환경을 만들고 그 환경의 설정 스크립트 칸에 스크립트를 넣는다 → AI가 Routine을 그 환경으로 옮겨 실행한다. 실행 기록에 설정 스크립트 실행이 보이고, 세션이 claude-obsidian 플러그인 스킬로 수집·lint를 마치면 AI가 저장소 사본을 지운다. | 사람 | 통과 | 이우성 2026-09-26 |
@@ -283,6 +291,30 @@ claude plugin install claude-obsidian@agricidaniel-claude-obsidian
   - 규칙(`process/index.md`)과 작업 기록(`tasks/`)은 AI 작업 도구의 운영 데이터라, 그것을 다루는 `.agents/scripts`·스킬 옆이 맞다. 사람은 대시보드로, AI는 `AGENTS.md`의 경로로 찾아 점 폴더의 단점이 작다.
   - 다른 후보는 맞지 않는다: `Docs/`는 사람이 쓰고 AI는 읽기만 하는 기획서 자리, `Wiki/`는 Wiki 갱신만 쓰는 vault이고 작업 기록은 그 입력, `Saved/`는 Git 밖 생성물 자리, 새 최상위 `Workflow/`는 데이터와 도구를 가른다.
   - 옮기면 서버 경로 검사·스크립트·테스트·스킬·`AGENTS.md`·Wiki 절차를 바꿔야 하고, vault에서 작업 기록을 저장소 경로로 식별하는 원자료 17개가 "원본 없음"이 되어 이후 수정분이 중복 수집된다.
+- 재부팅 뒤 확인과 설계 정정(2026-09-26, D11·D12)
+  - 재부팅 뒤 버튼으로 Ubuntu가 설치되었다. Linux 사용자를 만든 뒤 누른 버튼(Claude)은 "변경 없음, 커밋·푸시 없음, lint 0"으로 끝나 쓰기 단계가 돌지 않았다. 이때 AI가 문제 하나를 찾았다. 이 PC의 `core.autocrlf=true` 때문에 작업 트리의 기획서가 CRLF라, 그대로 해시하면 43개 모두 새 파일로 오판된다. 그 실행은 `git show HEAD:경로`로 피해 갔다.
+  - WSL 쓰기 시험 결과, 기본 `/mnt/c`의 임시 vault는 `init` 적용이 `RESULT_DRIFT`로 되돌려졌다. 같은 시험이 WSL 파일 시스템에서는 통과했다.
+  - 사용자 질문: "제가 워크플로우랑 어긋나게 작업하거나, 올바른 방법을 우회하는 스크립트가 계속 추가되고 있는 것일까요?"
+    - 답: 사용자 방향은 어긋나지 않았다. 다만 이 PC 갱신에서 플러그인 지원 경로를 돌아가는 장치(설치 창·재부팅 판정·작업 트리·경로 변환)가 쌓인 것은 맞다.
+    - 쓰기 시험을 설계 단계에서 먼저 하지 않은 것은 AI의 잘못이다.
+  - AI가 즉시 갱신도 Routine으로 하자고 추천했고, 사용자가 거절했다(D11).
+    - 조사 결과 claude-obsidian은 Codex·Gemini·OpenCode 등을 공식 지원한다(`setup-multi-agent.sh`, `AGENTS.md`·`GEMINI.md`). Windows에서는 스킬을 WSL에서 실행하고 vault를 WSL 파일 시스템에 두라고 안내한다.
+    - 네이티브 Windows 쓰기(#151)는 진척이 없고, v2.2.0이 최신이다.
+    - 여러 머신이 한 vault에 쓰는 수렴 방식은 정해져 있지 않다(#154). 그래서 README에 "푸시가 거절되면 합치지 않고 최신 main에서 다시 한다"를 넣었다.
+  - 사용자 질문: "워크플로우 전체를 WSL에서 실행시키는게 더 안전할지"
+    - 답: Wiki만 WSL에서 하기를 추천했다.
+    - 워크플로우의 본업인 UE5 도구는 Windows 전용이다. 저장소도 에디터 때문에 NTFS에 있어야 해서, WSL에서 다루면 느리고 권한·줄바꿈이 어긋난다.
+    - WSL은 Windows 드라이브가 붙어 있어 보안 격리가 아니다. 또 모든 팀원에게 WSL이 필요해진다.
+  - 버리는 사본에서 WSL 안에 설치한 Claude·Codex가 시험 원자료를 끝까지 처리했다. 시범 중에 알게 된 사실:
+    - 부분 사본은 원격을 지우면 커밋이 `Error building trees`로 실패한다. 그래서 원격은 두고 푸시 주소만 막았다.
+    - Codex 설치는 `CODEX_NON_INTERACTIVE=1` 없이는 "Start Codex now?"에서 멈춘다.
+    - Codex는 커밋 메시지를 `docs(wiki): …`로 썼다. 그래서 README에 커밋 메시지 형식을 정했다.
+  - 사용자 질문: "혹시 WSL 없이 위키 갱신하는 스킬을 만들 수는 없을까요?"
+    - 답: 순정 규칙 위반이라 추천하지 않고, 래퍼 안을 냈다(D12).
+    - 실측 결과 metadata 임시 마운트에서 쓰기가 통과하고, root로 실행해도 된다. `--no-launch`로 설치한 배포판은 Linux 사용자 없이 root로 바로 쓸 수 있다.
+  - 구현한 것: `Wiki-Obsidian.cjs`(래퍼), `Wiki-AI.cjs`(WSL 확인, 설치 두 갈래, LF 작업 트리, 래퍼 확인), 테스트, `Wiki/README.md`(래퍼·LF·거절 시 다시 하기·커밋 메시지·준비물).
+  - 검증: Windows의 Codex가 WSL 설치나 재로그인 없이 래퍼로 실제 쓰기까지 마쳤다(체크리스트 「Windows AI 시범 갱신」). 시범 스크립트에서 요청문을 PowerShell 5.1 인자로 넘기자 큰따옴표가 깨졌다. 대시보드 실행기처럼 표준 입력으로 넘겨 해결했다.
+  - 이 PC 정리: 옛 CRLF 작업 트리는 지우고 새로 만들었다. 시범으로 WSL에 설치한 Claude Code·Codex와 `~/.agents/skills` 연결은 새 방식에서 쓰지 않는다. 사용자가 두거나 지울 수 있다.
 
 
 ## 사용자 테스트 결과 · 2026-09-26T07:51:40.855Z
