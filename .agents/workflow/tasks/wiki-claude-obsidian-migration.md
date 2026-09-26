@@ -124,7 +124,7 @@
 | 첫 설치 흐름 | 시험 배포판을 `wsl --install Ubuntu --name WxProbe --no-launch`로 설치 → root로 python3 → 지움 | AI | 통과 | 창 없이 98초에 설치, 한 번도 실행하지 않은 배포판에서 root로 Python 3.14.4, Linux 사용자 0명, 지움 완료 |
 | Windows AI 시범 갱신 | 새 서버 코드의 준비 단계를 가짜 AI로 실행 → 작업 트리에 시험 원자료와 새 README를 넣고 이 작업 트리만 푸시 주소를 막음 → Windows의 Codex(표준 입력 요청문)가 README대로 갱신 → 되돌림 | AI | 통과 | 준비 단계 8초(LF 작업 트리, 기획서 CRLF 0개, 래퍼 확인 통과). Codex 258초: `transaction inspect`·`apply`·`lint`를 모두 래퍼로 실행, 원자료 1건 수집·노트 반영·lint 132쪽 이슈 0, 커밋 메시지 새 형식, 바뀐 Wiki 파일에 CRLF 없음, README와 원자료는 커밋에서 뺌. 푸시 없음, 작업 트리는 origin/main으로 되돌림 |
 | 이 PC 실제 갱신 | 커밋·푸시 뒤 대시보드 서버를 새로 띄우고 Wiki 갱신을 요청해 준비물 확인·LF 작업 트리·태그·래퍼 확인·AI 실행·lint까지 끝나는지 | AI | 통과 | `a5a50b359` 푸시 뒤 서버 재시작(revision 변경), 버튼과 같은 API로 Codex 요청 → 100초에 complete. 준비 10초, 대상 43개가 작업 트리 파일 해시로 바로 일치(우회 없음), 기한 경과 0, 래퍼 lint 131쪽 이슈 0, 바뀐 것이 없어 커밋·푸시 없음 |
-| 코드 리뷰 | 변경 파일은 구현 결과 절의 목록과 전환 마무리 절의 버튼 수정·대시보드 갱신 전환(Wiki-AI.cjs, Wiki-Obsidian.cjs, Workflow-TestFeedback.cjs의 runTerminalJob, wiki-viewer/workflow.js·test-feedback.js, 테스트 2개, Wiki/README.md, process/index.md). 볼 점: 완료 처리(record·complete), Workflow 전용 화면 정리, Wiki/README.md의 갱신 절차(래퍼·LF·거절 시 다시 하기·커밋 메시지), 준비물 자동 설치(`--no-launch`, 관리자 승인은 WSL이 없을 때만), 래퍼의 metadata 마운트와 root 실행, LF sparse 작업 트리와 HEAD:main 푸시, 처리할 AI 드롭다운(index.html·test-feedback.js), Saved/Workflow 경로 | 사람 | 대기 |  |
+| 코드 리뷰 | 변경 파일은 구현 결과 절의 목록과 전환 마무리 절의 버튼 수정·대시보드 갱신 전환(Wiki-AI.cjs, Wiki-Obsidian.cjs, Workflow-TestFeedback.cjs의 runTerminalJob, wiki-viewer/workflow.js·test-feedback.js, Export-Wiki.ps1의 데이터 이스케이프, 테스트 3개, Wiki/README.md, process/index.md). 볼 점: 완료 처리(record·complete), Workflow 전용 화면 정리, Wiki/README.md의 갱신 절차(래퍼·LF·거절 시 다시 하기·커밋 메시지), 준비물 자동 설치(`--no-launch`, 관리자 승인은 WSL이 없을 때만), 래퍼의 metadata 마운트와 root 실행, LF sparse 작업 트리와 HEAD:main 푸시, 처리할 AI 드롭다운(index.html·test-feedback.js), Saved/Workflow 경로 | 사람 | 대기 |  |
 | Routine 첫 실행 | 커밋·푸시 → AI에게 Routine 전환 요청 → 웹에서 Run now. Wiki/가 init되고 기획서·완료 기록이 수집되어 main에 푸시되며 lint의 provenance_errors·dead_links가 0이다. | 사람 | 대기 | AI 확인: 두 번째 실행(cse_017DwwnfEBCVpWtgefGEpA4H)이 원자료 109건을 수집해 커밋 20b0751~33cb7ea로 푸시했고 lint는 전 항목 0이다(이 PC 재검사도 0). 첫 실행은 외부 코드 거부로 실패했다. |
 | Wiki 갱신 버튼 | OpenWorkflow.bat → 왼쪽 메뉴 아래에서 AI를 고르고 Wiki 갱신을 누른다. 준비물이 없으면 설치 창이 열리고(WSL이 없을 때만 관리자 승인, Linux 사용자 만들기 없음), 있으면 터미널 창에서 그 AI가 갱신한다. 진행 중에는 버튼이 꺼지고, 끝나면 작업 기록 제목 아래에 결과가 보이며 바뀐 것이 있으면 main에 Wiki 커밋이 올라간다. | 사람 | 통과 | 이우성 2026-09-26: "통과". 서버 기록: Claude로 20:45 시작, 약 2분 뒤 complete. 새 원자료 0·기한 경과 0·래퍼 lint 이슈 0이라 커밋·푸시 없음(origin/main `53a0681e3` 그대로). Routine을 부르던 이전 방식의 확인 근거는 전환 마무리 절에 있다. |
 | Obsidian으로 읽기 | pull → Obsidian에서 Wiki 폴더를 vault로 한 번 열기 → Obsidian을 다시 열면 Wiki vault가 열린다. 그래프·백링크·속성이 보이고 링크가 깨지지 않으며, 노트를 읽고 닫은 뒤 `git status`에 Wiki 노트 변경이 없다. | 사람 | 통과 | 이우성 2026-09-26 |
@@ -319,6 +319,10 @@ claude plugin install claude-obsidian@agricidaniel-claude-obsidian
     - 이 PC: WSL 홈의 시범 설치물을 지웠다. Claude Code와 Codex(각각의 로그인 정보·설정 포함), `~/.agents/skills` 연결, claude-obsidian 원본 사본, `.bashrc`의 Codex PATH 블록이다. 지운 뒤에도 래퍼 lint는 이슈 0이다.
     - 저장소: 워크플로우 코드·문서·설정·BatchFiles를 검색했고 옛 방식의 흔적은 없었다(llm-wiki·`.wiki`·OpenWiki·`Saved/Wiki`·Routine 토큰 호출·`wsl.exe` 직접 호출·Linux 사용자 만들기). 작업 기록의 경과, Wiki 원자료, 기획서는 역사 자료라 대상에서 뺐다.
     - 남긴 것: Ubuntu의 Linux 사용자 `woogle`은 옛 첫 실행 흐름에서 만든 것이다. 새 방식에는 필요 없지만 배포판 기본 사용자라 두었다.
+  - 워크플로우 종합 점검(2026-09-26)에서 이 전환이 들인 회귀를 찾았다.
+    - 증상: `f9bf3de97`에서 Export-Wiki.ps1의 데이터 이스케이프(`<` 등으로 바꾸던 치환)가 글자 그대로 바뀌어 아무 효과가 없었다. 그래서 기록에 `</script>`가 들어가면 대시보드가 멈추고, 토큰을 가진 페이지에 스크립트를 주입할 수 있었다.
+    - 수정: 순정 `ConvertTo-Json -EscapeHandling EscapeHtml`로 바꾸고 데이터 치환을 맨 마지막으로 옮겼다. `TestWikiViewer.cjs`에 데이터 블록의 날것 `<>&`를 금지하는 단언을 더했다.
+    - 확인: 점검 에이전트의 재현용 주입 기록으로 다시 생성해, 주입이 막히는 것을 확인했다.
 
 
 ## 사용자 테스트 결과 · 2026-09-26T07:51:40.855Z
