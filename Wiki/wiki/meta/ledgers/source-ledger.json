@@ -1,0 +1,120 @@
+{
+  "generated_at": "2026-09-26T05:49:26Z",
+  "schema": "claude-obsidian.source-ledger.v1",
+  "sources": {
+    "src-4094d8d54f71a0271819": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e",
+      "independence_key": ".agents/workflow/tasks/datatable-row-preview.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - datatable-row-preview.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/datatable-row-preview.md"
+    },
+    "src-725958e8aa2fa553c301": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "e08ab0df4442cca63ac5a88a17400d167b4417518b3b7e17d258986ab9cdf24e",
+      "independence_key": ".agents/workflow/tasks/ability-table-driven.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/e08ab0df4442cca63ac5a88a17400d167b4417518b3b7e17d258986ab9cdf24e.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - ability-table-driven.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/ability-table-driven.md"
+    },
+    "src-72e77d9f8acb89ba962a": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "4a3c94e2677551a53fb9e381698c7cd8d429322687eaa89a73d819e144ded239",
+      "independence_key": ".agents/workflow/tasks/cooldown-unification.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/4a3c94e2677551a53fb9e381698c7cd8d429322687eaa89a73d819e144ded239.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - cooldown-unification.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/cooldown-unification.md"
+    },
+    "src-77f121f89f4d09dc254b": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "3a04a2bc1f49a84c8439bec3b090e0fe82da87dd46f6a29a9079ae0911c08704",
+      "independence_key": ".agents/workflow/tasks/datatable-row-rename-reference-update.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/3a04a2bc1f49a84c8439bec3b090e0fe82da87dd46f6a29a9079ae0911c08704.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - datatable-row-rename-reference-update.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/datatable-row-rename-reference-update.md"
+    },
+    "src-a23a1d7fb94ec48c6dd4": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "6d65717f2c0a5202d98bd731bd6bb04b1303101563323c07be80adcf6b8a9ba8",
+      "independence_key": ".agents/workflow/tasks/animnotify-labels.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/6d65717f2c0a5202d98bd731bd6bb04b1303101563323c07be80adcf6b8a9ba8.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - animnotify-labels.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/animnotify-labels.md"
+    },
+    "src-a36446b84e1533ed7f08": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "c5f8b4308916075f5b4fb089c0cc59a0e23a571012915a6b238fb659a422fb74",
+      "independence_key": ".agents/workflow/tasks/animnotify-categories.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/c5f8b4308916075f5b4fb089c0cc59a0e23a571012915a6b238fb659a422fb74.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - animnotify-categories.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/animnotify-categories.md"
+    }
+  }
+}

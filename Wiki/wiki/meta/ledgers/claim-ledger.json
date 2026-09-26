@@ -1,0 +1,466 @@
+{
+  "claims": {
+    "clm-2ca1fefddc-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/cooldown-unification.md",
+          "relation": "supports",
+          "source_id": "src-72e77d9f8acb89ba962a"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - cooldown-unification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "cooldown-unification 작업은 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 지우고 공용 UWxEffect_Cooldown 하나를 UWxAbilityBase의 CooldownGameplayEffectClass 기본값으로 두었다."
+    },
+    "clm-2ca1fefddc-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/cooldown-unification.md",
+          "relation": "supports",
+          "source_id": "src-72e77d9f8acb89ba962a"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - cooldown-unification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "cooldown-unification 작업에서 쿨다운 구분은 어빌리티의 CooldownTags를 ApplyCooldown이 스펙 DynamicGrantedTags에 붙이는 방식으로 한다."
+    },
+    "clm-2ca1fefddc-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/cooldown-unification.md",
+          "relation": "supports",
+          "source_id": "src-72e77d9f8acb89ba962a"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - cooldown-unification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "cooldown-unification 작업은 회피 쿨다운 4초 버그의 원인인 UWxMMC_CooldownDuration을 지우고 ApplyCooldown이 SetByCaller.Duration으로 지속시간을 넘기게 했다."
+    },
+    "clm-2ca1fefddc-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/cooldown-unification.md",
+          "relation": "supports",
+          "source_id": "src-72e77d9f8acb89ba962a"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - cooldown-unification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "cooldown-unification 작업의 사람 확인 4항목(회피 쿨다운·UI, 소환물 쿨다운 무시, 네트워크 복제, 코드 리뷰)은 2026-09-25 모두 통과했다."
+    },
+    "clm-9d2b6fff03-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/animnotify-labels.md",
+          "relation": "supports",
+          "source_id": "src-a23a1d7fb94ec48c6dd4"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - animnotify-labels.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "animnotify-labels 작업은 AnimNotify 17종의 타임라인 라벨을 종류: 대표 값 하나 형식으로 바꾸고 Row·에셋 이름은 보존했다."
+    },
+    "clm-9d2b6fff03-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/animnotify-labels.md",
+          "relation": "supports",
+          "source_id": "src-a23a1d7fb94ec48c6dd4"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - animnotify-labels.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "animnotify-labels 작업은 표시 함수와 새 override 선언만 바꾸고 실행 코드는 바꾸지 않았음을 diff 비교로 확인했다."
+    },
+    "clm-9d2b6fff03-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/animnotify-labels.md",
+          "relation": "supports",
+          "source_id": "src-a23a1d7fb94ec48c6dd4"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - animnotify-labels.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "animnotify-labels 작업의 라벨 값 일치와 가독성은 이우성이 2026-09-25 에디터에서 통과로 확인했다."
+    },
+    "clm-b6b3742e54-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/datatable-row-preview.md",
+          "relation": "supports",
+          "source_id": "src-4094d8d54f71a0271819"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - datatable-row-preview.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "datatable-row-preview 작업은 행 미리보기에서 초기 기본값과 같은 구조체를 {}로 축약하고 셀과 툴팁에 같은 텍스트를 보인다."
+    },
+    "clm-b6b3742e54-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/datatable-row-preview.md",
+          "relation": "supports",
+          "source_id": "src-4094d8d54f71a0271819"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - datatable-row-preview.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "datatable-row-preview 작업은 빈 하위 구조체를 축약하기 위해 현재 값과 초기 기본값의 엔진 JSON 표현을 재귀 비교한다."
+    },
+    "clm-b6b3742e54-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/datatable-row-preview.md",
+          "relation": "supports",
+          "source_id": "src-4094d8d54f71a0271819"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - datatable-row-preview.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "datatable-row-preview 작업의 회귀 자동화 테스트는 성공했지만 사용자 요청으로 제출 전에 제거되어 제출 코드에 포함되지 않는다."
+    },
+    "clm-b6b3742e54-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/datatable-row-preview.md",
+          "relation": "supports",
+          "source_id": "src-4094d8d54f71a0271819"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - datatable-row-preview.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "datatable-row-preview 작업의 사람 확인 3항목은 이우성이 2026-09-25 에디터에서 통과로 확인했다."
+    },
+    "clm-ba50e69b72-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/datatable-row-rename-reference-update.md",
+          "relation": "supports",
+          "source_id": "src-77f121f89f4d09dc254b"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - datatable-row-rename-reference-update.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "datatable-row-rename-reference-update 작업은 행 이름 변경 시 FDataTableRowHandle 참조를 갱신하는 에디터 전용 플러그인 DataTableRowFixup을 추가했다."
+    },
+    "clm-ba50e69b72-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/datatable-row-rename-reference-update.md",
+          "relation": "supports",
+          "source_id": "src-77f121f89f4d09dc254b"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - datatable-row-rename-reference-update.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "DataTableRowFixup은 갱신한 에셋을 Dirty로만 두고 저장은 사용자에게 맡기며, 열려 있지 않은 레벨의 배치 액터는 건너뛰고 로그로 보고한다."
+    },
+    "clm-ba50e69b72-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/datatable-row-rename-reference-update.md",
+          "relation": "supports",
+          "source_id": "src-77f121f89f4d09dc254b"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - datatable-row-rename-reference-update.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "DataTableRowFixup의 설정 bUpdateReferencesOnRowRename은 사용자 결정으로 기본값이 켜짐이며 Editor Preferences의 Wx 카테고리에 있다."
+    },
+    "clm-ba50e69b72-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/datatable-row-rename-reference-update.md",
+          "relation": "supports",
+          "source_id": "src-77f121f89f4d09dc254b"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - datatable-row-rename-reference-update.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "DataTableRowFixup은 엔진에 행 이름 변경 이벤트가 없어 RenameRow가 행 메모리를 그대로 옮기는 동작에 의존한다."
+    },
+    "clm-ba97418dba-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/ability-table-driven.md",
+          "relation": "supports",
+          "source_id": "src-725958e8aa2fa553c301"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - ability-table-driven.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "ability-table-driven 작업은 어빌리티 테이블 구동 전환을 구현한 뒤 사용자 결정(2026-09-25)으로 어빌리티마다 데이터 전용 GA_ 에셋을 두는 방식으로 돌아가 테이블화 없이 마무리됐다."
+    },
+    "clm-ba97418dba-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/ability-table-driven.md",
+          "relation": "supports",
+          "source_id": "src-725958e8aa2fa553c301"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - ability-table-driven.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "ability-table-driven 작업은 GA_ 복귀 뒤에도 공격 4분할 타입, 번호 섹션 몽타주 모델, 처형·컷신·아이템 노티파이를 유지했다."
+    },
+    "clm-ba97418dba-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/ability-table-driven.md",
+          "relation": "supports",
+          "source_id": "src-725958e8aa2fa553c301"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - ability-table-driven.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "ability-table-driven 작업은 DT_Effect를 지우고 UWxEffectComponent_Table을 Title·Description·Icon 프로퍼티를 가진 UWxEffectComponent_UIData로 바꿨으며, DT_Damage는 유지했다."
+    },
+    "clm-ba97418dba-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/ability-table-driven.md",
+          "relation": "supports",
+          "source_id": "src-725958e8aa2fa553c301"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - ability-table-driven.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "ability-table-driven 작업의 사람 인게임 확인 7항목(HGTest, 분신, 도플갱어, 조작감, 가드 경감·버프 아이콘, 템플릿 패시브 UP, 락온)은 이우성이 2026-09-25 통과로 기록했다."
+    },
+    "clm-de569da4d0-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/animnotify-categories.md",
+          "relation": "supports",
+          "source_id": "src-a36446b84e1533ed7f08"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - animnotify-categories.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "animnotify-categories 작업은 AnimNotify 17종을 Attack·AbilityFlow·Effect·Movement·Presentation·Misc 6개 분류 색상으로 나눴다."
+    },
+    "clm-de569da4d0-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/animnotify-categories.md",
+          "relation": "supports",
+          "source_id": "src-a36446b84e1533ed7f08"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - animnotify-categories.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "animnotify-categories 작업은 노티파이 색상 설정을 WxCore의 WxAnimNotifySettings로 두고 Config=Editor·DefaultConfig로 저장하게 했다."
+    },
+    "clm-de569da4d0-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/animnotify-categories.md",
+          "relation": "supports",
+          "source_id": "src-a36446b84e1533ed7f08"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - animnotify-categories.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "animnotify-categories 작업에서 공용 색상 필드는 WITH_EDITORONLY_DATA로, 17종 GetEditorColor는 WITH_EDITOR로 보호되며 패키지 빌드는 실행하지 않았다."
+    },
+    "clm-de569da4d0-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".agents/workflow/tasks/animnotify-categories.md",
+          "relation": "supports",
+          "source_id": "src-a36446b84e1533ed7f08"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - animnotify-categories.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "animnotify-categories 작업의 사람 확인 2항목(코드 리뷰, 타임라인 표시)은 이우성이 2026-09-25에 통과로 기록했다."
+    }
+  },
+  "generated_at": "2026-09-26T05:49:26Z",
+  "schema": "claude-obsidian.claim-ledger.v1"
+}

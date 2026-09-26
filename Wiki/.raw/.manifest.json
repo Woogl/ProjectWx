@@ -1,0 +1,61 @@
+{
+  "address_map": {},
+  "description": "Ingest delta tracker. Source payloads are create-only.",
+  "sources": {
+    ".raw/captured/3a04a2bc1f49a84c8439bec3b090e0fe82da87dd46f6a29a9079ae0911c08704.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - datatable-row-rename-reference-update.md"
+      ],
+      "sha256": "3a04a2bc1f49a84c8439bec3b090e0fe82da87dd46f6a29a9079ae0911c08704",
+      "source_id": "src-77f121f89f4d09dc254b",
+      "title": ".agents/workflow/tasks/datatable-row-rename-reference-update.md"
+    },
+    ".raw/captured/4a3c94e2677551a53fb9e381698c7cd8d429322687eaa89a73d819e144ded239.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - cooldown-unification.md"
+      ],
+      "sha256": "4a3c94e2677551a53fb9e381698c7cd8d429322687eaa89a73d819e144ded239",
+      "source_id": "src-72e77d9f8acb89ba962a",
+      "title": ".agents/workflow/tasks/cooldown-unification.md"
+    },
+    ".raw/captured/6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - datatable-row-preview.md"
+      ],
+      "sha256": "6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e",
+      "source_id": "src-4094d8d54f71a0271819",
+      "title": ".agents/workflow/tasks/datatable-row-preview.md"
+    },
+    ".raw/captured/6d65717f2c0a5202d98bd731bd6bb04b1303101563323c07be80adcf6b8a9ba8.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - animnotify-labels.md"
+      ],
+      "sha256": "6d65717f2c0a5202d98bd731bd6bb04b1303101563323c07be80adcf6b8a9ba8",
+      "source_id": "src-a23a1d7fb94ec48c6dd4",
+      "title": ".agents/workflow/tasks/animnotify-labels.md"
+    },
+    ".raw/captured/c5f8b4308916075f5b4fb089c0cc59a0e23a571012915a6b238fb659a422fb74.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - animnotify-categories.md"
+      ],
+      "sha256": "c5f8b4308916075f5b4fb089c0cc59a0e23a571012915a6b238fb659a422fb74",
+      "source_id": "src-a36446b84e1533ed7f08",
+      "title": ".agents/workflow/tasks/animnotify-categories.md"
+    },
+    ".raw/captured/e08ab0df4442cca63ac5a88a17400d167b4417518b3b7e17d258986ab9cdf24e.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - ability-table-driven.md"
+      ],
+      "sha256": "e08ab0df4442cca63ac5a88a17400d167b4417518b3b7e17d258986ab9cdf24e",
+      "source_id": "src-725958e8aa2fa553c301",
+      "title": ".agents/workflow/tasks/ability-table-driven.md"
+    }
+  },
+  "version": 1
+}
