@@ -155,7 +155,7 @@
 | 서버 교체 | Start-WikiAI.ps1로 다시 띄운 뒤 /health와 상태 폴더 확인 | AI | 통과 | health는 identity·busy뿐, Saved/Workflow/test-feedback 생성, 접속 정보 새로 씀 |
 | Routine 설정 | RemoteTrigger로 커넥터를 떼고 프롬프트를 줄인 뒤 get | AI | 통과 | 커넥터 0개, 프롬프트는 README 절차를 가리키는 두 문장, outcomes 빈 값, 예약(06:30 KST)·환경·도구·모델 그대로 |
 | 코드 리뷰 | 변경 파일: Workflow-TestFeedback.cjs·Wiki-AI.cjs·Wiki-AI-Providers.cjs·Wiki-Obsidian.cjs·Start-WikiAI.ps1·Export-Wiki.ps1·wiki-viewer(index.html·workflow.js·test-feedback.js·diagrams.js)·테스트 4개·Wiki/README.md·process/index.md·스킬. 볼 점: 접수 상태의 Git 밖 이동과 줄인 장치, 승인 전 추가 요청(재승인 포함)의 읽기 전용, 코드 변경 시 코드 리뷰 대기 복귀, 보류·재전송을 없앤 뒤의 중복 방지(기록 해시·작업 중 잠금), 폴링·Wiki 진행 줄, 서버 교체 규칙, 래퍼 경로 변환 | 사람 | 대기 |  |
-| 대시보드 작업 흐름 | OpenWorkflow.bat → 작업 진행 패널에서 입력하는 동안 다른 작업이 AI 처리 중이어도 3초마다 포커스·한글 조합이 끊기지 않는다. 질문 선택지는 선택 안 함으로 되돌릴 수 있다. 체크리스트 결과를 전달하면 기록된다. 완료된 작업에는 추가 요청이 없다. | 사람 | 대기 |  |
+| 대시보드 작업 흐름 | OpenWorkflow.bat → 작업 진행 패널에서 입력하는 동안 다른 작업이 AI 처리 중이어도 3초마다 포커스·한글 조합이 끊기지 않는다. 질문 선택지는 선택 안 함으로 되돌릴 수 있다. 체크리스트 결과를 전달하면 기록된다. 완료된 작업에는 추가 요청이 없다. | 사람 | 대기 | AI 확인(질문 선택 해제만, 2026-09-26): 임시 기록으로 헤드리스 Edge에서 실제 클릭 11개 통과. 처음엔 선택 안 함, 나를 고른 뒤 선택 안 함으로 풀림, 닫았다 열기·새로고침에도 유지, Q1을 비우고 전달하면 「답하지 않은 질문이 있습니다: Q1」로 막히고 답변 요청이 나가지 않음. 임시 기록은 지움. |
 | Wiki 갱신 버튼 | Wiki 갱신을 두 번 빠르게 눌러도 한 번만 시작한다. 진행 중에는 제목 아래 한 줄만 바뀌고 목록 포커스가 유지되며, 끝나면 결과 줄이 보인다. | 사람 | 대기 |  |
 
 ## 구현 결과 · 2026-09-26
