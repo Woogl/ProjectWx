@@ -1,7 +1,7 @@
 # 체크포인트 SaveGame 전환
 
-상태: 확인 대기 · 체크리스트 2/5 통과
-다음 행동: 사람 확인: 재시작 뒤 부활 (대기)
+상태: 확인 대기 · 체크리스트 2/4 통과
+다음 행동: 사람 확인: 재시작 뒤 슬롯 공유 (대기)
 
 - 사용자 요청: UWxCheckpointSubsystem을 제거하고 SaveGame으로 처리.
 - 이전 상태: 구현 및 Editor Development 빌드 검증 완료. 인게임 확인 대기.
@@ -17,6 +17,7 @@
 - 단일 슬롯 변경 검증: WxEditor Win64 Development 빌드 성공(종료 코드 0, 47.10초). 로그: Saved/Logs/BuildDoctor/build_2026-09-25_183146_475_27060.log. 인게임 저장·조회는 미검증.
 
 - 후속 리다이렉트 정리 완료: ST_CheckPoint 리세이브 후 Config의 두 StructRedirects 제거. 리다이렉트 없는 별도 엔진 프로세스의 재로드·StateTree 컴파일·저장 성공(종료 0). 로그: Saved/Logs/CheckpointResave.log, Saved/Logs/CheckpointWithoutRedirects.log. Content/Plugins 에셋에서 이전 구조체 이름 검색 결과 없음. 기존 BP_CheckPoint 사용자 변경은 보존했다.
+- 체크리스트 정리(2026-09-27, 확인 대기 일감 정리 요청): '재시작 뒤 부활'은 없는 이어하기 흐름을 가리켰다. 프런트엔드에는 새 게임뿐이고 새 게임은 체크포인트를 지운다(`UWxGameFlowSubsystem::RequestNewGame` → `ResetCheckpoint`). PIE에서 저장한 뒤 Standalone으로 실행하는 확인이 새 프로세스에서 같은 슬롯을 읽어 재시작 뒤 부활까지 보므로 'PIE·일반 플레이 슬롯 공유'와 한 항목으로 합쳤다.
 
 
 <!-- test-feedback:request-b19e39f0-456d-450f-8b76-526941908a5f:1 -->
@@ -25,8 +26,7 @@
 | 항목 | 확인 방법 | 담당 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
 | 사망·부활·새 게임 | 게임: 체크포인트 저장 뒤 사망·부활, 새 게임 초기화 | 사람 | 통과 | 이우성 2026-09-25 |
-| 재시작 뒤 부활 | 게임을 완전히 종료했다가 다시 실행해 이어하면 저장한 체크포인트에서 부활한다 | 사람 | 대기 |  |
-| PIE·일반 플레이 슬롯 공유 | PIE에서 저장한 뒤 일반 플레이(Standalone)로 이어하면 같은 WxCheckpoint 슬롯에서 부활한다 | 사람 | 대기 |  |
+| 재시작 뒤 슬롯 공유 | 에디터에서 체크포인트가 있는 맵을 직접 열고 PIE로 체크포인트에 저장한 뒤 PIE를 끝낸다. 같은 맵을 Standalone Game으로 실행해 사망·부활하면 저장한 체크포인트에서 부활한다. 프런트엔드의 새 게임은 체크포인트를 지우므로 거치지 않는다. | 사람 | 대기 |  |
 | 저장·조회 실패 처리 | 자동화 테스트: 저장 실패 시 태스크 Failed, 조회 불가 시 PlayerStart 부활, 슬롯 삭제 실패 시 새 게임 이동 중단 | AI | 대기 |  |
 | 코드 리뷰 | UWxCheckpointSaveGame·SaveCheckpoint 태스크·부활·새 게임 호출부 | 사람 | 통과 | 이우성 2026-09-25 |
 
