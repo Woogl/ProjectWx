@@ -325,7 +325,8 @@ function fixture(providers=['codex'],content=taskText){
     return '';
   };
   const run=async options=>{ran=options;if(runResult instanceof Error)throw runResult;return runResult;};
-  const update=createWikiUpdate({root:wikiRoot,providers:['codex','claude'],commands:{codex:{file:'codex'},claude:{file:'claude'}},exec,launch:(file,args)=>{launched.push([file,...args].join(' '));return {unref(){}};},run,now:()=>'2026-09-26T00:00:00Z'});
+  // 설치 안내 창은 실제 터미널 열기 검사를 거친다(창 인자에 쓸 수 없는 문자가 있으면 여기서 실패).
+  const update=createWikiUpdate({root:wikiRoot,providers:['codex','claude'],commands:{codex:{file:'codex'},claude:{file:'claude'}},exec,open:(root,title,argv)=>{openTerminal(root,title,argv,()=>({unref(){}}));launched.push([title,...argv].join(' '));},run,now:()=>'2026-09-26T00:00:00Z'});
   const settleUpdate=async()=>{for(let i=0;i<100&&update.isBusy();i++)await new Promise(resolve=>setImmediate(resolve));};
   const updateState=()=>update.act({action:'status'});
   assert.deepEqual(updateState(),{status:'idle'});
@@ -334,7 +335,8 @@ function fixture(providers=['codex'],content=taskText){
   // WSL 배포판이 없으면 관리자 승인 창으로 설치를 시작하고 Git은 건드리지 않는다.
   assert.equal(update.act({action:'start',provider:'claude'}).status,'preparing');await settleUpdate();
   assert.equal(updateState().status,'setup');assert.match(updateState().message,/Linux 사용자/);
-  assert.deepEqual(launched,["powershell.exe -NoProfile -Command Start-Process -Verb RunAs -FilePath wsl.exe -ArgumentList '--install','-d','Ubuntu'"]);
+  assert.equal(launched.length,1);assert.match(launched[0],/^Wx · WSL 설치 powershell\.exe -NoExit -NoProfile -Command /,'a visible window stays open with the instructions');
+  assert.match(launched[0],/Start-Process -Verb RunAs -FilePath wsl\.exe -ArgumentList '--install','-d','Ubuntu' -Wait/);assert.match(launched[0],/설치를 시작하지 못했습니다/,'a declined or failed elevation is shown in the window');
   assert.ok(!calls.some(c=>c.startsWith('git ')));
   // 배포판은 있는데 python3를 못 부르면(첫 설정 전) 설치 창 없이 이유를 알린다.
   wslState='unset';update.act({action:'start',provider:'claude'});await settleUpdate();

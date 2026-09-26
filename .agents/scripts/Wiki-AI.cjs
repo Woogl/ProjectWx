@@ -3,9 +3,9 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { execFile, spawn } = require('node:child_process');
+const { execFile } = require('node:child_process');
 const { labels } = require('./Wiki-AI-Providers.cjs');
-const { createFeedbackService, runJob, runTerminalJob, openSession, readTasks } = require('./Workflow-TestFeedback.cjs');
+const { createFeedbackService, runJob, runTerminalJob, openTerminal, openSession, readTasks } = require('./Workflow-TestFeedback.cjs');
 const repo = path.resolve(__dirname, '../..');
 const identity = crypto.createHash('sha256').update(repo.toLowerCase()).digest('hex');
 const protocol = 4;
@@ -16,19 +16,19 @@ const execText=(file,args,options={})=>new Promise((resolve,reject)=>execFile(fi
 const wikiSchema={type:'object',additionalProperties:false,required:['summary','evidence'],properties:{summary:{type:'string'},evidence:{type:'array',items:{type:'string'}}}};
 // 대시보드의 Wiki 갱신: 고른 AI가 이 PC에서 Wiki/README.md 절차로 Wiki를 갱신해 main에 푸시한다.
 // 사용자 작업 트리와 섞이지 않게 origin/main의 sparse 작업 트리에서 하고, 준비물(WSL, claude-obsidian)이 없으면 설치를 시작한다.
-function createWikiUpdate({root,providers,commands,exec=execText,launch=spawn,run=runTerminalJob,now=()=>new Date().toISOString()}){
+function createWikiUpdate({root,providers,commands,exec=execText,open=openTerminal,run=runTerminalJob,now=()=>new Date().toISOString()}){
   const tree=path.join(root,'Saved/Workflow/wiki-update-tree');
   let state={status:'idle'};
   const busy=()=>['preparing','running'].includes(state.status);
   const step=message=>{state={...state,message};};
   const git=(...args)=>exec('git',args,{cwd:root});
-  // claude-obsidian은 Windows에서 vault를 쓰지 못해 쓰기 명령은 WSL에서 돈다. 배포판이 없으면 관리자 승인 창으로 설치를 시작한다.
+  // claude-obsidian은 Windows에서 vault를 쓰지 못해 쓰기 명령은 WSL에서 돈다. WSL이나 배포판이 없으면 보이는 안내 창에서 관리자 승인으로 설치를 시작한다.
   async function wslReady(){
     try{await exec('wsl.exe',['-e','python3','--version'],{timeout:3*60*1000});return true;}catch{}
     let installed=true;
     try{await exec('wsl.exe',['-l','-q']);}catch{installed=false;}
     if(installed)throw Error('WSL에서 python3를 실행하지 못했습니다. Ubuntu 창을 열어 첫 설정(Linux 사용자 만들기)을 마쳤는지 확인하세요.');
-    launch('powershell.exe',['-NoProfile','-Command',"Start-Process -Verb RunAs -FilePath wsl.exe -ArgumentList '--install','-d','Ubuntu'"],{detached:true,stdio:'ignore',windowsHide:true}).unref();
+    open(root,'Wx · WSL 설치',['powershell.exe','-NoExit','-NoProfile','-Command',"Write-Host 'WSL(Ubuntu)을 설치합니다. 관리자 승인 창에서 [예]를 누르세요.'; try { Start-Process -Verb RunAs -FilePath wsl.exe -ArgumentList '--install','-d','Ubuntu' -Wait -ErrorAction Stop; Write-Host '설치 창이 닫혔습니다. 재부팅 안내가 있었다면 재부팅하고, Ubuntu 창에서 Linux 사용자를 만든 뒤 대시보드에서 Wiki 갱신을 다시 누르세요.' } catch { Write-Host ('설치를 시작하지 못했습니다: ' + $_.Exception.Message) }"]);
     return false;
   }
   async function prepareTree(){
@@ -59,7 +59,7 @@ function createWikiUpdate({root,providers,commands,exec=execText,launch=spawn,ru
   async function work(provider){
     try{
       step('WSL을 확인하는 중입니다.');
-      if(!await wslReady()){state={...state,status:'setup',message:'WSL(Ubuntu) 설치 창을 열었습니다. 관리자 권한을 허용하고, 재부팅 안내가 나오면 재부팅한 뒤, Ubuntu 창에서 Linux 사용자를 만들고 Wiki 갱신을 다시 누르세요.',at:now()};return;}
+      if(!await wslReady()){state={...state,status:'setup',message:'WSL(Ubuntu) 설치 안내 창을 열었습니다. 창의 안내대로 관리자 승인을 허용하고, 재부팅 안내가 나오면 재부팅한 뒤, Ubuntu 창에서 Linux 사용자를 만들고 Wiki 갱신을 다시 누르세요.',at:now()};return;}
       step('Wiki 작업 트리를 origin/main으로 맞추는 중입니다.');
       await prepareTree();
       const {tag,dir}=await plugin();
