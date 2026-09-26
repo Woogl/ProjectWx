@@ -111,14 +111,14 @@
 | 원자료 사본 줄바꿈 | 이 PC에서 저장소 사본의 claude-obsidian lint --vault Wiki | AI | 통과 | Windows에서 꺼낸 사본이 CRLF가 되어 provenance_errors 109건 → .gitattributes에 Wiki/.raw/** -text를 더하고 다시 꺼낸 뒤 전 항목 0 |
 | claude-obsidian 사본 축소 | 줄인 사본으로 모의 init·lint·doctor | AI | 통과 | 101개 → 58개(약 0.8MB), init 14개 계획, lint 전 항목 0, doctor ok |
 | 레거시 제거 | 옛 Wiki 참조 검색과 링크 검사 | AI | 통과 | .wiki 제거(154개 추적 파일, 폴더는 휴지통), llm-wiki 플러그인·마켓플레이스 제거, 남은 참조 0, CheckWikiLinks 오류 0, Node 테스트 4개·하네스 통과. 뒤이어 Codex·Claude·Obsidian 사용자 설정의 흔적도 정리했고 llm-wiki 검색 0(전환 마무리 절) |
-| Wiki 갱신 패널 | Export-Wiki.ps1 → TestWikiViewer.cjs | AI | 통과 | AI 연결이 없으면 버튼이 꺼지고, 있으면 패널에서 고른 AI로 시작을 요청하며, 진행 중에는 갱신 시작이 꺼지고, 끝나면 패널과 대시보드에 결과가 보임. 워크플로우 Node 테스트 4개 통과 |
+| Wiki 갱신 버튼 동작 | Export-Wiki.ps1 → TestWikiViewer.cjs | AI | 통과 | AI 연결이 없으면 버튼이 꺼지고, 있으면 누르는 즉시(패널 없이) 왼쪽 메뉴 아래에서 고른 AI로 시작을 요청하며, 진행 중에는 버튼이 꺼지고, 진행·결과는 작업 기록 제목 아래 한 줄로 보임. 고른 AI가 연결되어 있지 않으면 요청하지 않고 이유를 같은 자리에 보임. 워크플로우 Node 테스트 4개 통과 |
 | 처리할 AI 한 곳에서 고르기 | TestWorkflowFeedbackUI.cjs·TestWikiViewer.cjs → 헤드리스 Edge 캡처 | AI | 통과 | 패널마다 있던 AI 칸이 없어지고 왼쪽 메뉴 아래 드롭다운 하나를 테스트 결과 전달·재시도·터미널·새 작업·Wiki 갱신이 모두 따름, 연결 안 된 선택은 다른 AI로 바꾸지 않고 연결 없음으로 보임, 캡처에서 왼쪽 메뉴 아래 위치 확인 |
 | Saved/Workflow 이동 | 경로 변경 → 페이지 재생성 → 워크플로우 Node 테스트 4개 → 서버 재시작 revision 대조 | AI | 통과 | 페이지·접속 정보·로그·AI 작업 폴더·Wiki 갱신 작업 트리(wiki-update-tree)·claude-obsidian 사본이 Saved/Workflow 아래로, 서버가 새 코드와 새 위치로 뜸, 옛 Saved/Wiki(생성 파일 5개)는 휴지통, 문서 링크 오류 0 |
 | WSL 쓰기 시험 | WSL 설치 뒤 임시 vault(저장소 밖)에 claude-obsidian init 적용 → /mnt/c의 NTFS에서 쓰기가 거부되지 않는지 | AI | 대기 |  |
 | 이 PC 실제 갱신 | WSL 설치 뒤 대시보드 서버에 Wiki 갱신을 요청해 준비물 확인·작업 트리·태그 받기·AI 실행·lint까지 끝나는지 | AI | 대기 |  |
 | 코드 리뷰 | 변경 파일은 구현 결과 절의 목록과 전환 마무리 절의 버튼 수정·대시보드 갱신 전환(Wiki-AI.cjs, Workflow-TestFeedback.cjs의 runTerminalJob, wiki-viewer/workflow.js·test-feedback.js, 테스트 2개, Wiki/README.md, process/index.md). 볼 점: 완료 처리(record·complete), Workflow 전용 화면 정리, Wiki/README.md의 갱신 절차, 준비물 자동 설치(관리자 승인 창), sparse 작업 트리와 HEAD:main 푸시, 처리할 AI 드롭다운(index.html·test-feedback.js), Saved/Workflow 경로 | 사람 | 대기 |  |
 | Routine 첫 실행 | 커밋·푸시 → AI에게 Routine 전환 요청 → 웹에서 Run now. Wiki/가 init되고 기획서·완료 기록이 수집되어 main에 푸시되며 lint의 provenance_errors·dead_links가 0이다. | 사람 | 대기 | AI 확인: 두 번째 실행(cse_017DwwnfEBCVpWtgefGEpA4H)이 원자료 109건을 수집해 커밋 20b0751~33cb7ea로 푸시했고 lint는 전 항목 0이다(이 PC 재검사도 0). 첫 실행은 외부 코드 거부로 실패했다. |
-| Wiki 갱신 버튼 | OpenWorkflow.bat → Wiki 갱신 → AI를 골라 갱신 시작. 준비물이 없으면 설치 안내가 나오고, 있으면 터미널 창에서 그 AI가 갱신한다. 진행 중에는 갱신 시작이 꺼지고, 끝나면 결과가 보이며 바뀐 것이 있으면 main에 Wiki 커밋이 올라간다. | 사람 | 대기 | 방식이 바뀌었다(D9·D10). Routine을 부르던 이전 방식의 확인 근거는 전환 마무리 절에 있다. |
+| Wiki 갱신 버튼 | OpenWorkflow.bat → 왼쪽 메뉴 아래에서 AI를 고르고 Wiki 갱신을 누른다. 준비물이 없으면 설치 안내가 나오고, 있으면 터미널 창에서 그 AI가 갱신한다. 진행 중에는 버튼이 꺼지고, 끝나면 작업 기록 제목 아래에 결과가 보이며 바뀐 것이 있으면 main에 Wiki 커밋이 올라간다. | 사람 | 대기 | 방식이 바뀌었다(D9·D10). Routine을 부르던 이전 방식의 확인 근거는 전환 마무리 절에 있다. |
 | Obsidian으로 읽기 | pull → Obsidian에서 Wiki 폴더를 vault로 한 번 열기 → Obsidian을 다시 열면 Wiki vault가 열린다. 그래프·백링크·속성이 보이고 링크가 깨지지 않으며, 노트를 읽고 닫은 뒤 `git status`에 Wiki 노트 변경이 없다. | 사람 | 통과 | 이우성 2026-09-26 |
 | Wiki 줄바꿈·무시 규칙 | 규칙 추가 → Wiki 파일 다시 받기 → 노트 3개를 같은 내용의 LF로 다시 저장 → git status → lint --vault Wiki | AI | 통과 | 다시 저장한 노트가 변경으로 잡히지 않음, core-plugins.json은 무시, 원자료 사본은 -text 유지, lint 전 항목 0 |
 | Routine 순정 플러그인 설치 | 웹에서 Wiki 전용 환경을 만들고 그 환경의 설정 스크립트 칸에 스크립트를 넣는다 → AI가 Routine을 그 환경으로 옮겨 실행한다. 실행 기록에 설정 스크립트 실행이 보이고, 세션이 claude-obsidian 플러그인 스킬로 수집·lint를 마치면 AI가 저장소 사본을 지운다. | 사람 | 통과 | 이우성 2026-09-26 |
@@ -266,6 +266,7 @@ claude plugin install claude-obsidian@agricidaniel-claude-obsidian
   - 새 작업·작업 진행 패널과 Wiki 갱신 패널에 따로 있던 AI 칸을 없앴다. 왼쪽 메뉴 아래(화면에 고정되어 항상 보임) 드롭다운 하나가 모든 전달·재시도·터미널·Wiki 갱신에 쓰인다.
   - 선택은 브라우저에 기억하고, 저장이 막힌 브라우저에서도 이번 화면 동안은 유지한다. 연결되지 않은 AI가 골라져 있으면 다른 AI로 몰래 바꾸지 않고 "연결 없음"으로 보여 전달을 막는다(기존 규칙 유지).
   - 작업 절차 문서의 작업 진행 설명과 `Wiki/README.md`의 준비물 절도 이에 맞췄다.
+  - 사용자 요청: ""Wiki 갱신" 버튼 눌렀을 때 하단의 별도 탭 없이 바로 갱신 시작되게 해주세요." → 버튼이 곧바로 시작하고, 진행 단계와 결과는 작업 기록 제목 아래 한 줄("Wiki 갱신 중 · <AI> · <단계>")로 보인다. Wiki 갱신 패널과 패널 구분 코드(`taskPanelView`)는 없앴다. 진행 중 문구에서 AI 이름이 두 번 나오지 않게 서버 문구를 "AI가 작업하는 중입니다."로 바꿨다.
   - 사용자 요청: ""작업 기록은 저장소의 .agents/workflow/tasks에 있습니다. 기록이 바뀌면 OpenWorkflow.bat을 다시 실행하세요." 이 문구 제거하고, 이 위치로 생성 일자("생성 · 2026-09-26 17:41:23" 같은거)를 옮겨주세요." → 왼쪽 아래 안내 문구를 지우고 그 자리에 생성 일자를 두었다. 머리글의 생성 일자와 쓰지 않게 된 `.stamp` 스타일은 뺐다. 좁은 화면(720px 이하)에서는 전처럼 왼쪽 아래 영역이 숨겨진다.
 - 사용자 질문(2026-09-26): "\Saved\Wiki 폴더를 더 적절한 곳으로 옮기는게 낫지 않을까요? 이건 자동 생성되는 파일로 알고 있긴 한데, 위키 폴더가 분산되니까 관리가 까다로워 보여서요."
   - 결론: `Saved/Workflow`로 바꿨다. `Saved/`는 Unreal 프로젝트에서 생성·로컬 전용 파일을 두는 관례 위치이고 Git에서도 빠진다. 안의 내용(대시보드 페이지·접속 정보·로그·AI 작업 폴더·Wiki 갱신 작업 트리·claude-obsidian 사본)은 모두 Workflow 대시보드와 AI 서버의 산물이다. 이제 "Wiki"라는 이름은 vault 하나뿐이다.
