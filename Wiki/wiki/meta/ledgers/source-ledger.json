@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T05:50:17Z",
+  "generated_at": "2026-09-26T05:50:30Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
     "src-016c4f4d42be310c6137": {
@@ -20,6 +20,44 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/WX_BT_기능정리.md"
+    },
+    "src-0609045bc83d7ede2734": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "7f5b6d0d7d4f76b2c044e9e5315a40c5332efb4657c41819b6830e121fcea27e",
+      "independence_key": "Docs/CombatDesign/WX_첫_보스_기획서.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/7f5b6d0d7d4f76b2c044e9e5315a40c5332efb4657c41819b6830e121fcea27e.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - WX_첫_보스_기획서.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/WX_첫_보스_기획서.md"
+    },
+    "src-09d71a1b41356e448261": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "467a0708f3f75f733f3717531f827406fedbb73484735e56eaf0bfb4265effe4",
+      "independence_key": "Docs/CombatDesign/그로기_피니시_시스템_기획서.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/467a0708f3f75f733f3717531f827406fedbb73484735e56eaf0bfb4265effe4.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 그로기_피니시_시스템_기획서.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/그로기_피니시_시스템_기획서.md"
     },
     "src-0a7a2abc95a7de9432e5": {
       "authority": "primary",
@@ -59,6 +97,25 @@
       "supersedes": null,
       "title": "Docs/CombatDesign/전투 방향 변경에  따른 시스템 수정 요구사항.md"
     },
+    "src-14ce24a072e8f0124b40": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "57003a2a37044bb2215e5ef80b1232416e0cf4ffd5d551275ad1c0df9bbe248e",
+      "independence_key": "Docs/CombatDesign/boss_common_bt_draft.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/57003a2a37044bb2215e5ef80b1232416e0cf4ffd5d551275ad1c0df9bbe248e.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - boss_common_bt_draft.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/boss_common_bt_draft.md"
+    },
     "src-29fa83e3956cdfe188e5": {
       "authority": "primary",
       "content_kind": "document",
@@ -77,6 +134,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/SystemDesign/Core_Combat_System.md"
+    },
+    "src-3007dd429116aa422551": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "c0dfd2799640857556422f1c1f7cd0084953eccbeb0b2fbbf81a479fbf6cdf75",
+      "independence_key": "Docs/CombatDesign/명조 적 시스템 역기획서.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/c0dfd2799640857556422f1c1f7cd0084953eccbeb0b2fbbf81a479fbf6cdf75.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 명조 적 시스템 역기획서.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/명조 적 시스템 역기획서.md"
     },
     "src-4094d8d54f71a0271819": {
       "authority": "primary",
@@ -115,6 +191,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/WX_AM_기능정리.md"
+    },
+    "src-4ec20852882dbfd83898": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "a2f7e5b8bf1d09961ed855182d7d6eb578a8b18062ed90ad0e796a17cfb5b58d",
+      "independence_key": "Docs/CombatDesign/경직 수정본.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/a2f7e5b8bf1d09961ed855182d7d6eb578a8b18062ed90ad0e796a17cfb5b58d.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 경직 수정본.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/경직 수정본.md"
     },
     "src-655ce2708f432a15eb16": {
       "authority": "primary",
@@ -382,6 +477,44 @@
       "supersedes": null,
       "title": "Docs/CombatDesign/Respawn_System.md"
     },
+    "src-c34545fea3552723390e": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "4cabb5f2edaa27542313f0fe527901080b3aefbd7aa4b424557359447268f8d3",
+      "independence_key": "Docs/CombatDesign/normal_monster_BT.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/4cabb5f2edaa27542313f0fe527901080b3aefbd7aa4b424557359447268f8d3.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - normal_monster_BT.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/normal_monster_BT.md"
+    },
+    "src-c3d6ea777c008c8e8217": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "70d19e773044564df4d1a6fdcc974b4bcd4ee59a0f608fe10f0cc99c8b11bbc3",
+      "independence_key": "Docs/CombatDesign/뒤잡_시스템.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/70d19e773044564df4d1a6fdcc974b4bcd4ee59a0f608fe10f0cc99c8b11bbc3.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 뒤잡_시스템.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/뒤잡_시스템.md"
+    },
     "src-ce19177694027db12835": {
       "authority": "primary",
       "content_kind": "document",
@@ -419,6 +552,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/CombatDesign/레벨_배치용_잡몹.md"
+    },
+    "src-d5cd1ac8119c2b418ceb": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "8f6817ea740550bc182e87415178851addbc494bf03c88709564f5afb0463f7a",
+      "independence_key": "Docs/CombatDesign/그로기_시스템.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/8f6817ea740550bc182e87415178851addbc494bf03c88709564f5afb0463f7a.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 그로기_시스템.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/그로기_시스템.md"
     },
     "src-dab8ff2a136731644295": {
       "authority": "primary",
@@ -458,6 +610,25 @@
       "supersedes": null,
       "title": "Docs/CombatDesign/WA_PC_규격서.md"
     },
+    "src-e1c88f27c000dece6b58": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "4bbb1e6560d7bce7c274cc7763da57e5e8d3ad70473294c9d8b5fff730e20e6a",
+      "independence_key": "Docs/CombatDesign/적 규격서.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/4bbb1e6560d7bce7c274cc7763da57e5e8d3ad70473294c9d8b5fff730e20e6a.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - 적 규격서.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/적 규격서.md"
+    },
     "src-f18b919b389d5ab5acdd": {
       "authority": "primary",
       "content_kind": "document",
@@ -476,6 +647,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": "Docs/LevelDesign/Wx_Quest.md"
+    },
+    "src-fe76a230ff8efba25b5f": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "cbaedec2f43d791ee90da776e29260366415dfd55a6aaf50b64f9e6de53d296f",
+      "independence_key": "Docs/CombatDesign/Elite_monster.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/cbaedec2f43d791ee90da776e29260366415dfd55a6aaf50b64f9e6de53d296f.md"
+      },
+      "pages": [
+        "wiki/sources/기획서 - Elite_monster.md"
+      ],
+      "refresh_due": "2026-10-26",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": "Docs/CombatDesign/Elite_monster.md"
     }
   }
 }

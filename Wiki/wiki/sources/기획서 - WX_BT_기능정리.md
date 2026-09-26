@@ -70,7 +70,7 @@ key_claims:
 - [[적 AI와 몬스터]]
 - [[보스 전투]]
 - [[기획서 - WX_AM_기능정리]]
-- <!--wl-->기획서 - normal_monster_BT
+- [[기획서 - normal_monster_BT]]
 
 ## 핵심 주장
 

@@ -65,6 +65,15 @@
       "source_id": "src-0a7a2abc95a7de9432e5",
       "title": "Docs/CombatDesign/명조 PC 시스템 역기획서.md"
     },
+    ".raw/captured/467a0708f3f75f733f3717531f827406fedbb73484735e56eaf0bfb4265effe4.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - 그로기_피니시_시스템_기획서.md"
+      ],
+      "sha256": "467a0708f3f75f733f3717531f827406fedbb73484735e56eaf0bfb4265effe4",
+      "source_id": "src-09d71a1b41356e448261",
+      "title": "Docs/CombatDesign/그로기_피니시_시스템_기획서.md"
+    },
     ".raw/captured/4a3c94e2677551a53fb9e381698c7cd8d429322687eaa89a73d819e144ded239.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -73,6 +82,33 @@
       "sha256": "4a3c94e2677551a53fb9e381698c7cd8d429322687eaa89a73d819e144ded239",
       "source_id": "src-72e77d9f8acb89ba962a",
       "title": ".agents/workflow/tasks/cooldown-unification.md"
+    },
+    ".raw/captured/4bbb1e6560d7bce7c274cc7763da57e5e8d3ad70473294c9d8b5fff730e20e6a.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - 적 규격서.md"
+      ],
+      "sha256": "4bbb1e6560d7bce7c274cc7763da57e5e8d3ad70473294c9d8b5fff730e20e6a",
+      "source_id": "src-e1c88f27c000dece6b58",
+      "title": "Docs/CombatDesign/적 규격서.md"
+    },
+    ".raw/captured/4cabb5f2edaa27542313f0fe527901080b3aefbd7aa4b424557359447268f8d3.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - normal_monster_BT.md"
+      ],
+      "sha256": "4cabb5f2edaa27542313f0fe527901080b3aefbd7aa4b424557359447268f8d3",
+      "source_id": "src-c34545fea3552723390e",
+      "title": "Docs/CombatDesign/normal_monster_BT.md"
+    },
+    ".raw/captured/57003a2a37044bb2215e5ef80b1232416e0cf4ffd5d551275ad1c0df9bbe248e.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - boss_common_bt_draft.md"
+      ],
+      "sha256": "57003a2a37044bb2215e5ef80b1232416e0cf4ffd5d551275ad1c0df9bbe248e",
+      "source_id": "src-14ce24a072e8f0124b40",
+      "title": "Docs/CombatDesign/boss_common_bt_draft.md"
     },
     ".raw/captured/5ef1e5f8941b0be03a5211990189016c1ecc851744385b7e84cd0b9c9995c784.md": {
       "ingested": "2026-09-26",
@@ -110,6 +146,15 @@
       "source_id": "src-40ec76dd3189bb392845",
       "title": "Docs/CombatDesign/WX_AM_기능정리.md"
     },
+    ".raw/captured/70d19e773044564df4d1a6fdcc974b4bcd4ee59a0f608fe10f0cc99c8b11bbc3.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - 뒤잡_시스템.md"
+      ],
+      "sha256": "70d19e773044564df4d1a6fdcc974b4bcd4ee59a0f608fe10f0cc99c8b11bbc3",
+      "source_id": "src-c3d6ea777c008c8e8217",
+      "title": "Docs/CombatDesign/뒤잡_시스템.md"
+    },
     ".raw/captured/73050c80eb1f4e043a2275580c6de90530577b1b6992fdc2d8fa4b79f08e931e.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -137,6 +182,15 @@
       "source_id": "src-655ce2708f432a15eb16",
       "title": "Docs/CombatDesign/PC규격서.md"
     },
+    ".raw/captured/7f5b6d0d7d4f76b2c044e9e5315a40c5332efb4657c41819b6830e121fcea27e.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - WX_첫_보스_기획서.md"
+      ],
+      "sha256": "7f5b6d0d7d4f76b2c044e9e5315a40c5332efb4657c41819b6830e121fcea27e",
+      "source_id": "src-0609045bc83d7ede2734",
+      "title": "Docs/CombatDesign/WX_첫_보스_기획서.md"
+    },
     ".raw/captured/89800b04230305cea3e80c038f683d446e185242501eba116e3be0f74e4cb1f7.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -146,6 +200,15 @@
       "source_id": "src-f18b919b389d5ab5acdd",
       "title": "Docs/LevelDesign/Wx_Quest.md"
     },
+    ".raw/captured/8f6817ea740550bc182e87415178851addbc494bf03c88709564f5afb0463f7a.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - 그로기_시스템.md"
+      ],
+      "sha256": "8f6817ea740550bc182e87415178851addbc494bf03c88709564f5afb0463f7a",
+      "source_id": "src-d5cd1ac8119c2b418ceb",
+      "title": "Docs/CombatDesign/그로기_시스템.md"
+    },
     ".raw/captured/903549ef1c2eb6c61f79473b70780cba03ab51cf01afa6e951362b65652d8ccb.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -154,6 +217,15 @@
       "sha256": "903549ef1c2eb6c61f79473b70780cba03ab51cf01afa6e951362b65652d8ccb",
       "source_id": "src-29fa83e3956cdfe188e5",
       "title": "Docs/SystemDesign/Core_Combat_System.md"
+    },
+    ".raw/captured/a2f7e5b8bf1d09961ed855182d7d6eb578a8b18062ed90ad0e796a17cfb5b58d.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - 경직 수정본.md"
+      ],
+      "sha256": "a2f7e5b8bf1d09961ed855182d7d6eb578a8b18062ed90ad0e796a17cfb5b58d",
+      "source_id": "src-4ec20852882dbfd83898",
+      "title": "Docs/CombatDesign/경직 수정본.md"
     },
     ".raw/captured/ad2c7d665a40049b3cd38a580a1d5f40bfc9fa62e3ed12aa325589cfc559b634.md": {
       "ingested": "2026-09-26",
@@ -182,6 +254,15 @@
       "source_id": "src-b693f6fd80bca30f050d",
       "title": "Docs/CombatDesign/Respawn_System.md"
     },
+    ".raw/captured/c0dfd2799640857556422f1c1f7cd0084953eccbeb0b2fbbf81a479fbf6cdf75.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - 명조 적 시스템 역기획서.md"
+      ],
+      "sha256": "c0dfd2799640857556422f1c1f7cd0084953eccbeb0b2fbbf81a479fbf6cdf75",
+      "source_id": "src-3007dd429116aa422551",
+      "title": "Docs/CombatDesign/명조 적 시스템 역기획서.md"
+    },
     ".raw/captured/c5f8b4308916075f5b4fb089c0cc59a0e23a571012915a6b238fb659a422fb74.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -190,6 +271,15 @@
       "sha256": "c5f8b4308916075f5b4fb089c0cc59a0e23a571012915a6b238fb659a422fb74",
       "source_id": "src-a36446b84e1533ed7f08",
       "title": ".agents/workflow/tasks/animnotify-categories.md"
+    },
+    ".raw/captured/cbaedec2f43d791ee90da776e29260366415dfd55a6aaf50b64f9e6de53d296f.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/기획서 - Elite_monster.md"
+      ],
+      "sha256": "cbaedec2f43d791ee90da776e29260366415dfd55a6aaf50b64f9e6de53d296f",
+      "source_id": "src-fe76a230ff8efba25b5f",
+      "title": "Docs/CombatDesign/Elite_monster.md"
     },
     ".raw/captured/d0832ea218feb93dd8309527b45696f99a05ef96f23fc61a6e042214820239ab.md": {
       "ingested": "2026-09-26",
