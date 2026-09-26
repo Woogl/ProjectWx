@@ -61,8 +61,8 @@ DataTable 행 미리보기에서 데이터가 없는 구조체를 `{}`로 간략
 ## 관련 주제
 
 - [[에디터 도구]]
-- <!--wl-->결정 노트 - 2026-09-25-row-preview-empty-struct
-- <!--wl-->결정 노트 - 2026-09-25-row-preview-tooltip
+- [[결정 노트 - 2026-09-25-row-preview-empty-struct]]
+- [[결정 노트 - 2026-09-25-row-preview-tooltip]]
 - <!--wl-->결정 노트 - 2026-09-26-row-preview-acceptance
 
 ## 핵심 주장

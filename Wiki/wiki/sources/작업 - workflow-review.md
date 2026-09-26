@@ -113,7 +113,7 @@ key_claims:
 
 - [[작업 절차(Workflow)]]
 - [[Wiki 운영]]
-- <!--wl-->결정 노트 - 2026-09-25-workflow-simplification
+- [[결정 노트 - 2026-09-25-workflow-simplification]]
 - <!--wl-->결정 노트 - 2026-09-26-workflow-ssot-copies
 - <!--wl-->결정 노트 - 2026-09-26-workflow-state-from-record-only
 - <!--wl-->결정 노트 - 2026-09-26-workflow-human-verification

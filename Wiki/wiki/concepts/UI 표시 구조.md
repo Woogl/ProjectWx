@@ -18,6 +18,8 @@ sources:
   - "[[결정 노트 - 2026-09-24-nameplate-manager-wxgame]]"
   - "[[결정 노트 - 2026-09-24-nameplate-manager]]"
   - "[[결정 노트 - 2026-09-25-ability-data-on-ga]]"
+  - "[[결정 노트 - 2026-09-25-cooldown-single-ge]]"
+  - "[[결정 노트 - 2026-09-25-ui-data-interface-removal]]"
   - "[[기획서 - Nameplate_System]]"
   - "[[작업 - cooldown-unification]]"
   - "[[작업 - dialogue-presentation-vm]]"
@@ -57,6 +59,7 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - Nameplate 교전 판정은 AWxEnemyCharacter::RefreshEngagement가 한 곳에서 계산하는 State.Engaged 태그를 유지해 쓴다. ([[결정 노트 - 2026-09-24-nameplate-manager-wxgame]])
 - 사용자는 2026-09-23~24에 교전하지 않은 적도 락온하면 Nameplate가 떠야 하고, Nameplate와 레티클을 NameplateManager가 동적으로 붙이고 떼도록 결정했다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
 - Nameplate 태그 조건은 NameplateManager 한 곳에만 두고, 락온 대상에는 표시 거리 제한을 두지 않으며 표시 거리 경계에 히스테리시스를 둔다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
+- 사용자 합의로 IWxUIData를 제거하고 WxGame 리졸버가 구체 도메인 타입의 어빌리티·GE 데이터를 WxUI VM에 전달하며, GAS 공통 구독·갱신은 WxUI에 남긴다. ([[결정 노트 - 2026-09-25-ui-data-interface-removal]])
 
 ## 구현 관찰
 
@@ -81,6 +84,9 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 커밋 aaf557a09 시점 NameplateManager는 로컬 컨트롤러에서만 틱하며 3000cm−200cm 안쪽에서 새 Nameplate를 붙이고 3000cm까지 유지했다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
 - 커밋 aaf557a09로 WBP_Nameplate_Enemy의 가시성 태그 바인딩이 지워져, 위젯은 붙어 있으면 보이고 사망 시 제거는 NameplateManager가 한다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
 - 2026-09-25 GE 표시 데이터는 DT_Effect 행 대신 UWxEffectComponent_UIData의 Title·Description·Icon 프로퍼티에 있고 버프 목록은 아이콘을 채운 GE만 그린다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
+- 쿨다운 통합 시점의 UWxViewModel_Ability는 활성 GE의 Spec.DynamicGrantedTags로 자기 쿨다운을 세고 표시 주기로 GE 지속시간 대신 어빌리티의 CooldownTime을 쓴다. ([[결정 노트 - 2026-09-25-cooldown-single-ge]])
+- UI 데이터 인터페이스 제거 후 어빌리티 리졸버는 슬롯 변경 시 SetPresentation으로 제목·설명·아이콘·최대 충전 수·충전 한 칸 시간을 넘긴 뒤 GAS 비용·쿨다운·발동 가능 상태를 갱신한다. ([[결정 노트 - 2026-09-25-ui-data-interface-removal]])
+- UWxViewModelResolver_AbilitySystem은 GE의 UWxEffectComponent_UIData를 직접 읽고 아이콘이 있을 때만 효과 VM 표시 필드를 채운다. ([[결정 노트 - 2026-09-25-ui-data-interface-removal]])
 
 ## 검증 범위
 
@@ -116,6 +122,8 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - [[결정 노트 - 2026-09-24-nameplate-manager-wxgame]] — NameplateManager를 WxUI에서 WxGame 컨트롤러로 옮겨 적과 락온 대상을 직접 읽게 하고 LockOnTargetQuery·마커 컴포넌트·옛 리다이렉트를 지운 기록
 - [[결정 노트 - 2026-09-24-nameplate-manager]] — 적마다 위젯을 만들던 Nameplate와 락온 태스크의 레티클 생성을 없애고 플레이어 컨트롤러의 NameplateManager가 로컬에서 붙이고 떼게 한 구조 기록
 - [[결정 노트 - 2026-09-25-ability-data-on-ga]] — 어빌리티 테이블 구동을 시도했다가 AI 작업 편의를 기준으로 데이터 전용 GA_로 돌아가고 DT_Ability·DT_Effect를 지운 결정과 구현·검증 기록
+- [[결정 노트 - 2026-09-25-cooldown-single-ge]] — 쿨다운 그룹별 GE 파생 클래스를 공용 UWxEffect_Cooldown 하나로 합치고 어빌리티 CooldownTags와 SetByCaller 대기열로 충전을 차례 회복시킨 결정
+- [[결정 노트 - 2026-09-25-ui-data-interface-removal]] — IWxUIData 인터페이스를 제거하고 WxGame 리졸버가 어빌리티·GE 데이터를 WxUI VM에 전달하도록 모듈 책임을 나눈 사용자 합의와 구현 관찰
 - [[기획서 - Nameplate_System]] — 일반·네임드 몬스터 네임플레이트의 HP·DP 표시 구성, 시야·청각·피격 인식 규칙, 표시·숨김 조건과 보스 전용 규칙을 정의한 기획서
 - [[작업 - cooldown-unification]] — 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 공용 GE 하나로 통합하고 CooldownTags로 구분하게 바꾼 작업 기록으로, 사람 확인 4/4 통과로 완료됐다.
 - [[작업 - dialogue-presentation-vm]] — Dialogue VM을 WxUI의 순수 표시 데이터로 분리하고, 화면 클래스를 거쳐 최종적으로 WxGame 리졸버 세 층 구조로 정리한 완료 작업 기록

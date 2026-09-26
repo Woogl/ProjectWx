@@ -13,6 +13,10 @@ tags:
 
 Newest completed operations appear first.
 
+## 2026-09-26 · ingest-20260926T055103Z-b09
+
+옛 Wiki 결정 노트(4/6) 11건 수집. 원자료: [[결정 노트 - 2026-09-25-checkpoint-single-slot]], [[결정 노트 - 2026-09-25-cooldown-single-ge]], [[결정 노트 - 2026-09-25-exclusive-submission-cleanup]], [[결정 노트 - 2026-09-25-exclusive-tag-blocking]], [[결정 노트 - 2026-09-25-row-preview-empty-struct]], [[결정 노트 - 2026-09-25-row-preview-tooltip]], [[결정 노트 - 2026-09-25-save-checkpoint-rename]], [[결정 노트 - 2026-09-25-spawner-library-removal]], [[결정 노트 - 2026-09-25-ui-data-interface-removal]], [[결정 노트 - 2026-09-25-workflow-convenience-review]], [[결정 노트 - 2026-09-25-workflow-simplification]]. 갱신한 주제: [[UI 표시 구조]], [[Wiki 운영]], [[모듈 구조와 코드 정리]], [[어빌리티와 GAS]], [[에디터 도구]], [[작업 절차(Workflow)]], [[적 AI와 몬스터]], [[체크포인트와 리스폰]].
+
 ## 2026-09-26 · ingest-20260926T055059Z-b08
 
 옛 Wiki 결정 노트(3/6) 11건 수집. 원자료: [[결정 노트 - 2026-09-24-module-principles]], [[결정 노트 - 2026-09-24-nameplate-manager-wxgame]], [[결정 노트 - 2026-09-24-nameplate-manager]], [[결정 노트 - 2026-09-24-wxcombat-cleanup]], [[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]], [[결정 노트 - 2026-09-24-wxcore-cleanup]], [[결정 노트 - 2026-09-25-ability-block-policy-centralization]], [[결정 노트 - 2026-09-25-ability-data-on-ga]], [[결정 노트 - 2026-09-25-animnotify-labels]], [[결정 노트 - 2026-09-25-checkpoint-redirect-cleanup]], [[결정 노트 - 2026-09-25-checkpoint-savegame]]. 갱신한 주제: [[UI 표시 구조]], [[그로기·경직·피니시]], [[모듈 구조와 코드 정리]], [[상호작용과 장치]], [[어빌리티와 GAS]], [[에디터 도구]], [[적 AI와 몬스터]], [[체크포인트와 리스폰]], [[플레이어 캐릭터와 조작]], [[피해 파이프라인]].

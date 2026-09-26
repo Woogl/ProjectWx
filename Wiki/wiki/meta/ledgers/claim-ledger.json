@@ -360,6 +360,66 @@
       "supersedes": null,
       "text": "네 인자 ApplyDamage에서 투사체는 저장된 ProjectileLevel과 Ability=nullptr를, 일반 공격은 적용 직전 AnimatingAbility와 그 레벨(없으면 1)을 사용한다."
     },
+    "clm-11befcd369-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-exclusive-submission-cleanup.md",
+          "relation": "supports",
+          "source_id": "src-3bd37c07acf8bbad4701"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-exclusive-submission-cleanup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자 요청에 따라 Exclusive 차단용 임시 C++ 테스트 파일, 전용 friend, GA 검증 Python 스크립트가 제거되었다."
+    },
+    "clm-11befcd369-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-exclusive-submission-cleanup.md",
+          "relation": "supports",
+          "source_id": "src-3bd37c07acf8bbad4701"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-exclusive-submission-cleanup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "주석 정정 전후 주석을 제외한 코드 해시가 차단 관련 12개 파일 모두에서 동일했다."
+    },
+    "clm-11befcd369-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-exclusive-submission-cleanup.md",
+          "relation": "supports",
+          "source_id": "src-3bd37c07acf8bbad4701"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-exclusive-submission-cleanup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Exclusive 차단 제출 시점에 사람의 코드 리뷰·실제 입력·도플갱어 BT 타이밍·UI·예측/복제는 확인되지 않았다."
+    },
     "clm-128c0f2c6b-c1": {
       "assessment": "provisional",
       "confidence": "high",
@@ -839,6 +899,86 @@
       "risk": "normal",
       "supersedes": null,
       "text": "Elite_monster 기획서는 엘리트 01의 HP·경직도·스태거 최대치·그로기 지속 시간을 모두 미정으로 남긴다."
+    },
+    "clm-224c97d3c1-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-cooldown-single-ge.md",
+          "relation": "supports",
+          "source_id": "src-89713cd38b367ce6bb7f"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-cooldown-single-ge.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-25 결정으로 쿨다운 그룹별 GE 파생 클래스를 없애고 공용 UWxEffect_Cooldown 하나를 UWxAbilityBase의 기본 쿨다운 GE로 쓴다."
+    },
+    "clm-224c97d3c1-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-cooldown-single-ge.md",
+          "relation": "supports",
+          "source_id": "src-89713cd38b367ce6bb7f"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-cooldown-single-ge.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "쿨다운 식별자는 어빌리티의 FGameplayTagContainer CooldownTags이며 ApplyCooldown이 이를 스펙의 DynamicGrantedTags로 붙인다."
+    },
+    "clm-224c97d3c1-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-cooldown-single-ge.md",
+          "relation": "supports",
+          "source_id": "src-89713cd38b367ce6bb7f"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-cooldown-single-ge.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "ApplyCooldown은 같은 태그 쿨다운의 최대 남은 시간에 CooldownTime을 더한 값을 SetByCaller.Duration으로 넘겨 충전이 차례로 돌아오게 한다."
+    },
+    "clm-224c97d3c1-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-cooldown-single-ge.md",
+          "relation": "supports",
+          "source_id": "src-89713cd38b367ce6bb7f"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-cooldown-single-ge.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "1회 사용에 4초 쿨다운이 걸린 버그는 지속시간 MMC가 방금 추가된 자기 GE를 대기열로 센 탓이었고, 계산을 ApplyCooldown으로 옮겨 고친 뒤 사용자가 인게임에서 확인했다."
     },
     "clm-23cbef3fd0-c1": {
       "assessment": "accepted",
@@ -2500,6 +2640,66 @@
       "supersedes": null,
       "text": "뒤잡_시스템 기획서는 뒤잡 발동부터 모션 종료까지 플레이어를 무적으로 하고 쿨다운·자원 비용을 두지 않도록 요구한다."
     },
+    "clm-85f381a09a-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-row-preview-tooltip.md",
+          "relation": "supports",
+          "source_id": "src-175f131530c1349f27ec"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-row-preview-tooltip.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자 후속 요청으로 Row 미리보기의 셀과 툴팁은 같은 CellText를 표시하며 기본 구조체는 둘 다 {}로 보인다."
+    },
+    "clm-85f381a09a-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-row-preview-tooltip.md",
+          "relation": "supports",
+          "source_id": "src-175f131530c1349f27ec"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-row-preview-tooltip.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "툴팁 통일 변경은 축약 셀 툴팁에 엔진 원문을 남기던 앞선 정책을 대체한다."
+    },
+    "clm-85f381a09a-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-row-preview-tooltip.md",
+          "relation": "supports",
+          "source_id": "src-175f131530c1349f27ec"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-row-preview-tooltip.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "툴팁 통일 변경은 노트 시점에 정적 확인만 했고 빌드·화면 검증을 하지 않았다."
+    },
     "clm-88d74f5492-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -2699,6 +2899,66 @@
       "risk": "normal",
       "supersedes": null,
       "text": "WX_BT_기능정리 문서는 현재 WX 자체 개발 BT 태스크가 없다고 적는다."
+    },
+    "clm-93e414f756-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-checkpoint-single-slot.md",
+          "relation": "supports",
+          "source_id": "src-3c11042aae540cb5d02a"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-checkpoint-single-slot.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자는 2026-09-25에 체크포인트 저장 슬롯을 하나로 통일하고 세분화는 나중에 하기로 결정했다."
+    },
+    "clm-93e414f756-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-checkpoint-single-slot.md",
+          "relation": "supports",
+          "source_id": "src-3c11042aae540cb5d02a"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-checkpoint-single-slot.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "노트 시점의 UWxCheckpointSaveGame::GetSlotName()은 World 인자 없이 항상 WxCheckpoint를 반환한다."
+    },
+    "clm-93e414f756-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-checkpoint-single-slot.md",
+          "relation": "supports",
+          "source_id": "src-3c11042aae540cb5d02a"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-checkpoint-single-slot.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "기존 WxCheckpoint_PIE 저장 파일의 자동 이관·삭제는 구현되지 않았다."
     },
     "clm-97db594099-c1": {
       "assessment": "accepted",
@@ -3320,6 +3580,86 @@
       "supersedes": null,
       "text": "Nameplate_System 기획서에서 락온 시 은폐된 적을 락온 대상에서 제외하는 규칙은 잠정안이며 협의 예정으로 남아 있다."
     },
+    "clm-ad92d94a05-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-workflow-simplification.md",
+          "relation": "supports",
+          "source_id": "src-e19019bb10553c1e2211"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-workflow-simplification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-25 사용자 승인으로 Workflow는 정하기·만들기·확인하기 3단계와 확인 대기·진행 중·완료 상태 3개로 단순화되었다."
+    },
+    "clm-ad92d94a05-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-workflow-simplification.md",
+          "relation": "supports",
+          "source_id": "src-e19019bb10553c1e2211"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-workflow-simplification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "정하기 단계는 AI의 추가 질문이 더 없을 때 사람이 구현을 승인해야 만들기 단계로 넘어간다."
+    },
+    "clm-ad92d94a05-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-workflow-simplification.md",
+          "relation": "supports",
+          "source_id": "src-e19019bb10553c1e2211"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-workflow-simplification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "확인하기 단계는 담당을 AI·사람으로 나눈 테스트 체크리스트 표로 진행하며 서버의 guardChecklist가 AI의 사람 항목 변경을 되돌린다."
+    },
+    "clm-ad92d94a05-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-workflow-simplification.md",
+          "relation": "supports",
+          "source_id": "src-e19019bb10553c1e2211"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-workflow-simplification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "단순화 작업 시점에 웹 새 작업 경로 전용 파일들은 자동 모드 권한 검사가 삭제를 거부해 삭제 대기로 남았다."
+    },
     "clm-af47ed031e-c1": {
       "assessment": "provisional",
       "confidence": "high",
@@ -3780,6 +4120,66 @@
       "supersedes": null,
       "text": "ability-table-driven 작업의 사람 인게임 확인 7항목(HGTest, 분신, 도플갱어, 조작감, 가드 경감·버프 아이콘, 템플릿 패시브 UP, 락온)은 이우성이 2026-09-25 통과로 기록했다."
     },
+    "clm-bc73262c3c-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-ui-data-interface-removal.md",
+          "relation": "supports",
+          "source_id": "src-7ee37681d10241dffc83"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-ui-data-interface-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자 합의에 따라 WxCore의 IWxUIData 인터페이스(WxUIData.h/cpp)가 삭제되었다."
+    },
+    "clm-bc73262c3c-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-ui-data-interface-removal.md",
+          "relation": "supports",
+          "source_id": "src-7ee37681d10241dffc83"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-ui-data-interface-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "UWxViewModelResolver_Ability와 UWxViewModelResolver_PlayerCharacter는 WxUI에서 WxGame으로 옮겨졌고 VM 클래스와 바인딩 필드 경로는 유지되었다."
+    },
+    "clm-bc73262c3c-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-ui-data-interface-removal.md",
+          "relation": "supports",
+          "source_id": "src-7ee37681d10241dffc83"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-ui-data-interface-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "IWxUIData 대체로 공용 인터페이스·전역 제공자·별도 중계 서브시스템을 추가하지 않기로 했다."
+    },
     "clm-bcb6005476-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -3940,6 +4340,66 @@
       "supersedes": null,
       "text": "InitialState를 지정 상태에서 시작하는 순정 해법은 엔진이 컴포넌트에 시작 상태 지정을 열 때까지 보류되었다."
     },
+    "clm-cfeba1667d-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-spawner-library-removal.md",
+          "relation": "supports",
+          "source_id": "src-7e48d3401b0c2337cc4c"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-spawner-library-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-25 사용자 요청으로 UWxSpawnerLibrary가 제거되고 일괄 재생성은 UFUNCTION 없는 C++ 전용 AWxSpawner::RespawnAll(const UWorld*)로 옮겨졌다."
+    },
+    "clm-cfeba1667d-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-spawner-library-removal.md",
+          "relation": "supports",
+          "source_id": "src-7e48d3401b0c2337cc4c"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-spawner-library-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "AWxSpawner::RespawnAll은 로드된 스포너 중 Manual을 제외하고 수집하며 클라이언트 월드는 건너뛴다."
+    },
+    "clm-cfeba1667d-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-spawner-library-removal.md",
+          "relation": "supports",
+          "source_id": "src-7e48d3401b0c2337cc4c"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-spawner-library-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "에셋 안의 WxSpawnerLibrary·TryRespawnAll 참조 부재는 바이너리 문자열 검색으로만 확인했고 실제 에셋 로드 검증은 아니다."
+    },
     "clm-d0db07c476-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -4079,6 +4539,66 @@
       "risk": "normal",
       "supersedes": null,
       "text": "대화 세션 간 편집·빌드 조율 문제는 workflow-review 작업 완료 시점에도 미해결이다."
+    },
+    "clm-d2863def61-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-row-preview-empty-struct.md",
+          "relation": "supports",
+          "source_id": "src-05a7632d596861e25362"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-row-preview-empty-struct.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Row 미리보기 커스터마이제이션은 FStructProperty 셀 값이 FStructOnScope 초기 기본값과 Identical이면 셀 텍스트를 {}로 축약한다."
+    },
+    "clm-d2863def61-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-row-preview-empty-struct.md",
+          "relation": "supports",
+          "source_id": "src-05a7632d596861e25362"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-row-preview-empty-struct.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "기본 구조체 축약 판정은 모든 바이트가 0인지가 아니라 생성자 기본값을 포함한 초기 기본값과의 비교다."
+    },
+    "clm-d2863def61-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-row-preview-empty-struct.md",
+          "relation": "supports",
+          "source_id": "src-05a7632d596861e25362"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-row-preview-empty-struct.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "노트 시점에 이 변경은 컴파일만 통과했고 링크는 LNK1104로 실패했으며 에디터 화면은 확인되지 않았다."
     },
     "clm-d9912a3acf-c1": {
       "assessment": "accepted",
@@ -5080,6 +5600,146 @@
       "supersedes": null,
       "text": "GA_ 부여는 PIE 단독과 리슨 서버 PIE에서 확인됐지만 락온·가드 경감률·조작감은 미확인이다."
     },
+    "clm-ef4f3b5f12-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-workflow-convenience-review.md",
+          "relation": "supports",
+          "source_id": "src-cae1fc9ebf92a65c146b"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-workflow-convenience-review.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-25 Workflow 편의 점검 후 사용자는 식별값 검사 제거·코드 리뷰 체크리스트화·옛 기록 정리·작업 현황 자동 생성 네 개선을 모두 선택했다."
+    },
+    "clm-ef4f3b5f12-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-workflow-convenience-review.md",
+          "relation": "supports",
+          "source_id": "src-cae1fc9ebf92a65c146b"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-workflow-convenience-review.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "저장소 전체 코드 식별값 비교는 사람이 실제로 테스트한 빌드를 보장하지 못해 테스트 결과 서버에서 제거되었다."
+    },
+    "clm-ef4f3b5f12-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-workflow-convenience-review.md",
+          "relation": "supports",
+          "source_id": "src-cae1fc9ebf92a65c146b"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-workflow-convenience-review.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "작업 현황은 tasks/index.md 표 대신 각 작업 기록 제목 아래의 상태·다음 행동 줄에서 task-records.js가 자동으로 만든다."
+    },
+    "clm-f1cb443cff-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-exclusive-tag-blocking.md",
+          "relation": "supports",
+          "source_id": "src-4b6f12707fdf98c013f3"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-exclusive-tag-blocking.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-25 사용자 승인으로 Exclusive 어빌리티 발동 차단이 커스텀 CanActivateAbility 재정의에서 순정 BlockAbilitiesWithTag 선언으로 옮겨졌다."
+    },
+    "clm-f1cb443cff-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-exclusive-tag-blocking.md",
+          "relation": "supports",
+          "source_id": "src-4b6f12707fdf98c013f3"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-exclusive-tag-blocking.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "ComboWindow 동안에는 활성 인스턴스 자신의 차단 기여 1건만 제외해 자기 재발동을 허용하고 다른 스펙·외부 어빌리티·GE 차단은 유지한다."
+    },
+    "clm-f1cb443cff-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-exclusive-tag-blocking.md",
+          "relation": "supports",
+          "source_id": "src-4b6f12707fdf98c013f3"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-exclusive-tag-blocking.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "도플갱어 면제 효과는 사용자 지시로 IgnoreAbilityActivationTags로 이름이 바뀌고 소유자 발동 조건만 면제하도록 범위가 좁혀졌다."
+    },
+    "clm-f1cb443cff-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-exclusive-tag-blocking.md",
+          "relation": "supports",
+          "source_id": "src-4b6f12707fdf98c013f3"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-exclusive-tag-blocking.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Exclusive 태그 차단은 빌드·GA 40개 차단 관계 대조·자동화 테스트 2건으로 확인되었으나 플레이·예측/복제·사람 코드 리뷰는 미확인이다."
+    },
     "clm-f215e78b23-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -5159,6 +5819,66 @@
       "risk": "normal",
       "supersedes": null,
       "text": "노트 시점의 WxUI 배치와 LockOnTargetQuery·NameplateSource 구조는 같은 날 WxGame 이동 작업으로 대체됐다."
+    },
+    "clm-f6258770d4-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-save-checkpoint-rename.md",
+          "relation": "supports",
+          "source_id": "src-78202ac612e06551e8ad"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-save-checkpoint-rename.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-25 사용자 후속 요청으로 체크포인트 저장 API 이름이 RecordCheckpoint에서 SaveCheckpoint로 바뀌었다."
+    },
+    "clm-f6258770d4-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-save-checkpoint-rename.md",
+          "relation": "supports",
+          "source_id": "src-78202ac612e06551e8ad"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-save-checkpoint-rename.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "StateTree 저장 태스크 구조체는 FWxStateTreeTask_SaveCheckpoint와 FWxStateTreeTask_SaveCheckpointInstanceData로 바뀌었고 표시명은 체크포인트 저장이다."
+    },
+    "clm-f6258770d4-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-25-save-checkpoint-rename.md",
+          "relation": "supports",
+          "source_id": "src-78202ac612e06551e8ad"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-25-save-checkpoint-rename.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이전 두 구조체 경로는 DefaultEngine.ini CoreRedirects로 새 경로에 매핑되었고 에셋 재저장은 하지 않았다."
     },
     "clm-fb5e7d2daa-c1": {
       "assessment": "accepted",
@@ -5461,6 +6181,6 @@
       "text": "퀘스트 추적기 리졸버 구조는 2026-09-23 사용자가 인게임에서 문제없다고 확인했다."
     }
   },
-  "generated_at": "2026-09-26T05:50:59Z",
+  "generated_at": "2026-09-26T05:51:03Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }

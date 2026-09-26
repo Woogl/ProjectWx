@@ -12,6 +12,8 @@ sources:
   - "[[결정 노트 - 2026-09-22-workflow-closure]]"
   - "[[결정 노트 - 2026-09-22-workflow-dashboard]]"
   - "[[결정 노트 - 2026-09-22-workflow-review]]"
+  - "[[결정 노트 - 2026-09-25-workflow-convenience-review]]"
+  - "[[결정 노트 - 2026-09-25-workflow-simplification]]"
   - "[[작업 - workflow-review]]"
 ---
 
@@ -33,6 +35,10 @@ AI·사람 작업 절차, 대시보드, 테스트 체크리스트 운영 결정�
 - 사용자는 2026-09-22 기획자에게 툴 난도가 높으므로 Workflow 기획 단계를 개발자가 전달받은 기획서를 검토하는 단계로 바꾸도록 요청했다. ([[결정 노트 - 2026-09-22-workflow-review]])
 - 2026-09-22 Workflow 기획서 검토 단계에서 AI는 누락·충돌·구현 영향을 조사하되 없는 기획이나 수치를 임의로 작성하지 않는다. ([[결정 노트 - 2026-09-22-workflow-review]])
 - 2026-09-22 Workflow의 문서 검색 링크·단축키·검색 주소 진입은 제거하고 Wiki 검색은 유지하기로 했다. ([[결정 노트 - 2026-09-22-workflow-review]])
+- 사용자는 2026-09-25 Workflow 편의 점검 뒤 코드 식별값 검사 제거, 코드 리뷰를 확인하기 체크리스트의 사람 항목으로 이동, 옛 기록 정리, 작업 현황 자동 생성을 승인했다. ([[결정 노트 - 2026-09-25-workflow-convenience-review]])
+- 사용자는 2026-09-25 Workflow를 직관적이고 단순하게 해 달라며 정하기·만들기·확인하기 3단계, 상태 3개, 웹 새 작업 경로 폐지, 규칙 한 장 원칙을 승인했다. ([[결정 노트 - 2026-09-25-workflow-simplification]])
+- 사용자 요청으로 정하기에서 만들기로 넘어가려면 AI의 추가 질문이 없을 때 사람이 구현을 승인해야 한다. ([[결정 노트 - 2026-09-25-workflow-simplification]])
+- 사용자 요청으로 확인하기는 AI가 만든 테스트 체크리스트에서 AI 항목은 AI가 직접 테스트하고 사람 항목은 사람이 테스트해 반영한다. ([[결정 노트 - 2026-09-25-workflow-simplification]])
 
 ## 구현 관찰
 
@@ -45,6 +51,9 @@ AI·사람 작업 절차, 대시보드, 테스트 체크리스트 운영 결정�
 - 2026-09-22 Workflow 실행기에서 accept는 cleanup을 저장하고, finish는 승인자·Wiki 반영 상태·Wiki 근거·정리 근거가 있어야 complete와 closure를 저장했다. ([[결정 노트 - 2026-09-22-workflow-closure]])
 - 2026-09-22 Workflow의 approve·accept는 승인자 이름이 비면 거부하고 decisions.actor에 표시명을 저장하며 계정 인증은 하지 않았다. ([[결정 노트 - 2026-09-22-workflow-closure]])
 - 2026-09-22 Workflow 대시보드(workflow.js)는 작업을 단계별로 분류하고 changeTo가 있는 작업을 인계 구역에 두며, 완료를 테스트 수용으로만 취급했다. ([[결정 노트 - 2026-09-22-workflow-dashboard]])
+- 편의 점검 후 작업 현황은 작업 기록 제목 아래의 상태: 줄과 다음 행동: 줄을 task-records.js가 읽어 만들고 tasks/index.md는 표 없는 안내 문서가 되었다. ([[결정 노트 - 2026-09-25-workflow-convenience-review]])
+- 편의 점검 후 테스트 결과 서버는 코드 식별값 비교를 없애고 작업 기록 해시 대조만 유지한다. ([[결정 노트 - 2026-09-25-workflow-convenience-review]])
+- Workflow 단순화 시점 테스트 체크리스트는 작업 기록의 항목·확인 방법·담당·결과·근거 표이며 서버의 guardChecklist가 AI의 사람 항목 통과 처리·삭제·담당 변경을 되돌린다. ([[결정 노트 - 2026-09-25-workflow-simplification]])
 
 ## 검증 범위
 
@@ -53,10 +62,12 @@ AI·사람 작업 절차, 대시보드, 테스트 체크리스트 운영 결정�
 - 2026-09-22 Workflow closure 구현은 TestWorkflowExecution.cjs와 TestWikiViewer.cjs 모의 DOM 테스트로만 확인했고 실제 AI 호출·브라우저 육안·UE 실행은 하지 않았다. ([[결정 노트 - 2026-09-22-workflow-closure]])
 - 2026-09-22 Workflow 대시보드는 모의 DOM 테스트로만 검증했고 실제 브라우저 육안·AI 실행 검증은 하지 않았다. ([[결정 노트 - 2026-09-22-workflow-dashboard]])
 - 2026-09-22 기획서 검토 전환은 TestWikiViewer·TestWikiSpaces·TestWikiAI 모의 테스트로 확인했으며 실제 AI 응답 품질과 브라우저 육안 검증은 포함하지 않는다. ([[결정 노트 - 2026-09-22-workflow-review]])
+- Workflow 편의 개선은 스크립트 자동 테스트·링크 검사·로컬 서버 재시작·헤드리스 캡처로 확인했고 실제 AI 처리 요청과 사람의 화면 확인은 하지 않았다. ([[결정 노트 - 2026-09-25-workflow-convenience-review]])
 
 ## 미결정·충돌
 
 - 여러 대화 세션이 한 체크아웃을 동시에 편집·빌드할 때의 조율 절차는 미해결이며 다른 작업의 코드 변경은 자동 감지되지 않는다. ([[작업 - workflow-review]])
+- Workflow 단순화 시점에 웹 경로 전용 스크립트·테스트·옛 절차 문서는 자동 모드 권한 검사의 삭제 거부로 삭제 대기 상태였다. ([[결정 노트 - 2026-09-25-workflow-simplification]])
 
 ## 원자료
 
@@ -64,4 +75,6 @@ AI·사람 작업 절차, 대시보드, 테스트 체크리스트 운영 결정�
 - [[결정 노트 - 2026-09-22-workflow-closure]] — Workflow 실행기에 승인 코드 버전 대조, 테스트 수용과 정리 완료 분리, 승인자 이름 기록을 구현한 2026-09-22 요청·구현·모의 테스트 범위 기록
 - [[결정 노트 - 2026-09-22-workflow-dashboard]] — Workflow 작업 현황 대시보드에서 단계별 진행 일감을 한눈에 보도록 한 2026-09-22 사용자 요청과 workflow.js 구현·모의 DOM 검증 범위 기록
 - [[결정 노트 - 2026-09-22-workflow-review]] — 기획자에게 툴 난도가 높다는 이유로 Workflow 기획 단계를 기획서 검토 단계로 바꾸고 Workflow 문서 검색을 제거한 2026-09-22 사용자 결정 기록
+- [[결정 노트 - 2026-09-25-workflow-convenience-review]] — 단순화한 Workflow를 AI·사람 관점에서 점검한 뒤 사용자가 식별값 검사 제거·코드 리뷰 체크리스트화·옛 기록 정리·작업 현황 자동 생성 네 개선을 승인한 기록
+- [[결정 노트 - 2026-09-25-workflow-simplification]] — 사용자 승인으로 Workflow를 정하기·만들기·확인하기 3단계와 상태 3개로 줄이고 웹 새 작업 경로를 폐지하며 AI·사람 담당 테스트 체크리스트를 도입한 기록
 - [[작업 - workflow-review]] — AI 작업 워크플로우를 점검하고 작업 절차 한 장·세 단계·테스트 체크리스트·웹 새 작업과 이어하기로 단순화한 2026-09-22~26 완료 작업 기록

@@ -13,35 +13,35 @@ tags:
 
 ## Last Updated
 
-2026-09-26 · ingest-20260926T055059Z-b08
+2026-09-26 · ingest-20260926T055103Z-b09
 
 ## Key Recent Facts
 
-- [[결정 노트 - 2026-09-24-module-principles]]: Wx 플러그인 모듈화 목적을 재사용에서 게임 내부 도메인 경계 강제로 다시 정하고 책임 기반 배치 원칙을 확정한 대화 기록
-- [[결정 노트 - 2026-09-24-nameplate-manager-wxgame]]: NameplateManager를 WxUI에서 WxGame 컨트롤러로 옮겨 적과 락온 대상을 직접 읽게 하고 LockOnTargetQuery·마커 컴포넌트·옛 리다이렉트를 지운 기록
-- [[결정 노트 - 2026-09-24-nameplate-manager]]: 적마다 위젯을 만들던 Nameplate와 락온 태스크의 레티클 생성을 없애고 플레이어 컨트롤러의 NameplateManager가 로컬에서 붙이고 떼게 한 구조 기록
-- [[결정 노트 - 2026-09-24-wxcombat-cleanup]]: 구간 GE 노티파이가 자기 핸들만 걷게 하고 처형 피해를 처형 어빌리티가 직접 적용하며 퍼펙트 가드 Cue를 Hit Cue로 통합한 WxCombat 정리 네 건 기록
-- [[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]]: 소환물 쿨다운 무시를 순정 GE 컴포넌트로 바꾸고 사망 BT 정지를 AI 컨트롤러로 단일화하며 락온 대상 사본을 없앤 WxCombat 장치 정리 기록
-- [[결정 노트 - 2026-09-24-wxcore-cleanup]]: 읽는 곳 없는 Damage.Guarded·Device.Locked 태그와 빈 FWxCoreModule, WxAI 자동화 테스트 두 개를 지운 WxCore 정리 기록
-- [[결정 노트 - 2026-09-25-ability-block-policy-centralization]]: 어빌리티 자식 생성자의 공통 차단 코드를 지우고 ActivationGroup·태그 기반 계산을 ASC ApplyAbilityBlockAndCancelTags 확장 지점으로 통합한 결정과 검증 기록
-- [[결정 노트 - 2026-09-25-ability-data-on-ga]]: 어빌리티 테이블 구동을 시도했다가 AI 작업 편의를 기준으로 데이터 전용 GA_로 돌아가고 DT_Ability·DT_Effect를 지운 결정과 구현·검증 기록
-- [[결정 노트 - 2026-09-25-animnotify-labels]]: AnimNotify 17종의 타임라인 라벨을 종류와 대표 값 하나 형식으로 줄이기로 한 사용자 합의와 GetNotifyName 구현 근거를 정적으로 정리한 기록
-- [[결정 노트 - 2026-09-25-checkpoint-redirect-cleanup]]: ST_CheckPoint를 SaveCheckpoint 구조체로 리세이브한 뒤 CoreRedirects 두 항목을 지우고 새 프로세스에서 재로드·컴파일·저장을 확인한 기록
-- [[결정 노트 - 2026-09-25-checkpoint-savegame]]: UWxCheckpointSubsystem을 없애고 체크포인트 기록·부활 조회·새 게임 초기화를 USaveGame 디스크 슬롯으로 옮긴 작업의 정적 확인 기록
+- [[결정 노트 - 2026-09-25-checkpoint-single-slot]]: 사용자 결정으로 PIE와 일반 플레이가 WxCheckpoint 저장 슬롯 하나를 공유하고 슬롯 세분화는 나중으로 미룬 기록
+- [[결정 노트 - 2026-09-25-cooldown-single-ge]]: 쿨다운 그룹별 GE 파생 클래스를 공용 UWxEffect_Cooldown 하나로 합치고 어빌리티 CooldownTags와 SetByCaller 대기열로 충전을 차례 회복시킨 결정
+- [[결정 노트 - 2026-09-25-exclusive-submission-cleanup]]: 사용자 요청으로 Exclusive 차단의 임시 C++ 테스트·검증 스크립트를 제거하고 차단 관련 주석을 태그 차단·취소 면역 기준으로 정정한 기록
+- [[결정 노트 - 2026-09-25-exclusive-tag-blocking]]: Exclusive 발동 차단을 순정 BlockAbilitiesWithTag로 옮기고 콤보 자기 재발동과 도플갱어 소유자 발동 조건 면제 범위를 정한 결정과 검증
+- [[결정 노트 - 2026-09-25-row-preview-empty-struct]]: DataTable Row 미리보기에서 초기 기본값과 같은 구조체 셀을 {}로 축약하도록 한 사용자 요청과 구현 관찰, 컴파일만 통과한 상태
+- [[결정 노트 - 2026-09-25-row-preview-tooltip]]: 사용자 후속 요청으로 Row 미리보기의 축약 셀과 툴팁에 같은 텍스트를 표시하도록 바꾸어 원문 툴팁 유지 정책을 대체한 기록
+- [[결정 노트 - 2026-09-25-save-checkpoint-rename]]: 사용자 후속 요청으로 RecordCheckpoint API와 StateTree 태스크를 SaveCheckpoint로 이름을 바꾸고 CoreRedirects로 기존 구조체 경로를 이어 준 기록
+- [[결정 노트 - 2026-09-25-spawner-library-removal]]: 사용자 요청으로 UWxSpawnerLibrary를 제거하고 AWxSpawner::RespawnAll C++ 전용 함수로 플레이어 부활·StateTree 일괄 재생성을 연결한 기록
+- [[결정 노트 - 2026-09-25-ui-data-interface-removal]]: IWxUIData 인터페이스를 제거하고 WxGame 리졸버가 어빌리티·GE 데이터를 WxUI VM에 전달하도록 모듈 책임을 나눈 사용자 합의와 구현 관찰
+- [[결정 노트 - 2026-09-25-workflow-convenience-review]]: 단순화한 Workflow를 AI·사람 관점에서 점검한 뒤 사용자가 식별값 검사 제거·코드 리뷰 체크리스트화·옛 기록 정리·작업 현황 자동 생성 네 개선을 승인한 기록
+- [[결정 노트 - 2026-09-25-workflow-simplification]]: 사용자 승인으로 Workflow를 정하기·만들기·확인하기 3단계와 상태 3개로 줄이고 웹 새 작업 경로를 폐지하며 AI·사람 담당 테스트 체크리스트를 도입한 기록
 
 ## Recent Changes
 
-- [[결정 노트 - 2026-09-24-module-principles]]
-- [[결정 노트 - 2026-09-24-nameplate-manager-wxgame]]
-- [[결정 노트 - 2026-09-24-nameplate-manager]]
-- [[결정 노트 - 2026-09-24-wxcombat-cleanup]]
-- [[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]]
-- [[결정 노트 - 2026-09-24-wxcore-cleanup]]
-- [[결정 노트 - 2026-09-25-ability-block-policy-centralization]]
-- [[결정 노트 - 2026-09-25-ability-data-on-ga]]
-- [[결정 노트 - 2026-09-25-animnotify-labels]]
-- [[결정 노트 - 2026-09-25-checkpoint-redirect-cleanup]]
-- [[결정 노트 - 2026-09-25-checkpoint-savegame]]
+- [[결정 노트 - 2026-09-25-checkpoint-single-slot]]
+- [[결정 노트 - 2026-09-25-cooldown-single-ge]]
+- [[결정 노트 - 2026-09-25-exclusive-submission-cleanup]]
+- [[결정 노트 - 2026-09-25-exclusive-tag-blocking]]
+- [[결정 노트 - 2026-09-25-row-preview-empty-struct]]
+- [[결정 노트 - 2026-09-25-row-preview-tooltip]]
+- [[결정 노트 - 2026-09-25-save-checkpoint-rename]]
+- [[결정 노트 - 2026-09-25-spawner-library-removal]]
+- [[결정 노트 - 2026-09-25-ui-data-interface-removal]]
+- [[결정 노트 - 2026-09-25-workflow-convenience-review]]
+- [[결정 노트 - 2026-09-25-workflow-simplification]]
 
 ## Active Threads
 

@@ -78,7 +78,7 @@ UI가 어빌리티·이펙트·캐릭터 표시 데이터를 읽던 공용 인�
 - [[UI 표시 구조]]
 - [[어빌리티와 GAS]]
 - [[모듈 구조와 코드 정리]]
-- <!--wl-->결정 노트 - 2026-09-25-ui-data-interface-removal
+- [[결정 노트 - 2026-09-25-ui-data-interface-removal]]
 - <!--wl-->결정 노트 - 2026-09-26-ui-data-display-acceptance
 
 ## 핵심 주장

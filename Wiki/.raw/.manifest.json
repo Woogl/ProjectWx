@@ -56,6 +56,15 @@
       "source_id": "src-9b357e71cbd4160f0f05",
       "title": "Docs/CombatDesign/Nameplate_System.md"
     },
+    ".raw/captured/1d02ce6dd9dd0745ab450091cc06a519b1cf808d55d894a8abf22a4403113f53.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-spawner-library-removal.md"
+      ],
+      "sha256": "1d02ce6dd9dd0745ab450091cc06a519b1cf808d55d894a8abf22a4403113f53",
+      "source_id": "src-7e48d3401b0c2337cc4c",
+      "title": ".wiki/raw/notes/2026-09-25-spawner-library-removal.md"
+    },
     ".raw/captured/1db48fbd85c15b2d492e2b08e34b0a80db202c09fa30483b7544184dd0e8eed4.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -145,6 +154,15 @@
       "sha256": "3b605e70920f90d97e6b75d9a3fabbb5517c9490689a1b42759890de9d2873f7",
       "source_id": "src-1730cb541df1643b7273",
       "title": ".agents/workflow/tasks/interaction-list-vm-simplification.md"
+    },
+    ".raw/captured/3bd526342d7c815c3b58acec2370b6bcf9bf831d58acfabfc688c89177289015.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-row-preview-empty-struct.md"
+      ],
+      "sha256": "3bd526342d7c815c3b58acec2370b6bcf9bf831d58acfabfc688c89177289015",
+      "source_id": "src-05a7632d596861e25362",
+      "title": ".wiki/raw/notes/2026-09-25-row-preview-empty-struct.md"
     },
     ".raw/captured/3d1e1754c2ab838a480535abe4d113f0e5291f3b0584ca63480880fb603b4675.md": {
       "ingested": "2026-09-26",
@@ -254,6 +272,15 @@
       "source_id": "src-f065af6c9d30c9f6d88f",
       "title": ".wiki/raw/notes/2026-09-24-wxcombat-machinery-cleanup.md"
     },
+    ".raw/captured/5cd247dc4de1588971b8c12f96ec86eee45bb0bf80aa348fe97cd5afe0b0f579.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-cooldown-single-ge.md"
+      ],
+      "sha256": "5cd247dc4de1588971b8c12f96ec86eee45bb0bf80aa348fe97cd5afe0b0f579",
+      "source_id": "src-89713cd38b367ce6bb7f",
+      "title": ".wiki/raw/notes/2026-09-25-cooldown-single-ge.md"
+    },
     ".raw/captured/5ef1e5f8941b0be03a5211990189016c1ecc851744385b7e84cd0b9c9995c784.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -272,6 +299,15 @@
       "source_id": "src-245cd48e09d2ff9ec0b3",
       "title": ".wiki/raw/notes/2026-09-23-datatable-row-fixup.md"
     },
+    ".raw/captured/5f911e9bdb39e68915a5027a634ce630404e49d71df79056922e099cd2c11ec4.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-workflow-convenience-review.md"
+      ],
+      "sha256": "5f911e9bdb39e68915a5027a634ce630404e49d71df79056922e099cd2c11ec4",
+      "source_id": "src-cae1fc9ebf92a65c146b",
+      "title": ".wiki/raw/notes/2026-09-25-workflow-convenience-review.md"
+    },
     ".raw/captured/609caa7004bf69cc1ffe98e4b753533418d9d10afa8d41b926a0bff3e4953861.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -280,6 +316,15 @@
       "sha256": "609caa7004bf69cc1ffe98e4b753533418d9d10afa8d41b926a0bff3e4953861",
       "source_id": "src-b41b3e5cba0feec06842",
       "title": ".wiki/raw/notes/2026-09-24-wxcombat-cleanup.md"
+    },
+    ".raw/captured/63a9bcb713a22d060efe50277c576b84b6c3b7c629bb4a21ad71280c4b48bfb1.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-exclusive-submission-cleanup.md"
+      ],
+      "sha256": "63a9bcb713a22d060efe50277c576b84b6c3b7c629bb4a21ad71280c4b48bfb1",
+      "source_id": "src-3bd37c07acf8bbad4701",
+      "title": ".wiki/raw/notes/2026-09-25-exclusive-submission-cleanup.md"
     },
     ".raw/captured/6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e.md": {
       "ingested": "2026-09-26",
@@ -406,6 +451,15 @@
       "sha256": "929c5313575c83b7afad99e78d7a113cea8c828666b72081d87140a850f78d70",
       "source_id": "src-b8eecc38d8d7eccd1975",
       "title": ".wiki/raw/notes/2026-09-23-apply-damage-unification.md"
+    },
+    ".raw/captured/94bbb7943f1c6c95abd5b1952dbcbd9b41fabb3454d3f793a8baccf8c7674aa4.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-checkpoint-single-slot.md"
+      ],
+      "sha256": "94bbb7943f1c6c95abd5b1952dbcbd9b41fabb3454d3f793a8baccf8c7674aa4",
+      "source_id": "src-3c11042aae540cb5d02a",
+      "title": ".wiki/raw/notes/2026-09-25-checkpoint-single-slot.md"
     },
     ".raw/captured/9b281e65e4f5d167c014be26c4d3d77096e1f69a03aabc0e81f836cee5551bf1.md": {
       "ingested": "2026-09-26",
@@ -560,6 +614,15 @@
       "source_id": "src-73560212904f810d69bc",
       "title": ".wiki/raw/notes/2026-09-22-workflow-dashboard.md"
     },
+    ".raw/captured/c82843a97d751ca4cbeda3033a67185b680dfbba0e5b003ffc2ac2f23c040604.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-ui-data-interface-removal.md"
+      ],
+      "sha256": "c82843a97d751ca4cbeda3033a67185b680dfbba0e5b003ffc2ac2f23c040604",
+      "source_id": "src-7ee37681d10241dffc83",
+      "title": ".wiki/raw/notes/2026-09-25-ui-data-interface-removal.md"
+    },
     ".raw/captured/cbaedec2f43d791ee90da776e29260366415dfd55a6aaf50b64f9e6de53d296f.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -568,6 +631,15 @@
       "sha256": "cbaedec2f43d791ee90da776e29260366415dfd55a6aaf50b64f9e6de53d296f",
       "source_id": "src-fe76a230ff8efba25b5f",
       "title": "Docs/CombatDesign/Elite_monster.md"
+    },
+    ".raw/captured/cf524c0eec75d943109812e200e937db12ec1cac535d51f06bbf3fdefb9d7ddc.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-exclusive-tag-blocking.md"
+      ],
+      "sha256": "cf524c0eec75d943109812e200e937db12ec1cac535d51f06bbf3fdefb9d7ddc",
+      "source_id": "src-4b6f12707fdf98c013f3",
+      "title": ".wiki/raw/notes/2026-09-25-exclusive-tag-blocking.md"
     },
     ".raw/captured/d0832ea218feb93dd8309527b45696f99a05ef96f23fc61a6e042214820239ab.md": {
       "ingested": "2026-09-26",
@@ -578,6 +650,15 @@
       "source_id": "src-cfa091c12fac9ef14f27",
       "title": "Docs/CombatDesign/레벨_배치용_잡몹.md"
     },
+    ".raw/captured/d551b3b1a714f6c12c9210250af529eaa3b3da3271e8fa481b3b379a8996f715.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-save-checkpoint-rename.md"
+      ],
+      "sha256": "d551b3b1a714f6c12c9210250af529eaa3b3da3271e8fa481b3b379a8996f715",
+      "source_id": "src-78202ac612e06551e8ad",
+      "title": ".wiki/raw/notes/2026-09-25-save-checkpoint-rename.md"
+    },
     ".raw/captured/d6af9f837b5beff13e4a4c35a80302349686153ab247c462559ae91d771f0574.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -587,6 +668,15 @@
       "source_id": "src-7f8afee49742fa7bf2c8",
       "title": ".wiki/raw/notes/2026-09-22-workflow-review.md"
     },
+    ".raw/captured/d78e5dbd11d55759ed4f14308585d49e96cdfc226f79803dc7f43b7a64e6e0c9.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-row-preview-tooltip.md"
+      ],
+      "sha256": "d78e5dbd11d55759ed4f14308585d49e96cdfc226f79803dc7f43b7a64e6e0c9",
+      "source_id": "src-175f131530c1349f27ec",
+      "title": ".wiki/raw/notes/2026-09-25-row-preview-tooltip.md"
+    },
     ".raw/captured/d9e214670aefc1f403a22ab1e7977253c0b37341257a6ab4797675e1f16e0dca.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -595,6 +685,15 @@
       "sha256": "d9e214670aefc1f403a22ab1e7977253c0b37341257a6ab4797675e1f16e0dca",
       "source_id": "src-c86bc26d2911ee492488",
       "title": ".wiki/raw/notes/2026-09-22-verified-stock-rule.md"
+    },
+    ".raw/captured/dc7d6f746e1d0608e1f778cf3189efd843277a5f7dc7b66fe22bc402b37049e1.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-25-workflow-simplification.md"
+      ],
+      "sha256": "dc7d6f746e1d0608e1f778cf3189efd843277a5f7dc7b66fe22bc402b37049e1",
+      "source_id": "src-e19019bb10553c1e2211",
+      "title": ".wiki/raw/notes/2026-09-25-workflow-simplification.md"
     },
     ".raw/captured/dce4c862ecb2c25d2de83da215c577e4d4b5a10a8229579b1baf7e860869d337.md": {
       "ingested": "2026-09-26",

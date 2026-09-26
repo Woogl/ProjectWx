@@ -10,6 +10,7 @@ summary: "일반·정예 몬스터 규격, BT·AI 제어, 순찰"
 sources:
   - "[[결정 노트 - 2026-09-24-ai-brain-control-single-owner]]"
   - "[[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]]"
+  - "[[결정 노트 - 2026-09-25-exclusive-tag-blocking]]"
   - "[[기획서 - Elite_monster]]"
   - "[[기획서 - Nameplate_System]]"
   - "[[기획서 - Patrol_Design]]"
@@ -60,6 +61,7 @@ sources:
 - Patrol_Design 기획서는 정찰을 전투 트리거로 정하고 은신/잠입 처치 전용 시스템을 전제하지 않는다. ([[기획서 - Patrol_Design]])
 - Elite_monster 기획서는 엘리트 01의 무기를 양손 망치로, 외형을 외골격 파워드 슈트로, 가드 불가 패턴 수를 1개로 확정으로 표시한다. ([[기획서 - Elite_monster]])
 - 사용자는 돌진 modifier가 AI 브레인을 건드리지 않고 그로기·사망 모두 AWxAIController에서 처리하도록 정했다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
+- 사용자 지시로 도플갱어 면제 효과 이름은 IgnoreAbilityActivationTags이며 소유자 발동 조건만 면제하고 어빌리티·GE 차단은 지킨다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
 
 ## 구현 관찰
 
@@ -68,6 +70,7 @@ sources:
 - AWxAIController는 사망 시 StopLogic을, Ability.Groggy 태그 추가·제거 시 Reaction 우선순위 LockResource·ClearResourceLock을 호출하고 빙의 해제 시 잠금도 푼다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
 - 엔진 AI 태스크는 Logic 비트 잠금을 쓰므로 그 해제가 Reaction 비트로 잠긴 그로기 중 트리를 재개하지 않는다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
 - 2026-09-24 정리 이후 사망 시 BT 정지는 AWxAIController::HandlePawnDeath만 하고 UWxAbility_Death의 StopLogic 호출은 삭제됐다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
+- 노트 시점 도플갱어 미러링 BT 태스크는 RetryDuration 기본 0.4초로 최신 실패 요청 하나만 재시도하며 다중 요청의 완전 동기화를 보장하지 않는다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
 
 ## 검증 범위
 
@@ -90,6 +93,7 @@ sources:
 
 - [[결정 노트 - 2026-09-24-ai-brain-control-single-owner]] — AI 비헤이비어 트리 정지·잠금을 AWxAIController 하나로 모은 결정. 사망은 StopLogic, 그로기는 Reaction 우선순위 리소스 잠금, 돌진은 브레인을 건드리지 않는다.
 - [[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]] — 소환물 쿨다운 무시를 순정 GE 컴포넌트로 바꾸고 사망 BT 정지를 AI 컨트롤러로 단일화하며 락온 대상 사본을 없앤 WxCombat 장치 정리 기록
+- [[결정 노트 - 2026-09-25-exclusive-tag-blocking]] — Exclusive 발동 차단을 순정 BlockAbilitiesWithTag로 옮기고 콤보 자기 재발동과 도플갱어 소유자 발동 조건 면제 범위를 정한 결정과 검증
 - [[기획서 - Elite_monster]] — 첫 보스 커스터의 패링 학습을 예습시키는 양손 망치형 엘리트 01의 배치·외형·패턴 구성과 그로기 시 갑옷 파괴 기믹을 정리한 기획서
 - [[기획서 - Nameplate_System]] — 일반·네임드 몬스터 네임플레이트의 HP·DP 표시 구성, 시야·청각·피격 인식 규칙, 표시·숨김 조건과 보스 전용 규칙을 정의한 기획서
 - [[기획서 - Patrol_Design]] — 정찰을 적 타입이 아닌 인스턴스 단위 정찰 역할로 정하고, 순찰·추격·귀환 단계와 A-B-A 순찰 경로, 무전파 감지 규칙을 정의한 기획서

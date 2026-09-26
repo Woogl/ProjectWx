@@ -40,7 +40,7 @@ key_claims:
 ## 개요
 
 - 옛 LLM Wiki 결정 노트. frontmatter: 출처 `MANUAL`, 수집일 2026-09-25. 2026-09-25 미커밋 작업 트리 관찰이다.
-- 앞선 <!--wl-->결정 노트 - 2026-09-25-exclusive-tag-blocking의 생성자 선언 방식을 대체한다. 콤보·도플갱어 정책은 유지하며, 승인·검증 상태의 정본은 작업 기록 `.agents/workflow/tasks/exclusive-tag-blocking.md`라고 노트는 적는다.
+- 앞선 [[결정 노트 - 2026-09-25-exclusive-tag-blocking]]의 생성자 선언 방식을 대체한다. 콤보·도플갱어 정책은 유지하며, 승인·검증 상태의 정본은 작업 기록 `.agents/workflow/tasks/exclusive-tag-blocking.md`라고 노트는 적는다.
 - 노트 날짜 기준이라 현재 코드와 다를 수 있다.
 
 ## 사람의 판단 원문
