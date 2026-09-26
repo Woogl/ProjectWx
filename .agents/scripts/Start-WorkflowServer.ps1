@@ -1,5 +1,5 @@
 # Copyright Woogle. All Rights Reserved.
-#requires -Version 7.0
+#requires -Version 7.1
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $identity = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($repo.ToLowerInvariant()))).ToLowerInvariant()
@@ -54,10 +54,11 @@ if (!$health -and (Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 18743
 if ($health) {
     if ($health.identity -ne $identity) { throw "Port 18743 belongs to another repository's Workflow server." }
     if ($health.busy) { Write-Warning 'AI is processing; keeping the running server. Rerun OpenWorkflow.bat after it finishes to load new code.'; exit 0 }
-    $owned = @(Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine.IndexOf('"' + $script + '"', [StringComparison]::OrdinalIgnoreCase) -ge 0 })
-    if ($owned.Count -ne 1) { throw 'Could not identify the Workflow server process on port 18743.' }
-    Stop-Process -Id $owned[0].ProcessId -ErrorAction Stop
-    Wait-Process -Id $owned[0].ProcessId -Timeout 10 -ErrorAction SilentlyContinue
+    # The matching identity proves the listener is this repository's server under any script name, so stop the process that owns the port.
+    $owner = @(Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort 18743 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique)
+    if ($owner.Count -ne 1) { throw 'Could not identify the Workflow server process on port 18743.' }
+    Stop-Process -Id $owner[0] -ErrorAction Stop
+    Wait-Process -Id $owner[0] -Timeout 10 -ErrorAction SilentlyContinue
 }
 # Remove the old connection first so a failed start leaves the page without a stale token; the server writes a new one when it listens.
 Remove-Item -LiteralPath $connection -ErrorAction SilentlyContinue

@@ -33,12 +33,12 @@ const sample = { summary:'처리', evidence:['exit 0'], changes:[], questions:[]
     const codexCalls = [];
     const codexPlan = await runProvider({provider:'codex',command:{file:'codex',args:['--profile-arg']},prompt:'x',repo:dir,output,schema,mode:'plan',execute:(_file,args,options,done)=>{
       codexCalls.push(args);
-      if (args.includes('mcp')) { assert.equal(options.cwd, dir); done(null, JSON.stringify([{name:'node_repl',enabled:true},{name:'unreal-mcp',enabled:true},{name:'already-off',enabled:false}])); return; }
+      if (args.includes('mcp')) { assert.equal(options.cwd, dir); done(null, JSON.stringify([{name:'node_repl',enabled:true},{name:'unreal-mcp',enabled:true},{name:'already-off',enabled:false},{name:'no-flag'}])); return; }
       return { stdin:{ on() {}, end() { fs.writeFileSync(output, JSON.stringify(sample)); done(null, ''); } } };
     }});
     assert.deepEqual(codexPlan, sample);
     assert.deepEqual(codexCalls[0], ['--profile-arg', '--disable', 'plugins', 'mcp', 'list', '--json'], 'the server list comes from the same Codex and config');
-    assert.equal(codexCalls[1].join(' '), `--profile-arg exec --sandbox read-only --disable plugins --disable apps -c mcp_servers.node_repl.enabled=false -c mcp_servers.unreal-mcp.enabled=false --ephemeral --output-schema ${schema} --output-last-message ${output} -`);
+    assert.equal(codexCalls[1].join(' '), `--profile-arg exec --sandbox read-only --disable plugins --disable apps -c mcp_servers.node_repl.enabled=false -c mcp_servers.unreal-mcp.enabled=false -c mcp_servers.no-flag.enabled=false --ephemeral --output-schema ${schema} --output-last-message ${output} -`);
     let codexStarted = false;
     await assert.rejects(runProvider({provider:'codex',command:{file:'codex'},prompt:'x',repo:dir,output,schema,mode:'plan',execute:(_file,args,_options,done)=>{
       if (args.includes('mcp')) return done(Object.assign(new Error('unknown subcommand'), { code:2 }));

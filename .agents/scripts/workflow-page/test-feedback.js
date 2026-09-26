@@ -110,7 +110,7 @@ function renderSendState(){
   if(!newTaskOpen)return renderTaskStatus();
   $('new-task-fields').disabled=taskSending;$('new-task-submit').disabled=taskSending;
 }
-// 새 작업은 기록을 만든 뒤 작업 탭에서 바로 그 작업으로 넘어간다. 전달하는 동안 다른 화면으로 옮겼으면 그 화면을 그대로 둔다.
+// 새 작업은 기록을 만든 뒤 작업 탭에서 바로 그 작업으로 넘어간다. 전달하는 동안 다른 화면으로 옮겼으면 그 화면을 그대로 두고, 다음 새 작업은 빈 입력으로 다시 그린다.
 // 전달하지 못하면 입력을 그대로 두고 같은 버튼으로 다시 전달한다.
 async function sendNewTask(){
   if(taskSending)return;
@@ -128,7 +128,7 @@ async function sendNewTask(){
     if(location.hash==='#work!new'){
       history.replaceState(null,'',route('work',record.taskPath));await openTaskPanel({title,path:record.taskPath});
       showTaskMessage('새 작업을 만들었습니다. AI가 조사를 마치면 질문이나 구현 계획이 이 화면에 나타납니다.');
-    }
+    }else newTaskOpen=false;
     await loadTaskJobs();
   }catch(error){if(newTaskOpen)showTaskMessage(error.message);}
   finally{taskSending=false;renderSendState();}

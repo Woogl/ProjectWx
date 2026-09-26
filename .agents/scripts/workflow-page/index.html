@@ -113,8 +113,8 @@ function readRoute(){
   // 작업 기록은 서버가 연결돼 있으면 최신 내용을 그린다. 페이지를 만든 뒤 생긴 기록도 열린다.
   if(!data.ai||!/^\.agents\/workflow\/tasks\/[^/]+\.md$/.test(path)){if(d)show(d);else missing();return;}
   setArticle(el('p','작업 기록의 최신 내용을 불러오는 중입니다.','notice'));
-  workflowRequest('/test-feedback',{action:'read',taskPath:path}).then(context=>show({path,title:context.title,text:context.text}),
-    error=>d?show(d,'최신 내용을 읽지 못해 이 페이지를 만든 때의 내용을 보여줍니다. '+error.message):missing(error.message));
+  workflowRequest('/test-feedback',{action:'read',taskPath:path}).then(context=>show({path,title:context.title,text:context.text}))
+    .catch(error=>d?show(d,'최신 내용을 읽지 못해 이 페이지를 만든 때의 내용을 보여줍니다. '+error.message):missing(error.message));
 }
 __WX_WORKFLOW_SCRIPT__
 $('back').onclick=()=>{location.hash='';};window.addEventListener('hashchange',readRoute);renderProviderChoice();readRoute();

@@ -56,7 +56,7 @@ function writeChecklist(content,rows){
 function writeQuestions(content,rows){
   return writeTable(content,questionHeading,questionHeader,rows.map(q=>[q.id,q.question,q.options.map(o=>cell(o).replace(/\s+\/\s+/g,'/')).join(' / '),q.recommendation,q.answer]),readQuestions(content));
 }
-// 계획 본문에서 절 경계(0열 `## `)나 승인 줄(0열 `구현 승인:`)로 읽힐 줄만 앞에 공백을 붙인다. 나머지 줄과 코드 블록은 그대로 둔다.
+// 계획 본문에서 절 경계(0열 `## `)나 승인 줄(0열 `구현 승인:`)로 읽힐 줄만 앞에 공백을 붙인다. 절 읽기는 코드 블록을 가리지 않으므로 코드 블록 안의 그런 줄도 같고, 나머지 줄은 그대로 둔다.
 function writePlan(content,plan,approval){
   const body=plan.trim().split(/\r?\n/).map(line=>/^(## |구현 승인\s*:)/.test(line)?' '+line:line);
   return writeSection(content,planHeading,['',...body,...(approval?['','구현 승인: '+approval]:[]),'']);
@@ -214,9 +214,11 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
   function read(relative){return parse(recordFile(relative))||{taskPath:relative,revision:0,requests:[]};}
   function save(record){record.revision++;atomicWrite(recordFile(record.taskPath),record);return record;}
   function records(){return fs.readdirSync(stateFolder(root)).filter(name=>/^test_feedback_[a-f0-9]{64}\.json$/.test(name)).map(name=>parse(path.join(stateFolder(root),name))).filter(Boolean);}
-  // AI 처리가 결과 없이 끝나면 기록 상태 줄에 남겨 작업 현황에서 보이게 한다.
+  // 완료된 작업은 추가 요청·테스트 결과·다시 시도·터미널을 받지 않는다. 새 문제는 새 작업으로 시작한다.
+  const complete=text=>{try{return stateOf(text).status==='complete';}catch{return false;}},completeError=()=>Error('완료된 작업입니다. 새 문제는 새 작업으로 요청하세요.');
+  // AI 처리가 결과 없이 끝나면 기록 상태 줄에 남겨 작업 현황에서 보이게 한다. 처리 중 다른 곳에서 완료된 기록은 완료로 적는다.
   function markStopped(relative,detail){
-    try{const file=taskFile(root,relative);fs.writeFileSync(file,writeHead(fs.readFileSync(file,'utf8'),'확인 대기',detail,'작업 탭에서 다시 시도한다.'),'utf8');}catch{}
+    try{const file=taskFile(root,relative),content=fs.readFileSync(file,'utf8');fs.writeFileSync(file,complete(content)?writeHead(content,...stateOf(content).head):writeHead(content,'확인 대기',detail,'작업 탭에서 다시 시도한다.'),'utf8');}catch{}
   }
   // 서버가 포트를 잡은 뒤에만 부른다. 지난 서버가 결과 없이 끝나 처리 중으로 남은 요청을 중단으로 바꾼다.
   function recover(){
@@ -273,7 +275,7 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
     const file=taskFile(root,record.taskPath),content=fs.readFileSync(file,'utf8');
     if(sha(content)!==request.taskHash){
       request.status='conflict';request.error='처리 중 다른 곳에서 작업 기록이 바뀌어 AI 결과를 기록에 반영하지 않았습니다. AI가 바꾼 코드는 그대로 남아 있습니다. 최신 기록을 확인한 뒤 다시 시도하거나 추가 요청하세요.';
-      fs.writeFileSync(file,writeHead(content,'확인 대기','기록 충돌','처리 중 이 기록이 바뀌어 AI 결과를 반영하지 않았다. 최신 기록을 확인하고 작업 탭에서 다시 시도하거나 추가 요청한다.'),'utf8');
+      fs.writeFileSync(file,complete(content)?writeHead(content,...stateOf(content).head):writeHead(content,'확인 대기','기록 충돌','처리 중 이 기록이 바뀌어 AI 결과를 반영하지 않았다. 최신 기록을 확인하고 작업 탭에서 다시 시도하거나 추가 요청한다.'),'utf8');
       return;
     }
     let body=content;
@@ -334,8 +336,6 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
     const relative=body.taskPath;taskFile(root,relative);
     if(body.action==='read')return context(relative);
     const record=read(relative),running=record.requests.at(-1)?.status==='running';
-    // 완료된 작업은 추가 요청·테스트 결과·터미널을 받지 않는다. 새 문제는 새 작업으로 시작한다.
-    const complete=text=>{try{return stateOf(text).status==='complete';}catch{return false;}},completeError=()=>Error('완료된 작업입니다. 새 문제는 새 작업으로 요청하세요.');
     if(body.action==='terminal'){
       if(running)throw Error('AI가 이 작업을 처리하는 중입니다. 끝난 뒤 터미널에서 이어하세요.');
       const current=context(relative),provider=providerOf(body);
@@ -348,7 +348,7 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
     const current=context(relative);
     if(current.taskHash!==body.taskHash)throw Error('작업 기록이 바뀌었습니다. 최신 상태를 불러와 확인 후 전달하세요.');
     if(current.tableError)throw Error(current.tableError+' 작업 기록의 표를 고친 뒤 다시 불러오세요.');
-    if(['request','submit'].includes(body.action)&&complete(current.text))throw completeError();
+    if(['request','submit','retry'].includes(body.action)&&complete(current.text))throw completeError();
     // 결과만 기록하는 전달(실패 없는 테스트 결과)은 AI를 부르지 않으므로 다른 작업의 AI가 돌아도 받는다.
     if(body.action!=='submit'&&isBusy())throw busyError();
     const provider=providerOf(body,body.action==='retry'?record.requests.at(-1)?.provider||'codex':'codex');

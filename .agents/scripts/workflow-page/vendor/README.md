@@ -16,4 +16,4 @@
 - 파일 출처: https://cdn.jsdelivr.net/npm/marked@18.0.14/lib/marked.umd.js (npm 공식 배포본, 받은 파일이 jsdelivr 공개 해시와 일치함을 2026-09-26 확인)
 - 라이선스: MIT, marked-LICENSE에 원문 보존
 - SHA-256: 21568877A938D2C4E7D74E27F18E60DA96BB73A68809610CA39216E1EFEBAE62
-- 사용: 문서와 작업 탭의 구현 계획을 그린다. 설정은 index.html의 `marked.use` 한 줄(취소선은 `~~`만)뿐이다.
+- 사용: 문서와 작업 탭의 구현 계획을 그린다. 설정은 index.html의 `marked.use` 한 번뿐이다(취소선은 `~~`만, 남길 태그로만 된 HTML만 HTML로 읽고 나머지는 글자로 보임).

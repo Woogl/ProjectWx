@@ -217,6 +217,11 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   release();gate=null;await creating;
   assert.deepEqual([run('taskSelected.path'),context.location.hash,byId('task-title').textContent],[item.path,'#work!'+encodeURIComponent(item.path),item.title],'moving away during a send keeps the new screen');
   assert.equal(byId('test-feedback-fields').disabled,false,'the other task unlocks when the send ends');assert.doesNotMatch(message(),/새 작업을 만들었습니다/);
+  // 대시보드로 나간 사이에 만들어졌으면, 다음 새 작업은 옛 입력 없이 다시 그린다(같은 요청을 두 번 만들지 않게).
+  tasks[newPath].latest.status='questions';gate=new Promise(resolve=>{release=resolve;});context.location.hash='#work!new';run('openNewTask()');type('제목','Fourth');type('요청','네 번째 요청');
+  const leaving=button('AI에게 전달').onclick();context.location.hash='';release();gate=null;await leaving;
+  context.location.hash='#work!new';run("openWork('new')");assert.deepEqual([input('제목').value,input('요청').value],['',''],'the next new task starts empty');
+  context.location.hash='#work!'+encodeURIComponent(item.path);await run('openTaskPanel(item)');
   tasks[newPath].latest.status='questions';t.latest={...t.latest,status:'retest'};t.revision++;await run('refreshTaskContext()');
   gate=new Promise(resolve=>{release=resolve;});type('추가 요청','옮기기 전 요청');const requesting=button('추가 요청 전달').onclick();
   await run(`openTaskPanel({title:'Third',path:'${newPath}'})`);release();gate=null;await requesting;

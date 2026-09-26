@@ -231,6 +231,11 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   await settle();
   assert.deepEqual(JSON.parse(JSON.stringify(context.readBody)), ['/test-feedback', { action: 'read', taskPath: '.agents/workflow/tasks/zz-after-export.md' }]);
   assert.deepEqual(JSON.parse(JSON.stringify(context.shown)), { d: { path: '.agents/workflow/tasks/zz-after-export.md', title: '새 기록', text: '# 새 기록\n\n최신 본문\n' }, anchor: 'section-2' }, 'the reader draws the live record');
+  // 서버가 기록 내용을 보내지 않아(옛 서버) 그리다 실패해도 불러오는 중에 멈추지 않고 페이지의 내용으로 돌아간다.
+  vm.runInContext("globalThis.drawn=showDocument;showDocument=(d,anchor,notice)=>{if(typeof d.text!=='string')throw Error('marked(): input parameter is undefined or null');drawn(d,anchor,notice);};globalThis.oldServer=true;const liveRequest=workflowRequest;workflowRequest=async(endpoint,body)=>oldServer?{title:'옛 서버'}:liveRequest(endpoint,body);", context);
+  context.shown = null; context.location.hash = vm.runInContext(`route(${JSON.stringify(taskPaths[0])})`, context); vm.runInContext('readRoute()', context); await settle();
+  assert.equal(context.shown.d.path, taskPaths[0]); assert.match(context.shown.notice, /이 페이지를 만든 때의 내용/, 'a failed live draw falls back instead of hanging');
+  vm.runInContext('globalThis.oldServer=false;', context);
   context.readFails = true; context.shown = null;
   context.location.hash = vm.runInContext(`route(${JSON.stringify(snapshot)})`, context); vm.runInContext('readRoute()', context); await settle();
   assert.equal(context.shown.d.path, snapshot); assert.match(context.shown.notice, /이 페이지를 만든 때의 내용.*연결하지 못했습니다/, 'an unreachable server falls back to the snapshot and says so');

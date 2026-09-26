@@ -23,7 +23,7 @@ function codexMcpOff(command, repo, execute) {
     execute(command.file, [...(command.args || []), '--disable', 'plugins', 'mcp', 'list', '--json'], { cwd: repo, windowsHide: true, timeout: 60 * 1000 }, (error, stdout) => {
       try {
         if (error) throw error;
-        resolve(JSON.parse(stdout).filter(server => server.enabled).flatMap(server => ['-c', `mcp_servers.${server.name}.enabled=false`]));
+        resolve(JSON.parse(stdout).filter(server => server.enabled !== false).flatMap(server => ['-c', `mcp_servers.${server.name}.enabled=false`]));
       } catch { reject(new Error('Codex의 MCP 서버 목록을 읽지 못해 읽기 전용 조사를 시작하지 않았습니다. Codex CLI를 업데이트하세요.')); }
     });
   });

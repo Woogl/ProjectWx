@@ -153,6 +153,14 @@ function fixture(providers=['codex'],content=taskText){
   assert.equal(revised.rows()[1].result,'실패','a conflicting result is not applied');assert.match(revised.context().latest.error,/AI가 바꾼 코드는 그대로 남아/);
   revised.service.act(revised.request({action:'retry'}));await settle();assert.equal(revised.runs,2,'a conflict can be retried with the stored request');
   revised.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')]));await settle();assert.equal(revised.context().latest.status,'retest');
+  // 처리 중 다른 곳에서 모두 통과로 바뀐 기록은 충돌·실패여도 완료로 남고, 다시 시도를 받지 않는다(막다른 확인 대기가 생기지 않게).
+  const passAll=f=>{const file=path.join(f.root,taskPath);fs.writeFileSync(file,fs.readFileSync(file,'utf8').replace(/\| 사람 \| (대기|실패) \|/g,'| 사람 | 통과 |'));};
+  const doneConflict=fixture();doneConflict.service.act(doneConflict.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();passAll(doneConflict);
+  doneConflict.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')]));await settle();
+  assert.deepEqual([doneConflict.context().latest.status,doneConflict.head().state],['conflict','완료'],'a record completed elsewhere keeps its completed head');
+  assert.throws(()=>doneConflict.service.act(doneConflict.request({action:'retry'})),/완료된 작업/);assert.equal(doneConflict.runs,1);
+  const doneFailed=fixture();doneFailed.service.act(doneFailed.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();passAll(doneFailed);doneFailed.fail();await settle();
+  assert.deepEqual([doneFailed.context().latest.status,doneFailed.head().state],['failed','완료'],'a failed run does not reopen a record completed elsewhere');
 
   const failed=fixture();failed.service.act(failed.request({checks:[{index:1,result:'실패',note:'문제 원문'}]}));await settle();failed.fail();await settle();
   assert.equal(failed.context().latest.status,'failed');assert.equal(failed.context().latest.checks[0].note,'문제 원문');
