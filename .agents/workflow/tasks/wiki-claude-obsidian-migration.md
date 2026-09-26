@@ -256,7 +256,7 @@ claude plugin install claude-obsidian@agricidaniel-claude-obsidian
   - 이 PC의 Wiki 파일을 새 규칙으로 다시 받았다. 이때 Obsidian 로컬 변경도 되돌아갔다.
   - 남은 가능성: 추적 중인 `.obsidian/app.json`·`appearance.json`·`graph.json`은 Obsidian이 설정을 저장할 때 다시 바뀔 수 있다. 사람 항목 「Obsidian으로 읽기」에서 확인하고, 그때 다룬다.
 - 대시보드 Wiki 갱신을 고른 AI의 이 PC 실행으로 바꿨다(D9·D10).
-  - 확인한 사실: claude-obsidian 2.2.0은 Windows 네이티브(Git Bash 포함)에서 읽기·미리보기만 되고, vault 쓰기(`capture apply`·`transaction apply`·`init` 등)는 `UNSUPPORTED_PLATFORM`으로 거부한다(플러그인 `docs/windows-wsl.md`, 쓰기 모드는 이슈 #151에서 검토 중). vault는 NTFS면 된다. 이 PC에는 WSL 기능만 있고 배포판이 없었다. WSL 설치는 시스템 변경과 Linux 계정 만들기라 사용자가 한다.
+  - 확인한 사실: claude-obsidian 2.2.0은 Windows 네이티브(Git Bash 포함)에서 읽기·미리보기만 되고, vault 쓰기(`capture apply`·`transaction apply`·`init` 등)는 `UNSUPPORTED_PLATFORM`으로 거부한다(플러그인 `docs/windows-wsl.md`, 쓰기 모드는 이슈 #151에서 검토 중). vault는 NTFS면 된다. 이 PC에는 WSL 자체가 설치되어 있지 않았다(아래 정정). WSL 설치는 시스템 변경과 Linux 계정 만들기라 사용자가 한다.
   - 설계: 버튼은 AI를 고르는 패널을 연다. 서버(`Wiki-AI.cjs`)가 WSL을 확인하고, 배포판이 없으면 관리자 승인 창으로 `wsl --install -d Ubuntu`를 연다. 있으면 origin/main의 sparse 작업 트리(`Saved/Wiki/update-tree`, Wiki·기획서 Markdown·작업 기록·AGENTS.md·.gitattributes)를 맞추고, `Wiki/README.md` 설정 스크립트의 태그로 claude-obsidian 순정 코드를 `Saved/Wiki/claude-obsidian/<태그>/`에 받는다. 그다음 기존 터미널 실행기(`runTerminalJob`으로 떼어 냄)로 고른 AI를 work 모드로 그 작업 트리에서 돌린다. AI는 README 절차를 따르고 vault 쓰기만 WSL로 한다. 한 번에 하나만 돌고, 진행 중에는 서버가 바쁨으로 알려 다시 띄워지지 않는다.
   - 작업 트리를 따로 둔 이유: 사용자 작업 트리에서 갱신·푸시하면 푸시하지 않은 사용자 커밋이 함께 올라가거나, 작업 중 변경 때문에 pull이 실패하거나, 에디터로 여는 파일이 바뀔 수 있다. 저장소는 pack 8.2GB·Content 약 4.1GB라 전체 사본 대신 sparse로 둔다.
   - 임시 저장소 검증(Node에서 git 직접 호출): 작업 트리에 대상 파일만 풀림, 사용자 쪽 `core.sparseCheckout`은 그대로이고 `extensions.worktreeConfig`만 켜짐, `HEAD:main` 푸시에 사용자 로컬 커밋이 섞이지 않음, 두 번째 실행의 재맞춤 정상. 먼저 Git Bash로 시험했다가 MSYS 경로 변환 때문에 `C:\c\…`에 임시 작업 트리가 생겨 등록을 해제하고 폴더를 휴지통으로 보냈다.
@@ -266,6 +266,9 @@ claude plugin install claude-obsidian@agricidaniel-claude-obsidian
   - 새 작업·작업 진행 패널과 Wiki 갱신 패널에 따로 있던 AI 칸을 없앴다. 왼쪽 메뉴 아래(화면에 고정되어 항상 보임) 드롭다운 하나가 모든 전달·재시도·터미널·Wiki 갱신에 쓰인다.
   - 선택은 브라우저에 기억하고, 저장이 막힌 브라우저에서도 이번 화면 동안은 유지한다. 연결되지 않은 AI가 골라져 있으면 다른 AI로 몰래 바꾸지 않고 "연결 없음"으로 보여 전달을 막는다(기존 규칙 유지).
   - 작업 절차 문서의 작업 진행 설명과 `Wiki/README.md`의 준비물 절도 이에 맞췄다.
+  - 사용자 보고(2026-09-26): "위키 갱신 버튼 눌렀어요", "근데 창이 안보이네요" → 서버 상태는 `setup`(설치 요청까지 감)인데 관리자 승인 창도, 설치 프로세스도, 서버 오류도 남지 않았다.
+    - 정정: 이 PC는 배포판만 없는 게 아니라 WSL 자체가 없었다(`wsl --status`: "Linux용 Windows 하위 시스템 설치되어 있지 않습니다", Ubuntu 패키지 없음). 처음에 "기능은 있고 배포판만 없다"고 본 것은 UTF-16 출력이 깨진 것을 잘못 읽은 탓이다. `wsl --install -d Ubuntu` 한 번이 WSL과 Ubuntu를 함께 설치하므로 절차는 같다(재부팅 가능성 큼).
+    - 원인과 수정: 서버가 숨긴 PowerShell에서 관리자 승인을 요청해, 승인 창이 앞에 뜨지 않았거나 실패해도 흔적이 없었다. 이제 보이는 안내 창(`Wx · WSL 설치`, 닫히지 않음)을 열고, 그 창에서 관리자 승인으로 `wsl --install -d Ubuntu`를 끝날 때까지 기다린 뒤 다음 할 일을 보여 준다. 승인 거부나 실패도 그 창에 이유를 표시한다. 테스트는 이 창 명령줄이 터미널 창 인자 검사를 통과하는지까지 본다.
   - 사용자 요청: ""Wiki 갱신" 버튼 눌렀을 때 하단의 별도 탭 없이 바로 갱신 시작되게 해주세요." → 버튼이 곧바로 시작하고, 진행 단계와 결과는 작업 기록 제목 아래 한 줄("Wiki 갱신 중 · <AI> · <단계>")로 보인다. Wiki 갱신 패널과 패널 구분 코드(`taskPanelView`)는 없앴다. 진행 중 문구에서 AI 이름이 두 번 나오지 않게 서버 문구를 "AI가 작업하는 중입니다."로 바꿨다.
   - 사용자 요청: ""작업 기록은 저장소의 .agents/workflow/tasks에 있습니다. 기록이 바뀌면 OpenWorkflow.bat을 다시 실행하세요." 이 문구 제거하고, 이 위치로 생성 일자("생성 · 2026-09-26 17:41:23" 같은거)를 옮겨주세요." → 왼쪽 아래 안내 문구를 지우고 그 자리에 생성 일자를 두었다. 머리글의 생성 일자와 쓰지 않게 된 `.stamp` 스타일은 뺐다. 좁은 화면(720px 이하)에서는 전처럼 왼쪽 아래 영역이 숨겨진다.
 - 사용자 질문(2026-09-26): "\Saved\Wiki 폴더를 더 적절한 곳으로 옮기는게 낫지 않을까요? 이건 자동 생성되는 파일로 알고 있긴 한데, 위키 폴더가 분산되니까 관리가 까다로워 보여서요."
