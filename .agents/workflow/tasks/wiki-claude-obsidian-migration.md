@@ -1,7 +1,7 @@
 # Wiki를 claude-obsidian으로 전환하고 정기 갱신으로 운영
 
-상태: 확인 대기 · 체크리스트 12/18 통과
-다음 행동: 사람 항목을 확인한다. 코드 리뷰, Routine 첫 실행과 Routine 순정 플러그인 설치(AI 확인 근거 있음), Wiki 갱신 버튼(버튼 잠금을 고쳤으니 대시보드를 새로고침한 뒤 다시 확인), Obsidian으로 Wiki 읽기, 다음 날 예약 실행이다.
+상태: 확인 대기 · 체크리스트 14/20 통과
+다음 행동: 사람은 이 PC의 WSL(Ubuntu) 설치를 마치고 알린다. 그 뒤 AI가 WSL 쓰기 시험과 이 PC 실제 갱신을 한다. 남은 사람 항목은 코드 리뷰, Routine 첫 실행, Wiki 갱신 버튼, 다음 날 예약 실행이다.
 
 - 날짜: 2026-09-26
 - 계기: AI 게임 개발 워크플로우에 claude-obsidian과 llm-wiki 중 무엇이 맞는지 묻는 사용자 질문에서 시작했다. 조사와 결정은 Claude Code 클라우드 세션에서 진행했고, 구현은 사용자가 새 세션에서 이어서 한다.
@@ -42,6 +42,8 @@
 | Q4 | 갱신 결과를 main에 올리는 방식 | main에 직접 푸시(지금 Routine 방식) / `claude/` 브랜치 PR 후 자동 병합 | main 직접 푸시 | 사용자 2026-09-26: "나머지는 추천대로 진행하세요." |
 | Q5 | 어빌리티·이펙트·캐릭터 목록을 어디에 두는가 | vault 밖 Saved/AbilitySystemLists/(Git 제외, 조사할 때 생성) / vault 안 Wiki/wiki/references/(Routine이 매일 생성) | vault 밖 | 사용자 2026-09-26: "나머지는 추천대로 진행하세요." |
 | Q6 | 웹에서 사람이 남기는 체크리스트 갱신과 의견을 어디까지 받는가 | 지금 기능 그대로(사람 항목 통과·실패, 설명은 실패에만, AI에게 추가 요청은 항상 AI 실행) / 의견 추가(통과 항목에도 의견을 적고, AI를 부르지 않고 기록만 남기는 의견 남기기를 더함) / 체크리스트 편집까지(의견 추가에 더해 사람이 항목을 추가·수정) | 의견 추가 | 사용자 2026-09-26: "지금 그대로 둡시다. 필요하면 나중에 추가할게요." |
+| D9 | 대시보드 Wiki 갱신을 무엇으로 하는가 | 클라우드 Routine 호출 / 대시보드에서 고른 AI가 이 PC에서(WSL 필요) | 사용자 결정 | 사용자 2026-09-26: ""Wiki 갱신" 버튼이 클로드 Routine을 실행하는 것이 아니라, 선택된 AI 서비스로 처리했으면 해요. Dailiy 갱신은 클로드 Routine으로 처리하겠지만, 필요에 따라서는 즉시 갱신하는 것이 필요할 수도 있으니까요." · WSL 전제 확인에 "네 설치해주세요" |
+| D10 | 다른 PC의 준비물 | 사람이 미리 설치 / 버튼이 없으면 설치 시작 | 사용자 결정 | 사용자 2026-09-26: "네, 다른 사람도 워크플로우에서 위키 갱신 버튼 눌렀을 때 설치 안되어있으면 자동 설치되게 합시다." |
 
 - Q1 이유: 새로 수집하는 동안 기존 `.wiki/`를 읽기 전용 비교 기준으로 둘 수 있다. vault는 저장소 루트가 아니라 하위 폴더여야 한다(`Content/` 4GB 제외). 하위 폴더 vault는 저장소 루트에서 자동으로 찾지 못하므로 명령마다 `--vault Wiki`를 붙인다. 처음 이유의 "Obsidian은 점 폴더를 숨긴다"는 vault 안의 폴더 이야기라 vault 폴더 이름을 고르는 근거가 아니어서 뺐다.
 - Q2 이유(검토에서 정정): claude-obsidian은 실행 사이의 사람 편집을 감지하지 않는다. 충돌 확인은 한 실행 안의 계획→적용 사이뿐이다. 그래서 다음 갱신이 사람이 고친 페이지를 통째로 교체할 수 있고, 제목·블록 anchor나 레저가 가리키는 페이지를 지우면 이후 레저 쓰기가 모두 막힌다(`INVALID_PROVENANCE_LEDGER`). 처음 이유("바뀐 파일을 충돌로 거부해 갱신이 멈춘다")는 틀렸다.
@@ -101,7 +103,7 @@
 | 항목 | 확인 방법 | 담당 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
 | 완료 뒤 Wiki 정리 제거 | TestWorkflowTestFeedback.cjs·TestWorkflowFeedbackUI.cjs | AI | 통과 | node exit 0. 사람 항목이 모두 통과하면 AI 호출 없이 완료(record·complete)로 기록한다 |
-| Wiki 갱신 서버 경로 | TestWorkflowTestFeedback.cjs의 /wiki-update 검사(가짜 요청 함수) | AI | 통과 | 설정 없으면 꺼짐·400, Routine /fire 주소·헤더, 응답에 토큰 없음, 잘못된 접속 토큰 403, 호출 중 중복 거절, 거절 응답 전달 |
+| Wiki 갱신 서버 경로 | TestWorkflowTestFeedback.cjs의 Wiki 갱신 검사(가짜 명령·실행기) → 잠금 제거·WSL 확인 생략 결함을 넣어 다시 실행 | AI | 통과 | WSL 배포판이 없으면 관리자 승인 설치 창만 열고 Git은 안 건드림, 첫 설정 전이면 이유만 알림, sparse 작업 트리 생성과 origin/main 맞춤, README 태그로 claude-obsidian을 받고 다시 받지 않음, 고른 AI를 작업 트리에서 work 모드로 실행, 한 번에 하나, AI 실패 이유 기록, 작업 트리 자리의 다른 폴더는 지우지 않음, 잘못된 접속 토큰 403, 진행 중 health busy. 넣은 결함 2건 모두 테스트 실패 |
 | Workflow 전용 화면 | Export-Wiki.ps1 실행 뒤 TestWikiViewer.cjs | AI | 통과 | 31개 문서가 모두 .agents/workflow, knowledge.html 없음, Wiki 갱신 버튼은 토큰이 없으면 꺼지고 켜지면 세션 링크를 보여준다 |
 | 문서 링크 | CheckWikiLinks.ps1 | AI | 통과 | 32개 문서 오류 0 |
 | 목록 생성 위치 | Export-AbilitySystemLists.ps1 | AI | 통과 | Saved/AbilitySystemLists에 목록 3개 생성, 링크 13개 모두 존재, .wiki는 바뀌지 않음 |
@@ -109,13 +111,15 @@
 | 원자료 사본 줄바꿈 | 이 PC에서 저장소 사본의 claude-obsidian lint --vault Wiki | AI | 통과 | Windows에서 꺼낸 사본이 CRLF가 되어 provenance_errors 109건 → .gitattributes에 Wiki/.raw/** -text를 더하고 다시 꺼낸 뒤 전 항목 0 |
 | claude-obsidian 사본 축소 | 줄인 사본으로 모의 init·lint·doctor | AI | 통과 | 101개 → 58개(약 0.8MB), init 14개 계획, lint 전 항목 0, doctor ok |
 | 레거시 제거 | 옛 Wiki 참조 검색과 링크 검사 | AI | 통과 | .wiki 제거(154개 추적 파일, 폴더는 휴지통), llm-wiki 플러그인·마켓플레이스 제거, 남은 참조 0, CheckWikiLinks 오류 0, Node 테스트 4개·하네스 통과. 뒤이어 Codex·Claude·Obsidian 사용자 설정의 흔적도 정리했고 llm-wiki 검색 0(전환 마무리 절) |
-| Wiki 갱신 버튼 잠금 | 수정 전·후 workflow.js로 각각 Export-Wiki.ps1 → TestWikiViewer.cjs | AI | 통과 | 시작 뒤 꺼짐 검사가 수정 전 코드에서 실패하고 수정 뒤 통과. 워크플로우 Node 테스트 4개·문서 링크 오류 0 |
-| 코드 리뷰 | 변경 파일은 구현 결과 절의 목록과 전환 마무리 절의 버튼 잠금 수정. 볼 점: 완료 처리(record·complete), /wiki-update의 토큰 취급, Workflow 전용 화면 정리, Wiki/README.md의 Routine 절차, 버튼 잠금과 테스트의 경쟁 조건 수정 | 사람 | 대기 |  |
+| Wiki 갱신 패널 | Export-Wiki.ps1 → TestWikiViewer.cjs | AI | 통과 | AI 연결이 없으면 버튼이 꺼지고, 있으면 패널에서 고른 AI로 시작을 요청하며, 진행 중에는 갱신 시작이 꺼지고, 끝나면 패널과 대시보드에 결과가 보임. 워크플로우 Node 테스트 4개 통과 |
+| WSL 쓰기 시험 | WSL 설치 뒤 임시 vault(저장소 밖)에 claude-obsidian init 적용 → /mnt/c의 NTFS에서 쓰기가 거부되지 않는지 | AI | 대기 |  |
+| 이 PC 실제 갱신 | WSL 설치 뒤 대시보드 서버에 Wiki 갱신을 요청해 준비물 확인·작업 트리·태그 받기·AI 실행·lint까지 끝나는지 | AI | 대기 |  |
+| 코드 리뷰 | 변경 파일은 구현 결과 절의 목록과 전환 마무리 절의 버튼 수정·대시보드 갱신 전환(Wiki-AI.cjs, Workflow-TestFeedback.cjs의 runTerminalJob, wiki-viewer/workflow.js·test-feedback.js, 테스트 2개, Wiki/README.md, process/index.md). 볼 점: 완료 처리(record·complete), Workflow 전용 화면 정리, Wiki/README.md의 갱신 절차, 준비물 자동 설치(관리자 승인 창), sparse 작업 트리와 HEAD:main 푸시 | 사람 | 대기 |  |
 | Routine 첫 실행 | 커밋·푸시 → AI에게 Routine 전환 요청 → 웹에서 Run now. Wiki/가 init되고 기획서·완료 기록이 수집되어 main에 푸시되며 lint의 provenance_errors·dead_links가 0이다. | 사람 | 대기 | AI 확인: 두 번째 실행(cse_017DwwnfEBCVpWtgefGEpA4H)이 원자료 109건을 수집해 커밋 20b0751~33cb7ea로 푸시했고 lint는 전 항목 0이다(이 PC 재검사도 0). 첫 실행은 외부 코드 거부로 실패했다. |
-| Wiki 갱신 버튼 | 웹에서 API 트리거를 더해 토큰 발급 → Saved/Wiki/wiki-routine.json의 token 채움 → OpenWorkflow.bat → Wiki 갱신. 새 Routine 세션 링크가 보이고, 그 뒤로 새로고침 전까지 버튼이 꺼져 있다. | 사람 | 대기 | AI 확인: 사용자가 토큰을 넣은 뒤 서버 상태는 configured true, 버튼 실행 cse_01TG3SDyHFejVDS9h44Bi77d가 lint 0·변경 없음으로 성공했다. 사용자 보고로 잠금을 고쳤다(전환 마무리 절). |
-| Obsidian으로 읽기 | pull → Obsidian에서 Wiki 폴더를 vault로 한 번 열기 → Obsidian을 다시 열면 Wiki vault가 열린다. 그래프·백링크·속성이 보이고 링크가 깨지지 않으며, 노트를 읽고 닫은 뒤 `git status`에 Wiki 노트 변경이 없다. | 사람 | 대기 |  |
+| Wiki 갱신 버튼 | OpenWorkflow.bat → Wiki 갱신 → AI를 골라 갱신 시작. 준비물이 없으면 설치 안내가 나오고, 있으면 터미널 창에서 그 AI가 갱신한다. 진행 중에는 갱신 시작이 꺼지고, 끝나면 결과가 보이며 바뀐 것이 있으면 main에 Wiki 커밋이 올라간다. | 사람 | 대기 | 방식이 바뀌었다(D9·D10). Routine을 부르던 이전 방식의 확인 근거는 전환 마무리 절에 있다. |
+| Obsidian으로 읽기 | pull → Obsidian에서 Wiki 폴더를 vault로 한 번 열기 → Obsidian을 다시 열면 Wiki vault가 열린다. 그래프·백링크·속성이 보이고 링크가 깨지지 않으며, 노트를 읽고 닫은 뒤 `git status`에 Wiki 노트 변경이 없다. | 사람 | 통과 | 이우성 2026-09-26 |
 | Wiki 줄바꿈·무시 규칙 | 규칙 추가 → Wiki 파일 다시 받기 → 노트 3개를 같은 내용의 LF로 다시 저장 → git status → lint --vault Wiki | AI | 통과 | 다시 저장한 노트가 변경으로 잡히지 않음, core-plugins.json은 무시, 원자료 사본은 -text 유지, lint 전 항목 0 |
-| Routine 순정 플러그인 설치 | 웹에서 Wiki 전용 환경을 만들고 그 환경의 설정 스크립트 칸에 스크립트를 넣는다 → AI가 Routine을 그 환경으로 옮겨 실행한다. 실행 기록에 설정 스크립트 실행이 보이고, 세션이 claude-obsidian 플러그인 스킬로 수집·lint를 마치면 AI가 저장소 사본을 지운다. | 사람 | 대기 | AI 확인: 사용자가 앱 브라우저에 로그인한 뒤 AI가 Wiki 환경(env_01KeuTATKhRqdfFx7yVB6bSX)을 만들고 Routine을 옮겼다. 실행 cse_01K5JpzBksuMn1UA816pAahJ에서 설정 스크립트가 완료됐고, 세션은 설치된 플러그인 2.2.0만 써서 권한 거부 없이 lint 전 항목 0을 냈다. 새 원자료가 없어 수집(capture·적용)은 다음 실제 수집에서 처음 돈다. 저장소 사본은 지웠다. 첫 설정은 스크립트가 Routine 지시문 칸에 들어가 되돌렸다. |
+| Routine 순정 플러그인 설치 | 웹에서 Wiki 전용 환경을 만들고 그 환경의 설정 스크립트 칸에 스크립트를 넣는다 → AI가 Routine을 그 환경으로 옮겨 실행한다. 실행 기록에 설정 스크립트 실행이 보이고, 세션이 claude-obsidian 플러그인 스킬로 수집·lint를 마치면 AI가 저장소 사본을 지운다. | 사람 | 통과 | 이우성 2026-09-26 |
 | 저장소 사본 제거 | 참조 검색 → CheckWikiLinks.ps1 → TestAgentHarness.ps1 → 이 PC의 순정 플러그인으로 lint --vault Wiki | AI | 통과 | .agents/vendor 59개 git rm, 남은 참조는 이 기록의 경과뿐, 문서 링크 오류 0, 하네스 exit 0, 순정 플러그인 2.2.0 lint 전 항목 0 |
 | 다음 날 예약 실행 | 다음 날 06:30(KST) 뒤 main에 Wiki 갱신 커밋이 있거나, 바뀐 것이 없다는 Routine 보고가 있다. | 사람 | 대기 |  |
 
@@ -249,3 +253,28 @@ claude plugin install claude-obsidian@agricidaniel-claude-obsidian
   - 루트 `.gitignore`에 Obsidian이 처음 열 때 만드는 `/Wiki/.obsidian/core-plugins.json`을 더했다.
   - 이 PC의 Wiki 파일을 새 규칙으로 다시 받았다. 이때 Obsidian 로컬 변경도 되돌아갔다.
   - 남은 가능성: 추적 중인 `.obsidian/app.json`·`appearance.json`·`graph.json`은 Obsidian이 설정을 저장할 때 다시 바뀔 수 있다. 사람 항목 「Obsidian으로 읽기」에서 확인하고, 그때 다룬다.
+- 대시보드 Wiki 갱신을 고른 AI의 이 PC 실행으로 바꿨다(D9·D10).
+  - 확인한 사실: claude-obsidian 2.2.0은 Windows 네이티브(Git Bash 포함)에서 읽기·미리보기만 되고, vault 쓰기(`capture apply`·`transaction apply`·`init` 등)는 `UNSUPPORTED_PLATFORM`으로 거부한다(플러그인 `docs/windows-wsl.md`, 쓰기 모드는 이슈 #151에서 검토 중). vault는 NTFS면 된다. 이 PC에는 WSL 기능만 있고 배포판이 없었다. WSL 설치는 시스템 변경과 Linux 계정 만들기라 사용자가 한다.
+  - 설계: 버튼은 AI를 고르는 패널을 연다. 서버(`Wiki-AI.cjs`)가 WSL을 확인하고, 배포판이 없으면 관리자 승인 창으로 `wsl --install -d Ubuntu`를 연다. 있으면 origin/main의 sparse 작업 트리(`Saved/Wiki/update-tree`, Wiki·기획서 Markdown·작업 기록·AGENTS.md·.gitattributes)를 맞추고, `Wiki/README.md` 설정 스크립트의 태그로 claude-obsidian 순정 코드를 `Saved/Wiki/claude-obsidian/<태그>/`에 받는다. 그다음 기존 터미널 실행기(`runTerminalJob`으로 떼어 냄)로 고른 AI를 work 모드로 그 작업 트리에서 돌린다. AI는 README 절차를 따르고 vault 쓰기만 WSL로 한다. 한 번에 하나만 돌고, 진행 중에는 서버가 바쁨으로 알려 다시 띄워지지 않는다.
+  - 작업 트리를 따로 둔 이유: 사용자 작업 트리에서 갱신·푸시하면 푸시하지 않은 사용자 커밋이 함께 올라가거나, 작업 중 변경 때문에 pull이 실패하거나, 에디터로 여는 파일이 바뀔 수 있다. 저장소는 pack 8.2GB·Content 약 4.1GB라 전체 사본 대신 sparse로 둔다.
+  - 임시 저장소 검증(Node에서 git 직접 호출): 작업 트리에 대상 파일만 풀림, 사용자 쪽 `core.sparseCheckout`은 그대로이고 `extensions.worktreeConfig`만 켜짐, `HEAD:main` 푸시에 사용자 로컬 커밋이 섞이지 않음, 두 번째 실행의 재맞춤 정상. 먼저 Git Bash로 시험했다가 MSYS 경로 변환 때문에 `C:\c\…`에 임시 작업 트리가 생겨 등록을 해제하고 폴더를 휴지통으로 보냈다.
+  - 없앤 것: Routine `/fire` 호출 코드와 `Saved/Wiki/wiki-routine.json` 사용, README의 버튼 토큰 설정 절. 웹의 API 트리거와 토큰은 더 쓰지 않는다.
+  - 문서: `Wiki/README.md`(두 갈래 갱신, 이 PC에서 지킬 것, `git push origin HEAD:main`, 대시보드 갱신 준비물 절), `process/index.md`의 Wiki 쓰기 규칙.
+
+
+## 사용자 테스트 결과 · 2026-09-26T07:51:40.855Z
+
+<!-- test-feedback:request-7678495c-08a8-46bd-bc3f-168e097baf5e:submitted -->
+- 전달한 사람: 이우성
+
+> 통과 · Obsidian으로 읽기
+> 통과 · Routine 순정 플러그인 설치
+
+
+## 사용자 테스트 결과 · 2026-09-26T07:53:17.112Z
+
+<!-- test-feedback:request-e35ee04b-ec74-4787-9ba8-2faaf533affc:submitted -->
+- 전달한 사람: 이우성
+
+> 통과 · Obsidian으로 읽기
+> 통과 · Routine 순정 플러그인 설치
