@@ -13,6 +13,12 @@ tags:
 
 Newest completed operations appear first.
 
+## 2026-09-26 · ingest-20260926T175000Z-workflow-records
+
+새로 완료된 작업 기록 5건을 수집했다: [[작업 - wiki-claude-obsidian-migration]], [[작업 - workflow-inspection]], [[작업 - dashboard-work-tab-split]], [[작업 - workflow-final-fixes]], [[작업 - harness-legacy-cleanup]]. 모두 워크플로우·Wiki 운영 기록이라 [[작업 절차(Workflow)]]와 [[Wiki 운영]]에 날짜·출처를 붙인 결정 이력으로 더했고, 지금 지킬 규칙은 정본(`.agents/workflow/process/index.md`, `Wiki/README.md`)을 가리켰다. 종합 점검 Q7(정하기 단계 추가 요청은 읽기 전용)이 옛 주장 clm-bda6487128-c2(추가 요청은 모든 명령 허용)를 대체해, 옛 주장을 deprecated로 바꿨다. claude-obsidian 전환 기록(D9·D11)에 따라 [[overview]]와 [[index]]의 「Routine만 쓴다」를 「Wiki 갱신 두 갈래만 쓴다」로 고쳤다.
+
+[[작업 - animnotify-labels]]는 원본이 바뀌어(빌드 로그 링크를 경로 글자로 바꾼 것뿐) 새 사본으로 대체하고 주장 근거만 옮겼다. 새 원자료의 재확인 기한은 완료 작업 기록과 같은 2027-03-25로 정했다. 기획서 30개 파일과 나머지 완료 작업 기록 13건은 원장과 해시가 같았고, 30일 안에 재확인 기한이 오는 활성 원자료는 없었다. 게임 빌드·실행 재검증은 하지 않았다.
+
 ## 2026-09-26 · ingest-20260926-task-record-cleanup
 
 완료 작업 기록 8건의 원본이 2026-09-26 기록 정리로 바뀌어 새 사본으로 다시 수집하고 옛 원자료를 대체했다: [[작업 - ability-table-driven]], [[작업 - animnotify-labels]], [[작업 - datatable-row-preview]], [[작업 - dialogue-presentation-vm]], [[작업 - interaction-list-vm-simplification]], [[작업 - nameplate-manager]], [[작업 - ui-data-interface-removal]], [[작업 - workflow-review]]. 옛 상태 줄 제거·중복 요청 병합 같은 정리뿐이라 주장 근거만 새 사본으로 옮겼다. 지식이 바뀐 것은 workflow-review 한 건으로, 작업 절차 도식 점검의 남은 미결 두 가지가 워크플로우 종합 점검의 Q7·Q8로 정해졌다는 후속 줄이다. 이에 따라 [[작업 절차(Workflow)]]의 두 미결 항목을 확정 결정으로 옮기고 주장 하나(clm-d1d69945aa-c5)를 더했다. 새 원자료의 재확인 기한은 각 옛 원자료의 기한(2027-03-25)을 이었다. 기획서 30개 파일과 나머지 완료 작업 기록 6건은 원장과 해시가 같았고, 30일 안에 재확인 기한이 오는 활성 원자료는 없었다. 게임 빌드·실행 재검증은 하지 않았다.

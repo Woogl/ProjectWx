@@ -29,17 +29,26 @@ sources:
   - "[[결정 노트 - 2026-09-26-workflow-tasks-guide-removed]]"
   - "[[결정 노트 - 2026-09-26-workflow-web-tasks]]"
   - "[[작업 - workflow-review]]"
+  - "[[작업 - dashboard-work-tab-split]]"
+  - "[[작업 - harness-legacy-cleanup]]"
+  - "[[작업 - wiki-claude-obsidian-migration]]"
+  - "[[작업 - workflow-final-fixes]]"
+  - "[[작업 - workflow-inspection]]"
 ---
 
 # 작업 절차(Workflow)
 
-AI·사람 작업 절차, 대시보드, 테스트 체크리스트 운영 결정에 관한 원자료 요약을 모은 주제 페이지입니다. 문장마다 끝의 링크가 출처이며, 절 이름으로 기획 요구사항·사람의 확정 결정·코드 구현 관찰·검증 범위·미결정을 구분합니다. 구현 관찰은 원자료 작성 시점의 코드 기준이고, 문서 갱신이나 Wiki lint 통과는 게임 동작 검증이 아닙니다.
+AI·사람 작업 절차, 대시보드, 테스트 체크리스트 운영 결정에 관한 원자료 요약을 모은 주제 페이지입니다. 문장마다 끝의 링크가 출처이며, 절 이름으로 기획 요구사항·사람의 확정 결정·코드 구현 관찰·검증 범위·미결정을 구분합니다. 구현 관찰은 원자료 작성 시점의 코드 기준이고, 문서 갱신이나 Wiki lint 통과는 게임 동작 검증이 아닙니다. 이 페이지는 결정 이력과 근거를 모으며, 지금 지킬 작업 절차 규칙은 정본 `.agents/workflow/process/index.md`를 봅니다.
 
 ## 요구사항
 
 - 사용자는 2026-09-22 Workflow의 코드 리뷰 승인 버전 보장, 테스트 수용과 최종 정리 완료 분리, 승인자 누락 수정을 요청했다. ([[결정 노트 - 2026-09-22-workflow-closure]])
 - 사용자는 2026-09-22 Workflow 작업 현황 대시보드에서 단계별 진행 중인 일감을 한눈에 확인하도록 요청했다. ([[결정 노트 - 2026-09-22-workflow-dashboard]])
 - 사용자는 기존 Workflow 웹 대시보드에서 테스트 결과를 이상 없음/이상 있음으로 제출하고 AI가 접수·마무리하는 기능을 요청했다. ([[결정 노트 - 2026-09-25-workflow-test-feedback]])
+- 사용자는 2026-09-26 워크플로우 종합 점검을 요청하며 "가능하면 순정을 그대로 쓰고, 복잡한 장치는 줄였으면 해요. 유지보수 때문이에요", "모든 지침은 SSOT를 엄격하게 준수해야합니다"를 기준으로 제시했다. ([[작업 - workflow-inspection]])
+- 사용자는 2026-09-26 대시보드는 작업 현황을 보는 곳으로 두고 새 작업·이어서 작업을 누르면 작업 탭으로 전환되게 나누며, 이름 입력을 작성자로 바꾸고 구현 계획을 Markdown과 도식으로 보이게 해 달라고 요청했다. ([[작업 - dashboard-work-tab-split]])
+- 사용자는 2026-09-26 워크플로우 최종 마무리 코드 리뷰를 요청했고, 2026-09-27 확인된 지적을 고치자고 했다("네 고칩시다"). ([[작업 - workflow-final-fixes]])
+- 사용자는 2026-09-27 옛 스킬 빈 폴더와 그 밖의 옛 레거시·흔적을 모두 지우고, 이름에 옛 Wiki가 남은 스크립트는 쓰지 않으면 지우고 쓰면 더 적절한 이름으로 바꾸라고 요청했다. ([[작업 - harness-legacy-cleanup]])
 
 ## 확정 결정
 
@@ -70,8 +79,17 @@ AI·사람 작업 절차, 대시보드, 테스트 체크리스트 운영 결정�
 - Workflow AI 결과는 단계별로 받을 칸이 제한되고(정하기=질문·계획, 구현·수정=변경·질문·체크리스트, 추가 요청=변경·질문·계획·체크리스트, 정리=변경) blockers·checks 칸은 없어졌다. ([[결정 노트 - 2026-09-26-workflow-state-from-record-only]])
 - Workflow에서 AI가 실행하지 못한 항목은 사람 항목으로 넘기고, 사람 항목이 없으면 결과 확인 항목을 더해 완료는 항상 사람 확인으로 끝난다. ([[결정 노트 - 2026-09-26-workflow-state-from-record-only]])
 - 사용자 요청(2026-09-26)으로 Workflow 대시보드의 기록 작성 규칙 링크와 기록 폴더 안내 문서 .agents/workflow/tasks/index.md가 삭제됐고, 기록 규칙은 작업 절차 한 장에만 있다. ([[결정 노트 - 2026-09-26-workflow-tasks-guide-removed]])
-- 작업 절차 도식 점검(2026-09-26)이 미결로 남긴 두 가지, 곧 정하기 중(미답변 질문·미승인 계획)에 보낸 추가 요청이 모든 명령 허용으로 실행되는 문제와 완료 직후 작업 진행 패널의 추가 요청 버튼 재활성은 같은 날 워크플로우 종합 점검(`.agents/workflow/tasks/workflow-inspection.md`의 Q7·Q8)으로 정해졌다. 현재 규칙은 정본 `.agents/workflow/process/index.md`를 본다. ([[결정 노트 - 2026-09-26-workflow-process-diagram]], [[작업 - workflow-review]])
+- 작업 절차 도식 점검(2026-09-26)이 미결로 남긴 두 가지, 곧 정하기 중(미답변 질문·미승인 계획)에 보낸 추가 요청이 모든 명령 허용으로 실행되는 문제와 완료 직후 작업 진행 패널의 추가 요청 버튼 재활성은 같은 날 워크플로우 종합 점검(`.agents/workflow/tasks/workflow-inspection.md`의 Q7·Q8)으로 정해졌다. 현재 규칙은 정본 `.agents/workflow/process/index.md`를 본다. ([[결정 노트 - 2026-09-26-workflow-process-diagram]], [[작업 - workflow-review]], [[작업 - workflow-inspection]])
 - 사용자는 2026-09-25 Workflow 대시보드에서 새 작업 시작과 기존 작업 이어하기를 요청하고, 웹 안 처리·터미널로만 AI 대화 열기·구현은 모든 명령 허용·터미널 창에 보이며 실행을 골랐다. ([[결정 노트 - 2026-09-26-workflow-web-tasks]])
+- 2026-09-26 claude-obsidian 전환으로 완료 뒤 AI의 Wiki 정리가 없어졌고, 사용자 요청("좌측 탭 아래쪽으로 합시다. 항상 보이게요.")으로 처리할 AI는 왼쪽 메뉴 아래 드롭다운 하나에서 골라 모든 전달·터미널·Wiki 갱신에 쓴다. ([[작업 - wiki-claude-obsidian-migration]])
+- 2026-09-26 워크플로우 종합 점검에서 사용자는 "Q6는 플러그인 순정대로 해주시고, 나머지는 모두 추천대로 해주세요."라고 답해, 코드 속 AI 요청문에는 결과 칸 형식과 권한 제한 한 줄만 남기고(Q1), 접수 상태 파일은 Git 밖 `Saved/Workflow`로 옮기며(Q2), 화면의 보류·재전송 장치를 없애고(Q3), 작업 처리와 Wiki 갱신이 따로 돌게 했다(Q5). ([[작업 - workflow-inspection]])
+- 종합 점검 Q7·Q8(2026-09-26)로 구현 승인 전 정하기 단계의 추가 요청은 읽기 전용으로 실행되고, 완료된 작업은 추가 요청을 받지 않게 되었다. 이는 웹에서 맡긴 추가 요청을 단계와 상관없이 모든 명령 허용으로 실행하던 2026-09-26 이전 결정을 대체한다. ([[작업 - workflow-inspection]], [[결정 노트 - 2026-09-26-workflow-web-tasks]])
+- 종합 점검 Q9(2026-09-26)는 "Wiki"가 붙은 대시보드 도구 이름을 그대로 두기로 했으나, 2026-09-27 사용자 추가 요청으로 `Wiki-AI.cjs` → `Workflow-Server.cjs`, `Export-Wiki.ps1` → `Export-WorkflowPage.ps1`, `wiki-viewer/` → `workflow-page/`, `CheckWikiLinks.ps1` → `CheckDocLinks.ps1` 등으로 이름을 바꿨고 `Wiki-Obsidian.cjs`는 그대로 두었다. ([[작업 - workflow-inspection]], [[작업 - harness-legacy-cleanup]])
+- 사용자는 2026-09-26 여러 프로그래머가 병렬로 워크플로우를 돌릴 때의 충돌을 장치 없이 작업자 약속 세 가지(한 작업 기록은 한 번에 한 사람, 구현 승인 전 계획의 "어디에"로 에셋 겹침 조율, 새 작업 제목은 구체적으로)로 다루기로 했다("이건 작업자끼리 서로 조심하도록 약속하면 되지 않을까요?"). ([[작업 - workflow-inspection]])
+- 2026-09-26 사용자 요청으로 대시보드와 작업 탭이 나뉘고 작업 진행 버튼은 이어서 작업으로, 이름 칸은 작성자로 바뀌었으며, 사용자는 문서와 구현 계획의 Markdown 렌더러를 marked 하나로 합치는 안을 골랐다. ([[작업 - dashboard-work-tab-split]])
+- 이우성은 2026-09-27 AI 실행 제한을 정하기 30분·그 밖 60분으로(Q1), 선택지 없는 자유 답변 질문을 허용하고(Q2), 대시보드의 기록 열기는 서버가 연결돼 있으면 최신 내용을 보이게(Q3) 정했다. ([[작업 - workflow-final-fixes]])
+- 사용자는 2026-09-27 "워크플로우와 claude-obsidian의 문서는 서로 독립적으로 관리되지만, 서로를 참고해서 DB를 더욱 견고하게 쌓아올리는 방향을 추구합니다"라고 밝혔고, 이에 따라 워크플로우 정책으로 Wiki 페이지를 줄이게 하던 Wiki 안내 단계를 뺐다("네 그렇게 합시다"). ([[작업 - workflow-final-fixes]])
+- 2026-09-27 사용자 요청("제가 확인해야되는 부분만 정리해서 새 일감을 만들고, 기존 일감은 적절히 통폐합합시다")으로 워크플로우 개선 작업 다섯 건의 남은 사람 확인을 확인 대기 기록 `workflow-wrapup-checks.md` 하나로 모았고, 이 다섯 건의 사람 코드 리뷰는 이번에만 AI 코드 리뷰로 대신했다(다음에는 사람이 리뷰). ([[작업 - dashboard-work-tab-split]], [[작업 - harness-legacy-cleanup]], [[작업 - wiki-claude-obsidian-migration]], [[작업 - workflow-final-fixes]], [[작업 - workflow-inspection]])
 
 ## 구현 관찰
 
@@ -107,6 +125,12 @@ AI·사람 작업 절차, 대시보드, 테스트 체크리스트 운영 결정�
 - Workflow 웹 처리에서 정하기는 읽기 전용 권한으로, 구현 승인·추가 요청·테스트 결과 처리는 권한 확인 없는 모든 명령 허용으로 AI CLI를 실행한다. ([[결정 노트 - 2026-09-26-workflow-web-tasks]])
 - Workflow 서버는 AI 처리마다 Saved/Wiki/jobs 아래 작업 폴더를 만들고 cmd start로 Workflow-Runner.cjs 창을 띄워, 결과 없이 닫히거나 35분이 지나면 실패로 처리한다. ([[결정 노트 - 2026-09-26-workflow-web-tasks]])
 - Workflow 작업 기록은 상태·다음 행동 두 줄 아래 요청·질문·구현 계획·테스트 체크리스트 절 순서를 따르고, AI가 준 계획의 구현 승인 줄은 목록 항목으로 바뀌어 스스로 승인할 수 없다. ([[결정 노트 - 2026-09-26-workflow-web-tasks]])
+- 2026-09-26 종합 점검 반영으로 서버의 35분 제한·`expectedRevision` 검사·재시도 중복 검사(`retryOperationId`)·Gemini `mcp.allowed` 같은 중복 장치가 지워졌고, 접수 상태 파일은 `Saved/Workflow/test-feedback/`에 둔다. 위의 「35분이 지나면 실패」 관찰은 그 이전 코드 기준이다. ([[작업 - workflow-inspection]])
+- 종합 점검 반영으로 작업 절차 도식은 자체 SVG→이미지 변환 대신 순정 `mermaid.run`으로 그리고, Gemini CLI가 AGENTS.md를 읽도록 `.gemini/settings.json`(`context.fileName: AGENTS.md`)이 더해졌다. ([[작업 - workflow-inspection]])
+- 2026-09-26 작업 탭 분리 뒤 대시보드·작업 탭은 주소(#)가 달라 새로 고침과 뒤로 가기에도 탭과 연 작업이 유지되고, 문서와 구현 계획은 브라우저에서 vendor에 넣은 marked 18.0.14로 그리며 취소선은 `~~`만 인정한다. ([[작업 - dashboard-work-tab-split]])
+- 2026-09-27 최종 마무리 수정(`7a1e8a0e4`)에서 실행 제한을 넘은 AI는 하위 프로세스까지 끝내고, 표 형식 오류가 있는 기록은 답변·승인·추가 요청·다시 시도를 받지 않으며(`tableError`), 완료된 작업의 추가 요청·테스트 결과·터미널은 서버도 거부한다. ([[작업 - workflow-final-fixes]])
+- Codex 정하기(읽기 전용)는 `--disable plugins --disable apps`로 플러그인 서버를 끄고, `mcp list --json`에서 켜진 설정 MCP 서버만 골라 `-c mcp_servers.<이름>.enabled=false`로 끈다. `-c mcp_servers={}`는 병합이라 효과가 없다(2026-09-27 실측). ([[작업 - workflow-final-fixes]])
+- 2026-09-27 하네스 정리로 지난 AI 작업이 이 PC의 `Saved/`에 남긴 파일 203개가 휴지통으로 옮겨졌고, 작업 기록 5개의 Git 밖 `Saved` 링크 73개는 경로 글자로 바뀌었다. ([[작업 - harness-legacy-cleanup]])
 
 ## 검증 범위
 
@@ -125,6 +149,8 @@ AI·사람 작업 절차, 대시보드, 테스트 체크리스트 운영 결정�
 - SSoT 사본 정리는 프롬프트 문구 자동 테스트로만 확인했고 실제 AI 처리로 새 프롬프트 준수를 확인하지 않았다. ([[결정 노트 - 2026-09-26-workflow-ssot-copies]])
 - 상태를 질문·계획·체크리스트로만 정하는 Workflow 재설계는 TestWorkflowTestFeedback·TestWorkflowFeedbackUI 자동 테스트로 확인했고 실제 AI 요청으로 다시 돌리지 않았다. ([[결정 노트 - 2026-09-26-workflow-state-from-record-only]])
 - Workflow 웹 새 작업 기능은 자동 테스트와 가짜 Codex·인자 기록 스크립트로 실제 cmd 창을 확인했지만, 실제 AI 요청으로 새 작업을 끝까지 돌리지 않았다. ([[결정 노트 - 2026-09-26-workflow-web-tasks]])
+- 종합 점검 반영은 워크플로우 Node 테스트·결함 주입·헤드리스 Edge·문서 링크·하네스 등 AI 항목 11개로 확인했고, 사람 항목 「대시보드 작업 흐름」은 이우성이 2026-09-26 AI 브라우저 점검 결과를 근거로 통과 처리했다("문제 없었으면 통과로 처리합시다"). ([[작업 - workflow-inspection]])
+- 작업 탭 분리(체크리스트 7/7)와 최종 마무리 수정(6/6)은 모두 AI 항목(자동 테스트, 결함 주입 13건·44건, 헤드리스 Edge 1440px·375px)으로 통과했고, 사람의 화면 사용감 확인은 `workflow-wrapup-checks.md`로 옮겨져 이 수집 시점에 끝나지 않았다. ([[작업 - dashboard-work-tab-split]], [[작업 - workflow-final-fixes]])
 
 ## 미결정·충돌
 
@@ -134,6 +160,9 @@ AI·사람 작업 절차, 대시보드, 테스트 체크리스트 운영 결정�
 - Workflow 사람 테스트 통과는 작업 절차 도식 점검에서 나온 미결 두 사항(정하기 중 추가 요청 권한, 완료 직후 추가 요청 재활성)의 조치 결정이 아니다. ([[결정 노트 - 2026-09-26-workflow-human-verification]])
 - 결과 칸 노트의 사람 판단은 blockers로 받는다는 지시는 같은 날 상태 결정 재설계에서 blockers가 지시문에서 없어지며 대체됐다. ([[결정 노트 - 2026-09-26-workflow-result-fields-by-kind]])
 - Workflow 대시보드 리뷰·참고 행의 기록 열기 버튼 유무는 행 버튼 최종 결정 노트의 구현 설명(기록 열기만)과 테스트 기술(버튼 없음)이 다르게 적는다. ([[결정 노트 - 2026-09-26-workflow-row-actions-final]])
+- 병렬 작업은 약속으로만 다루므로 같은 `.uasset`(LFS 잠금 없는 이진)·같은 작업 기록·같은 제목의 새 작업은 여전히 병합 충돌이 나고, 충돌 표식이 남은 기록은 대시보드가 사람 항목 없이 읽는다(2026-09-26 병합 흉내 실측). ([[작업 - workflow-inspection]])
+- 프로젝트 `.codex/config.toml`의 unreal-mcp가 다른 PC의 Codex에서 `mcp list`에 나오는지는 2026-09-27 기준 확인하지 못했다. ([[작업 - workflow-final-fixes]])
+- 워크플로우 개선 다섯 건의 남은 사람 확인(대시보드 사용감, 대시보드 Wiki 갱신, Wiki 정기 갱신, 휴지통 정리)은 확인 대기 기록 `workflow-wrapup-checks.md`에 있고, 완료 전이라 이 Wiki에 수집되지 않았다. ([[작업 - workflow-final-fixes]], [[작업 - workflow-inspection]], [[작업 - wiki-claude-obsidian-migration]], [[작업 - harness-legacy-cleanup]])
 
 ## 원자료
 
@@ -158,3 +187,8 @@ AI·사람 작업 절차, 대시보드, 테스트 체크리스트 운영 결정�
 - [[결정 노트 - 2026-09-26-workflow-tasks-guide-removed]] — 사용자 요청으로 대시보드 머리의 기록 작성 규칙 링크를 없애고 그 링크만 가리키던 기록 폴더 안내 문서 tasks/index.md를 삭제한 노트.
 - [[결정 노트 - 2026-09-26-workflow-web-tasks]] — 대시보드에서 새 작업 시작과 질문 답변·구현 승인·추가 요청·테스트 결과 전달·터미널 이어하기를 하게 하고, AI 처리를 터미널 창에서 보이게 실행하도록 한 노트.
 - [[작업 - workflow-review]] — AI 작업 워크플로우를 점검하고 작업 절차 한 장·세 단계·테스트 체크리스트·웹 새 작업과 이어하기로 단순화한 2026-09-22~26 완료 작업 기록
+- [[작업 - dashboard-work-tab-split]] — 대시보드와 작업 탭을 나누고 작성자 칸·이어서 작업 용어·marked 렌더러로 바꾼 2026-09-26 완료 작업 기록
+- [[작업 - harness-legacy-cleanup]] — 하네스·워크플로우·Wiki의 옛 흔적과 로컬 Saved 잔여 파일을 정리하고 워크플로우 스크립트 이름을 바꾼 2026-09-27 완료 작업 기록
+- [[작업 - wiki-claude-obsidian-migration]] — 옛 LLM Wiki를 claude-obsidian vault로 바꾸고 정기·즉시 Wiki 갱신을 만든 2026-09-26 완료 작업 기록
+- [[작업 - workflow-final-fixes]] — 최종 마무리 코드 리뷰 지적 수정과 실행 제한·자유 답변·기록 열기 결정을 담은 2026-09-27 완료 작업 기록
+- [[작업 - workflow-inspection]] — 순정 우선·장치 축소·SSOT 기준의 워크플로우 종합 점검과 Q1~Q9 결정 반영을 담은 2026-09-26 완료 작업 기록

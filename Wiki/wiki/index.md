@@ -11,7 +11,7 @@ tags:
 
 # Wiki Index
 
-WX의 게임 규칙·구현·결정을 모은 claude-obsidian vault입니다. 정기 갱신 Routine만 씁니다. 큰 그림은 [[overview]], 최근 맥락은 [[hot]], 이력은 [[log]]에 있습니다.
+WX의 게임 규칙·구현·결정을 모은 claude-obsidian vault입니다. Wiki 갱신(매일 정기 Routine과 대시보드의 Wiki 갱신)만 씁니다. 큰 그림은 [[overview]], 최근 맥락은 [[hot]], 이력은 [[log]]에 있습니다.
 
 ## 주제
 
@@ -72,15 +72,20 @@ WX의 게임 규칙·구현·결정을 모은 claude-obsidian vault입니다. �
 - [[작업 - animnotify-categories]] — AnimNotify 17종을 6개 분류 색상으로 묶고 공용 색상 설정을 WxCore의 에디터 전용 설정으로 옮긴 작업 기록으로, 체크리스트 6/6 통과로 완료됐다.
 - [[작업 - animnotify-labels]] — AnimNotify 17종의 타임라인 표시 이름을 종류: 대표 값 형식의 짧은 라벨로 바꾼 작업 기록으로, 사람 확인 2/2 통과로 완료됐다.
 - [[작업 - cooldown-unification]] — 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 공용 GE 하나로 통합하고 CooldownTags로 구분하게 바꾼 작업 기록으로, 사람 확인 4/4 통과로 완료됐다.
+- [[작업 - dashboard-work-tab-split]] — Workflow 대시보드와 작업 탭을 나누고 작성자 칸·이어서 작업 용어·marked 렌더러로 바꾼 작업 기록으로, 체크리스트 7/7 통과로 완료됐다.
 - [[작업 - datatable-row-preview]] — DataTable 행 미리보기에서 데이터 없는 구조체를 {}로 축약하고 셀과 툴팁을 같은 텍스트로 맞춘 에디터 작업 기록으로, 사람 확인 3/3 통과로 완료됐다.
 - [[작업 - datatable-row-rename-reference-update]] — DataTable 행 이름 변경 시 FDataTableRowHandle 참조를 자동 갱신하는 에디터 플러그인 DataTableRowFixup을 추가한 작업으로 2026-09-23 완료됐다.
 - [[작업 - dialogue-presentation-vm]] — Dialogue VM을 WxUI의 순수 표시 데이터로 분리하고, 화면 클래스를 거쳐 최종적으로 WxGame 리졸버 세 층 구조로 정리한 완료 작업 기록
+- [[작업 - harness-legacy-cleanup]] — AI 하네스·워크플로우·Wiki의 옛 흔적과 로컬 Saved 잔여 파일을 정리하고 워크플로우 스크립트 이름을 바꾼 작업 기록으로, 체크리스트 6/6 통과로 완료됐다.
 - [[작업 - interaction-list-vm-simplification]] — 상호작용 목록 VM을 유지하되 스캐너 신호를 OnRowsChanged 하나로 합쳐 단순화하고, 문구 출처 기준과 엘리베이터 탑승칸 버튼 잠금까지 정리한 완료 작업 기록
 - [[작업 - nameplate-manager]] — 적 Nameplate와 락온 레티클을 로컬 플레이어 컨트롤러의 NameplateManager가 붙이고 떼는 구조로 바꾸고 WxGame으로 옮긴 완료 작업 기록
 - [[작업 - player-screen-classes-to-layout-component]] — 사망·대화 화면 클래스를 UI 개발자 설정에서 플레이어 레이아웃 컴포넌트로 옮기고 태그 관찰 책임도 함께 이동한 완료 작업 기록
 - [[작업 - quest-presentation-vm]] — Quest·QuestObjective VM을 WxUI 순수 표시 데이터로 옮기고, 화면 클래스를 거쳐 WxGame 퀘스트 리졸버 세 층 구조로 정리한 완료 작업 기록
 - [[작업 - ui-data-interface-removal]] — 공용 IWxUIData 인터페이스를 없애고 WxCombat 데이터·규칙, WxUI VM, WxGame 리졸버 연결로 역할을 나눈 완료 작업 기록
+- [[작업 - wiki-claude-obsidian-migration]] — 옛 LLM Wiki를 claude-obsidian vault로 바꾸고 Routine 정기 갱신과 대시보드 즉시 갱신(WSL 래퍼)을 만든 작업 기록으로, 체크리스트 22/22 통과로 완료됐다.
 - [[작업 - wiki-regeneration]] — 옛 .wiki LLM Wiki를 현재 코드·설정·기획 기준으로 전면 재생성하고 대체된 legacy 문서를 정리한 2026-09-22 완료 작업 기록
+- [[작업 - workflow-final-fixes]] — 워크플로우 최종 마무리 코드 리뷰 지적을 고치고 실행 제한·자유 답변·기록 열기와 워크플로우·Wiki 독립 관리를 정한 작업 기록으로, 체크리스트 6/6 통과로 완료됐다.
+- [[작업 - workflow-inspection]] — 순정 우선·장치 축소·SSOT 기준으로 워크플로우를 종합 점검하고 Q1~Q9 결정을 반영한 작업 기록으로, 체크리스트 12/12 통과로 완료됐다.
 - [[작업 - workflow-review]] — AI 작업 워크플로우를 점검하고 작업 절차 한 장·세 단계·테스트 체크리스트·웹 새 작업과 이어하기로 단순화한 2026-09-22~26 완료 작업 기록
 
 ## 원자료: 결정 노트

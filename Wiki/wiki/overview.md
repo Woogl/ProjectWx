@@ -10,7 +10,7 @@ tags:
 
 # Vault Overview
 
-WX(Unreal Engine 5 오픈월드 액션 RPG)의 기획 요구사항, 사람의 확정 결정, 코드 구현 관찰, 검증 범위를 모은 claude-obsidian vault입니다. 쓰기는 클라우드 Routine 「Wiki 정기 갱신」만 하고, 사람은 Obsidian에서 읽기만 합니다. 운영 규칙은 저장소의 `Wiki/README.md`에 있습니다.
+WX(Unreal Engine 5 오픈월드 액션 RPG)의 기획 요구사항, 사람의 확정 결정, 코드 구현 관찰, 검증 범위를 모은 claude-obsidian vault입니다. 쓰기는 claude-obsidian 순정 트랜잭션으로 하는 Wiki 갱신(매일 클라우드 Routine 「Wiki 정기 갱신」과 Workflow 대시보드에서 고른 AI의 **Wiki 갱신**)만 하고, 사람은 Obsidian에서 읽기만 합니다. 갱신 절차는 저장소의 `Wiki/README.md`에 있고, 전환과 운영 결정의 이력은 [[Wiki 운영]]에 있습니다.
 
 ## 구성
 

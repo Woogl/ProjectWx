@@ -1,7 +1,26 @@
 {
-  "generated_at": "2026-09-26T13:57:28Z",
+  "generated_at": "2026-09-26T17:55:04Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
+    "src-002bb852bfddda1dbe57": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "d5b5b3b90dace6ef448ca9bb9289a4985ff74a082f77954254443a8bc088d4af",
+      "independence_key": ".agents/workflow/tasks/workflow-inspection.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/d5b5b3b90dace6ef448ca9bb9289a4985ff74a082f77954254443a8bc088d4af.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - workflow-inspection.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/workflow-inspection.md"
+    },
     "src-016c4f4d42be310c6137": {
       "authority": "primary",
       "content_kind": "document",
@@ -473,7 +492,7 @@
       ],
       "refresh_due": "2027-03-25",
       "retrieved_at": "2026-09-26",
-      "review_status": "active",
+      "review_status": "superseded",
       "supersedes": "src-fef53e6d8e58e757609b",
       "title": ".agents/workflow/tasks/animnotify-labels.md"
     },
@@ -800,6 +819,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-26-workflow-state-from-record-only.md"
     },
+    "src-4e997e9f95cc087a86db": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "03225507b8679f0bb027863cefa33473c986069dc1ddf4400d75696a19208130",
+      "independence_key": ".agents/workflow/tasks/harness-legacy-cleanup.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/03225507b8679f0bb027863cefa33473c986069dc1ddf4400d75696a19208130.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - harness-legacy-cleanup.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/harness-legacy-cleanup.md"
+    },
     "src-4ec20852882dbfd83898": {
       "authority": "primary",
       "content_kind": "document",
@@ -856,6 +894,44 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-23-hit-processing-functions.md"
+    },
+    "src-5a9d3c91e03b611a51b4": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "9e5f21eddd56c690e6229d52af085197c8a9342c56298a67c33275b09602ae76",
+      "independence_key": ".agents/workflow/tasks/workflow-final-fixes.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/9e5f21eddd56c690e6229d52af085197c8a9342c56298a67c33275b09602ae76.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - workflow-final-fixes.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/workflow-final-fixes.md"
+    },
+    "src-62727f69018c0cf3ae01": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "092b806675eae7750252d2eeee68ac261f9abf6b40446a16d1eb227f37a7c7c1",
+      "independence_key": ".agents/workflow/tasks/wiki-claude-obsidian-migration.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/092b806675eae7750252d2eeee68ac261f9abf6b40446a16d1eb227f37a7c7c1.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - wiki-claude-obsidian-migration.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/wiki-claude-obsidian-migration.md"
     },
     "src-655ce2708f432a15eb16": {
       "authority": "primary",
@@ -1142,6 +1218,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-23-boss-battle-three-layer.md"
     },
+    "src-7aab6ec4c98cbd9feef3": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "86986b2f21566bf7e16e0014ed0280a4be6381e5bc09783aac0e4fee82173fec",
+      "independence_key": ".agents/workflow/tasks/animnotify-labels.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/86986b2f21566bf7e16e0014ed0280a4be6381e5bc09783aac0e4fee82173fec.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - animnotify-labels.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": "src-292d7ff87c2a92002fb3",
+      "title": ".agents/workflow/tasks/animnotify-labels.md"
+    },
     "src-7e48d3401b0c2337cc4c": {
       "authority": "primary",
       "content_kind": "conversation",
@@ -1255,6 +1350,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".agents/workflow/tasks/quest-presentation-vm.md"
+    },
+    "src-85b23993f99d462b72db": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "f32353492d30af12e80599c444ef2d13215caec6b134e77bb944f109e1749e8d",
+      "independence_key": ".agents/workflow/tasks/dashboard-work-tab-split.md",
+      "ingested_at": "2026-09-26",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/f32353492d30af12e80599c444ef2d13215caec6b134e77bb944f109e1749e8d.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - dashboard-work-tab-split.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-26",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/dashboard-work-tab-split.md"
     },
     "src-89713cd38b367ce6bb7f": {
       "authority": "primary",

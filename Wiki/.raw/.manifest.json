@@ -13,6 +13,15 @@
       "supersedes": ".raw/captured/b6020103ecffc7507a7ae78cb774df9d1287a01763acc6ca9fd2a9394ac2ce64.md",
       "title": ".agents/workflow/tasks/nameplate-manager.md"
     },
+    ".raw/captured/03225507b8679f0bb027863cefa33473c986069dc1ddf4400d75696a19208130.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - harness-legacy-cleanup.md"
+      ],
+      "sha256": "03225507b8679f0bb027863cefa33473c986069dc1ddf4400d75696a19208130",
+      "source_id": "src-4e997e9f95cc087a86db",
+      "title": ".agents/workflow/tasks/harness-legacy-cleanup.md"
+    },
     ".raw/captured/043c6ec9f9ee4795580b7262c786ba60fd3d28ce48e7352cc8ade80748120739.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -30,6 +39,15 @@
       "sha256": "048571ff8d3f592c29b21891c6a77480d8bea2c743950adcbb8cbd727931f871",
       "source_id": "src-3337ab1368bb988640ac",
       "title": ".wiki/raw/notes/2026-09-24-interaction-contract-options-only.md"
+    },
+    ".raw/captured/092b806675eae7750252d2eeee68ac261f9abf6b40446a16d1eb227f37a7c7c1.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - wiki-claude-obsidian-migration.md"
+      ],
+      "sha256": "092b806675eae7750252d2eeee68ac261f9abf6b40446a16d1eb227f37a7c7c1",
+      "source_id": "src-62727f69018c0cf3ae01",
+      "title": ".agents/workflow/tasks/wiki-claude-obsidian-migration.md"
     },
     ".raw/captured/0d5970dabfd5b118dade8826ce8e440eaad0ec5e28d47027162e3200cd64f36f.md": {
       "ingested": "2026-09-26",
@@ -450,6 +468,7 @@
       ],
       "sha256": "5fdef208d4b8c1a37c94666a703e15568d01d7b1a3a46af41aff19e45846b16e",
       "source_id": "src-292d7ff87c2a92002fb3",
+      "superseded_by": ".raw/captured/86986b2f21566bf7e16e0014ed0280a4be6381e5bc09783aac0e4fee82173fec.md",
       "supersedes": ".raw/captured/6bac7005f103df3017f204bbbd7abc713f50f43920acf52c7a6220f8daa12c48.md",
       "title": ".agents/workflow/tasks/animnotify-labels.md"
     },
@@ -612,6 +631,16 @@
       "source_id": "src-0609045bc83d7ede2734",
       "title": "Docs/CombatDesign/WX_첫_보스_기획서.md"
     },
+    ".raw/captured/86986b2f21566bf7e16e0014ed0280a4be6381e5bc09783aac0e4fee82173fec.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - animnotify-labels.md"
+      ],
+      "sha256": "86986b2f21566bf7e16e0014ed0280a4be6381e5bc09783aac0e4fee82173fec",
+      "source_id": "src-7aab6ec4c98cbd9feef3",
+      "supersedes": ".raw/captured/5fdef208d4b8c1a37c94666a703e15568d01d7b1a3a46af41aff19e45846b16e.md",
+      "title": ".agents/workflow/tasks/animnotify-labels.md"
+    },
     ".raw/captured/88ae1d53d2b929fa4a790777c1932b3facaa372945a3d5c90377fe5dd9959de5.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -693,6 +722,15 @@
       "sha256": "9b281e65e4f5d167c014be26c4d3d77096e1f69a03aabc0e81f836cee5551bf1",
       "source_id": "src-31e474b69a18800c3fa0",
       "title": ".wiki/raw/notes/2026-09-24-nameplate-manager.md"
+    },
+    ".raw/captured/9e5f21eddd56c690e6229d52af085197c8a9342c56298a67c33275b09602ae76.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - workflow-final-fixes.md"
+      ],
+      "sha256": "9e5f21eddd56c690e6229d52af085197c8a9342c56298a67c33275b09602ae76",
+      "source_id": "src-5a9d3c91e03b611a51b4",
+      "title": ".agents/workflow/tasks/workflow-final-fixes.md"
     },
     ".raw/captured/a2f7e5b8bf1d09961ed855182d7d6eb578a8b18062ed90ad0e796a17cfb5b58d.md": {
       "ingested": "2026-09-26",
@@ -938,6 +976,15 @@
       "source_id": "src-78202ac612e06551e8ad",
       "title": ".wiki/raw/notes/2026-09-25-save-checkpoint-rename.md"
     },
+    ".raw/captured/d5b5b3b90dace6ef448ca9bb9289a4985ff74a082f77954254443a8bc088d4af.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - workflow-inspection.md"
+      ],
+      "sha256": "d5b5b3b90dace6ef448ca9bb9289a4985ff74a082f77954254443a8bc088d4af",
+      "source_id": "src-002bb852bfddda1dbe57",
+      "title": ".agents/workflow/tasks/workflow-inspection.md"
+    },
     ".raw/captured/d6af9f837b5beff13e4a4c35a80302349686153ab247c462559ae91d771f0574.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -1067,6 +1114,15 @@
       "sha256": "ef0aa55fead92e04406ea9314857498ef630e94fee3d4ae87ce744265f7b365f",
       "source_id": "src-a4166a32f9143168d056",
       "title": ".wiki/raw/notes/2026-09-23-screen-classes-to-resolvers.md"
+    },
+    ".raw/captured/f32353492d30af12e80599c444ef2d13215caec6b134e77bb944f109e1749e8d.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/작업 - dashboard-work-tab-split.md"
+      ],
+      "sha256": "f32353492d30af12e80599c444ef2d13215caec6b134e77bb944f109e1749e8d",
+      "source_id": "src-85b23993f99d462b72db",
+      "title": ".agents/workflow/tasks/dashboard-work-tab-split.md"
     },
     ".raw/captured/f57f6f3b997f4f3a1cd3671e73e739e8c83b0bd1d87963131cbff85602c5b035.md": {
       "ingested": "2026-09-26",
