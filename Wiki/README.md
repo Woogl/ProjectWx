@@ -12,8 +12,8 @@ WX의 게임 규칙·구현·결정과 검증 범위를 모은 팀 공유 지식
 이 폴더는 클라우드 Routine 「Wiki 정기 갱신」만 씁니다. 매일 06:30(KST)에 돌고, Workflow 대시보드의 **Wiki 갱신**으로 바로 실행할 수도 있습니다. Routine은 아래 절차를 되묻지 않고 끝까지 진행합니다.
 
 - claude-obsidian 버전: `v2.2.0`
-  - Routine은 이 태그를 `git clone --depth 1 --branch <태그> https://github.com/AgriciDaniel/claude-obsidian /tmp/claude-obsidian`으로 받습니다. 버전은 사람이 이 줄을 고쳐 올립니다. 더 새 태그가 있으면 보고에 적습니다.
-  - 수집·저장·검사는 받은 저장소의 `skills/`(wiki-ingest·wiki-lint 등) 절차와 `scripts/claude-obsidian.py` CLI를 따릅니다. 스킬이 사람에게 맡기는 일(원본을 inbox에 넣기, 적용 전 계획 검토, inbox 파일 삭제)은 Routine이 직접 합니다.
+  - 이 버전을 저장소의 `.agents/vendor/claude-obsidian/`에 넣어 두었고 Routine은 이 사본만 씁니다(실행 중에 외부에서 받은 코드는 클라우드 세션이 거부합니다). 버전은 사람이 그 폴더와 이 줄을 함께 바꿔 올립니다(`.agents/vendor/README.md`). Routine은 `git ls-remote --tags https://github.com/AgriciDaniel/claude-obsidian`으로 더 새 태그가 있는지 보고 보고에 적습니다.
+  - 수집·저장·검사는 그 사본의 `skills/`(wiki-ingest·wiki-lint 등) 절차와 `scripts/claude-obsidian.py` CLI를 따릅니다. 스킬이 사람에게 맡기는 일(원본을 inbox에 넣기, 적용 전 계획 검토, inbox 파일 삭제)은 Routine이 직접 합니다.
 - 수집 대상: `Docs/CombatDesign`·`Docs/SystemDesign`·`Docs/LevelDesign`의 Markdown과, 상태 줄이 `완료`인 작업 기록(`.agents/workflow/tasks/*.md`)입니다. 대상 파일의 내용 해시(SHA-256)로 된 `.raw/captured/<해시>.<확장자>`가 이미 있으면 수집하지 않습니다. 없으면 새 파일이거나 바뀐 파일이므로 수집하고, 같은 저장소 경로의 옛 원자료가 있으면 대체합니다. 원자료 제목에는 저장소 상대 경로를 적어 이 대조에 씁니다. `Wiki/wiki/`가 없으면 `init`한 뒤 전체를 수집하고, 이때 옛 `.wiki/raw/notes/`에 있는 사용자 결정 원문 노트도 함께 수집합니다.
 - 절차:
   1. 수집할 원본을 `inbox/`에 복사하고 `capture`로 `.raw/captured/`에 사본을 만든 뒤 수집합니다. 계획 → 승인 해시 → 적용을 스스로 진행하고, capture가 끝난 inbox 복사본은 지웁니다.
