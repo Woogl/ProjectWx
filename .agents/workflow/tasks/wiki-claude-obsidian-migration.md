@@ -258,7 +258,7 @@ claude plugin install claude-obsidian@agricidaniel-claude-obsidian
   - 설계: 버튼은 AI를 고르는 패널을 연다. 서버(`Wiki-AI.cjs`)가 WSL을 확인하고, 배포판이 없으면 관리자 승인 창으로 `wsl --install -d Ubuntu`를 연다. 있으면 origin/main의 sparse 작업 트리(`Saved/Wiki/update-tree`, Wiki·기획서 Markdown·작업 기록·AGENTS.md·.gitattributes)를 맞추고, `Wiki/README.md` 설정 스크립트의 태그로 claude-obsidian 순정 코드를 `Saved/Wiki/claude-obsidian/<태그>/`에 받는다. 그다음 기존 터미널 실행기(`runTerminalJob`으로 떼어 냄)로 고른 AI를 work 모드로 그 작업 트리에서 돌린다. AI는 README 절차를 따르고 vault 쓰기만 WSL로 한다. 한 번에 하나만 돌고, 진행 중에는 서버가 바쁨으로 알려 다시 띄워지지 않는다.
   - 작업 트리를 따로 둔 이유: 사용자 작업 트리에서 갱신·푸시하면 푸시하지 않은 사용자 커밋이 함께 올라가거나, 작업 중 변경 때문에 pull이 실패하거나, 에디터로 여는 파일이 바뀔 수 있다. 저장소는 pack 8.2GB·Content 약 4.1GB라 전체 사본 대신 sparse로 둔다.
   - 임시 저장소 검증(Node에서 git 직접 호출): 작업 트리에 대상 파일만 풀림, 사용자 쪽 `core.sparseCheckout`은 그대로이고 `extensions.worktreeConfig`만 켜짐, `HEAD:main` 푸시에 사용자 로컬 커밋이 섞이지 않음, 두 번째 실행의 재맞춤 정상. 먼저 Git Bash로 시험했다가 MSYS 경로 변환 때문에 `C:\c\…`에 임시 작업 트리가 생겨 등록을 해제하고 폴더를 휴지통으로 보냈다.
-  - 없앤 것: Routine `/fire` 호출 코드와 `Saved/Wiki/wiki-routine.json` 사용, README의 버튼 토큰 설정 절. 웹의 API 트리거와 토큰은 더 쓰지 않는다.
+  - 없앤 것: Routine `/fire` 호출 코드와 `Saved/Wiki/wiki-routine.json` 사용, README의 버튼 토큰 설정 절. 사용자 요청("네 진행하세요", "로컬 토큰 파일도 제거해주세요")으로 로컬 토큰 파일은 휴지통으로 보냈다. 웹 편집 창의 API 블록에서 토큰도 삭제했고, 저장 없이 즉시 반영되어 API 트리거가 사라졌다(`api_token_hint` 빈 값). 환경·지시문·예약은 그대로다.
   - 문서: `Wiki/README.md`(두 갈래 갱신, 이 PC에서 지킬 것, `git push origin HEAD:main`, 대시보드 갱신 준비물 절), `process/index.md`의 Wiki 쓰기 규칙.
 
 
