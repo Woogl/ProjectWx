@@ -9,7 +9,7 @@
 - 실패 처리: 기록 실패는 StateTree Failed, 조회 불가 시 PlayerStart 부활, 새 게임 삭제 실패 시 이동 중단.
 - 정적 검증: Source/Plugins/Config의 기존 클래스 참조 없음. git diff --check 통과. UHT 통과.
 
-- 빌드: WxEditor Win64 Development 성공(종료 코드 0, 248.87초). [빌드 로그](../../../Saved/Logs/BuildDoctor/build_2026-09-25_180627_941_4324.log). 변경 문서 상대 링크 검사와 Wiki 뷰어 생성도 통과했다.
+- 빌드: WxEditor Win64 Development 성공(종료 코드 0, 248.87초). 빌드 로그 `Saved/Logs/BuildDoctor/build_2026-09-25_180627_941_4324.log`. 변경 문서 상대 링크 검사와 Wiki 뷰어 생성도 통과했다.
 
 - 후속 요청: RecordCheckpoint를 SaveCheckpoint로 변경. SaveGame API, StateTree 태스크·InstanceData·파일명·표시명을 변경하고 기존 StateTree 에셋을 위한 두 StructRedirects를 추가했다. WxEditor Win64 Development 재빌드 성공(종료 코드 0, 73.10초). 로그: Saved/Logs/BuildDoctor/build_2026-09-25_181539_326_29416.log. 기존 에셋의 런타임 로드는 미검증.
 

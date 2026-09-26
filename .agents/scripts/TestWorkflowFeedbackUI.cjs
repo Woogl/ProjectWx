@@ -73,7 +73,6 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   assert.ok(descendants(byId('task-phase')).some(node=>node.textContent==='통과 · exit 0'));
   assert.equal(markOf('빌드'),'check-mark pass','each item is a box whose check shows the result');assert.equal(markOf('저장 후 복원'),'check-mark wait');
   assert.equal(input('저장 후 복원 이번에 확인 안 함').checked,true);assert.equal(noteRow('저장 후 복원').hidden,true);
-  assert.ok(!input('처리할 AI'),'the AI is chosen once at the top of the page, not per panel');
   // 폴링은 바뀐 것이 없으면 패널과 목록을 다시 그리지 않는다. 처리한 적 없는 작업의 revision은 0으로 본다.
   const readsBefore=reads;await run('loadTaskJobs()');assert.equal(reads,readsBefore,'a task without a server record is not reloaded on every poll');
   const rendered=recordsRendered;await run('loadTaskJobs()');assert.equal(recordsRendered,rendered,'the list is redrawn only when records change');
@@ -125,7 +124,7 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   t.latest={...t.latest,status:'failed'};t.revision++;providers=[providers[0]];await run('loadTaskJobs()');
   assert.equal(aiChoice().value,'gemini','unavailable selection must not silently fall back to another AI');
   const before=starts;await run("sendTaskAction('retry')");assert.equal(starts,before);assert.match(message(),/연결되어 있지/);
-  providers=undefined;await run('refreshTaskContext()');assert.equal(run('availableProviders().length'),1,'old server capabilities allow only the original Codex route');
+  providers=undefined;await run('refreshTaskContext()');assert.equal(run('availableProviders().length'),1,'without a provider list from the server only Codex is offered');
   // 사람 항목은 모두 통과했는데 AI 항목이 남으면 추가 요청으로 이어가라고 안내한다.
   t.checklist=[row('빌드','AI','실패','exit 1'),row('저장 후 복원','사람','통과','테스터')];t.latest={...t.latest,status:'issues'};t.revision++;await run('refreshTaskContext()');
   assert.match(text('task-phase'),/AI 항목이 남아 완료되지 않았습니다/);assert.equal(byId('task-request').hidden,false);

@@ -91,7 +91,7 @@ AI 검증은 위 체크리스트와 아래 로그에 기록했다. 렌더링·�
 
 ### 제출 전 정리 — 2026-09-25
 
-- [테스트 제거 후 빌드](../../../Saved/Logs/BuildDoctor/build_2026-09-25_234334_925_50992.log): Result Succeeded, BUILD_DOCTOR_EXIT_CODE=0. 선행 빌드 대기 후 Target is up to date로 검증을 마쳤다.
+- 테스트 제거 후 빌드 `Saved/Logs/BuildDoctor/build_2026-09-25_234334_925_50992.log`: Result Succeeded, BUILD_DOCTOR_EXIT_CODE=0. 선행 빌드 대기 후 Target is up to date로 검증을 마쳤다.
 - C++ 테스트·타입 파일 2개, 테스트 전용 friend, Saved의 GA 검증 Python 2개를 제거했다. Source·Plugins에서 해당 타입/테스트 참조가 남지 않았음을 검색했다.
 - 주석 대상 12개 중 11개 파일 수정, 정정 21건·압축 4건·보류 0. 테스트 friend 제거 직후와 비교해 주석 외 코드 해시가 12개 모두 동일하다.
 - 기존 변경과 정리 diff가 겹친 파일: `WxAbilityBase.h/.cpp`, `WxAbilitySystemComponent.h`, `WxAbility_Finisher.cpp`, `WxAbility_GuardReact.cpp`, `WxAbility_Guard.cpp/.h`, `WxAbility_Death.h`, `WxAbility_UseItem.cpp`, `WxAbility_Interact.cpp`, `WxCharacterBase.cpp`. `WxAbilitySystemComponent.cpp`는 점검만 했고 추가 주석 수정은 없다.
@@ -100,9 +100,9 @@ AI 검증은 위 체크리스트와 아래 로그에 기록했다. 렌더링·�
 
 ### ASC 공통화 최종 검증 — 2026-09-25
 
-- [빌드 로그](../../../Saved/Logs/BuildDoctor/build_2026-09-25_231328_105_36192.log): Result Succeeded, BUILD_DOCTOR_EXIT_CODE=0.
-- [GAS 회귀 로그](../../../Saved/Logs/ExclusiveAbilityBlocking-AscHook.log)와 [JSON 결과](../../../Saved/Tests/ExclusiveAbilityBlocking-AscHook/index.json): AssetDefaults·HookRules·Lifecycle 성공 3, 실패·경고 0. 프로세스 exit 0.
-- [기존 GA 재로드 로그](../../../Saved/Logs/ExclusiveAbilityAssets-AscHook.log)와 [계산·선언 목록](../../../Saved/Tests/ExclusiveAbilityAssets-AscHook.json): GA 40개, 쌍 1,600건, 점프 40건, 도플갱어 네 효과 참조 확인. 프로세스 exit 0.
+- 빌드 로그 `Saved/Logs/BuildDoctor/build_2026-09-25_231328_105_36192.log`: Result Succeeded, BUILD_DOCTOR_EXIT_CODE=0.
+- GAS 회귀 로그 `Saved/Logs/ExclusiveAbilityBlocking-AscHook.log`와 JSON 결과 `Saved/Tests/ExclusiveAbilityBlocking-AscHook/index.json`: AssetDefaults·HookRules·Lifecycle 성공 3, 실패·경고 0. 프로세스 exit 0.
+- 기존 GA 재로드 로그 `Saved/Logs/ExclusiveAbilityAssets-AscHook.log`와 계산·선언 목록 `Saved/Tests/ExclusiveAbilityAssets-AscHook.json`: GA 40개, 쌍 1,600건, 점프 40건, 도플갱어 네 효과 참조 확인. 프로세스 exit 0.
 - 공통 규칙은 에셋/CDO를 수정하지 않는다. 명시 차단은 GA_Shared_Death의 Ability만 남고 나머지는 공통 계산으로 적용된다. GA 재저장 없이 같은 관계가 유지됨을 확인했다.
 - 재사용할 계약과 확인 한계를 전투 어빌리티에 반영했다. 생성자 방식 원자료는 보존하고 새 ASC 공통화 원자료를 추가했다.
 
@@ -110,9 +110,9 @@ AI 검증은 위 체크리스트와 아래 로그에 기록했다. 렌더링·�
 
 - 기존 GA 수정 필요 여부 후속 확인(2026-09-25): 사용자 질문에 따라 생성 목록을 다시 내보내고 기존 파서로 GA 40개의 저장 프로퍼티를 검사했다. 모두 네이티브 클래스를 직접 상속하며 `BlockAbilitiesWithTag`·`CancelAbilitiesWithTag`·`ActivationGroup` 저장 오버라이드는 각각 0개다. 앞선 새 프로세스 CDO 검증과 함께 새 C++ 차단 기본값의 적용을 확인했으므로 GA 재저장은 필요하지 않다. 클래스 참조가 바뀐 `ABS_Doppelganger`만 이관했다. 근거: `Saved/Tests/ExclusiveAbilitySerializedOverrides.json`.
 
-- 빌드: [최종 로그](../../../Saved/Logs/BuildDoctor/build_2026-09-25_223726_639_47172.log), `Result: Succeeded`, `BUILD_DOCTOR_EXIT_CODE=0`.
-- 에셋 이관: [이관 로그](../../../Saved/Logs/ExclusiveTagMigration.log), [리다이렉트 없는 검증 로그](../../../Saved/Logs/ExclusiveTagValidation.log).
-- GAS 회귀: [성공 로그](../../../Saved/Logs/ExclusiveAbilityBlocking-Retry.log), [JSON 보고서](../../../Saved/Tests/ExclusiveAbilityBlocking/index.json). `AssetDefaults`·`Lifecycle` 모두 Success, 실패·경고 0.
+- 빌드: 최종 로그 `Saved/Logs/BuildDoctor/build_2026-09-25_223726_639_47172.log`, `Result: Succeeded`, `BUILD_DOCTOR_EXIT_CODE=0`.
+- 에셋 이관: 이관 로그 `Saved/Logs/ExclusiveTagMigration.log`, 리다이렉트 없는 검증 로그 `Saved/Logs/ExclusiveTagValidation.log`.
+- GAS 회귀: 성공 로그 `Saved/Logs/ExclusiveAbilityBlocking-Retry.log`, JSON 보고서 `Saved/Tests/ExclusiveAbilityBlocking/index.json`. `AssetDefaults`·`Lifecycle` 모두 Success, 실패·경고 0.
 - 생성 목록: `Export-AbilitySystemLists.ps1` 실행, GA 40·세트 9·캐릭터 7·몽타주 34·C++ 효과 26·GE 6·피해 표 1. `character-list`·`effect-list`에 새 효과 참조를 반영했다.
 - 지식: .wiki 전투 문서와 AI 문서에 구현 계약과 미확인 범위를 반영했다.
 

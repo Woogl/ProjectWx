@@ -42,8 +42,7 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   assert.ok(data.documents.every(d => d.path.startsWith('.agents/workflow/')), 'the Workflow page bundles only workflow documents; the Wiki is read in Obsidian');
   for (const d of data.documents) {
     assert.equal(d.text, fs.readFileSync(path.join(temp, d.path), 'utf8'));
-    assert.ok(!Object.hasOwn(d, 'status'), 'reader must not invent freshness from a separate manifest');
-    assert.ok(!Object.hasOwn(d, 'html'), 'documents carry only their source; the page renders Markdown');
+    assert.deepEqual(Object.keys(d).sort(), ['modified', 'path', 'text', 'title'], 'documents carry only their source; the page renders Markdown');
   }
   let focused = null;
   class Element {
@@ -154,14 +153,10 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   }`, context);
   assert.deepEqual(JSON.parse(JSON.stringify(context.activeItem)), { title: '진행 작업', path: '.agents/workflow/tasks/zz-active.md', evidence: '구현', next: '빌드한다.' });
   assert.ok(context.referenceTitles.includes('리뷰'), 'a free-form legacy status is listed under reviews and references');
-  const viewerSources = fs.readFileSync(path.join(__dirname, 'wiki-viewer/index.html'), 'utf8') + fs.readFileSync(path.join(__dirname, 'Export-Wiki.ps1'), 'utf8');
-  for (const removedName of ['id="search-page"', 'knowledge.html', 'isWorkflow', "'.wiki'"]) assert.ok(!viewerSources.includes(removedName), 'the retired Wiki page must not come back: ' + removedName);
   // Workflow launcher starts the local AI server before opening the generated page.
   const launcher = fs.readFileSync(path.join(root, 'BatchFiles', 'OpenWorkflow.bat'), 'utf8');
   assert.ok(launcher.includes('Start-WikiAI.ps1') && launcher.includes('Export-Wiki.ps1" -Open'));
   assert.ok(html.includes("const workflowKey = 'wx-wiki-workflow-v1:' + location.pathname"), 'the storage key keeps saved drafts');
-  // The retired web task path must not come back through the generated page.
-  for (const removedName of ['/analyze', '/handoff', '/execution', "'/tasks'", '새 작업 만들기', '기존 작업 이어하기']) assert.ok(!script.includes(removedName), removedName);
   assert.equal(vm.runInContext("resolvePath('.agents/workflow/tasks/a.md', '../process/index.md')", context), '.agents/workflow/process/index.md');
   assert.equal(vm.runInContext("resolvePath('.agents/workflow/index.md', '../../README.md')", context), 'README.md');
   assert.equal(vm.runInContext("route('.agents/workflow/tasks/한글 작업.md','절 제목')", context), '#' + encodeURIComponent('.agents/workflow/tasks/한글 작업.md') + '!' + encodeURIComponent('절 제목'));

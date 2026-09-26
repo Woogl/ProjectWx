@@ -35,8 +35,8 @@
 
 ## 2단계 검증
 
-- WxEditor / Win64 / Development 빌드 성공(exit 0). [빌드 로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_114034_133_36840.log). 다른 빌드가 끝난 뒤 기존 실행기 잠금에 따라 실행했으며, 다른 작업의 코드는 수정하지 않았다.
-- `Wx.Combat.Damage.Result`: 1건 성공, 오류 0, 경고 0, 프로세스 exit 0. [결과](../../../Saved/Automation/DamageRequest/index.json) · [실행 로그](../../../Saved/Logs/DamageRequestAutomation.log). 1단계 회귀와 위 요청 계약을 같은 실제 GAS 경로로 검증했다.
+- WxEditor / Win64 / Development 빌드 성공(exit 0). 빌드 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_114034_133_36840.log`. 다른 빌드가 끝난 뒤 기존 실행기 잠금에 따라 실행했으며, 다른 작업의 코드는 수정하지 않았다.
+- `Wx.Combat.Damage.Result`: 1건 성공, 오류 0, 경고 0, 프로세스 exit 0. 결과 `Saved/Automation/DamageRequest/index.json` · 실행 로그 `Saved/Logs/DamageRequestAutomation.log`. 1단계 회귀와 위 요청 계약을 같은 실제 GAS 경로로 검증했다.
 - NullRHI의 별도 UnrealEditor-Cmd 테스트다. 실제 무기/범위 공격/피니셔 몽타주, 투사체 궤적 및 멀티플레이 연출을 직접 플레이한 결과로 확대하지 않는다. 다음 플레이 확인은 네 가지 호출부의 적중과 투사체 반사 후 피해 출처/레벨이다.
 - Wiki 순정 lint: 0 critical / 0 warnings / 0 suggestions. 변경 범위 diff 공백 검사 통과. 명시적 요청 계약은 기존 combat-damage 기사에 새 불변 원자료를 근거로 통합했다.
 
@@ -52,8 +52,8 @@
 ## 1단계 검증
 
 - UHT와 WxCombat(새 자동화 테스트 포함) 컴파일·DLL 링크 통과.
-- 전체 WxEditor / Win64 / Development 빌드 성공(exit 0). [빌드 로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_112649_606_19708.log). 첫 빌드는 다른 작업의 인벤토리 헤더가 빌드 도중 변경되어 생성 코드 불일치로 실패했으며, 현재 상태로 재빌드해 통과했다. 그 코드는 이 작업에서 수정하지 않았다.
-- `Wx.Combat.Damage.Result` 자동화 1건 성공(exit 0). 실제 GAS 경로의 일반 피해/가드/회피/퍼펙트 가드, 이벤트의 방어 태그 제거, 0 반사, Context 복사, 기존 bool 계약을 확인했다. [테스트 결과](../../../Saved/Automation/DamageResult/index.json) · [실행 로그](../../../Saved/Logs/DamageResultAutomation.log).
+- 전체 WxEditor / Win64 / Development 빌드 성공(exit 0). 빌드 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_112649_606_19708.log`. 첫 빌드는 다른 작업의 인벤토리 헤더가 빌드 도중 변경되어 생성 코드 불일치로 실패했으며, 현재 상태로 재빌드해 통과했다. 그 코드는 이 작업에서 수정하지 않았다.
+- `Wx.Combat.Damage.Result` 자동화 1건 성공(exit 0). 실제 GAS 경로의 일반 피해/가드/회피/퍼펙트 가드, 이벤트의 방어 태그 제거, 0 반사, Context 복사, 기존 bool 계약을 확인했다. 테스트 결과 `Saved/Automation/DamageResult/index.json` · 실행 로그 `Saved/Logs/DamageResultAutomation.log`.
 - 테스트는 별도 UnrealEditor-Cmd / NullRHI / Entry 맵에서 수행했다. 시작 로그의 기존 SourceControl 경로 경고와 기존 에디터가 점유한 HTTP 8000 포트 메시지는 테스트 결과와 구분한다. 테스트 이벤트에는 오류·경고가 없으며, 실제 투사체 궤적·멀티플레이 연출·사망/그로기 Ability 조합 전체 검증은 아니다.
 - 순정 Wiki lint: 0 critical / 0 warnings / 0 suggestions. 문서 링크 41개 검사 오류 0, 뷰어 갱신 및 변경 범위 diff 공백 검사 통과.
 - 플레이 확인: 회피 시 통과, 퍼펙트 가드 반사/반사 불가 시 파괴, 일반 가드·가드 불가 공격, 서버 ImpactFX가 피해 호출 뒤로 이동한 연출, 리슨 서버/원격 클라이언트 동작.
@@ -128,8 +128,8 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 
 ## 3단계 검증 결과
 
-- WxEditor / Win64 / Development 빌드 성공(exit 0). [빌드 로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_121803_352_24728.log). 기존 빌드 잠금 해제 후 UHT, C++ 컴파일, DLL 링크 통과.
-- Wx.Combat.Damage.Result: 1건 성공, 오류 0, 경고 0, 프로세스 exit 0. [결과](../../../Saved/Automation/DamageDefinition/index.json) · [로그](../../../Saved/Logs/DamageDefinitionAutomation.log). 기존 GAS 회귀와 행 삭제/변경 시 스냅샷 계약을 확인했다.
+- WxEditor / Win64 / Development 빌드 성공(exit 0). 빌드 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_121803_352_24728.log`. 기존 빌드 잠금 해제 후 UHT, C++ 컴파일, DLL 링크 통과.
+- Wx.Combat.Damage.Result: 1건 성공, 오류 0, 경고 0, 프로세스 exit 0. 결과 `Saved/Automation/DamageDefinition/index.json` · 로그 `Saved/Logs/DamageDefinitionAutomation.log`. 기존 GAS 회귀와 행 삭제/변경 시 스냅샷 계약을 확인했다.
 - Wiki lint 0 findings, 문서 링크 오류 0, diff 공백 검사 통과. 실제 플레이·멀티플레이 연출 검증은 별도이며 이번 변경의 사용자 플레이 수용은 대기한다.
 
 ## 3단계 사용자 검토 후 단순화
@@ -137,8 +137,8 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - 사용자 우려: DamageDefinition으로 구조가 복잡해지고 있다. 제안한 제거 방향에 “네”로 승인했다.
 - 별도 타입과 bHasDefinition을 제거했다. 계수·태그의 중복 보관 없이 기존 Spec을 사용하고 Context에는 추가 효과 목록만 복사한다. 행 1회 조회와 기존 전투 동작은 유지한다.
 - 기존 자동화에서 별도 정의 플래그 검사를 제거하고 실제 피해·추가 효과·Context 복사 검사는 유지했다. WxCombat 컴파일·링크와 GAS 회귀는 통과했다. 전체 Editor 빌드는 아래 외부 모듈 오류로 실패했다.
-- 단순화 검증: [빌드 로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_122954_647_37660.log)에서 WxCombat 컴파일/DLL 링크 통과. 전체 빌드는 WxDataTableRowRename의 FPropertyBindingBindableStructDescriptor 소멸자 LNK2019로 exit 6. 해당 모듈은 이번 변경 범위 밖이며 수정하지 않았다.
-- 생성된 DLL로 Wx.Combat.Damage.Result 재실행 성공(exit 0), 1건 성공/오류 0/경고 0. [결과](../../../Saved/Automation/DamageSimplification/index.json) · [로그](../../../Saved/Logs/DamageSimplificationAutomation.log).
+- 단순화 검증: 빌드 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_122954_647_37660.log`에서 WxCombat 컴파일/DLL 링크 통과. 전체 빌드는 WxDataTableRowRename의 FPropertyBindingBindableStructDescriptor 소멸자 LNK2019로 exit 6. 해당 모듈은 이번 변경 범위 밖이며 수정하지 않았다.
+- 생성된 DLL로 Wx.Combat.Damage.Result 재실행 성공(exit 0), 1건 성공/오류 0/경고 0. 결과 `Saved/Automation/DamageSimplification/index.json` · 로그 `Saved/Logs/DamageSimplificationAutomation.log`.
 - Wiki lint와 링크 검사, 변경 범위 공백 검사 통과. 실제 플레이는 별도 확인 대상이다.
 
 ## 4단계 Hit 함수 책임 분리
@@ -150,8 +150,8 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 
 ## 4단계 검증 결과
 
-- 전체 WxEditor / Win64 / Development 빌드 성공(exit 0). [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_123627_200_29544.log). 다른 작업의 헤더 이동 완료 후 재실행했으며 해당 파일을 수정하지 않았다.
-- Wx.Combat.Damage.Result: 1건 성공, 테스트 오류 0/경고 0, 프로세스 exit 0. [결과](../../../Saved/Automation/HitResponsibilities/index.json) · [로그](../../../Saved/Logs/HitResponsibilitiesAutomation.log). 기존 피해·방어·출처·행 복사 회귀와 추가한 이벤트 순서·태그 캡처·추가 효과 분기 검사를 통과했다.
+- 전체 WxEditor / Win64 / Development 빌드 성공(exit 0). 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_123627_200_29544.log`. 다른 작업의 헤더 이동 완료 후 재실행했으며 해당 파일을 수정하지 않았다.
+- Wx.Combat.Damage.Result: 1건 성공, 테스트 오류 0/경고 0, 프로세스 exit 0. 결과 `Saved/Automation/HitResponsibilities/index.json` · 로그 `Saved/Logs/HitResponsibilitiesAutomation.log`. 기존 피해·방어·출처·행 복사 회귀와 추가한 이벤트 순서·태그 캡처·추가 효과 분기 검사를 통과했다.
 - 테스트 시작 중 기존 SourceControl 경로 경고와 HTTP 8000 포트 점유 오류는 테스트 실패와 구분한다. NullRHI / Entry 맵에서 실제 GAS로 검사했으며 실제 몽타주·멀티플레이 연출 수용으로 확대하지 않는다.
 - Wiki lint 0 findings, 링크 오류 0, 변경 범위 diff 공백 검사 통과. 이번 함수 분리의 실제 플레이 수용은 아직 없으며, DamageResponse 연출 이동과 사망/그로기 이벤트 지연은 이번 범위에 포함하지 않았다.
 
@@ -162,8 +162,8 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - DamageMagnitude/ReflectMagnitude/bHasReflect의 중간 필드를 제거하고 DamageResponse가 Result에 직접 기록한다. Hit는 성공 후 지역 값으로 보존하며 실패 및 추가 효과 종료 결과 복원은 유지한다.
 - 네트워크 형식 변경으로 이전 빌드와 비트 호환되지 않는다. 같은 빌드의 서버/클라이언트를 사용해야 한다. 기본 Context·방어 비트 왕복과 수신 시 로컬 결과 초기화 검사를 추가했다.
 - 방어 플래그, 추가 효과 목록, 실행 태그 스냅샷은 실제 소비/수명 차이가 있으므로 유지한다. 빌드/회귀 검증 통과.
-- 정리 검증: 전체 WxEditor Development 빌드 성공(exit 0). [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_125525_742_43328.log).
-- Wx.Combat.Damage.Result 자동화 성공: 1건, 오류 0/경고 0, exit 0. 기존 피해·방어·추가 효과·처리 순서 회귀와 Context 직렬화 왕복 검사를 통과했다. [결과](../../../Saved/Automation/DamageContextCleanup/index.json) · [로그](../../../Saved/Logs/DamageContextCleanupAutomation.log).
+- 정리 검증: 전체 WxEditor Development 빌드 성공(exit 0). 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_125525_742_43328.log`.
+- Wx.Combat.Damage.Result 자동화 성공: 1건, 오류 0/경고 0, exit 0. 기존 피해·방어·추가 효과·처리 순서 회귀와 Context 직렬화 왕복 검사를 통과했다. 결과 `Saved/Automation/DamageContextCleanup/index.json` · 로그 `Saved/Logs/DamageContextCleanupAutomation.log`.
 - Wiki lint 0 findings, 링크 오류 0, diff 공백 검사 통과. 직렬화 검사는 객체 매핑 없는 기본 Context 원점과 방어 비트를 대상으로 하며 실제 네트워크 세션 테스트는 아니다.
 
 ## 결과 필드 평탄화
@@ -172,8 +172,8 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - 두 enum 및 Defense/Rejection 제거. 상세 거부 원인 반환은 제거하되 모든 기존 입력·권한·출처 검증은 유지한다. 일반 실패는 bApplied=false, 회피는 추가로 bEvaded=true다. 일반 가드와 퍼펙트 가드는 배타적이다.
 - Hit 판정, 투사체 소비, 기존 자동화를 새 필드로 전환했다. 기존 피해/반사 수치와 추가 효과 순서, bool ApplyDamage 반환은 유지한다.
 - Content uasset 문자열 검색에서 제거된 enum/ApplyDamageWithResult 참조는 없었다. 외부 BP 사용처의 제거된 핀은 직접 전환이 필요하며 전체 BP 실행 검증으로 확대하지 않는다.
-- 전체 WxEditor Development 빌드 성공(exit 0). [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_130456_182_44324.log).
-- Wx.Combat.Damage.Result: 1건 성공, 오류 0/경고 0, exit 0. 평탄한 방어 필드의 배타성 및 기존 피해·추가 효과·순서·직렬화 회귀를 통과했다. [결과](../../../Saved/Automation/DamageResultFlat/index.json) · [로그](../../../Saved/Logs/DamageResultFlatAutomation.log).
+- 전체 WxEditor Development 빌드 성공(exit 0). 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_130456_182_44324.log`.
+- Wx.Combat.Damage.Result: 1건 성공, 오류 0/경고 0, exit 0. 평탄한 방어 필드의 배타성 및 기존 피해·추가 효과·순서·직렬화 회귀를 통과했다. 결과 `Saved/Automation/DamageResultFlat/index.json` · 로그 `Saved/Logs/DamageResultFlatAutomation.log`.
 - Wiki lint/link 및 diff 공백 검사 통과. 실제 플레이·멀티플레이 연출 확인은 별도다.
 
 ## ApplyDamage API 통합
@@ -189,9 +189,9 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - 요청을 BlueprintType으로 노출하고 UPROPERTY/TObjectPtr로 Blueprint 입력을 지원한다. Target/SourceAbility의 const는 유지한다. 네이티브 4개 호출자와 테스트 모두 같은 함수를 호출한다.
 - 출처 추론 어댑터 파일과 기존 다중 인자 함수 제거. 피해 계산과 호출자의 출처·레벨 선택은 유지한다. 기존 Blueprint 노드 사용처가 있다면 Request 구성으로 전환해야 한다.
 - 중간 구현 빌드 성공: build_2026-09-23_131928_394_32040.log. 최종 단일 진입점은 아래 별도 재빌드/회귀 검증을 통과했다.
-- 최종 WxEditor Development 빌드 성공(exit 0). [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_132548_218_29320.log).
+- 최종 WxEditor Development 빌드 성공(exit 0). 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_132548_218_29320.log`.
 - 초기 테스트는 다른 작업의 DataTableRowFixup 모듈 누락으로 엔진 시작 중 종료했다. 프로젝트 설정 변경 없이 재실행 인자 -DisablePlugins=DataTableRowFixup으로 해당 편집기 플러그인만 제외했다.
-- 재실행에서 Wx.Combat.Damage.Result 1건 성공, 오류 0/경고 0, exit 0. Python 반영 API로 요청 생성/ApplyDamage 호출 및 옛 두 함수 부재 확인(WX_SINGLE_DAMAGE_API_VERIFIED). [결과](../../../Saved/Automation/DamageSingleEntry/index.json) · [로그](../../../Saved/Logs/DamageSingleEntryRetryAutomation.log).
+- 재실행에서 Wx.Combat.Damage.Result 1건 성공, 오류 0/경고 0, exit 0. Python 반영 API로 요청 생성/ApplyDamage 호출 및 옛 두 함수 부재 확인(WX_SINGLE_DAMAGE_API_VERIFIED). 결과 `Saved/Automation/DamageSingleEntry/index.json` · 로그 `Saved/Logs/DamageSingleEntryRetryAutomation.log`.
 - Wiki lint 0 findings, 링크 오류 0, diff 공백 검사 통과. 실제 Blueprint 그래프·멀티플레이 플레이 검증은 별도다.
 
 ## 근본 구조 재설계안 (승인·구현 완료)
@@ -213,9 +213,9 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - ApplyDamage(Causer, Target, DamageTableRow, HitResult) 하나로 통합하고 FWxDamageRequest를 삭제했다. 호출부 요청 조립과 중복 조회를 제거했다.
 - 출처는 Causer ASC 우선, 없으면 직접 Owner ASC. 일반 공격은 현재 AnimatingAbility/레벨, 투사체는 Ability 없음/발사 레벨을 사용한다. 실제 템플릿 투사체로 Owner 교체 뒤 피해 출처/레벨 보존 검사를 추가했다.
 - 빌드/회귀 검증 통과. 위 요청 구조체 기반 최종 형태는 이 사용자 지시로 대체한다.
-- 검증: 전체 WxEditor Development 빌드 성공(exit 0). [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_133538_467_43284.log).
+- 검증: 전체 WxEditor Development 빌드 성공(exit 0). 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_133538_467_43284.log`.
 - Wx.Combat.Damage.Result 1건 성공, 오류 0/경고 0, exit 0. 실제 템플릿 투사체의 Owner 출처, 누락 Owner 거부, 발사 레벨 7과 추가 효과 레벨, Owner 교체 뒤 새 출처/기존 레벨 유지 및 기존 피해 회귀 통과. 실제 반사 궤적/멀티플레이 플레이 검증은 아니다.
-- Python 반영 API에서 네 인자 호출 성공 및 요청 타입/옛 함수 부재 확인(WX_FOUR_ARGUMENT_DAMAGE_API_VERIFIED). [결과](../../../Saved/Automation/DamageFourArguments/index.json) · [로그](../../../Saved/Logs/DamageFourArgumentsAutomation.log). 이번 실행은 플러그인 제외 없이 통과했다.
+- Python 반영 API에서 네 인자 호출 성공 및 요청 타입/옛 함수 부재 확인(WX_FOUR_ARGUMENT_DAMAGE_API_VERIFIED). 결과 `Saved/Automation/DamageFourArguments/index.json` · 로그 `Saved/Logs/DamageFourArgumentsAutomation.log`. 이번 실행은 플러그인 제외 없이 통과했다.
 - Wiki lint/link, diff 공백 검사 통과.
 
 ## 정방향 흐름 구현
@@ -225,7 +225,7 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - 삭제: UWxEffect_Hit, UWxEffectComponent_Hit, FWxHitEffectContext(6개 파일). FWxDamageResult는 4개 bool. Hit Cue의 AggregatedTargetTags 전달 제거. 관련 주석(Guard·PerfectGuard Cue·IncomingReflect·Invincible) 정정.
 - 테스트: Context 복사/직렬화 검사를 제거하고 수치 검사는 HP 변화량으로 전환, 판정 태그 전달·퍼펙트 가드 이벤트(반사 0 포함) 검사를 추가했다. 처리 순서(HP→Hit→Dealt→Extra)·출처 태그 캡처·추가 효과 분기 검사는 유지했다.
 - 전체 WxEditor Development 빌드 성공(exit 0, BUILD_DOCTOR_RESULT=success).
-- Wx.Combat.Damage.Result 1건 Success, 프로세스 exit 0. [결과](../../../Saved/Automation/DamageForwardFlow/index.json) · [로그](../../../Saved/Logs/DamageForwardFlowAutomation.log). NullRHI 별도 프로세스이며 -DisablePlugins=DataTableRowFixup 사용.
+- Wx.Combat.Damage.Result 1건 Success, 프로세스 exit 0. 결과 `Saved/Automation/DamageForwardFlow/index.json` · 로그 `Saved/Logs/DamageForwardFlowAutomation.log`. NullRHI 별도 프로세스이며 -DisablePlugins=DataTableRowFixup 사용.
 - Wiki: 원자료 2026-09-23-damage-forward-flow 추가, combat-damage 재편찬, combat 토픽 클래스 표 갱신. 링크 검사 이상 없음.
 - 미검증: 실제 플레이(가드·퍼펙트 가드 반사·회피·그로기 동시 임계·투사체 반사), 리슨 서버/원격 클라 연출.
 
@@ -245,7 +245,7 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - ApplyDamage의 무적 분기·Event.DodgeSuccess 발행 제거, Event.DodgeSuccess 태그 삭제(C++·Content 참조 없음). Dodge 어빌리티가 활성 동안 Immunity 차단 델리게이트를 구독해 Damage.Attack 차단을 극한 회피로 처리, 클라 확정은 기존 NetSync 유지.
 - FWxDamageResult.bEvaded 제거. 투사체는 적용 전 무적 태그 조회로 통과를 정한다(클라 FX 조건과 공유).
 - 테스트: 느슨한 태그 대신 실제 UWxEffect_Invincible GE를 적용해 Immunity 차단 통지 1회·HP 보존·반응 중 무적 제거를 검사.
-- 빌드 성공(exit 0) [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_140452_356_1544.log). Wx.Combat.Damage.Result Success, exit 0 [결과](../../../Saved/Automation/DamageImmunityDodge/index.json) · [로그](../../../Saved/Logs/DamageImmunityDodgeAutomation.log).
+- 빌드 성공(exit 0) 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_140452_356_1544.log`. Wx.Combat.Damage.Result Success, exit 0 결과 `Saved/Automation/DamageImmunityDodge/index.json` · 로그 `Saved/Logs/DamageImmunityDodgeAutomation.log`.
 - 미검증: 실제 극한 회피 플레이(리슨 서버·원격 클라 NetSync 전환 포함).
 
 ## 결과 반환 제거와 Damage GE 컴포넌트 분할
@@ -254,7 +254,7 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - DamageResponse 삭제 → UWxEffectComponent_DamageReaction / _PerfectGuard / _HitStop (Damage GE 생성자 추가 순서가 실행 순서). _PerfectGuard가 원인 투사체를 Reflect(bCanReflect 확인을 Reflect 안으로, public 전환), _HitStop이 무기/투사체 캐스트로 기존 값 적용. 투사체 히트스톱 프로퍼티 public 전환.
 - FWxDamageResult 삭제, ApplyDamage void. 무기 ProcessHit는 호출만, 투사체는 무적 사전 조회 + 적용 후 Owner 확인으로 파괴 결정.
 - 테스트: Damage GE 적용 관찰(OnGameplayEffectAppliedDelegateToSelf)로 적용·판정 태그 검사, 투사체 원인의 피격자 히트스톱·공격자 히트스톱 0 검사 추가. 투사체 되돌림은 테스트 액터가 Pawn이 아니라 자동화로 검증하지 못했다.
-- 빌드 성공 [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_142226_603_41948.log). Wx.Combat.Damage.Result Success, exit 0 [결과](../../../Saved/Automation/DamageEffectComponents/index.json) · [로그](../../../Saved/Logs/DamageEffectComponentsAutomation.log).
+- 빌드 성공 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_142226_603_41948.log`. Wx.Combat.Damage.Result Success, exit 0 결과 `Saved/Automation/DamageEffectComponents/index.json` · 로그 `Saved/Logs/DamageEffectComponentsAutomation.log`.
 - 미검증 플레이: 무기/투사체 히트스톱 체감, 퍼펙트 가드 투사체 되돌림, 반사 불가 투사체 파괴.
 
 ## 파이프라인 리뷰 후속 수정 (2026-09-23)
@@ -264,20 +264,20 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - 테스트: Immunity 차단 통지 안에서 무적 GE를 제거하던 코드 제거. 엔진이 GameplayEffectApplicationQueries를 range-for로 도는 중 OnEffectRemoved가 즉시 발행돼 실행 중인 쿼리를 지우는 UB 경로였다. 실제 무적 제거는 ANS NotifyEnd(애님 업데이트)다.
 - 투사체: 호출 전 Owner를 지역 변수로 두고 바뀌지 않았으면 파괴(충돌 액터와 ASC 아바타가 다를 때 되돌린 투사체 파괴 방지). 무적 사전 조회 주석 정정.
 - MakeDamageSpec의 행 변경 대비 지역 복사·주석 제거. 테스트 메시지의 Applied flag 표현 정정.
-- 빌드 성공 [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_144915_549_34652.log), Wx.Combat.Damage.Result Success exit 0 [결과](../../../Saved/Automation/DamageReviewFixes/index.json).
+- 빌드 성공 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_144915_549_34652.log`, Wx.Combat.Damage.Result Success exit 0 결과 `Saved/Automation/DamageReviewFixes/index.json`.
 - 대기: 행 삭제 스냅샷 테스트(로컬 Row 사용) 처리, 테스트 관찰 람다 수명 정리 방식.
 
 ## 리뷰 후속 2차 (2026-09-23)
 
 - 사용자 판단: 행 삭제 스냅샷 테스트는 삭제(b), 테스트 관찰 람다는 “반환값으로 처리”, 테스트 세부는 위임. `_DamageReaction`→`_DamageResult` 개명은 결과 데이터로 읽혀 유지 권고.
 - ApplyDamage가 Damage GE 적용 여부(bool) 반환. 테스트: 적용 관찰 람다(CountDamage/LastDamageTags) 제거, 판정은 SP·GP 변화로, 퍼펙트 가드 태그는 호출 뒤 테스트가 제거, 반사 0 이벤트 관찰만 남기고 사용 직후 해제.
-- WxCombat 컴파일·DLL 링크 성공, Wx.Combat.Damage.Result Success exit 0 [결과](../../../Saved/Automation/DamageBoolReturn/index.json). 전체 빌드는 다른 작업의 WxGame(WxViewModel_BossDisplay·WxEngagedCharacterWidget) 컴파일 오류로 실패 [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_151224_711_38936.log) — 해당 파일 미수정.
+- WxCombat 컴파일·DLL 링크 성공, Wx.Combat.Damage.Result Success exit 0 결과 `Saved/Automation/DamageBoolReturn/index.json`. 전체 빌드는 다른 작업의 WxGame(WxViewModel_BossDisplay·WxEngagedCharacterWidget) 컴파일 오류로 실패 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_151224_711_38936.log` — 해당 파일 미수정.
 
 ## 사망 확인을 Effect 요건으로 일원화 (2026-09-23)
 
 - 사용자 판단: “사망 확인 같은 경우는 각 Effect 내부에서 조회하는게 더 바람직”. ApplyDamage의 Ability.Death 조기 반환 제거, Damage GE의 TargetTagRequirements(Ability.Death)만 남김. 근거: 사망 어빌리티가 Ability.* 전체를 Cancel/Block하므로 사망 대상에서 Dodge가 Immunity 통지를 받지 못한다.
 - 적대 판정의 CanApply 컴포넌트 이관은 시도 후 되돌림: 엔진이 Immunity 쿼리를 CanApply보다 먼저 돌려, 아군 범위 공격·피니셔가 회피 무적 동료에게 극한 회피를 일으킨다(무기·투사체만 호출 전 적대를 거름). ApplyDamage에 사유 주석.
-- 전체 WxEditor 빌드 성공, Wx.Combat.Damage.Result Success exit 0 [결과](../../../Saved/Automation/DamageDeathInEffect/index.json).
+- 전체 WxEditor 빌드 성공, Wx.Combat.Damage.Result Success exit 0 결과 `Saved/Automation/DamageDeathInEffect/index.json`.
 - 대기: B안(방어 판정 ExecCalc 이관 + 추가 효과 전용 입력 Context·_AdditionalEffects 컴포넌트) 결정.
 
 ## B안: 방어 판정·추가 효과를 Effect로 (2026-09-23)
@@ -285,14 +285,14 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - 사용자 판단: “네 B안 전체로 진행하세요.”
 - ExecCalc가 Damage.CanGuard와 대상 태그(Effect.PerfectGuard/GuardReduction)로 방어 판정 후 Damage.Guarded/PerfectGuarded 결과 태그 부착. ApplyDamage 판정 코드 제거.
 - 추가 효과: FWxDamageEffectContext(입력 전용, 서버 로컬, Duplicate 시 비움) 신설, MakeDamageSpec이 피해 전 Spec 생성(Context 사본 사용 → 순환 참조 없음), UWxEffectComponent_AdditionalEffects가 마지막에 퍼펙트 가드 아니면 적용(적용 후 목록 비움). ApplyDamage는 입력 조립 + 권위·적대 + 적용 반환(약 50줄).
-- 전체 WxEditor 빌드 성공 [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_154653_083_20156.log), Wx.Combat.Damage.Result Success exit 0 [결과](../../../Saved/Automation/DamageRulesInEffect/index.json). 기존 추가 효과 순서(HP→Hit→Dealt→Extra)·출처 태그 선캡처·퍼펙트 가드/회피/사망 생략 회귀 통과.
+- 전체 WxEditor 빌드 성공 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_154653_083_20156.log`, Wx.Combat.Damage.Result Success exit 0 결과 `Saved/Automation/DamageRulesInEffect/index.json`. 기존 추가 효과 순서(HP→Hit→Dealt→Extra)·출처 태그 선캡처·퍼펙트 가드/회피/사망 생략 회귀 통과.
 - 엔진 UAdditionalEffectsGameplayEffectComponent 대체 검토: GE 클래스 단위 정적 목록, RequiredSourceTags 조건만, OnGameplayEffectApplied에서 Spec 생성 → 행별 목록·퍼펙트 가드 생략·선캡처 불가. 사용자 결정 대기.
 
 ## 추가 효과 Spec 생성 시점을 반응 뒤로 (2026-09-23)
 
 - 사용자 지시: “반응이 끝난 뒤에 만들어야해요.” 이전의 “피해 전 출처 태그 캡처” 불변식을 폐기.
 - FWxDamageEffectContext는 추가 효과 GE 클래스 목록만 보관, _AdditionalEffects가 실행 시 같은 Context·Damage 레벨로 Spec 생성 후 적용. 사본 Context·순환 참조 대책 제거.
-- 테스트 “Extra source tags captured after hit reaction”으로 전환. 전체 빌드 성공 [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_155626_778_3916.log), Wx.Combat.Damage.Result Success exit 0 [결과](../../../Saved/Automation/DamageExtrasAfterReaction/index.json).
+- 테스트 “Extra source tags captured after hit reaction”으로 전환. 전체 빌드 성공 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_155626_778_3916.log`, Wx.Combat.Damage.Result Success exit 0 결과 `Saved/Automation/DamageExtrasAfterReaction/index.json`.
 - 엔진 UAdditionalEffectsGameplayEffectComponent 대체의 남은 장애: 행별 목록(GE 클래스 단위 정적 목록), 퍼펙트 가드 생략(RequiredSourceTags만).
 
 ## 정리: Damage.Attack 제거·투사체 중복 판정·테스트 삭제 (2026-09-23)
@@ -301,7 +301,7 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - Damage.Attack 태그 삭제: Damage GE는 MakeDamageSpec으로만 만들어져 항상 부착되던 무의미 조건(치트 피해는 별도 GE). _DamageReaction은 피해>0만, Dodge 필터는 막힌 Spec의 Def가 UWxEffect_Damage인지로 판정(쿨다운 면제 등 다른 Immunity 통지 배제).
 - 투사체 회피 조건에서 중복 적대 판정·SourceASC 제거(핸들러 앞단이 이미 적대를 거름).
 - Private/Tests/WxDamageResultTest.cpp(Wx.Combat.Damage.Result) 삭제 → 이후 자동 회귀 없음, 검증은 빌드와 플레이로.
-- 전체 WxEditor 빌드 성공 [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_161254_241_18748.log).
+- 전체 WxEditor 빌드 성공 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_161254_241_18748.log`.
 - 남은 과제: 플레이 검증, 상태 전이 순서(AttributeSet 모디파이어별 사망·그로기) 정리.
 
 ## 타 GAS 프로젝트 비교 후속: 0 피해 히트스톱·낡은 주석 (2026-09-23)
@@ -309,5 +309,5 @@ AttributeSet은 자원 반영 도중 사망·그로기 이벤트를 발행한다
 - 사용자 지시: “1, 2 적용해주세요” (Lyra·Action RPG·GASDocumentation·Aura·Ninja Combat 등과 비교한 개선 제안 중 1 주석 정정, 2 0 피해 히트스톱).
 - `_HitStop`: 실행 기록 피해 > 0 또는 `Damage.PerfectGuarded`일 때만 건다(Hit Cue와 같은 조건). 이전에는 반올림 0·완전 경감 가드처럼 ExecCalc가 출력 없이 끝난 타격에도 연출 없이 히트스톱만 걸렸다. `_AdditionalEffects`는 피해 없는 디버프 행을 위해 0 피해에도 적용을 유지한다.
 - 주석 정정: `WxCueNotify_Hit.h`·`WxCueNotify_DamageFloater.h`의 Hit Cue 예측 서술(실제는 `_DamageReaction`이 서버에서 빈 예측 키로 발행), `WxEffect_Invincible.cpp`의 ApplyDamage 회피 판정 전제(Damage GE만 막고 Dodge가 차단 통지를 받음), `WxWeaponBase.cpp` 적대 사전 검사의 낡은 이유 삭제(검사 자체는 ApplyDamage와 중복이며 유지).
-- 전체 WxEditor 빌드 성공(경고 0) [로그](../../../Saved/Logs/BuildDoctor/build_2026-09-23_204153_209_33376.log). 플레이 미검증.
+- 전체 WxEditor 빌드 성공(경고 0) 로그 `Saved/Logs/BuildDoctor/build_2026-09-23_204153_209_33376.log`. 플레이 미검증.
 - 대기(기획 확인): 가드 방향(도입 시 `_DamageReaction`의 가드 취소 조건 `!CanGuard`도 함께 수정 — 반응 라우팅이 `Ability.Guard` 기준이라 등 뒤 피격에 흡수 몽타주가 나감), 공격별 그로기 파워, 그로기 중 피해 증가, 플로터 표시 대상·위치, 일반 가드의 추가 효과 통과, 커스텀 Context 할당 경로(`AllocGameplayEffectContext` 순정 경로 여부).

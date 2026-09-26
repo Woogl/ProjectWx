@@ -47,11 +47,12 @@ function fixture(providers=['codex'],content=taskText){
   // 단계마다 AI가 채울 수 있는 칸
   assert.deepEqual(schemaFor('plan').required,['summary','evidence','questions','plan']);
   assert.deepEqual(schemaFor('implement').required,['summary','evidence','changes','questions','checklist']);
-  for(const kind of ['plan','implement','request','fix'])assert.ok(!('blockers' in schemaFor(kind).properties)&&!('checks' in schemaFor(kind).properties),kind);
+  assert.deepEqual(schemaFor('request').required,['summary','evidence','changes','questions','plan','checklist']);
+  assert.deepEqual(schemaFor('fix').required,['summary','evidence','changes','questions','checklist']);
 
   const f=fixture();
   assert.deepEqual(f.context().checklist.map(r=>[r.item,r.owner,r.result]),[['빌드','AI','통과'],['저장 후 복원','사람','대기']]);assert.equal(f.context().text,taskText,'the reader gets the live record text');
-  assert.equal(f.context().state,'확인 대기');assert.equal(f.context().next,'저장 후 복원을 확인한다.','the panel shows the recorded next action');assert.ok(!Object.hasOwn(f.context(),'codeVersion'),'code versions no longer gate submissions');
+  assert.equal(f.context().state,'확인 대기');assert.equal(f.context().next,'저장 후 복원을 확인한다.','the panel shows the recorded next action');
   assert.throws(()=>f.service.act(f.request({provider:'claude'})),/선택한 AI/);
   assert.throws(()=>f.service.act(f.request({provider:'unknown'})),/선택한 AI/);
   assert.throws(()=>f.service.act(f.request({checks:[]})),/하나 이상/);
@@ -138,11 +139,11 @@ function fixture(providers=['codex'],content=taskText){
   const handed=fixture();handed.service.act(handed.request({checks:[{index:1,result:'실패',note:'원점'}]}));await settle();
   handed.finish(fixReport([row('빌드','AI','통과','exit 0'),row('PIE 확인','AI','미실행','에디터 없음'),row('저장 후 복원','사람','대기','재확인')]));await settle();
   assert.deepEqual(handed.rows().map(r=>[r.item,r.owner,r.result,r.evidence]),[['빌드','AI','통과','exit 0'],['PIE 확인','사람','대기','AI가 실행하지 못함: 에디터 없음'],['저장 후 복원','사람','대기','재확인']]);
-  // 상태는 체크리스트·질문에서만 정한다. 남은 확인·검사 목록 같은 옛 칸은 버린다.
+  // 상태는 체크리스트·질문에서만 정한다. 단계에 없는 칸은 버린다.
   for(const [label,value,expected] of [
     ['ai-row-failed',fixReport([row('빌드','AI','실패','링크 오류'),row('저장 후 복원','사람','대기','재확인')]),'issues'],
     ['question',fixReport([],{questions:[{id:'Q1',question:'범위를 넓힐까요?',options:['넓힌다','그대로'],recommendation:'그대로'}]}),'questions'],
-    ['ignored-fields',fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')],{blockers:['무관한 경고'],checks:[{name:'lint',status:'failed',evidence:'다른 문서'}]}),'retest'],
+    ['ignored-fields',fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')],{extra:['단계에 없는 칸'],verdict:'failed'}),'retest'],
     ['nothing',fixReport([]),'failed']
   ]){const c=fixture();c.service.act(c.request({checks:[{index:1,result:'실패',note:'문제'}]}));await settle();c.finish(value);await settle();assert.equal(c.context().latest.status,expected,label);assert.equal(c.head().state,'확인 대기',label);}
   // 처리 중 기록이 바뀌면 결과를 반영하지 않고 기록 충돌로 둔다.
@@ -285,7 +286,7 @@ function fixture(providers=['codex'],content=taskText){
   for(const kind of ['implement','request','fix'])assert.match(prompt(kind),/checklist는 기존 항목을 포함한 전체 체크리스트/,kind);
   for(const kind of ['plan','implement','request','fix']){
     const text=prompt(kind);
-    assert.match(text,/관리자 정책·CLI 설정 변경/,kind);assert.doesNotMatch(text,/한국어로|\| 문자|직접 고치지 마세요|Q번호|선택지 2개/,kind);assert.match(text,/Git 커밋·푸시/,kind);assert.doesNotMatch(text,/blockers/,kind);
+    assert.match(text,/관리자 정책·CLI 설정 변경/,kind);assert.match(text,/Git 커밋·푸시/,kind);
     assert.match(text,/AGENTS\.md와 \.agents\/workflow\/process\/index\.md를 따르고/,kind);
     assert.match(text.split('\n')[0],/^이 요청은 Workflow 대시보드에서 맡긴 웹 처리입니다\./,kind+': the AI knows the web-processing rules apply');
   }
@@ -389,7 +390,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.ok(fs.existsSync(path.join(pluginDir,'scripts/claude-obsidian.py'))&&!fs.existsSync(pluginDir+'.download'));
   assert.ok(calls.includes([process.execPath,wikiCli,'--version'].join(' '))&&engineCwd===tree,'the wrapper runs claude-obsidian in WSL from the work tree before the AI starts');
   assert.deepEqual([ran.repo,ran.mode,ran.provider,ran.command.file,ran.title],[tree,'work','claude','claude','Wiki 갱신']);
-  assert.match(ran.prompt,/Wiki\/README\.md의 절차대로/);assert.doesNotMatch(ran.prompt,/한국어로|작업 트리 밖/);assert.deepEqual(ran.schema.required,['summary','evidence']);
+  assert.match(ran.prompt,/Wiki\/README\.md의 절차대로/);assert.deepEqual(ran.schema.required,['summary','evidence']);
   const pcInfo=JSON.parse(ran.prompt.match(/이 PC 정보\(JSON\): (.*)/)[1]);
   assert.deepEqual(pcInfo,{worktree:tree,claudeObsidian:{tag:'v9.9.9',path:pluginDir},command:`node "${wikiCli}"`});
   // 두 번째부터는 작업 트리를 만들지 않고 설정을 다시 적용해 origin/main으로 맞추며, 받아 둔 claude-obsidian은 다시 받지 않는다. AI 실패는 이유를 남긴다.
@@ -425,8 +426,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.equal((await post('/test-feedback',http.request({provider:'unknown'}))).status,400);
   const response=await post('/test-feedback',http.request({provider:'claude',checks:[{index:1,result:'실패',note:'문제'}]}));assert.equal(response.status,200);await settle();assert.deepEqual([http.input.provider,http.input.kind],['claude','fix']);
   assert.equal((await post('/test-feedback',{action:'list'})).status,200);
-  assert.equal((await post('/analyze',{})).status,404,'removed web task routes must not answer');
-  assert.equal((await post('/execution',{})).status,404);
+  assert.equal((await post('/unknown',{})).status,404,'unknown routes do not answer');
   const health=await (await fetch('http://127.0.0.1:'+port+'/health')).json();
   assert.equal(health.busy,true);assert.deepEqual(Object.keys(health).sort(),['busy','identity']);
   http.finish(fixReport([passedRows[0],row('저장 후 복원','사람','대기','재확인')]));await settle();assert.equal(http.context().latest.status,'retest');

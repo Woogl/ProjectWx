@@ -64,28 +64,28 @@
 - 주석 정정 전후의 코드 해시를 비교해 런타임 변경이 없음을 확인했다. 동시에 다른 작업이 제거한 `FWxExclusiveAbilityBlockingTest` friend 선언은 메모리에서만 보정해 비교했으며, 그 변경은 이번 제출에 포함하지 않는다.
 - 번호 태그를 GA가 설정한다는 기존 주석은 이번 이관 보고서의 에셋·소유 태그 일치로 확인했다. HitReact의 슬롯 그룹·착지 섹션에 따른 에셋 분리 제약 설명은 이번 코드 점검만으로 확정할 수 없어 유지했다.
 - 제출은 사용자 지시에 따르되 사람 코드 리뷰·PIE 확인을 통과로 간주하지 않는다. 공유 WxAbilityBase·이펙트 생성 목록은 부분 스테이징해 다른 작업의 태그 차단 변경을 제외한다.
-- 테스트 제거 후 [BuildDoctor 로그](../../../Saved/Logs/BuildDoctor/build_2026-09-25_234230_097_45824.log)에서 현재 작업 폴더의 Editor Development 빌드 성공을 확인했다. 제거한 테스트의 소스 참조·UHT 등록은 없으며, 테스트 재실행은 하지 않았다.
+- 테스트 제거 후 BuildDoctor 로그 `Saved/Logs/BuildDoctor/build_2026-09-25_234230_097_45824.log`에서 현재 작업 폴더의 Editor Development 빌드 성공을 확인했다. 제거한 테스트의 소스 참조·UHT 등록은 없으며, 테스트 재실행은 하지 않았다.
 
 ## 콤보 배열 복원 검증 근거
 
-- [BuildDoctor 로그](../../../Saved/Logs/BuildDoctor/build_2026-09-25_231816_093_53240.log): `Result: Succeeded`, 종료 코드 0. 이후 C++ 주석의 조사 오타만 수정했다.
-- [자동화 JSON](../../../Saved/Automation/ComboMontageArray/index.json), [실행 로그](../../../Saved/Logs/ComboMontageArrayTests.log): Wx.Combat 11개 성공·실패 0·미실행 0. 테스트별 오류·경고 0.
-- [이관 보고서](../../../Saved/Tests/ComboMontageMigration.json), [재로드 보고서](../../../Saved/Tests/ComboMontageVerification.json): GA 22개 배열·참조·기타 설정 보존, 원본 몽타주 29개 확인. 통합본 9개는 삭제하지 않았다.
-- [이관 로그](../../../Saved/Logs/ComboMontageMigration.log), [재로드 로그](../../../Saved/Logs/ComboMontageVerification.log): `COMBO_MIGRATION_OK`, `COMBO_RELOAD_VERIFIED`.
+- BuildDoctor 로그 `Saved/Logs/BuildDoctor/build_2026-09-25_231816_093_53240.log`: `Result: Succeeded`, 종료 코드 0. 이후 C++ 주석의 조사 오타만 수정했다.
+- 자동화 JSON `Saved/Automation/ComboMontageArray/index.json`, 실행 로그 `Saved/Logs/ComboMontageArrayTests.log`: Wx.Combat 11개 성공·실패 0·미실행 0. 테스트별 오류·경고 0.
+- 이관 보고서 `Saved/Tests/ComboMontageMigration.json`, 재로드 보고서 `Saved/Tests/ComboMontageVerification.json`: GA 22개 배열·참조·기타 설정 보존, 원본 몽타주 29개 확인. 통합본 9개는 삭제하지 않았다.
+- 이관 로그 `Saved/Logs/ComboMontageMigration.log`, 재로드 로그 `Saved/Logs/ComboMontageVerification.log`: `COMBO_MIGRATION_OK`, `COMBO_RELOAD_VERIFIED`.
 - 재생 요청·GAS 수명·저장 데이터 검증이며 실제 애니메이션 연출·루트모션·네트워크 RPC 왕복은 사람 PIE 확인 항목이다. 커밋하지 않았다.
 
 ## 자동 재생 통합 검증 근거
 
-- [최종 BuildDoctor 로그](../../../Saved/Logs/BuildDoctor/build_2026-09-25_230119_720_50688.log): `Result: Succeeded`, `BUILD_DOCTOR_EXIT_CODE=0`.
-- [최종 자동화 JSON](../../../Saved/Automation/AbilityDirectionPlaybackVerified/index.json), [실행 로그](../../../Saved/Logs/AbilityDirectionPlaybackVerifiedTests.log): 성공 6·실패 0·미실행 0, 각 테스트 오류·경고 0.
+- 최종 BuildDoctor 로그 `Saved/Logs/BuildDoctor/build_2026-09-25_230119_720_50688.log`: `Result: Succeeded`, `BUILD_DOCTOR_EXIT_CODE=0`.
+- 최종 자동화 JSON `Saved/Automation/AbilityDirectionPlaybackVerified/index.json`, 실행 로그 `Saved/Logs/AbilityDirectionPlaybackVerifiedTests.log`: 성공 6·실패 0·미실행 0, 각 테스트 오류·경고 0.
 - 제거 전 `WxAbilityDirectionPlaybackTests.cpp`는 실제 Skill의 GAS 활성화·재발동을 실행하고 최종 재생 요청만 기록했다. 렌더링·루트모션·실제 RPC 왕복은 검증 범위가 아니다.
 - 신규 API는 UFUNCTION 없이 C++로만 제공한다. 에셋을 바꾸거나 커밋하지 않았다.
 
 ## 이전 구현 검증 근거
 
-- 최종 빌드: [BuildDoctor 로그](../../../Saved/Logs/BuildDoctor/build_2026-09-25_223052_302_12720.log), `Result: Succeeded`, `BUILD_DOCTOR_EXIT_CODE=0`. UHT와 30개 빌드 작업을 완료했다.
+- 최종 빌드: BuildDoctor 로그 `Saved/Logs/BuildDoctor/build_2026-09-25_223052_302_12720.log`, `Result: Succeeded`, `BUILD_DOCTOR_EXIT_CODE=0`. UHT와 30개 빌드 작업을 완료했다.
 - 빌드 명령: `& "C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat" WxEditor Win64 Development "-Project=C:\Wx\Wx.uproject" -WaitMutex -NoHotReloadFromIDE` (build-doctor 실행기가 호출).
 - 당시 테스트 코드: `WxAbilityDirectionTests.cpp` (사용자 요청으로 제거).
-- 최종 자동화 결과: [JSON 보고서](../../../Saved/Automation/AbilityDirectionCppOnly/index.json), [실행 로그](../../../Saved/Logs/AbilityDirectionCppOnlyTests.log). 성공 3·실패 0·미실행 0, 테스트별 오류·경고 0, 프로세스 종료 코드 0. NullRHI·unattended로 실행했다.
+- 최종 자동화 결과: JSON 보고서 `Saved/Automation/AbilityDirectionCppOnly/index.json`, 실행 로그 `Saved/Logs/AbilityDirectionCppOnlyTests.log`. 성공 3·실패 0·미실행 0, 테스트별 오류·경고 0, 프로세스 종료 코드 0. NullRHI·unattended로 실행했다.
 - 최종 소스·작업 현황의 `git diff --check`가 통과했다. 기존 미커밋 변경은 그대로 유지했다.
 - 실제 회피 몽타주 재생·이동·극한 회피 판정·네트워크 동기화는 자동화 테스트의 확인 범위가 아니며 사람 플레이 확인이 필요하다.
