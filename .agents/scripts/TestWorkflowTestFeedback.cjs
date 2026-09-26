@@ -254,15 +254,15 @@ function fixture(providers=['codex'],content=taskText){
 
   // AI에게 주는 지시: 정하기는 읽기 전용, 나머지는 사용자 결정대로 권한 확인 없이 실행한다. 사람에게는 질문·계획·체크리스트로만 넘긴다.
   const prompt=kind=>taskPrompt({action:'x',kind,taskPath,taskHash:'h',actor:'테스터',at:'t',answers:[{id:'Q1',answer:'A안'}],message:'추가 요청 원문',checks:[{item:'저장 후 복원',result:'실패',note:'재현: 저장 → 종료 → 재개'}]});
-  assert.match(prompt('plan'),/파일을 수정하지 말고/);assert.doesNotMatch(prompt('plan'),/권한 확인 없이/);assert.match(prompt('plan'),/겹치지 않는 Q번호/);assert.doesNotMatch(prompt('plan'),/checklist는 전체 체크리스트/);
-  assert.match(prompt('implement'),/구현 계획대로 구현/);assert.match(prompt('implement'),/questions로 물으세요/);
+  assert.match(prompt('plan'),/지금은 정하기입니다/);assert.doesNotMatch(prompt('plan'),/권한 확인 없이/);assert.doesNotMatch(prompt('plan'),/checklist는 기존 항목을 포함한/);
+  assert.match(prompt('implement'),/구현 계획대로 구현/);
   assert.match(prompt('request'),/추가 요청/);assert.ok(prompt('request').includes('"message":"추가 요청 원문"'));assert.ok(prompt('plan').includes('"answers":[{"id":"Q1","answer":"A안"}]'));
   assert.match(prompt('fix'),/실패 원인을 조사/);assert.ok(prompt('fix').includes('재현: 저장 → 종료 → 재개'));
   for(const kind of ['implement','request','fix'])assert.match(prompt(kind),/권한 확인 없이 명령을 실행/,kind);
-  for(const kind of ['implement','request','fix'])assert.match(prompt(kind),/작업 절차의 테스트 체크리스트 절을 따르세요/,kind);
+  for(const kind of ['implement','request','fix'])assert.match(prompt(kind),/checklist는 기존 항목을 포함한 전체 체크리스트/,kind);
   for(const kind of ['plan','implement','request','fix']){
     const text=prompt(kind);
-    assert.match(text,/관리자 정책과 CLI 설정을 바꾸지/,kind);assert.match(text,/Git 커밋·푸시/,kind);assert.doesNotMatch(text,/blockers/,kind);
+    assert.match(text,/관리자 정책·CLI 설정 변경/,kind);assert.doesNotMatch(text,/한국어로|\| 문자|직접 고치지 마세요|Q번호|선택지 2개/,kind);assert.match(text,/Git 커밋·푸시/,kind);assert.doesNotMatch(text,/blockers/,kind);
     assert.match(text,/AGENTS\.md와 \.agents\/workflow\/process\/index\.md를 따르고/,kind);
   }
 
@@ -309,7 +309,7 @@ function fixture(providers=['codex'],content=taskText){
   const sessionPath='.agents/workflow/tasks/보스-체력바.md';
   openSession({root:'C:\\Wx',command:{file:'claude.exe',args:[]},provider:'claude',taskPath:sessionPath,title:'보스',open:capture});
   assert.equal(session.title,'Wx AI · 보스');assert.equal(session.argv.length,2);assert.equal(session.argv[0],'claude.exe');
-  assert.equal(session.argv[1],`Continue the Wx task recorded in ${sessionPath}. Follow AGENTS.md and .agents/workflow/process/index.md, and reply in Korean.`);
+  assert.equal(session.argv[1],`Continue the Wx task recorded in ${sessionPath}. Follow AGENTS.md and .agents/workflow/process/index.md.`);
   openSession({root:'C:\\Wx',command:{file:'node.exe',args:['gemini.js']},provider:'gemini',taskPath:sessionPath,title:'보스',open:capture});assert.deepEqual(session.argv.slice(0,3),['node.exe','gemini.js','-i']);
   assert.throws(()=>openSession({root:'C:\\Wx',command:null,provider:'codex',taskPath:sessionPath,title:'보스',open:capture}),/Codex CLI/);
 
@@ -363,7 +363,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.ok(fs.existsSync(path.join(pluginDir,'scripts/claude-obsidian.py'))&&!fs.existsSync(pluginDir+'.download'));
   assert.ok(calls.includes([process.execPath,wikiCli,'--version'].join(' '))&&engineCwd===tree,'the wrapper runs claude-obsidian in WSL from the work tree before the AI starts');
   assert.deepEqual([ran.repo,ran.mode,ran.provider,ran.command.file,ran.title],[tree,'work','claude','claude','Wiki 갱신']);
-  assert.match(ran.prompt,/Wiki\/README\.md의 정기 갱신 절차/);assert.deepEqual(ran.schema.required,['summary','evidence']);
+  assert.match(ran.prompt,/Wiki\/README\.md의 절차대로/);assert.doesNotMatch(ran.prompt,/한국어로|작업 트리 밖/);assert.deepEqual(ran.schema.required,['summary','evidence']);
   const pcInfo=JSON.parse(ran.prompt.match(/이 PC 정보\(JSON\): (.*)/)[1]);
   assert.deepEqual(pcInfo,{worktree:tree,claudeObsidian:{tag:'v9.9.9',path:pluginDir},command:`node "${wikiCli}"`});
   // 두 번째부터는 작업 트리를 origin/main으로 다시 맞추기만 하고, 받아 둔 claude-obsidian은 다시 받지 않는다. AI 실패는 이유를 남긴다.

@@ -36,6 +36,7 @@ Wiki 갱신은 매일 06:30(KST)에 도는 클라우드 Routine 「Wiki 정기 �
   4. `Wiki/wiki`·`Wiki/.raw` 변경만 커밋해(`init` 때는 `Wiki/` 전체) `git push origin HEAD:main`으로 올립니다. 커밋 메시지는 `Wiki 갱신: <바뀐 내용 한국어 요약>`입니다. 바뀐 것이 없으면 커밋하지 않습니다.
      - 푸시가 거절되면 `git fetch origin main` 뒤 원격의 새 커밋이 `Wiki/`를 건드렸는지 봅니다. 건드리지 않았으면 `git rebase origin/main` 뒤 다시 푸시합니다.
      - 건드렸으면 합치지 않습니다. 레저를 손으로 합치면 어긋날 수 있기 때문입니다. `git reset --hard origin/main`으로 되돌린 뒤 새 operation ID로 1단계부터 다시 합니다. force push는 하지 않습니다.
+  5. 수집한 원자료, 바뀐 노트, lint 결과, 새 claude-obsidian 태그 여부, 커밋 해시를 짧게 보고합니다. 실패하거나 건너뛴 단계는 숨기지 않고 적습니다.
 - 지킬 것:
   - 모든 명령에 `--vault Wiki`를 붙입니다. `.raw/`는 커밋합니다(레저가 사본 바이트를 검증합니다).
   - 날짜는 UTC(`date -u +%F`)로 씁니다. 새 주장의 근거 위치는 vault 기준 경로(`.raw/captured/<해시>.<확장자>`)로 적습니다.
