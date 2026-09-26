@@ -4,6 +4,7 @@ const {spawn}=require('node:child_process');
 const {createFeedbackService,runJob,openTerminal,openSession,taskPrompt,schemaFor,readTasks,writeChecklist,writeHead}=require('./Workflow-TestFeedback.cjs');
 const {readChecklist,readHead,readTaskRecord}=require('./wiki-viewer/task-records.js');
 const {createServer,createWikiUpdate}=require('./Wiki-AI.cjs');
+const {toWsl,wslArgs}=require('./Wiki-Obsidian.cjs');
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'wx-test-feedback-'));
 const taskPath='.agents/workflow/tasks/example.md';
 const checklistText='## 테스트 체크리스트\n\n| 항목 | 확인 방법 | 담당 | 결과 | 근거 |\n| --- | --- | --- | --- | --- |\n| 빌드 | Development 빌드 | AI | 통과 | 빌드 exit 0 |\n| 저장 후 복원 | 저장 → 종료 → 재개, 저장 위치에서 시작한다. | 사람 | 대기 |  |\n';
@@ -312,15 +313,16 @@ function fixture(providers=['codex'],content=taskText){
   openSession({root:'C:\\Wx',command:{file:'node.exe',args:['gemini.js']},provider:'gemini',taskPath:sessionPath,title:'보스',open:capture});assert.deepEqual(session.argv.slice(0,3),['node.exe','gemini.js','-i']);
   assert.throws(()=>openSession({root:'C:\\Wx',command:null,provider:'codex',taskPath:sessionPath,title:'보스',open:capture}),/Codex CLI/);
 
-  // Wiki 갱신: 준비물(WSL, claude-obsidian)을 확인·설치하고 origin/main의 sparse 작업 트리에서 고른 AI를 돌린다.
+  // Wiki 갱신: 준비물(WSL, claude-obsidian)을 확인·설치하고 origin/main의 sparse 작업 트리에서 고른 AI를 돌린다. claude-obsidian 명령은 래퍼가 WSL에서 실행한다.
   const wikiRoot=path.join(base,'wiki-update'),tree=path.join(wikiRoot,'Saved/Workflow/wiki-update-tree'),pluginDir=path.join(wikiRoot,'Saved/Workflow/claude-obsidian/v9.9.9');
-  let calls=[],wslState='none',ran=null,runResult={summary:'원자료 1건 수집, lint 0, 커밋 abc1234',evidence:['lint 0']};const launched=[];
-  const exec=async(file,args)=>{
+  const wikiCli=path.join(__dirname,'Wiki-Obsidian.cjs');
+  let calls=[],wslState='nowsl',engineFails=false,engineCwd='',ran=null,runResult={summary:'원자료 1건 수집, lint 0, 커밋 abc1234',evidence:['lint 0']};const launched=[];
+  const exec=async(file,args,options={})=>{
     calls.push([file,...args].join(' '));
-    if(file==='wsl.exe'&&args[1]==='python3'){if(wslState!=='ready')throw Error('no python');return 'Python 3.12.3';}
-    if(file==='wsl.exe'&&args[0]==='-l')return ['none','reboot'].includes(wslState)?'':'Ubuntu';
+    if(file==='wsl.exe'&&args.includes('python3')){if(wslState!=='ready')throw Error('no python');return 'Python 3.14.4';}
+    if(file==='wsl.exe'&&args[0]==='-l'){if(wslState==='nowsl')throw Error('WSL is not installed');return {broken:'Ubuntu-24.04\r\nUbuntu',nodistro:'Ubuntu-24.04'}[wslState]||'';}
     if(file==='reg.exe'){if(wslState!=='reboot')throw Error('key not found');return 'RebootPending';}
-    if(file==='wsl.exe'&&args[1]==='wslpath')return '/mnt/c/'+path.basename(args[3]);
+    if(file===process.execPath){engineCwd=options.cwd;if(engineFails)throw Error('mount failed\nmore');return '2.2.0';}
     if(file==='git'&&args[0]==='worktree'&&args[1]==='add'){fs.mkdirSync(path.join(tree,'Wiki'),{recursive:true});fs.writeFileSync(path.join(tree,'.git'),'gitdir: x');fs.writeFileSync(path.join(tree,'Wiki/README.md'),"claude plugin marketplace add 'AgriciDaniel/claude-obsidian#v9.9.9'\n");}
     if(file==='git'&&args.includes('clone')){const dest=args.at(-1);fs.mkdirSync(path.join(dest,'scripts'),{recursive:true});fs.writeFileSync(path.join(dest,'scripts/claude-obsidian.py'),'');}
     return '';
@@ -333,41 +335,56 @@ function fixture(providers=['codex'],content=taskText){
   assert.deepEqual(updateState(),{status:'idle'});
   assert.throws(()=>update.act({action:'fire'}),/형식 오류/);
   assert.throws(()=>update.act({action:'start',provider:'gemini'}),/사용할 수 없습니다/,'only connected AIs can update the Wiki');
-  // WSL 배포판이 없으면 관리자 승인 창으로 설치를 시작하고 Git은 건드리지 않는다.
+  // WSL이 없으면 관리자 승인 창으로 WSL과 Ubuntu를 설치한다. --no-launch라 Linux 사용자 만들기 창이 없고, Git은 건드리지 않는다.
   assert.equal(update.act({action:'start',provider:'claude'}).status,'preparing');await settleUpdate();
-  assert.equal(updateState().status,'setup');assert.match(updateState().message,/Linux 사용자/);
+  assert.equal(updateState().status,'setup');assert.match(updateState().message,/관리자 승인/);assert.doesNotMatch(updateState().message,/Linux 사용자/);
   assert.equal(launched.length,1);assert.match(launched[0],/^Wx · WSL 설치 powershell\.exe -NoExit -NoProfile -Command /,'a visible window stays open with the instructions');
-  assert.match(launched[0],/Start-Process -Verb RunAs -FilePath wsl\.exe -ArgumentList '--install','-d','Ubuntu' -Wait/);assert.match(launched[0],/설치를 시작하지 못했습니다/,'a declined or failed elevation is shown in the window');
+  assert.match(launched[0],/Start-Process -Verb RunAs -FilePath wsl\.exe -ArgumentList '--install','Ubuntu','--no-launch' -Wait/);assert.match(launched[0],/설치를 시작하지 못했습니다/,'a declined or failed elevation is shown in the window');
   assert.ok(!calls.some(c=>c.startsWith('git ')));
-  // 배포판이 없고 재부팅이 대기 중이면(WSL을 막 설치한 뒤) 설치 창을 다시 열지 않고 재부팅을 안내한다.
+  // 재부팅이 대기 중이면(WSL을 막 설치한 뒤) 설치 창을 다시 열지 않고 재부팅을 안내한다.
   wslState='reboot';update.act({action:'start',provider:'claude'});await settleUpdate();
   assert.deepEqual([updateState().status,launched.length],['setup',1]);assert.match(updateState().message,/다시 시작해야/);
-  // 배포판은 있는데 python3를 못 부르면(첫 설정 전) 설치 창 없이 이유를 알린다.
-  wslState='unset';update.act({action:'start',provider:'claude'});await settleUpdate();
-  assert.deepEqual([updateState().status,launched.length],['failed',1]);assert.match(updateState().error,/첫 설정/);
-  // 준비되면 작업 트리를 sparse로 만들고, README의 태그로 claude-obsidian을 받아, 고른 AI를 그 작업 트리에서 돌린다.
+  // WSL은 있는데 Ubuntu가 없으면(다른 배포판만 있어도) 관리자 승인 없이 Ubuntu만 설치한다.
+  wslState='nodistro';update.act({action:'start',provider:'claude'});await settleUpdate();
+  assert.deepEqual([updateState().status,launched.length],['setup',2]);assert.match(updateState().message,/Ubuntu 설치 창/);
+  assert.match(launched[1],/-Command wsl\.exe --install Ubuntu --no-launch;/);assert.doesNotMatch(launched[1],/RunAs/);
+  // Ubuntu는 있는데 python3를 못 부르면 설치 창 없이 확인할 곳을 알린다.
+  wslState='broken';update.act({action:'start',provider:'claude'});await settleUpdate();
+  assert.deepEqual([updateState().status,launched.length],['failed',2]);assert.match(updateState().error,/wsl -l -v/);
+  // 준비되면 작업 트리를 LF sparse로 만들고, README의 태그로 claude-obsidian을 받아, 래퍼로 WSL 실행을 확인한 뒤 고른 AI를 그 작업 트리에서 돌린다.
   wslState='ready';calls=[];
   update.act({action:'start',provider:'claude'});
   assert.throws(()=>update.act({action:'start',provider:'codex'}),/이미 진행 중/,'one Wiki update at a time');
   await settleUpdate();
   assert.deepEqual([updateState().status,updateState().provider,updateState().summary],['complete','claude',runResult.summary]);
-  assert.deepEqual(calls.filter(c=>c.startsWith('git ')),['git fetch --quiet origin main','git worktree prune',`git worktree add --quiet --no-checkout --detach ${tree} origin/main`,
+  assert.deepEqual(calls.filter(c=>c.startsWith('git ')),['git fetch --quiet origin main','git worktree prune','git config extensions.worktreeConfig true',`git worktree add --quiet --no-checkout --detach ${tree} origin/main`,`git -C ${tree} config --worktree core.autocrlf false`,
     `git -C ${tree} sparse-checkout set --no-cone /Wiki/ /Docs/**/*.md /.agents/workflow/tasks/ /AGENTS.md /.gitattributes`,`git -C ${tree} reset --quiet --hard origin/main`,`git -C ${tree} clean -q -fdx`,
     `git -c core.autocrlf=false clone --quiet --depth 1 --branch v9.9.9 https://github.com/AgriciDaniel/claude-obsidian ${pluginDir}.download`]);
   assert.ok(fs.existsSync(path.join(pluginDir,'scripts/claude-obsidian.py'))&&!fs.existsSync(pluginDir+'.download'));
+  assert.ok(calls.includes([process.execPath,wikiCli,'--version'].join(' '))&&engineCwd===tree,'the wrapper runs claude-obsidian in WSL from the work tree before the AI starts');
   assert.deepEqual([ran.repo,ran.mode,ran.provider,ran.command.file,ran.title],[tree,'work','claude','claude','Wiki 갱신']);
   assert.match(ran.prompt,/Wiki\/README\.md의 정기 갱신 절차/);assert.deepEqual(ran.schema.required,['summary','evidence']);
   const pcInfo=JSON.parse(ran.prompt.match(/이 PC 정보\(JSON\): (.*)/)[1]);
-  assert.deepEqual([pcInfo.worktree,pcInfo.worktreeWsl,pcInfo.claudeObsidian.tag,pcInfo.claudeObsidian.path,pcInfo.claudeObsidian.wslPath],[tree,'/mnt/c/wiki-update-tree','v9.9.9',pluginDir,'/mnt/c/v9.9.9']);
+  assert.deepEqual(pcInfo,{worktree:tree,claudeObsidian:{tag:'v9.9.9',path:pluginDir},command:`node "${wikiCli}"`});
   // 두 번째부터는 작업 트리를 origin/main으로 다시 맞추기만 하고, 받아 둔 claude-obsidian은 다시 받지 않는다. AI 실패는 이유를 남긴다.
   calls=[];runResult=Error('Claude Code 처리에 실패했습니다.');
   update.act({action:'start',provider:'codex'});await settleUpdate();
   assert.deepEqual(calls.filter(c=>c.startsWith('git ')),['git fetch --quiet origin main',`git -C ${tree} reset --quiet --hard origin/main`,`git -C ${tree} clean -q -fdx`]);
   assert.deepEqual([updateState().status,updateState().provider,updateState().error],['failed','codex','Claude Code 처리에 실패했습니다.']);
+  // WSL에서 claude-obsidian을 못 부르면 AI를 돌리지 않고 첫 줄 이유를 알린다.
+  ran=null;engineFails=true;runResult={summary:'x',evidence:[]};
+  update.act({action:'start',provider:'codex'});await settleUpdate();
+  assert.deepEqual([updateState().status,updateState().error,ran],['failed','WSL에서 claude-obsidian을 실행하지 못했습니다. mount failed',null]);
+  engineFails=false;
   // 작업 트리 자리에 Git 작업 트리가 아닌 폴더가 있으면 지우지 않고 알린다.
-  fs.rmSync(path.join(tree,'.git'));runResult={summary:'x',evidence:[]};
+  fs.rmSync(path.join(tree,'.git'));
   update.act({action:'start',provider:'codex'});await settleUpdate();
   assert.match(updateState().error,/Git 작업 트리가 아닙니다/);assert.ok(fs.existsSync(path.join(tree,'Wiki/README.md')));
+  // 래퍼: 저장소 드라이브를 metadata로 붙인 경로로 현재 폴더와 Windows 경로 인자를 옮기고, WSL의 Ubuntu에서 root로 실행한다.
+  assert.equal(toWsl('C:\\Wx\\a b\\c.md'),'/mnt/wx-c/Wx/a b/c.md');assert.equal(toWsl('D:\\'),'/mnt/wx-d');
+  const drive=path.resolve(wikiRoot)[0],argv=wslArgs(['capture','apply','--vault','Wiki','C:\\x\\b.json'],path.join(tree,'Wiki'),wikiRoot);
+  assert.deepEqual(argv.slice(0,7),['-d','Ubuntu','-u','root','-e','sh','-c']);assert.match(argv[7],/mountpoint -q "\$m" \|\| .*mount -t drvfs "\$src" "\$m" -o metadata/);
+  assert.deepEqual(argv.slice(8),['sh','/mnt/wx-'+drive.toLowerCase(),drive+':\\',toWsl(path.join(tree,'Wiki')),toWsl(path.join(pluginDir,'scripts/claude-obsidian.py')),'capture','apply','--vault','Wiki','/mnt/wx-c/x/b.json']);
 
   const http=fixture(['codex','claude','gemini']),token='feedback-test',port=18746;
   server=createServer({token,port,testFeedback:http.service,wikiUpdate:update});await new Promise(resolve=>server.listen(port,'127.0.0.1',resolve));
@@ -396,7 +413,7 @@ function fixture(providers=['codex'],content=taskText){
     update.act({action:'start',provider:'codex'});
     assert.equal((await (await fetch('http://127.0.0.1:'+(port+1)+'/health')).json()).busy,true,'a running Wiki update keeps the server from being replaced');
   }finally{wikiServer.closeAllConnections();await new Promise(resolve=>wikiServer.close(resolve));}
-  console.log('PASS record state lines, checklist format, per-step result fields, instant completion without AI, record-only partial results, fixes on failures, hand-over of unrunnable AI items, conflicts, new task flow, Korean record names, retry/restart, worker lock, prompts per step, terminal runner end to end, terminal launch, HTTP routing and the local Wiki update (prerequisites, sparse worktree, pinned claude-obsidian, one run at a time)');
+  console.log('PASS record state lines, checklist format, per-step result fields, instant completion without AI, record-only partial results, fixes on failures, hand-over of unrunnable AI items, conflicts, new task flow, Korean record names, retry/restart, worker lock, prompts per step, terminal runner end to end, terminal launch, HTTP routing and the local Wiki update (prerequisites, LF sparse worktree, pinned claude-obsidian, WSL wrapper, one run at a time)');
 }finally{
   if(server){server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
   const resolved=path.resolve(base);assert.equal(path.dirname(resolved),path.resolve(os.tmpdir()));assert.ok(path.basename(resolved).startsWith('wx-test-feedback-'));fs.rmSync(resolved,{recursive:true,force:true});
