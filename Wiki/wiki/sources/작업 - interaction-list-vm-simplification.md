@@ -83,7 +83,7 @@ key_claims:
 
 - [[상호작용과 장치]]
 - [[UI 표시 구조]]
-- <!--wl-->결정 노트 - 2026-09-23-interaction-list-vm
+- [[결정 노트 - 2026-09-23-interaction-list-vm]]
 - <!--wl-->결정 노트 - 2026-09-26-interaction-list-play-acceptance
 - [[기획서 - Object_Design]]
 

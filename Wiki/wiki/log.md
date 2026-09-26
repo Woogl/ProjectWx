@@ -13,6 +13,10 @@ tags:
 
 Newest completed operations appear first.
 
+## 2026-09-26 · ingest-20260926T055050Z-b07
+
+옛 Wiki 결정 노트(2/6) 11건 수집. 원자료: [[결정 노트 - 2026-09-23-datatable-row-fixup]], [[결정 노트 - 2026-09-23-dialogue-presentation-vm]], [[결정 노트 - 2026-09-23-hit-processing-functions]], [[결정 노트 - 2026-09-23-interaction-list-vm]], [[결정 노트 - 2026-09-23-item-viewmodel-unification]], [[결정 노트 - 2026-09-23-player-screen-owner]], [[결정 노트 - 2026-09-23-screen-classes-to-resolvers]], [[결정 노트 - 2026-09-23-zero-damage-hitstop]], [[결정 노트 - 2026-09-24-ai-brain-control-single-owner]], [[결정 노트 - 2026-09-24-device-statetree-cleanup]], [[결정 노트 - 2026-09-24-interaction-contract-options-only]]. 갱신한 주제: [[UI 표시 구조]], [[그로기·경직·피니시]], [[모듈 구조와 코드 정리]], [[상호작용과 장치]], [[아이템과 회복]], [[어빌리티와 GAS]], [[에디터 도구]], [[적 AI와 몬스터]], [[퀘스트와 대화]], [[피해 파이프라인]].
+
 ## 2026-09-26 · ingest-20260926T055046Z-b06
 
 옛 Wiki 결정 노트(1/6) 11건 수집. 원자료: [[결정 노트 - 2026-09-22-current-workflow]], [[결정 노트 - 2026-09-22-verified-stock-rule]], [[결정 노트 - 2026-09-22-workflow-closure]], [[결정 노트 - 2026-09-22-workflow-dashboard]], [[결정 노트 - 2026-09-22-workflow-review]], [[결정 노트 - 2026-09-23-ability-resolver-module]], [[결정 노트 - 2026-09-23-apply-damage-unification]], [[결정 노트 - 2026-09-23-boss-battle-three-layer]], [[결정 노트 - 2026-09-23-damage-context-cleanup]], [[결정 노트 - 2026-09-23-damage-forward-flow]], [[결정 노트 - 2026-09-23-damage-four-arguments]]. 갱신한 주제: [[UI 표시 구조]], [[Wiki 운영]], [[모듈 구조와 코드 정리]], [[보스 전투]], [[어빌리티와 GAS]], [[에디터 도구]], [[작업 절차(Workflow)]], [[피해 파이프라인]].

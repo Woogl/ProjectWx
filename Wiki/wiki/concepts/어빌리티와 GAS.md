@@ -9,6 +9,7 @@ tags:
 summary: "GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조"
 sources:
   - "[[결정 노트 - 2026-09-23-damage-forward-flow]]"
+  - "[[결정 노트 - 2026-09-23-zero-damage-hitstop]]"
   - "[[기획서 - PC규격서]]"
   - "[[기획서 - WA_PC_규격서]]"
   - "[[기획서 - WA_주인공_캐릭터]]"
@@ -56,6 +57,7 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 어빌리티 슬롯 VM은 어빌리티 제거로 인스턴스가 Garbage가 된 경우를 IsExplicitlyNull()로 처음부터 빈 슬롯과 구분해 제목·충전을 초기화한다. ([[작업 - ui-data-interface-removal]])
 - 공유 AbilitySystem VM의 효과 목록 연결은 한 번만 설정되며 연결 전 조회된 빈 목록은 현재 활성 GE로 보충된다. ([[작업 - ui-data-interface-removal]])
 - 2026-09-23 기준 엔진 Immunity 통지는 ApplyGameplayEffectSpecToSelf에서 CanApply보다 먼저 돌기 때문에 적대 판정을 GE CanApply로 옮기면 아군 공격에도 회피 통지가 나가 되돌렸다. ([[결정 노트 - 2026-09-23-damage-forward-flow]])
+- UWxEffect_Invincible의 Immunity는 UWxEffect_Damage 클래스만 막고 그 차단 통지를 Dodge가 극한 회피로 받으며, 이미 걸린 지속 피해 GE와 치트 GE는 무적 중에도 들어간다. ([[결정 노트 - 2026-09-23-zero-damage-hitstop]])
 
 ## 검증 범위
 
@@ -69,6 +71,7 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 ## 원자료
 
 - [[결정 노트 - 2026-09-23-damage-forward-flow]] — Hit Wrapper GE와 전용 EffectContext를 없애고 ApplyDamage 판정에서 Damage GE 컴포넌트 반응으로 결과가 앞으로만 흐르게 한 2026-09-23 결정들
+- [[결정 노트 - 2026-09-23-zero-damage-hitstop]] — 히트스톱을 Hit Cue와 같은 조건(피해 0 초과 또는 퍼펙트 가드)으로 맞추고 Hit Cue 예측 발행 등 낡은 주석을 정정한 기록. 빌드 통과, 플레이 미검증.
 - [[기획서 - PC규격서]] — 모든 PC가 공유하는 HP·MP·UP·SP 자원, 공통 어빌리티 분류, 후딜·전체 GA 캔슬 규칙, 회피 스택·극한회피, 가드·패링 규격을 정의한 문서
 - [[기획서 - WA_PC_규격서]] — 명조 방향 PC 구조를 속성 6종, 캐릭터 스탯, HP·궁극기 게이지·스태미나·고유 자원, 공용·개별 어빌리티 분류로 정의한 Project WX PC 규격서
 - [[기획서 - WA_주인공_캐릭터]] — 주인공 캐릭터의 개별 어빌리티(5단 일반 공격·강공격 연계·회피 반격·E 스킬·고유 자원 스킬·10초 강화 버프·궁극기) 규격서

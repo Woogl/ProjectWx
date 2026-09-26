@@ -68,7 +68,7 @@ key_claims:
 
 - [[UI 표시 구조]]
 - [[체크포인트와 리스폰]]
-- <!--wl-->결정 노트 - 2026-09-23-player-screen-owner
+- [[결정 노트 - 2026-09-23-player-screen-owner]]
 
 ## 핵심 주장
 

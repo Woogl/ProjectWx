@@ -1,5 +1,165 @@
 {
   "claims": {
+    "clm-01afeb75d2-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-24-ai-brain-control-single-owner.md",
+          "relation": "supports",
+          "source_id": "src-49b82efe2fd5b598b233"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-24-ai-brain-control-single-owner.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-24 이후 WX AI의 비헤이비어 트리 정지·잠금은 AWxAIController만 담당하고 UWxRootMotionModifier_Rush는 브레인을 건드리지 않는다."
+    },
+    "clm-01afeb75d2-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-24-ai-brain-control-single-owner.md",
+          "relation": "supports",
+          "source_id": "src-49b82efe2fd5b598b233"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-24-ai-brain-control-single-owner.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "AWxAIController는 Ability.Groggy 태그 이벤트에 LockResource와 ClearResourceLock(EAIRequestPriority::Reaction)으로 대응하고 사망에는 StopLogic으로 대응한다."
+    },
+    "clm-01afeb75d2-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-24-ai-brain-control-single-owner.md",
+          "relation": "supports",
+          "source_id": "src-49b82efe2fd5b598b233"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-24-ai-brain-control-single-owner.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "AI 브레인 제어 단일화 변경은 WxEditor 빌드를 통과했고 사용자가 인게임에서 교차 돌진을 포함해 확인했다."
+    },
+    "clm-01afeb75d2-c4": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-24-ai-brain-control-single-owner.md",
+          "relation": "supports",
+          "source_id": "src-49b82efe2fd5b598b233"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-24-ai-brain-control-single-owner.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "그로기 중 진행 중인 MoveTo 경로 추종은 트리 잠금으로 멈추지 않으며 PathFollowingComponent 잠금은 필요 시 추가할 대안으로 남아 있다."
+    },
+    "clm-0d4dfc9134-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-screen-classes-to-resolvers.md",
+          "relation": "supports",
+          "source_id": "src-a4166a32f9143168d056"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-screen-classes-to-resolvers.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자는 MVVM을 쓰므로 Widget 클래스를 늘릴 필요가 없다는 이유로 UWxDialogueScreen·UWxQuestTracker C++ 클래스 제거를 요청했다."
+    },
+    "clm-0d4dfc9134-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-screen-classes-to-resolvers.md",
+          "relation": "supports",
+          "source_id": "src-a4166a32f9143168d056"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-screen-classes-to-resolvers.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 구현에서 대화·퀘스트 WBP는 WxGame 리졸버가 만든 WxUI VM으로 구동되며 리졸버 DestroyInstance는 해당 VM의 구독만 끊는다."
+    },
+    "clm-0d4dfc9134-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-screen-classes-to-resolvers.md",
+          "relation": "supports",
+          "source_id": "src-a4166a32f9143168d056"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-screen-classes-to-resolvers.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WxQuest FWxOnQuestJournalChanged는 VM 소유 람다를 걸기 위해 네이티브 멀티캐스트로 바뀌고 BlueprintAssignable이 제거되었다."
+    },
+    "clm-0d4dfc9134-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-screen-classes-to-resolvers.md",
+          "relation": "supports",
+          "source_id": "src-a4166a32f9143168d056"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-screen-classes-to-resolvers.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자는 2026-09-23 대화·퀘스트 화면 리졸버 전환의 인게임 동작을 확인했다."
+    },
     "clm-0e01aa4f14-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -1340,6 +1500,86 @@
       "supersedes": null,
       "text": "2026-09-22 Workflow 대시보드 검증은 TestWikiViewer.cjs·TestWikiSpaces.cjs 모의 DOM 테스트이며 실제 브라우저 육안 검증은 포함하지 않는다."
     },
+    "clm-5a5eb0be16-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-interaction-list-vm.md",
+          "relation": "supports",
+          "source_id": "src-281f68be3034243b724f"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-interaction-list-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자는 상호작용 목록 VM과 행 VM의 두 클래스 구조와 리졸버를 유지하기로 확정했다."
+    },
+    "clm-5a5eb0be16-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-interaction-list-vm.md",
+          "relation": "supports",
+          "source_id": "src-281f68be3034243b724f"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-interaction-list-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 구현에서 상호작용 스캐너 신호는 OnRowsChanged 하나로 합쳐졌고 목록 VM은 신호마다 행 VM 전체를 다시 만든다."
+    },
+    "clm-5a5eb0be16-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-interaction-list-vm.md",
+          "relation": "supports",
+          "source_id": "src-281f68be3034243b724f"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-interaction-list-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "상호작용 문구는 실제 행동의 주인(장치 StateTree, 대화 컴포넌트, 아이템 데이터, 피니시 어빌리티)이 갖고 모든 문구를 StateTree로 옮기는 안은 기각되었다."
+    },
+    "clm-5a5eb0be16-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-interaction-list-vm.md",
+          "relation": "supports",
+          "source_id": "src-281f68be3034243b724f"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-interaction-list-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "상호작용 목록 VM 변경은 이 노트 시점에 빌드·WBP 컴파일만 통과했고 인게임 동작은 미검증이었다."
+    },
     "clm-5c8bdfa4b2-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -1960,6 +2200,146 @@
       "supersedes": null,
       "text": "뒤잡_시스템 기획서는 뒤잡 발동부터 모션 종료까지 플레이어를 무적으로 하고 쿨다운·자원 비용을 두지 않도록 요구한다."
     },
+    "clm-88d74f5492-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-player-screen-owner.md",
+          "relation": "supports",
+          "source_id": "src-e5701065b4da6e6690fe"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-player-screen-owner.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자 확정 결정에 따라 UWxUIDeveloperSettings에는 LayoutClass·ConfirmationPopupClass만 남고 사망·대화 화면 클래스는 UWxPlayerLayoutComponent로 옮겨졌다."
+    },
+    "clm-88d74f5492-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-player-screen-owner.md",
+          "relation": "supports",
+          "source_id": "src-e5701065b4da6e6690fe"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-player-screen-owner.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "UWxPlayerLayoutComponent는 폰 교체 시 대화 창은 닫지만 사망 화면은 닫지 않는다."
+    },
+    "clm-88d74f5492-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-player-screen-owner.md",
+          "relation": "supports",
+          "source_id": "src-e5701065b4da6e6690fe"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-player-screen-owner.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "노트는 사용자가 2026-09-23 사망·부활·대화 동작을 인게임에서 확인했다고 기록한다."
+    },
+    "clm-8b25963986-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-24-interaction-contract-options-only.md",
+          "relation": "supports",
+          "source_id": "src-3337ab1368bb988640ac"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-24-interaction-contract-options-only.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-24 이후 IWxInteractable 계약에는 순수 가상 GetInteractionOptions와 OnInteracted만 남고 빈 선택지 목록은 상호작용 불가를 뜻한다."
+    },
+    "clm-8b25963986-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-24-interaction-contract-options-only.md",
+          "relation": "supports",
+          "source_id": "src-3337ab1368bb988640ac"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-24-interaction-contract-options-only.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "AWxEnemyCharacter는 처형 문구를 찾을 때 GetPlayerPawn(0) 대신 넘겨받은 상호작용자의 ASC를 쓰고 처형 어빌리티가 없는 상호작용자에게 선택지를 내지 않는다."
+    },
+    "clm-8b25963986-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-24-interaction-contract-options-only.md",
+          "relation": "supports",
+          "source_id": "src-3337ab1368bb988640ac"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-24-interaction-contract-options-only.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "UWxAbility_Interact는 CanInteract 검사 없이 선택지 값 대조로 서버 자격 검증을 유지한다."
+    },
+    "clm-8b25963986-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-24-interaction-contract-options-only.md",
+          "relation": "supports",
+          "source_id": "src-3337ab1368bb988640ac"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-24-interaction-contract-options-only.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "상호작용 계약 통합은 WxEditor 빌드만 통과했고 인게임 동작은 확인하지 않았다."
+    },
     "clm-931eb3b32f-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -2019,6 +2399,66 @@
       "risk": "normal",
       "supersedes": null,
       "text": "WX_BT_기능정리 문서는 현재 WX 자체 개발 BT 태스크가 없다고 적는다."
+    },
+    "clm-97db594099-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-dialogue-presentation-vm.md",
+          "relation": "supports",
+          "source_id": "src-fc63937bb42b710abf3f"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-dialogue-presentation-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 사용자 확정 원칙은 Wx 기능 모듈 사이 의존성 추가를 WxCore 외에는 금지하고 조립 계층 WxGame이 도메인과 화면을 연결하게 한다."
+    },
+    "clm-97db594099-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-dialogue-presentation-vm.md",
+          "relation": "supports",
+          "source_id": "src-fc63937bb42b710abf3f"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-dialogue-presentation-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 정적 확인 기준 WxViewModel_Dialogue는 Speaker·LineText·HasSpeaker 표시 필드만 갖고 세션 참조·구독·진행 함수를 갖지 않는다."
+    },
+    "clm-97db594099-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-dialogue-presentation-vm.md",
+          "relation": "supports",
+          "source_id": "src-fc63937bb42b710abf3f"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-dialogue-presentation-vm.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Dialogue VM 분리 작업의 인게임 화면·클릭·재진입·빙의 변경 동작은 이 노트 시점에 검증되지 않았다."
     },
     "clm-9af1a6e3eb-c1": {
       "assessment": "accepted",
@@ -2200,6 +2640,66 @@
       "supersedes": null,
       "text": "animnotify-labels 작업의 라벨 값 일치와 가독성은 이우성이 2026-09-25 에디터에서 통과로 확인했다."
     },
+    "clm-a21cb9ca5f-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-hit-processing-functions.md",
+          "relation": "supports",
+          "source_id": "src-4f66ee9aaa510d2c47b8"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-hit-processing-functions.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 작업 트리의 UWxEffectComponent_Hit는 방어 판정을 EvaluateDefense, Spec 준비를 PrepareDamageSpecs, 결과 기반 반응을 ProcessHitReactions로 분리했다."
+    },
+    "clm-a21cb9ca5f-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-hit-processing-functions.md",
+          "relation": "supports",
+          "source_id": "src-4f66ee9aaa510d2c47b8"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-hit-processing-functions.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Hit 처리 함수 분리는 새 UObject·데이터 타입·파일 계층을 추가하지 않았고 사망/그로기 전이 시점을 바꾸지 않았다."
+    },
+    "clm-a21cb9ca5f-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-hit-processing-functions.md",
+          "relation": "supports",
+          "source_id": "src-4f66ee9aaa510d2c47b8"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-hit-processing-functions.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Hit 처리 함수 분리 노트에는 빌드·실행 검증 결과가 없고 Workflow Task로 넘긴다."
+    },
     "clm-a387287572-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -2279,6 +2779,86 @@
       "risk": "normal",
       "supersedes": null,
       "text": "Nameplate 작업의 인게임 6개 항목(리슨 서버·원격 클라이언트 구분 포함)은 2026-09-25 이우성이 모두 통과로 확인했다."
+    },
+    "clm-a3d8a22a8a-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-zero-damage-hitstop.md",
+          "relation": "supports",
+          "source_id": "src-c50b38fd4c3e9da6a2b4"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-zero-damage-hitstop.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 이후 UWxEffectComponent_HitStop은 IncomingDamage가 0보다 크거나 Damage.PerfectGuarded 태그가 있을 때만 히트스톱을 건다."
+    },
+    "clm-a3d8a22a8a-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-zero-damage-hitstop.md",
+          "relation": "supports",
+          "source_id": "src-c50b38fd4c3e9da6a2b4"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-zero-damage-hitstop.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WX의 Hit Cue는 공격자 클라 예측 발행이 아니라 _DamageReaction이 서버에서 빈 예측 키로 발행하므로 공격자 클라도 서버 판정 뒤에 받는다."
+    },
+    "clm-a3d8a22a8a-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-zero-damage-hitstop.md",
+          "relation": "supports",
+          "source_id": "src-c50b38fd4c3e9da6a2b4"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-zero-damage-hitstop.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "UWxEffect_Invincible의 Immunity는 UWxEffect_Damage 클래스만 막으므로 이미 걸린 지속 피해 GE는 무적 중에도 들어간다."
+    },
+    "clm-a3d8a22a8a-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-zero-damage-hitstop.md",
+          "relation": "supports",
+          "source_id": "src-c50b38fd4c3e9da6a2b4"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-zero-damage-hitstop.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "0 피해 히트스톱 변경은 WxEditor 빌드만 통과했고 플레이 검증은 하지 않았다."
     },
     "clm-a7d41122c6-c1": {
       "assessment": "accepted",
@@ -2419,6 +2999,86 @@
       "risk": "normal",
       "supersedes": null,
       "text": "그로기_시스템 기획서는 그로기 중 스태거 게이지가 서서히 감소해 0이 되면 그로기를 종료하고 게이지를 0부터 다시 시작하도록 요구한다."
+    },
+    "clm-af54e35eb6-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-item-viewmodel-unification.md",
+          "relation": "supports",
+          "source_id": "src-b8abe92095b411c6840f"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-item-viewmodel-unification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자는 WxGame UWxViewModel_InventoryItem을 삭제하고 WxUI UWxViewModel_Item으로 단일화하기로 확정했다."
+    },
+    "clm-af54e35eb6-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-item-viewmodel-unification.md",
+          "relation": "supports",
+          "source_id": "src-b8abe92095b411c6840f"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-item-viewmodel-unification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "UWxViewModel_Inventory는 PC당 공유 합성 VM이며 인벤토리·아이템 두 리졸버가 같은 공유본을 쓰고 DestroyInstance에서 정리하지 않는다."
+    },
+    "clm-af54e35eb6-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-item-viewmodel-unification.md",
+          "relation": "supports",
+          "source_id": "src-b8abe92095b411c6840f"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-item-viewmodel-unification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "UE 5.8 MVVM 변환 함수는 위젯 블루프린트의 Pure·const 함수나 BlueprintFunctionLibrary의 정적 Pure 함수여야 하며 VM 클래스의 정적 함수는 거부된다."
+    },
+    "clm-af54e35eb6-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-item-viewmodel-unification.md",
+          "relation": "supports",
+          "source_id": "src-b8abe92095b411c6840f"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-item-viewmodel-unification.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "아이템 VM 단일화의 런타임 동작은 노트 시점에 검증되지 않았다."
     },
     "clm-b6b3742e54-c1": {
       "assessment": "accepted",
@@ -2739,6 +3399,86 @@
       "risk": "normal",
       "supersedes": null,
       "text": "명조 PC 시스템 역기획서는 피해 보너스·속성 저항·협주 게이지·변주/반주·에코 사용을 구현 불필요로 표시한다."
+    },
+    "clm-c74c23a86d-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-24-device-statetree-cleanup.md",
+          "relation": "supports",
+          "source_id": "src-6c61df55f8cfa6a27c95"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-24-device-statetree-cleanup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-24 이후 장치 StateTree의 복원 판정은 UWxDeviceStateTreeComponent::IsRestoring이 SourceStateID 무효 또는 bRestoringState로 내린다."
+    },
+    "clm-c74c23a86d-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-24-device-statetree-cleanup.md",
+          "relation": "supports",
+          "source_id": "src-6c61df55f8cfa6a27c95"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-24-device-statetree-cleanup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "상호작용자 몽타주 재생은 WxWorld 태스크에서 WxCombat FWxStateTreeTask_PlayMontageOnce로 옮겨졌다."
+    },
+    "clm-c74c23a86d-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-24-device-statetree-cleanup.md",
+          "relation": "supports",
+          "source_id": "src-6c61df55f8cfa6a27c95"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-24-device-statetree-cleanup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "IsRestoring을 모르는 다른 도메인 태스크는 서버의 InitialState 전이를 실제 진입으로 보므로 InitialState에 일회성 효과를 두지 않는다는 저작 규칙이 있다."
+    },
+    "clm-c74c23a86d-c4": {
+      "assessment": "provisional",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-24-device-statetree-cleanup.md",
+          "relation": "supports",
+          "source_id": "src-6c61df55f8cfa6a27c95"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-24-device-statetree-cleanup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "InitialState를 지정 상태에서 시작하는 순정 해법은 엔진이 컴포넌트에 시작 상태 지정을 열 때까지 보류되었다."
     },
     "clm-d0db07c476-c1": {
       "assessment": "accepted",
@@ -3360,6 +4100,86 @@
       "supersedes": null,
       "text": "원격 클라이언트의 기존 스펙 복제 후 재매칭 신호 누락은 IWxUIData 제거 작업 뒤에도 별도 미해결로 남아 있다."
     },
+    "clm-ec14f48fcf-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-datatable-row-fixup.md",
+          "relation": "supports",
+          "source_id": "src-245cd48e09d2ff9ec0b3"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-datatable-row-fixup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "DataTableRowFixup 플러그인은 DataTable 행 이름 변경 시 FDataTableRowHandle 참조만 자동 갱신하고 FName 행 참조(NextRow 등)는 제외한다."
+    },
+    "clm-ec14f48fcf-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-datatable-row-fixup.md",
+          "relation": "supports",
+          "source_id": "src-245cd48e09d2ff9ec0b3"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-datatable-row-fixup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "DataTableRowFixup 플러그인은 에디터 개인 설정으로 켜고 끄며 기본값은 켜짐이다."
+    },
+    "clm-ec14f48fcf-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-datatable-row-fixup.md",
+          "relation": "supports",
+          "source_id": "src-245cd48e09d2ff9ec0b3"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-datatable-row-fixup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "DataTableRowFixup 플러그인 이름에서 Wx 접두사를 뺀 것은 AGENTS.md 코딩 규칙 1의 사용자 확정 예외다."
+    },
+    "clm-ec14f48fcf-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".wiki/raw/notes/2026-09-23-datatable-row-fixup.md",
+          "relation": "supports",
+          "source_id": "src-245cd48e09d2ff9ec0b3"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/결정 노트 - 2026-09-23-datatable-row-fixup.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-26",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자는 2026-09-23 에디터에서 DataTableRowFixup 동작을 확인했지만 확인한 구체 시나리오는 기록되지 않았다."
+    },
     "clm-ec374ad6ca-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -3781,6 +4601,6 @@
       "text": "퀘스트 추적기 리졸버 구조는 2026-09-23 사용자가 인게임에서 문제없다고 확인했다."
     }
   },
-  "generated_at": "2026-09-26T05:50:46Z",
+  "generated_at": "2026-09-26T05:50:50Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }

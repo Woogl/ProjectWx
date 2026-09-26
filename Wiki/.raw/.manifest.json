@@ -11,6 +11,15 @@
       "source_id": "src-e1d67fb4d45dcb614edc",
       "title": ".wiki/raw/notes/2026-09-23-damage-context-cleanup.md"
     },
+    ".raw/captured/048571ff8d3f592c29b21891c6a77480d8bea2c743950adcbb8cbd727931f871.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-interaction-contract-options-only.md"
+      ],
+      "sha256": "048571ff8d3f592c29b21891c6a77480d8bea2c743950adcbb8cbd727931f871",
+      "source_id": "src-3337ab1368bb988640ac",
+      "title": ".wiki/raw/notes/2026-09-24-interaction-contract-options-only.md"
+    },
     ".raw/captured/0d84b879c8359394ddfd36127f7ad1ba2532f6c3ef7a182342af167f671a6c77.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -82,6 +91,15 @@
       "sha256": "3197c6a60425d04df84a8e196561a46a572178659f59e6827cce0facd204a5f9",
       "source_id": "src-75fdaf3e883741b06672",
       "title": "Docs/CombatDesign/캐릭터 스탯 명세서.md"
+    },
+    ".raw/captured/3941a4f557360b153dbcf8c37d015c04740e07cffca9cf9cb8e19ce77a7580d2.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-hit-processing-functions.md"
+      ],
+      "sha256": "3941a4f557360b153dbcf8c37d015c04740e07cffca9cf9cb8e19ce77a7580d2",
+      "source_id": "src-4f66ee9aaa510d2c47b8",
+      "title": ".wiki/raw/notes/2026-09-23-hit-processing-functions.md"
     },
     ".raw/captured/3a04a2bc1f49a84c8439bec3b090e0fe82da87dd46f6a29a9079ae0911c08704.md": {
       "ingested": "2026-09-26",
@@ -173,6 +191,15 @@
       "source_id": "src-c34545fea3552723390e",
       "title": "Docs/CombatDesign/normal_monster_BT.md"
     },
+    ".raw/captured/5248383c77f14befbbdef3b1276876e7db56e92b011813b3b79cd304e52ea7aa.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-device-statetree-cleanup.md"
+      ],
+      "sha256": "5248383c77f14befbbdef3b1276876e7db56e92b011813b3b79cd304e52ea7aa",
+      "source_id": "src-6c61df55f8cfa6a27c95",
+      "title": ".wiki/raw/notes/2026-09-24-device-statetree-cleanup.md"
+    },
     ".raw/captured/57003a2a37044bb2215e5ef80b1232416e0cf4ffd5d551275ad1c0df9bbe248e.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -199,6 +226,15 @@
       "sha256": "5ef1e5f8941b0be03a5211990189016c1ecc851744385b7e84cd0b9c9995c784",
       "source_id": "src-016c4f4d42be310c6137",
       "title": "Docs/CombatDesign/WX_BT_기능정리.md"
+    },
+    ".raw/captured/5f1fe579585183e16b3c259cd42c04eeada23d513ad170f721be6913b822b5b8.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-datatable-row-fixup.md"
+      ],
+      "sha256": "5f1fe579585183e16b3c259cd42c04eeada23d513ad170f721be6913b822b5b8",
+      "source_id": "src-245cd48e09d2ff9ec0b3",
+      "title": ".wiki/raw/notes/2026-09-23-datatable-row-fixup.md"
     },
     ".raw/captured/6ade9c1a177ad50b322a23c042f525bd04f22690394b8023b65238779f33b45e.md": {
       "ingested": "2026-09-26",
@@ -335,6 +371,15 @@
       "source_id": "src-4ec20852882dbfd83898",
       "title": "Docs/CombatDesign/경직 수정본.md"
     },
+    ".raw/captured/a8e987aff16a7d77c8fd03f2217f4cad69155d03ddb6a7114127f0fecdffec18.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-dialogue-presentation-vm.md"
+      ],
+      "sha256": "a8e987aff16a7d77c8fd03f2217f4cad69155d03ddb6a7114127f0fecdffec18",
+      "source_id": "src-fc63937bb42b710abf3f",
+      "title": ".wiki/raw/notes/2026-09-23-dialogue-presentation-vm.md"
+    },
     ".raw/captured/ad2c7d665a40049b3cd38a580a1d5f40bfc9fa62e3ed12aa325589cfc559b634.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -388,6 +433,15 @@
       "sha256": "c0dfd2799640857556422f1c1f7cd0084953eccbeb0b2fbbf81a479fbf6cdf75",
       "source_id": "src-3007dd429116aa422551",
       "title": "Docs/CombatDesign/명조 적 시스템 역기획서.md"
+    },
+    ".raw/captured/c2a0caa9fce4784c6ca575f588760e258d99ff69c8e237776d00c6f2c9ce89e9.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-zero-damage-hitstop.md"
+      ],
+      "sha256": "c2a0caa9fce4784c6ca575f588760e258d99ff69c8e237776d00c6f2c9ce89e9",
+      "source_id": "src-c50b38fd4c3e9da6a2b4",
+      "title": ".wiki/raw/notes/2026-09-23-zero-damage-hitstop.md"
     },
     ".raw/captured/c5f8b4308916075f5b4fb089c0cc59a0e23a571012915a6b238fb659a422fb74.md": {
       "ingested": "2026-09-26",
@@ -452,6 +506,15 @@
       "source_id": "src-c86bc26d2911ee492488",
       "title": ".wiki/raw/notes/2026-09-22-verified-stock-rule.md"
     },
+    ".raw/captured/dce4c862ecb2c25d2de83da215c577e4d4b5a10a8229579b1baf7e860869d337.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-interaction-list-vm.md"
+      ],
+      "sha256": "dce4c862ecb2c25d2de83da215c577e4d4b5a10a8229579b1baf7e860869d337",
+      "source_id": "src-281f68be3034243b724f",
+      "title": ".wiki/raw/notes/2026-09-23-interaction-list-vm.md"
+    },
     ".raw/captured/e01725c9c8a679b5977bf257c832757663de20fde4cbbd961e78c7d49ed92d94.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -470,6 +533,24 @@
       "source_id": "src-725958e8aa2fa553c301",
       "title": ".agents/workflow/tasks/ability-table-driven.md"
     },
+    ".raw/captured/e318190094a7cb664fcbda9082af4a806045782bd2c319f40b3b616352c58175.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-player-screen-owner.md"
+      ],
+      "sha256": "e318190094a7cb664fcbda9082af4a806045782bd2c319f40b3b616352c58175",
+      "source_id": "src-e5701065b4da6e6690fe",
+      "title": ".wiki/raw/notes/2026-09-23-player-screen-owner.md"
+    },
+    ".raw/captured/e40c8a9d21db2023e89b8f5f920d52e5fa062932cad545c583e286d8d2115910.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-item-viewmodel-unification.md"
+      ],
+      "sha256": "e40c8a9d21db2023e89b8f5f920d52e5fa062932cad545c583e286d8d2115910",
+      "source_id": "src-b8abe92095b411c6840f",
+      "title": ".wiki/raw/notes/2026-09-23-item-viewmodel-unification.md"
+    },
     ".raw/captured/e6adb3fe5b44c4d5f4f471ab1882e658b847413a077763d317542c1f10905d61.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -479,6 +560,15 @@
       "source_id": "src-1497f4b6d288822484cc",
       "title": "Docs/CombatDesign/전투 방향 변경에  따른 시스템 수정 요구사항.md"
     },
+    ".raw/captured/ef0aa55fead92e04406ea9314857498ef630e94fee3d4ae87ce744265f7b365f.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-23-screen-classes-to-resolvers.md"
+      ],
+      "sha256": "ef0aa55fead92e04406ea9314857498ef630e94fee3d4ae87ce744265f7b365f",
+      "source_id": "src-a4166a32f9143168d056",
+      "title": ".wiki/raw/notes/2026-09-23-screen-classes-to-resolvers.md"
+    },
     ".raw/captured/fc91e336f2d43b3d2bec92aaa471ed167a0c8077f8f2152199ec5fb171fe8544.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -487,6 +577,15 @@
       "sha256": "fc91e336f2d43b3d2bec92aaa471ed167a0c8077f8f2152199ec5fb171fe8544",
       "source_id": "src-128de32fe3ed0635fd18",
       "title": ".wiki/raw/notes/2026-09-22-current-workflow.md"
+    },
+    ".raw/captured/fe0ebd409022031b8061ab8eef7c17a7c655525d0b8c19eccc9486a3943c7301.md": {
+      "ingested": "2026-09-26",
+      "pages": [
+        "wiki/sources/결정 노트 - 2026-09-24-ai-brain-control-single-owner.md"
+      ],
+      "sha256": "fe0ebd409022031b8061ab8eef7c17a7c655525d0b8c19eccc9486a3943c7301",
+      "source_id": "src-49b82efe2fd5b598b233",
+      "title": ".wiki/raw/notes/2026-09-24-ai-brain-control-single-owner.md"
     }
   },
   "version": 1

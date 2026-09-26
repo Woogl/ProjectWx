@@ -8,6 +8,7 @@ tags:
   - concept
 summary: "일반·정예 몬스터 규격, BT·AI 제어, 순찰"
 sources:
+  - "[[결정 노트 - 2026-09-24-ai-brain-control-single-owner]]"
   - "[[기획서 - Elite_monster]]"
   - "[[기획서 - Nameplate_System]]"
   - "[[기획서 - Patrol_Design]]"
@@ -57,15 +58,18 @@ sources:
 - Patrol_Design 기획서는 정찰을 적 타입이 아닌 인스턴스 단위 정찰 역할로 정하고, 보스는 정찰 역할을 받을 수 없다고 정한다. ([[기획서 - Patrol_Design]])
 - Patrol_Design 기획서는 정찰을 전투 트리거로 정하고 은신/잠입 처치 전용 시스템을 전제하지 않는다. ([[기획서 - Patrol_Design]])
 - Elite_monster 기획서는 엘리트 01의 무기를 양손 망치로, 외형을 외골격 파워드 슈트로, 가드 불가 패턴 수를 1개로 확정으로 표시한다. ([[기획서 - Elite_monster]])
+- 사용자는 돌진 modifier가 AI 브레인을 건드리지 않고 그로기·사망 모두 AWxAIController에서 처리하도록 정했다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
 
 ## 구현 관찰
 
 - BT 노드(ActivateAbility·ObserveAbility·MirrorMovement)는 GA_ 복귀 후 스펙 동적 태그 없이 CDO 에셋 태그로 어빌리티를 고르며, 솔저 BT가 Ability.Pattern.N 에셋 태그로 패턴을 발동함을 PIE로 확인했다. ([[작업 - ability-table-driven]])
 - State.Engaged 태그는 AWxEnemyCharacter::RefreshEngagement가 IsAlive()와 자기 락온 대상 유무로 붙이며 NameplateManager와 뒤잡 판정이 이 태그를 읽는다. ([[작업 - nameplate-manager]])
+- AWxAIController는 사망 시 StopLogic을, Ability.Groggy 태그 추가·제거 시 Reaction 우선순위 LockResource·ClearResourceLock을 호출하고 빙의 해제 시 잠금도 푼다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
+- 엔진 AI 태스크는 Logic 비트 잠금을 쓰므로 그 해제가 Reaction 비트로 잠긴 그로기 중 트리를 재개하지 않는다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
 
 ## 검증 범위
 
-- 아직 없음
+- AI 브레인 제어 단일화는 WxEditor Development 빌드를 통과했고 사용자가 2026-09-24 인게임에서 동작과 교차 돌진을 확인했다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
 
 ## 미결정·충돌
 
@@ -77,9 +81,11 @@ sources:
 - normal_monster_BT 기획서는 연속공격 쿨타임에 기존 쿨타임 기능을 재사용할 수 있는지와 단검사 매복에 별도 트리거가 필요한지를 확인 대기 항목으로 둔다. ([[기획서 - normal_monster_BT]])
 - normal_monster_BT 기획서는 패턴별 유효거리, 유효 공격 거리 밖 판단값, 연속공격 쿨다운, 패턴별 데미지·스태거·경직 누적량을 미확정으로 남긴다. ([[기획서 - normal_monster_BT]])
 - 적 규격서는 사망 모션 종료 후 적이 사라진다고 하고 명조 적 시스템 역기획서는 쓰러진 뒤 2초 후 사라진다고 해 시체 제거 시점이 다르다. ([[기획서 - 적 규격서]])
+- 그로기 중 트리 잠금은 진행 중인 MoveTo 경로 추종과 포커스 회전을 멈추지 않아, 미끄러짐이 보이면 PathFollowingComponent도 Reaction 우선순위로 잠가야 한다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
 
 ## 원자료
 
+- [[결정 노트 - 2026-09-24-ai-brain-control-single-owner]] — AI 비헤이비어 트리 정지·잠금을 AWxAIController 하나로 모은 결정. 사망은 StopLogic, 그로기는 Reaction 우선순위 리소스 잠금, 돌진은 브레인을 건드리지 않는다.
 - [[기획서 - Elite_monster]] — 첫 보스 커스터의 패링 학습을 예습시키는 양손 망치형 엘리트 01의 배치·외형·패턴 구성과 그로기 시 갑옷 파괴 기믹을 정리한 기획서
 - [[기획서 - Nameplate_System]] — 일반·네임드 몬스터 네임플레이트의 HP·DP 표시 구성, 시야·청각·피격 인식 규칙, 표시·숨김 조건과 보스 전용 규칙을 정의한 기획서
 - [[기획서 - Patrol_Design]] — 정찰을 적 타입이 아닌 인스턴스 단위 정찰 역할로 정하고, 순찰·추격·귀환 단계와 A-B-A 순찰 경로, 무전파 감지 규칙을 정의한 기획서

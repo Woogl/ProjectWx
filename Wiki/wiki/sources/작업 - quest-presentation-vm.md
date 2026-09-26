@@ -83,7 +83,7 @@ key_claims:
 
 - [[퀘스트와 대화]]
 - [[UI 표시 구조]]
-- <!--wl-->결정 노트 - 2026-09-23-screen-classes-to-resolvers
+- [[결정 노트 - 2026-09-23-screen-classes-to-resolvers]]
 
 ## 핵심 주장
 

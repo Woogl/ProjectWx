@@ -87,7 +87,7 @@ DataTable에서 RowName을 바꾸면 그 행을 쓰던 에셋의 `FDataTableRowH
 
 - [[에디터 도구]]
 - [[모듈 구조와 코드 정리]]
-- <!--wl-->결정 노트 - 2026-09-23-datatable-row-fixup
+- [[결정 노트 - 2026-09-23-datatable-row-fixup]]
 
 ## 핵심 주장
 

@@ -10,6 +10,11 @@ summary: "VM·리졸버·Nameplate 등 화면 표시 연결 구조"
 sources:
   - "[[결정 노트 - 2026-09-23-ability-resolver-module]]"
   - "[[결정 노트 - 2026-09-23-boss-battle-three-layer]]"
+  - "[[결정 노트 - 2026-09-23-dialogue-presentation-vm]]"
+  - "[[결정 노트 - 2026-09-23-interaction-list-vm]]"
+  - "[[결정 노트 - 2026-09-23-item-viewmodel-unification]]"
+  - "[[결정 노트 - 2026-09-23-player-screen-owner]]"
+  - "[[결정 노트 - 2026-09-23-screen-classes-to-resolvers]]"
   - "[[기획서 - Nameplate_System]]"
   - "[[작업 - cooldown-unification]]"
   - "[[작업 - dialogue-presentation-vm]]"
@@ -39,6 +44,12 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 퀘스트 추적기는 사용자 결정에 따라 전용 위젯 클래스 없이 WBP_QuestTracker가 UserWidget을 부모로 두고 리졸버가 만든 WxUI Quest VM으로 구동된다. ([[작업 - quest-presentation-vm]])
 - IWxUIData 제거 뒤 UI 데이터는 WxCombat이 원본 데이터·규칙, WxUI가 VM과 GAS 공통 구독, WxGame 리졸버가 데이터 연결을 맡으며 중계 서브시스템이나 대체 인터페이스는 두지 않는다. ([[작업 - ui-data-interface-removal]])
 - 사용자는 2026-09-23 VM을 전부 WxUI에 모으고, 도메인 데이터가 필요한 표시는 모델(WxGame)·연결(WxGame 리졸버)·VM(WxUI 순수 표시) 세 층으로 나누도록 결정했다. ([[결정 노트 - 2026-09-23-boss-battle-three-layer]])
+- 사용자는 Dialogue VM을 자식 VM 추가 없이 순수 표시 데이터로 만들고 WxGame이 도메인과 화면을 연결하도록 정했다. ([[결정 노트 - 2026-09-23-dialogue-presentation-vm]])
+- 사용자는 상호작용 목록 VM과 행 VM 두 클래스와 리졸버를 유지하기로 정했고, 행 VM 하나로 합치는 안은 역할 중복과 CoreRedirects 3개 필요로 기각했다. ([[결정 노트 - 2026-09-23-interaction-list-vm]])
+- 사용자는 WxGame 인벤토리 아이템 VM을 삭제하고 값을 받기만 하는 WxUI UWxViewModel_Item으로 단일화하기로 정했다. ([[결정 노트 - 2026-09-23-item-viewmodel-unification]])
+- 인벤토리 카테고리 변환 함수 라이브러리와 위젯 변수 방식은 공유 인벤토리 VM이 카테고리 상태를 갖는 더 단순한 방식으로 철회되었다. ([[결정 노트 - 2026-09-23-item-viewmodel-unification]])
+- 사용자는 UWxUIDeveloperSettings에는 UI 틀(LayoutClass, ConfirmationPopupClass)만 두고 게임플레이에 반응하는 화면은 컨트롤러 BP의 UWxPlayerLayoutComponent에 두기로 정했다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
+- 사용자는 MVVM을 쓰므로 Widget 클래스를 늘릴 필요가 없다며 UWxDialogueScreen·UWxQuestTracker를 제거하고 WBP가 뷰모델로 구동되게 했다. ([[결정 노트 - 2026-09-23-screen-classes-to-resolvers]])
 
 ## 구현 관찰
 
@@ -51,6 +62,13 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 2026-09-23 정적 조사 기준 WxViewModelResolver_Ability는 WxUI 플러그인에 있으며 위젯 소유 PC의 Pawn ASC에서 AbilitySystem VM의 슬롯 캐시를 찾아 준다. ([[결정 노트 - 2026-09-23-ability-resolver-module]])
 - 2026-09-23 Ability Resolver 이동에서 기존 WxGame 클래스 경로는 DefaultEngine.ini CoreRedirects로 WxUI 경로에 연결됐다. ([[결정 노트 - 2026-09-23-ability-resolver-module]])
 - 2026-09-23 WxViewModelResolver_BossCharacter는 상태를 들지 않는 공유 const 객체로, CreateInstance에서 VM을 만들어 WeakLambda로 구독하고 DestroyInstance에서 RemoveAll(ViewModel)로 그 VM 구독만 끊는다. ([[결정 노트 - 2026-09-23-boss-battle-three-layer]])
+- 2026-09-23 정적 확인 기준 WxGame의 WxViewModelResolver_Dialogue가 대화 세션 OnLineChanged를 WxUI Dialogue VM의 SetLine에 연결하고, 세션이 없으면 빈 VM을 만든다. ([[결정 노트 - 2026-09-23-dialogue-presentation-vm]])
+- 상호작용 목록 VM은 WxGame에 있고 스캐너를 직접 구독해 신호마다 행 VM 전체를 다시 만들며, WxUI 행 VM은 Prompt·bSelected만 가진 불변 VM이다. ([[결정 노트 - 2026-09-23-interaction-list-vm]])
+- 2026-09-23 정적 조사 기준 UWxViewModel_Inventory는 PC당 공유 합성 VM으로 인벤토리 등장·제거를 관찰해 내부 연결만 바꾸며 두 리졸버가 공유본을 쓴다. ([[결정 노트 - 2026-09-23-item-viewmodel-unification]])
+- UE 5.8 MVVM 변환 함수는 위젯 블루프린트의 Pure·const 함수나 BlueprintFunctionLibrary 정적 Pure 함수만 허용되고 암시적 변환기는 enum을 제외한다. ([[결정 노트 - 2026-09-23-item-viewmodel-unification]])
+- 2026-09-23 정적 조사 기준 UWxPlayerLayoutComponent는 폰 교체 시 새 폰의 Ability.Death·State.Dialogue 태그 관찰로 갈아타고, 대화 창만 닫고 사망 화면은 부활 완료 때 스스로 비활성화되게 둔다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
+- UWxUIManagerSubsystem은 레이아웃·팝업·일시정지만 맡고 TrackedPlayerController는 일시정지에만 쓴다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
+- 대화·퀘스트 화면은 모델은 도메인, 연결은 WxGame 리졸버, VM은 WxUI인 세 층 구조이며 리졸버 생성·해제는 위젯 NativeConstruct·NativeDestruct를 따른다. ([[결정 노트 - 2026-09-23-screen-classes-to-resolvers]])
 
 ## 검증 범위
 
@@ -60,16 +78,27 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 사망 화면과 대화 창의 표시·닫힘·부활 후 재표시는 2026-09-23 사용자가 인게임에서 확인했다. ([[작업 - player-screen-classes-to-layout-component]])
 - IWxUIData 제거 후 HUD·버프·보스·이름표 표시는 2026-09-25 이우성이 플레이로 확인했고, 자동화 Wx.UI.Presentation 3개가 통과했다. ([[작업 - ui-data-interface-removal]])
 - 2026-09-23 Ability Resolver 이동 노트는 정적 조사이며 기존 WBP의 로드·표시 동작은 확인하지 않았다. ([[결정 노트 - 2026-09-23-ability-resolver-module]])
+- Dialogue VM 분리는 WxEditor Development 빌드와 WBP 새 프로세스 컴파일·세션 신호 전달 확인까지 했고 인게임 화면·클릭은 미검증이다. ([[결정 노트 - 2026-09-23-dialogue-presentation-vm]])
+- 아이템 VM 단일화는 Development·DebugGame 빌드와 관련 위젯 6개 컴파일만 확인했고 런타임 표시·갱신은 인간 확인 대상으로 남았다. ([[결정 노트 - 2026-09-23-item-viewmodel-unification]])
+- 사망·대화 화면 주인 이동 후 사용자가 2026-09-23 사망·부활·대화 동작을 인게임에서 확인했다고 노트가 기록한다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
+- 대화·퀘스트 화면 리졸버 전환은 WxEditor 빌드와 WBP 4개 경고-오류 컴파일을 통과했고 사용자가 2026-09-23 인게임에서 문제 없음을 확인했다. ([[결정 노트 - 2026-09-23-screen-classes-to-resolvers]])
 
 ## 미결정·충돌
 
 - Nameplate_System 기획서의 락온 시 표시 규칙은 은폐된 적을 락온 대상에서 빼는 잠정안이며 협의 예정 상태다. ([[기획서 - Nameplate_System]])
 - 원격 클라이언트에서 기존 어빌리티 스펙 복제 후 슬롯 재매칭 신호가 누락되는 문제는 미해결이다. ([[작업 - ui-data-interface-removal]])
+- 상호작용 목록은 선택 변경마다 ListView 엔트리가 새로 붙으므로 선택 전환 애니메이션을 넣으려면 선택 신호를 다시 나눠야 한다. ([[결정 노트 - 2026-09-23-interaction-list-vm]])
+- 사망·대화 화면 클래스 값이 ini에서 컨트롤러 BP 에셋으로 옮겨져 git diff로 리뷰할 수 없다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
 
 ## 원자료
 
 - [[결정 노트 - 2026-09-23-ability-resolver-module]] — Ability ViewModel Resolver를 WxGame에서 WxUI로 옮기고 CoreRedirects로 기존 클래스 경로를 호환시킨 2026-09-23 정적 확인 기록
 - [[결정 노트 - 2026-09-23-boss-battle-three-layer]] — 보스 표시를 UWxBattleSubsystem·WxGame 리졸버·WxUI Character VM 세 층으로 재구성하고 보스 식별을 IdentityTags로 바꾼 2026-09-23 결정
+- [[결정 노트 - 2026-09-23-dialogue-presentation-vm]] — Dialogue VM을 WxUI의 순수 표시 데이터로 만들고 세션 연결은 WxGame Resolver, 진행 입력은 화면이 맡게 한 모듈 경계 결정과 정적 확인 기록.
+- [[결정 노트 - 2026-09-23-interaction-list-vm]] — 상호작용 스캐너 신호를 OnRowsChanged 하나로 합쳐 목록 VM이 행 VM을 전부 재생성하게 한 구조와 문구 출처 원칙에 대한 사용자 결정·정적 조사 기록.
+- [[결정 노트 - 2026-09-23-item-viewmodel-unification]] — WxGame 인벤토리 아이템 VM을 WxUI 아이템 VM으로 단일화하고 PC당 공유 인벤토리 VM이 값을 공급하게 한 결정, MVVM 변환 함수 제약, WxToolset 도구 기록.
+- [[결정 노트 - 2026-09-23-player-screen-owner]] — 사망·대화 화면 클래스와 태그 관찰을 UIManager 서브시스템·전역 설정에서 컨트롤러 BP의 UWxPlayerLayoutComponent로 옮긴 결정과 정적 조사 기록.
+- [[결정 노트 - 2026-09-23-screen-classes-to-resolvers]] — UWxDialogueScreen·UWxQuestTracker C++ 위젯 클래스를 제거하고 WBP가 WxGame 리졸버가 연결한 WxUI 뷰모델로 구동되게 한 사용자 결정과 구현 기록.
 - [[기획서 - Nameplate_System]] — 일반·네임드 몬스터 네임플레이트의 HP·DP 표시 구성, 시야·청각·피격 인식 규칙, 표시·숨김 조건과 보스 전용 규칙을 정의한 기획서
 - [[작업 - cooldown-unification]] — 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 공용 GE 하나로 통합하고 CooldownTags로 구분하게 바꾼 작업 기록으로, 사람 확인 4/4 통과로 완료됐다.
 - [[작업 - dialogue-presentation-vm]] — Dialogue VM을 WxUI의 순수 표시 데이터로 분리하고, 화면 클래스를 거쳐 최종적으로 WxGame 리졸버 세 층 구조로 정리한 완료 작업 기록

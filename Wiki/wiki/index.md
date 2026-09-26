@@ -96,3 +96,14 @@ WX의 게임 규칙·구현·결정을 모은 claude-obsidian vault입니다. �
 - [[결정 노트 - 2026-09-23-damage-context-cleanup]] — Damage EffectContext에서 소비자가 없는 테이블 참조 저장·복제를 없애고 중복 피해 수치를 FWxDamageResult로 합친 2026-09-23 사용처 조사와 변경 기록
 - [[결정 노트 - 2026-09-23-damage-forward-flow]] — Hit Wrapper GE와 전용 EffectContext를 없애고 ApplyDamage 판정에서 Damage GE 컴포넌트 반응으로 결과가 앞으로만 흐르게 한 2026-09-23 결정들
 - [[결정 노트 - 2026-09-23-damage-four-arguments]] — 사용자 승인으로 FWxDamageRequest를 없애고 ApplyDamage를 Causer·Target·피해 행·HitResult 네 인자로 되돌려 출처·레벨 추론을 복원한 기록
+- [[결정 노트 - 2026-09-23-datatable-row-fixup]] — DataTable 행 이름을 바꾸면 그 행을 가리키던 FDataTableRowHandle을 자동 갱신하는 범용 에디터 플러그인 DataTableRowFixup의 결정·계약·검증 기록.
+- [[결정 노트 - 2026-09-23-dialogue-presentation-vm]] — Dialogue VM을 WxUI의 순수 표시 데이터로 만들고 세션 연결은 WxGame Resolver, 진행 입력은 화면이 맡게 한 모듈 경계 결정과 정적 확인 기록.
+- [[결정 노트 - 2026-09-23-hit-processing-functions]] — UWxEffectComponent_Hit 안에서 방어 판정·Spec 준비·결과 기반 반응을 새 타입 없이 함수 단위로 분리한 구조 개선 기록.
+- [[결정 노트 - 2026-09-23-interaction-list-vm]] — 상호작용 스캐너 신호를 OnRowsChanged 하나로 합쳐 목록 VM이 행 VM을 전부 재생성하게 한 구조와 문구 출처 원칙에 대한 사용자 결정·정적 조사 기록.
+- [[결정 노트 - 2026-09-23-item-viewmodel-unification]] — WxGame 인벤토리 아이템 VM을 WxUI 아이템 VM으로 단일화하고 PC당 공유 인벤토리 VM이 값을 공급하게 한 결정, MVVM 변환 함수 제약, WxToolset 도구 기록.
+- [[결정 노트 - 2026-09-23-player-screen-owner]] — 사망·대화 화면 클래스와 태그 관찰을 UIManager 서브시스템·전역 설정에서 컨트롤러 BP의 UWxPlayerLayoutComponent로 옮긴 결정과 정적 조사 기록.
+- [[결정 노트 - 2026-09-23-screen-classes-to-resolvers]] — UWxDialogueScreen·UWxQuestTracker C++ 위젯 클래스를 제거하고 WBP가 WxGame 리졸버가 연결한 WxUI 뷰모델로 구동되게 한 사용자 결정과 구현 기록.
+- [[결정 노트 - 2026-09-23-zero-damage-hitstop]] — 히트스톱을 Hit Cue와 같은 조건(피해 0 초과 또는 퍼펙트 가드)으로 맞추고 Hit Cue 예측 발행 등 낡은 주석을 정정한 기록. 빌드 통과, 플레이 미검증.
+- [[결정 노트 - 2026-09-24-ai-brain-control-single-owner]] — AI 비헤이비어 트리 정지·잠금을 AWxAIController 하나로 모은 결정. 사망은 StopLogic, 그로기는 Reaction 우선순위 리소스 잠금, 돌진은 브레인을 건드리지 않는다.
+- [[결정 노트 - 2026-09-24-device-statetree-cleanup]] — 장치 StateTree 정리 기록. 복원 판정을 IsRestoring으로 옮기고 중복 장치를 지우며 몽타주 태스크를 WxCombat으로 이관하고 연출 태스크를 고쳤다.
+- [[결정 노트 - 2026-09-24-interaction-contract-options-only]] — IWxInteractable의 CanInteract·GetInteractionPrompt를 없애고 GetInteractionOptions 하나로 자격과 문구를 답하게 한 상호작용 계약 통합 기록.

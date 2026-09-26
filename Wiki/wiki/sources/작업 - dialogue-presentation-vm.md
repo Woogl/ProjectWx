@@ -87,8 +87,8 @@ key_claims:
 - [[UI 표시 구조]]
 - [[퀘스트와 대화]]
 - [[모듈 구조와 코드 정리]]
-- <!--wl-->결정 노트 - 2026-09-23-dialogue-presentation-vm
-- <!--wl-->결정 노트 - 2026-09-23-screen-classes-to-resolvers
+- [[결정 노트 - 2026-09-23-dialogue-presentation-vm]]
+- [[결정 노트 - 2026-09-23-screen-classes-to-resolvers]]
 
 ## 핵심 주장
 
