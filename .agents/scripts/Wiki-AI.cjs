@@ -22,15 +22,18 @@ function createWikiUpdate({root,providers,commands,exec=execText,open=openTermin
   const busy=()=>['preparing','running'].includes(state.status);
   const step=message=>{state={...state,message};};
   const git=(...args)=>exec('git',args,{cwd:root});
-  // claude-obsidian은 Windows에서 vault를 쓰지 못해 쓰기 명령은 WSL에서 돈다. WSL이나 배포판이 없으면 보이는 안내 창에서 관리자 승인으로 설치를 시작한다.
-  async function wslReady(){
-    try{await exec('wsl.exe',['-e','python3','--version'],{timeout:3*60*1000});return true;}catch{}
-    let installed=true;
-    try{await exec('wsl.exe',['-l','-q']);}catch{installed=false;}
-    if(installed)throw Error('WSL에서 python3를 실행하지 못했습니다. Ubuntu 창을 열어 첫 설정(Linux 사용자 만들기)을 마쳤는지 확인하세요.');
+  // claude-obsidian은 Windows에서 vault를 쓰지 못해 쓰기 명령은 WSL에서 돈다. 배포판이 없으면 재부팅 대기가 아닌 한 보이는 안내 창에서 관리자 승인으로 설치를 시작한다.
+  // WSL이 설치된 뒤에는 배포판이 없어도 `wsl -l -q`가 성공하고 빈 목록(UTF-16)을 돌려준다.
+  async function wslState(){
+    try{await exec('wsl.exe',['-e','python3','--version'],{timeout:3*60*1000});return 'ready';}catch{}
+    let distros='';
+    try{distros=await exec('wsl.exe',['-l','-q'],{encoding:'utf16le'});}catch{}
+    if(distros.replace(/\0/g,'').trim())throw Error('WSL에서 python3를 실행하지 못했습니다. Ubuntu 창을 열어 첫 설정(Linux 사용자 만들기)을 마쳤는지 확인하세요.');
+    try{await exec('reg.exe',['query','HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\RebootPending']);return 'reboot';}catch{}
     open(root,'Wx · WSL 설치',['powershell.exe','-NoExit','-NoProfile','-Command',"Write-Host 'WSL(Ubuntu)을 설치합니다. 관리자 승인 창에서 [예]를 누르세요.'; try { Start-Process -Verb RunAs -FilePath wsl.exe -ArgumentList '--install','-d','Ubuntu' -Wait -ErrorAction Stop; Write-Host '설치 창이 닫혔습니다. 재부팅 안내가 있었다면 재부팅하고, Ubuntu 창에서 Linux 사용자를 만든 뒤 대시보드에서 Wiki 갱신을 다시 누르세요.' } catch { Write-Host ('설치를 시작하지 못했습니다: ' + $_.Exception.Message) }"]);
-    return false;
+    return 'install';
   }
+  const setupMessages={reboot:'Windows를 다시 시작해야 WSL 설치가 끝납니다. 재부팅한 뒤 Wiki 갱신을 다시 누르세요.',install:'WSL(Ubuntu) 설치 안내 창을 열었습니다. 창의 안내대로 관리자 승인을 허용하고, 재부팅 안내가 나오면 재부팅한 뒤, Ubuntu 창에서 Linux 사용자를 만들고 Wiki 갱신을 다시 누르세요.'};
   async function prepareTree(){
     await git('fetch','--quiet','origin','main');
     if(!fs.existsSync(path.join(tree,'.git'))){
@@ -59,7 +62,8 @@ function createWikiUpdate({root,providers,commands,exec=execText,open=openTermin
   async function work(provider){
     try{
       step('WSL을 확인하는 중입니다.');
-      if(!await wslReady()){state={...state,status:'setup',message:'WSL(Ubuntu) 설치 안내 창을 열었습니다. 창의 안내대로 관리자 승인을 허용하고, 재부팅 안내가 나오면 재부팅한 뒤, Ubuntu 창에서 Linux 사용자를 만들고 Wiki 갱신을 다시 누르세요.',at:now()};return;}
+      const setup=await wslState();
+      if(setup!=='ready'){state={...state,status:'setup',message:setupMessages[setup],at:now()};return;}
       step('Wiki 작업 트리를 origin/main으로 맞추는 중입니다.');
       await prepareTree();
       const {tag,dir}=await plugin();

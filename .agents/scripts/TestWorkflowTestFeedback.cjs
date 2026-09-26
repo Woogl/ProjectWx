@@ -318,7 +318,8 @@ function fixture(providers=['codex'],content=taskText){
   const exec=async(file,args)=>{
     calls.push([file,...args].join(' '));
     if(file==='wsl.exe'&&args[1]==='python3'){if(wslState!=='ready')throw Error('no python');return 'Python 3.12.3';}
-    if(file==='wsl.exe'&&args[0]==='-l'){if(wslState==='none')throw Error('no distribution');return 'Ubuntu';}
+    if(file==='wsl.exe'&&args[0]==='-l')return ['none','reboot'].includes(wslState)?'':'Ubuntu';
+    if(file==='reg.exe'){if(wslState!=='reboot')throw Error('key not found');return 'RebootPending';}
     if(file==='wsl.exe'&&args[1]==='wslpath')return '/mnt/c/'+path.basename(args[3]);
     if(file==='git'&&args[0]==='worktree'&&args[1]==='add'){fs.mkdirSync(path.join(tree,'Wiki'),{recursive:true});fs.writeFileSync(path.join(tree,'.git'),'gitdir: x');fs.writeFileSync(path.join(tree,'Wiki/README.md'),"claude plugin marketplace add 'AgriciDaniel/claude-obsidian#v9.9.9'\n");}
     if(file==='git'&&args.includes('clone')){const dest=args.at(-1);fs.mkdirSync(path.join(dest,'scripts'),{recursive:true});fs.writeFileSync(path.join(dest,'scripts/claude-obsidian.py'),'');}
@@ -338,6 +339,9 @@ function fixture(providers=['codex'],content=taskText){
   assert.equal(launched.length,1);assert.match(launched[0],/^Wx · WSL 설치 powershell\.exe -NoExit -NoProfile -Command /,'a visible window stays open with the instructions');
   assert.match(launched[0],/Start-Process -Verb RunAs -FilePath wsl\.exe -ArgumentList '--install','-d','Ubuntu' -Wait/);assert.match(launched[0],/설치를 시작하지 못했습니다/,'a declined or failed elevation is shown in the window');
   assert.ok(!calls.some(c=>c.startsWith('git ')));
+  // 배포판이 없고 재부팅이 대기 중이면(WSL을 막 설치한 뒤) 설치 창을 다시 열지 않고 재부팅을 안내한다.
+  wslState='reboot';update.act({action:'start',provider:'claude'});await settleUpdate();
+  assert.deepEqual([updateState().status,launched.length],['setup',1]);assert.match(updateState().message,/다시 시작해야/);
   // 배포판은 있는데 python3를 못 부르면(첫 설정 전) 설치 창 없이 이유를 알린다.
   wslState='unset';update.act({action:'start',provider:'claude'});await settleUpdate();
   assert.deepEqual([updateState().status,launched.length],['failed',1]);assert.match(updateState().error,/첫 설정/);
