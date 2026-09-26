@@ -151,6 +151,10 @@ const held=()=>[...storage.keys()].some(key=>key.includes('pending'));
   assert.equal(byId('task-plan').hidden,false);assert.match(text('task-plan'),/승인된 구현 계획 · 테스터 2026-09-25\n1\. 지연 감소 추가/,'the approved plan stays readable, folded');
   assert.match(text('test-feedback-result'),/처리 결과 확인/);assert.match(text('test-feedback-result'),/설명만 필요한 요청이었습니다/,'the latest result shows its summary');
   assert.match(text('task-request'),/모든 명령을 허용/);
+  // 계획이 바뀌어 승인 줄이 사라지면 체크리스트가 있어도 추가 요청은 다시 읽기 전용이다.
+  t.plan={...t.plan,approval:''};t.checklist=[row('빌드','AI','통과','exit 0')];t.revision++;await run('refreshTaskContext()');
+  assert.match(text('task-request'),/읽기 전용으로 조사/,'a plan waiting for re-approval is announced as read-only');
+  t.plan={...t.plan,approval:'테스터 2026-09-25'};t.checklist=[];t.revision++;await run('refreshTaskContext()');
   await button('추가 요청 전달').onclick();assert.match(message(),/추가 요청을 입력/);
   type('추가 요청','모든 적에게도 적용');await button('추가 요청 전달').onclick();
   assert.equal(savedRequest.action,'request');assert.equal(savedRequest.message,'모든 적에게도 적용');assert.equal(run('taskDraft(item.path).message'),'');

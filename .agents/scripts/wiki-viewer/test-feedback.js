@@ -160,7 +160,7 @@ function renderTaskPhase(){
   submit.hidden=!['questions','approval','checklist'].includes(phase);submit.textContent=({questions:'답변 전달',approval:'구현 승인',checklist:'테스트 결과 전달'})[phase]||'';
   // 완료된 작업은 추가 요청을 받지 않는다. 구현 승인 전의 추가 요청은 읽기 전용 조사다.
   $('task-request').hidden=phase==='complete';
-  $('task-request-hint').textContent=taskContext?.plan.approval||taskContext?.checklist.length
+  $('task-request-hint').textContent=taskContext?.plan.approval||(!taskContext?.plan.text&&taskContext?.checklist.length)
     ?'승인된 범위 안의 수정은 AI가 바로 고치고, 범위를 바꾸는 요청은 질문이나 새 계획으로 돌려줍니다. 권한 확인 없이 모든 명령을 허용해 처리합니다.'
     :'구현 승인 전이라 AI가 읽기 전용으로 조사해 질문이나 구현 계획으로 답합니다.';
   if(phase==='running')return box.append(el('p','AI가 처리하는 동안에는 입력할 수 없습니다. 진행 과정은 터미널 창에서 볼 수 있고, 끝나면 이 화면이 갱신됩니다.','notice'));

@@ -347,8 +347,8 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
     }
     const actor=actorOf(body),at=new Date().toISOString(),file=taskFile(root,relative),stamp=`${actor} ${at.slice(0,10)}`;
     let content=fs.readFileSync(file,'utf8');
-    // 구현 승인 전(승인된 계획도 체크리스트도 없음)의 추가 요청은 정하기로 읽기 전용 처리한다.
-    const planning=body.action==='request'&&!current.plan.approval&&!current.checklist.length;
+    // 구현 승인 전의 추가 요청은 정하기로 읽기 전용 처리한다. 승인을 기다리는 계획이 있거나 아직 구현 전(체크리스트 없음)이면 승인 전이다.
+    const planning=body.action==='request'&&!current.plan.approval&&(!!current.plan.text||!current.checklist.length);
     const request={operationId:body.operationId,digest,action:body.action,kind:planning?'plan':kinds[body.action],provider,taskPath:relative,title:current.title,actor,at};
     if(body.action==='answer'){
       const open=current.questions.filter(q=>!q.answer);

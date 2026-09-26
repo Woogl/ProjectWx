@@ -165,6 +165,9 @@ function fixture(providers=['codex'],content=taskText){
   // 구현 승인 전의 추가 요청은 정하기(읽기 전용)로 처리한다.
   const planning=fixture(['codex'],'# 계획 작업\n\n## 요청\n\n- 요청자: 테스터 · 2026-09-26\n\n> 요청 원문\n\n## 구현 계획\n\n1. 저장 위치를 바꾼다\n');
   planning.send(taskPath,'request',{message:'계획에 로그를 더해줘'});await settle();assert.equal(planning.input.kind,'plan','a request before approval is read-only planning');
+  // 계획이 바뀌어 승인 줄을 지운 기록은 체크리스트가 있어도 다시 승인받기 전까지 정하기다.
+  const reapproval=fixture(['codex'],taskText.replace('## 테스트 체크리스트','## 구현 계획\n\n1. 바뀐 계획\n\n## 테스트 체크리스트'));
+  reapproval.send(taskPath,'request',{message:'바뀐 계획을 설명해줘'});await settle();assert.equal(reapproval.input.kind,'plan','a plan waiting for re-approval keeps extra requests read-only');
   // 코드가 바뀌면 이미 통과한 코드 리뷰를 다시 받는다.
   const review=fixture(['codex'],taskText.replace('| 저장 후 복원 |','| 코드 리뷰 | 변경 파일 | 사람 | 통과 | 테스터 |\n| 저장 후 복원 |'));
   review.service.act(review.request({checks:[{index:2,result:'실패',note:'복원 위치가 다름'}]}));await settle();
