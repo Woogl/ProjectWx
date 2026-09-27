@@ -41,7 +41,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Wx|AI", meta=(ClampMin="1.0", Units="cm"))
 	float AbilityTeleportDistance = 500.f;
 	/**
-	 * Master 속도를 따르도록 SPD 를 SetByCaller 로 덮어쓰고 서비스가 끝나면 제거한다.
+	 * Master 속도를 따르도록 MOV 를 SetByCaller.Magnitude 속도로 덮어쓰고 서비스가 끝나면 제거한다.
 	 * WxAI 는 WxCombat 에 의존하지 않으므로 디자이너가 BT 에디터에서 지정한다(WxEffect_MoveSpeedOverride). 지정하지 않으면 자기 속도로 따라간다.
 	 */
 	UPROPERTY(EditAnywhere, Category="Wx|AI")

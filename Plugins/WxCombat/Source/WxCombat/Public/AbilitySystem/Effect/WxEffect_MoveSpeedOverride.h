@@ -7,7 +7,7 @@
 #include "WxEffect_MoveSpeedOverride.generated.h"
 
 /**
- * 무한 지속 GE. SPD 를 SetByCaller.MoveSpeedScale 값으로 덮어써 대상에 걸린 다른 속도 효과를 무시한다.
+ * 무한 지속 GE. MOV 를 SetByCaller.Magnitude 속도(cm/s)로 덮어써 대상에 걸린 다른 속도 효과를 무시한다.
  */
 UCLASS()
 class WXCOMBAT_API UWxEffect_MoveSpeedOverride : public UGameplayEffect

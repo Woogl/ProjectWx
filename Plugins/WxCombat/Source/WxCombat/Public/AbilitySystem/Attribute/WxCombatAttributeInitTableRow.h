@@ -52,4 +52,7 @@ struct WXCOMBAT_API FWxCombatAttributeInitTableRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (ClampMin = "0.0"))
 	float CritDMG = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (ClampMin = "0.0"))
+	float MOV = 0.f;
 };

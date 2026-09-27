@@ -68,6 +68,14 @@ void AWxCharacterBase::PostInitializeComponents()
 		DeathChanged.AddUObject(this, &AWxCharacterBase::HandleDeathTagChanged);
 	}
 
+	// 이동 속도도 같은 이유로 여기서 구독한다 — 시뮬 프록시를 포함한 전 머신에서 MaxWalkSpeed가 MOV를 따른다.
+	FOnGameplayAttributeValueChange& MOVChanged = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetMOVAttribute());
+	if (!MOVChanged.IsBoundToObject(this))
+	{
+		MOVChanged.AddUObject(this, &AWxCharacterBase::HandleMOVAttributeChanged);
+	}
+	GetCharacterMovement()->MaxWalkSpeed = CombatAttributeSet->GetMOV();
+
 	// 클래스 기본값이라 머신마다 복제 없이 올린다. 스트리밍 레벨이 다시 보일 때도 불리므로 개수를 1로 맞춘다.
 	for (const FGameplayTag& IdentityTag : IdentityTags)
 	{
@@ -191,18 +199,6 @@ void AWxCharacterBase::InitAbilitySystem()
 	// 재빙의·PlayerState 재복제로 다시 들어온다. 바뀐 컨트롤러를 다시 물리는 이 갱신은 매번 필요하다.
 	AbilitySystemComponent->RefreshAbilityActorInfo();
 
-	// GiveAbilitySets보다 먼저 등록해야 초기 어트리뷰트 변경(SPD 등)이 콜백에 반영된다.
-	FOnGameplayAttributeValueChange& SPDChanged =
-		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UWxCombatAttributeSet::GetSPDAttribute());
-	if (!SPDChanged.IsBoundToObject(this))
-	{
-		SPDChanged.AddUObject(this, &AWxCharacterBase::HandleSPDAttributeChanged);
-	}
-
-	// 구독보다 초기 복제가 빨랐다면 그 변경 이벤트는 이미 지나갔으므로 현재 값을 1회 적용한다.
-	const float BaseWalkSpeed = GetDefault<AWxCharacterBase>(GetClass())->GetCharacterMovement()->MaxWalkSpeed;
-	GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed * CombatAttributeSet->GetSPD();
-
 	// GiveAbility는 서버에서만 허용. 클라이언트에는 서버로부터 복제됨
 	if (HasAuthority())
 	{
@@ -210,11 +206,9 @@ void AWxCharacterBase::InitAbilitySystem()
 	}
 }
 
-void AWxCharacterBase::HandleSPDAttributeChanged(const FOnAttributeChangeData& Data)
+void AWxCharacterBase::HandleMOVAttributeChanged(const FOnAttributeChangeData& Data)
 {
-	// 기준값은 항상 클래스 기본값에서 읽는다 — 인스턴스의 MaxWalkSpeed는 이미 SPD가 곱해져 있어 기준으로 못 쓴다.
-	const float BaseWalkSpeed = GetDefault<AWxCharacterBase>(GetClass())->GetCharacterMovement()->MaxWalkSpeed;
-	GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed * Data.NewValue;
+	GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
 }
 
 void AWxCharacterBase::HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount)

@@ -8,12 +8,12 @@ UWxEffect_MoveSpeedOverride::UWxEffect_MoveSpeedOverride()
 {
 	DurationPolicy = EGameplayEffectDurationType::Infinite;
 
-	FSetByCallerFloat ScaleSetByCaller;
-	ScaleSetByCaller.DataTag = WxGameplayTags::SetByCaller_MoveSpeedScale;
+	FSetByCallerFloat SpeedSetByCaller;
+	SpeedSetByCaller.DataTag = WxGameplayTags::SetByCaller_Magnitude;
 
-	FGameplayModifierInfo ScaleModifier;
-	ScaleModifier.Attribute = UWxCombatAttributeSet::GetSPDAttribute();
-	ScaleModifier.ModifierOp = EGameplayModOp::Override;
-	ScaleModifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(ScaleSetByCaller);
-	Modifiers.Add(ScaleModifier);
+	FGameplayModifierInfo SpeedModifier;
+	SpeedModifier.Attribute = UWxCombatAttributeSet::GetMOVAttribute();
+	SpeedModifier.ModifierOp = EGameplayModOp::Override;
+	SpeedModifier.ModifierMagnitude = FGameplayEffectModifierMagnitude(SpeedSetByCaller);
+	Modifiers.Add(SpeedModifier);
 }

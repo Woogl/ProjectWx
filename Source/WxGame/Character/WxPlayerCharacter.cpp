@@ -33,8 +33,6 @@ AWxPlayerCharacter::AWxPlayerCharacter(const FObjectInitializer& ObjectInitializ
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->bEnableCameraLag     = true;
 	CameraBoom->CameraLagSpeed       = 8.f;
-	
-	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 
 	JumpMaxCount = 2;
 

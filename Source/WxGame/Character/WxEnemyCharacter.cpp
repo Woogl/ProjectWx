@@ -8,7 +8,6 @@
 #include "AbilitySystemGlobals.h"
 #include "Battle/WxBattleSubsystem.h"
 #include "Controller/WxAIController.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Minion/WxMinionComponent.h"
 #include "Targeting/WxLockOnComponent.h"
@@ -25,7 +24,6 @@ AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer
 	AIControllerClass = AWxAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 	AIBehaviorComponent = CreateDefaultSubobject<UWxAIBehaviorComponent>(TEXT("AIBehaviorComponent"));
 
 	LockOnPoint = CreateDefaultSubobject<UWxLockOnPointComponent>(TEXT("LockOnPoint"));

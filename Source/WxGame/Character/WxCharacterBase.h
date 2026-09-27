@@ -99,7 +99,7 @@ protected:
 	 */
 	virtual void InitAbilitySystem();
 
-	void HandleSPDAttributeChanged(const FOnAttributeChangeData& Data);
+	void HandleMOVAttributeChanged(const FOnAttributeChangeData& Data);
 
 	void HandleDeathTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 

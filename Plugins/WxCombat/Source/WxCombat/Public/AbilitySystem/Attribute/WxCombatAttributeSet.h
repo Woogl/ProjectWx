@@ -22,7 +22,8 @@
  *   UP                 - Ultimate Points
  *   ATK / DEF          - Attack / Defense
  *   CritRate / CritDMG - Critical Rate / Critical Damage
- *   SPD / ASPD         - Speed / Attack Speed
+ *   MOV                - Movement Speed
+ *   ASPD               - Attack Speed
  */
 UCLASS()
 class WXCOMBAT_API UWxCombatAttributeSet : public UAttributeSet
@@ -98,10 +99,10 @@ public:
 	FGameplayAttributeData CritDMG;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, CritDMG)
 	
-	/** MaxWalkSpeed에 곱해지는 이동 속도 배율(기본 1.0) */
-	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_SPD)
-	FGameplayAttributeData SPD;
-	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, SPD)
+	/** 이동 속도(cm/s). 캐릭터가 MaxWalkSpeed로 그대로 쓴다 */
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_MOV)
+	FGameplayAttributeData MOV;
+	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MOV)
 
 	/** 어빌리티 몽타주 PlayRate로 그대로 쓰이는 공격 속도 배율(기본 1.0) */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_ASPD)
@@ -169,7 +170,7 @@ protected:
 	void OnRep_CritDMG(const FGameplayAttributeData& OldCritDMG);
 
 	UFUNCTION()
-	void OnRep_SPD(const FGameplayAttributeData& OldSPD);
+	void OnRep_MOV(const FGameplayAttributeData& OldMOV);
 
 	UFUNCTION()
 	void OnRep_ASPD(const FGameplayAttributeData& OldASPD);

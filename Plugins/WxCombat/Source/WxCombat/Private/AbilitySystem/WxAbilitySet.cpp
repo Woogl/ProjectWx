@@ -33,6 +33,7 @@ void UWxAbilitySet::GiveToAbilitySystem(UWxAbilitySystemComponent* ASC) const
 		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetDEFAttribute(), Row->DEF);
 		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetCritRateAttribute(), Row->CritRate);
 		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetCritDMGAttribute(), Row->CritDMG);
+		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetMOVAttribute(), Row->MOV);
 	}
 
 	FGameplayEffectContextHandle Context = ASC->MakeEffectContext();

@@ -30,7 +30,6 @@ const UWxCombatAttributeSet::FWxMaxAttributePair* UWxCombatAttributeSet::FindMax
 
 UWxCombatAttributeSet::UWxCombatAttributeSet()
 {
-	InitSPD(1.f);
 	InitASPD(1.f);
 }
 
@@ -52,7 +51,7 @@ void UWxCombatAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, DEF,		COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, CritRate,	COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, CritDMG,	COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, SPD,		COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, MOV,		COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, ASPD,		COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UWxCombatAttributeSet, GuardReductionScale, COND_None, REPNOTIFY_Always);
 }
@@ -239,9 +238,9 @@ void UWxCombatAttributeSet::OnRep_CritDMG(const FGameplayAttributeData& OldCritD
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, CritDMG, OldCritDMG);
 }
 
-void UWxCombatAttributeSet::OnRep_SPD(const FGameplayAttributeData& OldSPD)
+void UWxCombatAttributeSet::OnRep_MOV(const FGameplayAttributeData& OldMOV)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, SPD, OldSPD);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UWxCombatAttributeSet, MOV, OldMOV);
 }
 
 void UWxCombatAttributeSet::OnRep_ASPD(const FGameplayAttributeData& OldASPD)

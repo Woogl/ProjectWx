@@ -126,7 +126,7 @@ void UWxBTTask_Wander::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMe
 		return;
 	}
 
-	// 속도는 감속 GE 가 낮춘 SPD → MaxWalkSpeed 가 제어하므로 입력 스케일은 1.0 으로 넣는다.
+	// 속도는 감속 GE 가 낮춘 MOV → MaxWalkSpeed 가 제어하므로 입력 스케일은 1.0 으로 넣는다.
 	Pawn->AddMovementInput(MoveDirection, 1.f);
 }
 

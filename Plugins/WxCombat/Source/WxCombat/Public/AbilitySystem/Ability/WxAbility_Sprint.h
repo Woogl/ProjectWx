@@ -9,7 +9,7 @@
 struct FOnAttributeChangeData;
 
 /**
- * 입력을 누르는 동안 SPD 배율 GameplayEffect를 걸어 두고, 떼면 걷어낸다.
+ * 입력을 누르는 동안 MOV 배율 GameplayEffect를 걸어 두고, 떼면 걷어낸다.
  * 실제로 이동하는 동안에는 Movement.Sprint를 부여해 SP를 소모시키고 자연 회복을 멈추며, SP가 바닥나면 스스로 종료한다.
  *
  * 진입 비용은 CostAmount(SP)이고 순정 CheckCost가 발동을 막는다.
@@ -36,7 +36,7 @@ private:
 
 	void HandleSPChanged(const FOnAttributeChangeData& ChangeData);
 
-	/** SPD에 곱해지는 이동 속도 배율(1.0 = 평상시 속도) */
+	/** MOV에 곱해지는 이동 속도 배율(1.0 = 평상시 속도) */
 	UPROPERTY(EditDefaultsOnly)
 	float SprintSpeedScale = 1.5f;
 
