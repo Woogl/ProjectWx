@@ -131,7 +131,8 @@ void AWxWeaponBase::PostInitializeComponents()
 		Shape->SetCollisionObjectType(ECC_WxAttack);
 		Shape->SetCollisionResponseToAllChannels(ECR_Ignore);
 		Shape->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-		Shape->OnComponentBeginOverlap.AddDynamic(this, &AWxWeaponBase::HandleHitShapeOverlap);
+		// 스트리밍 레벨이 다시 보이면 PostInitializeComponents가 다시 불린다.
+		Shape->OnComponentBeginOverlap.AddUniqueDynamic(this, &AWxWeaponBase::HandleHitShapeOverlap);
 	}
 }
 
