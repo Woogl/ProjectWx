@@ -135,10 +135,11 @@ function fixture(providers=['codex'],content=taskText){
   dropped.finish(fixReport([passedRows[0]]));await settle();
   assert.deepEqual(dropped.rows().map(r=>[r.item,r.result]),[['빌드','통과'],['저장 후 복원','실패']]);assert.equal(dropped.context().latest.status,'issues');
   assert.equal(dropped.head().next,'실패 확인: 저장 후 복원(사람) · 추가 요청으로 방향을 정한다.');
-  // AI가 실행하지 못한 항목은 사람에게 넘어온다.
+  // AI가 끝내지 못한 항목은 사람에게 넘어오지 않고 AI 실패로 남아 사람이 방향을 정한다.
   const handed=fixture();handed.service.act(handed.request({checks:[{index:1,result:'실패',note:'원점'}]}));await settle();
   handed.finish(fixReport([row('빌드','AI','통과','exit 0'),row('PIE 확인','AI','미실행','에디터 없음'),row('저장 후 복원','사람','대기','재확인')]));await settle();
-  assert.deepEqual(handed.rows().map(r=>[r.item,r.owner,r.result,r.evidence]),[['빌드','AI','통과','exit 0'],['PIE 확인','사람','대기','AI가 실행하지 못함: 에디터 없음'],['저장 후 복원','사람','대기','재확인']]);
+  assert.deepEqual(handed.rows().map(r=>[r.item,r.owner,r.result,r.evidence]),[['빌드','AI','통과','exit 0'],['PIE 확인','AI','실패','AI가 끝내지 못함: 에디터 없음'],['저장 후 복원','사람','대기','재확인']]);
+  assert.equal(handed.context().latest.status,'issues');assert.equal(handed.head().next,'실패 확인: PIE 확인(AI) · 추가 요청으로 방향을 정한다.');
   // 상태는 체크리스트·질문에서만 정한다. 단계에 없는 칸은 버린다.
   for(const [label,value,expected] of [
     ['ai-row-failed',fixReport([row('빌드','AI','실패','링크 오류'),row('저장 후 복원','사람','대기','재확인')]),'issues'],

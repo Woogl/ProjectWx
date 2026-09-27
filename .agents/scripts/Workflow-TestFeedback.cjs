@@ -86,9 +86,9 @@ function guardChecklist(before,after){
   for(const [item,prior] of human)if(!rows.some(r=>r.item===item))rows.push(prior);
   return rows;
 }
-// AI가 실행하지 못한 항목은 사람에게 넘기고, 완료는 사람이 확인하도록 사람 항목을 하나 이상 둔다.
+// AI가 끝내지 못한 항목은 사람에게 넘기지 않고 실패로 남기며, 완료는 사람이 확인하도록 사람 항목을 하나 이상 둔다.
 function handOver(rows){
-  const next=rows.map(r=>r.owner==='AI'&&(r.result==='미실행'||r.result==='대기')?{...r,owner:'사람',result:'대기',evidence:'AI가 실행하지 못함'+(r.evidence?': '+r.evidence:'')}:r);
+  const next=rows.map(r=>r.owner==='AI'&&(r.result==='미실행'||r.result==='대기')?{...r,result:'실패',evidence:'AI가 끝내지 못함'+(r.evidence?': '+r.evidence:'')}:r);
   if(!next.some(r=>r.owner==='사람'))next.push({item:'결과 확인',method:'AI 처리 결과와 변경 내용을 확인한다.',owner:'사람',result:'대기',evidence:''});
   return next;
 }
