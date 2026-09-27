@@ -1,7 +1,7 @@
 # 보스 표시 VM 단순화
 
-상태: 확인 대기 · 빌드·위젯 바인딩 확인
-다음 행동: 보스 진입·사망·언로드와 보스 간 표시 전환을 확인한다.
+상태: 확인 대기 · 체크리스트 3/5 통과
+다음 행동: 코드 리뷰와 보스 바 모양을 확인한다.
 
 이전 상태: 구현 완료 — 인간 코드 리뷰·인게임 확인 대기
 
@@ -12,10 +12,11 @@
 
 | 항목 | 확인 방법 | 담당 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
-| 보스 표시·숨김 | 게임: 적 BP 하나의 IdentityTags에 Character.Boss를 지정하고(확인 뒤 되돌림) 교전하면 HUD 상단에 이름·HP·GP·효과가 보이고, 비교전·사망·언로드 때 숨겨진다 | 사람 | 대기 |  |
-| 보스 간 전환 | 게임: 보스 둘과 동시에 교전하면 먼저 교전한 보스가 유지되고, 그 보스가 빠지면 다른 보스로 넘어간다 | 사람 | 대기 |  |
-| 보스 없음 | 게임: 보스가 없으면 HUD 보스 바가 숨겨져 있다 | 사람 | 대기 |  |
-| 코드 리뷰 | UWxBattleSubsystem·보스 표시 VM 변경 | 사람 | 대기 |  |
+| 보스 표시·숨김 | 헤드리스 게임(LV_DevCombat -game -nullrhi): IdentityTags에 Character.Boss를 단 적이 교전하면 실제 HUD의 보스 바에 이름·HP·GP·효과가 채워지고, 비교전·사망·언로드(EndPlay) 때 숨는다. 일반 적 교전으로는 뜨지 않는다 | AI | 통과 | 2026-09-27 임시 자동화 테스트(확인 뒤 삭제): BP_Template 적을 스폰해 이름·Character.Boss를 넣고 AI 컨트롤러와 같은 SetLockOnTarget으로 교전시킴. WBP_Nameplate_Boss가 SelfHitTestInvisible로 바뀌고 이름 「VerifyBossA」, HP 막대 0.6(60/100), GP 0/50, 가드 감소 효과 적용 시 VM·ListView 1개→해제 시 0개. 비교전·사망(치트와 같은 피해 경로)·Destroy 때 Collapsed·VM 비움. 일반 적은 State.Engaged가 붙어도 바가 숨은 그대로 |
+| 보스 간 전환 | 헤드리스 게임: 보스 둘이 차례로 교전하면 먼저 교전한 보스가 유지되고, 그 보스가 빠지면 다른 보스로 넘어가며, 다시 들어온 보스는 뒤에 선다 | AI | 통과 | 같은 테스트: A→B 교전 시 A 유지(HP 0.6 표시), A 비교전 시 B(HP 1.0), A 재교전 시 B 유지, B 사망 시 A로 넘어감. 서브시스템 현재 보스·VM의 ASC·위젯 이름·HP·GP 막대가 매번 일치 |
+| 보스 없음 | 헤드리스 게임: 보스가 없으면 보스 바가 숨어 있고 MVVM 오류가 없다 | AI | 통과 | 시작 시 현재 보스 없음·바 Collapsed·VM 비어 있음. 처음엔 보스가 없거나 바뀔 때마다 MVVM 오류(`VM_BossCharacter_AbilitySystem` 소스가 유효하지 않음)가 실행당 15건 나와 WBP_Nameplate_Boss의 VM_BossCharacter를 Optional로 고침(아래 절). 고친 뒤 새 프로세스 실행 Result=Success·MVVM 오류 0 |
+| 보스 바 모양 | 게임: 적 BP 하나의 IdentityTags에 Character.Boss를 지정하고(확인 뒤 되돌림) 교전하면 HUD 상단에 보스 바가 제자리에 보이고 이름·HP·GP 막대·효과 아이콘의 모양이 자연스럽다 | 사람 | 대기 |  |
+| 코드 리뷰 | UWxBattleSubsystem·보스 표시 VM 변경. 에셋: WBP_Nameplate_Boss의 뷰모델 VM_BossCharacter Optional 꺼짐 → 켜짐(2026-09-27, 보스가 없거나 바뀔 때 MVVM 오류를 없앰) | 사람 | 대기 |  |
 
 ## 조사
 
@@ -112,6 +113,8 @@
 
 ## 인게임 확인 방법 (인간 확인 필요)
 
+2026-09-27부터 2~4는 헤드리스 테스트가 확인한다(아래 「헤드리스 테스트로 옮김」). 사람은 체크리스트의 보스 바 모양만 본다.
+
 1. 적 BP 하나의 `IdentityTags`에 `Character.Boss`를 지정한다. 확인 후 되돌린다.
 2. 교전 시 HUD 상단에 이름·HP·GP·효과가 표시되고, 비교전·사망·언로드 시 숨겨지는지 확인한다.
 3. 보스 둘을 동시에 교전시킨다. 먼저 교전한 보스가 유지되고, 그 보스가 빠지면 다른 보스로 넘어가는지 확인한다.
@@ -123,3 +126,11 @@
 - WxGame에 남은 `WxViewModel_InteractionList`·`WxViewModel_Inventory`도 같은 세 층 규칙으로 WxUI에 옮길 수 있다. 다만 둘 다 따로 설계가 필요하다.
   - VM에서 도메인으로 가는 명령(`RequestInteract`, `RequestUseConsumable`)의 전달 방식.
   - Inventory 공개 헤더의 `UWxItemDefinition` 의존.
+
+## 헤드리스 테스트로 옮김 · 2026-09-27
+
+- 계기: 작업 절차의 헤드리스 규칙에 따라, 헤드리스로 판정할 수 있는 사람 항목을 AI 항목으로 옮기고 AI가 끝까지 테스트했다(사용자 결정: `workflow-recheck.md` Q2 "지금 한 건씩 차례로").
+- 옮긴 것: 보스 표시·숨김, 보스 간 전환, 보스 없음은 AI 항목이 되었다. 섞여 있던 화면 모양은 사람 항목 「보스 바 모양」으로 남겼다.
+- 방법: `LV_DevCombat`을 `-game -nullrhi`로 띄우고 임시 자동화 테스트를 돌렸다. `BP_Template` 적을 스폰하면서 리플렉션으로 이름과 IdentityTags(`Character.Boss`)를 넣었다. 능력·속성은 빙의 때 부여되므로 행동 트리·감지가 없는 기본 `AAIController`로 빙의시켰고, 교전은 `AWxAIController`와 같은 `SetLockOnTarget(플레이어 루트)` 호출로만 바꿨다. 검사는 서브시스템의 현재 보스, 위젯 VM(`VM_BossCharacter`), 실제 HUD 위젯(이름 글자·HP/GP 막대·효과 ListView 항목 수·표시 여부) 세 층에서 했다.
+- 발견·수정: 처음 실행에서 동작은 모두 맞았지만, 보스가 없을 때와 보스가 바뀔 때마다 MVVM이 `VM_BossCharacter_AbilitySystem` 소스가 유효하지 않다는 오류를 남겼다(실행당 15건). `UWxViewModel_Character::Initialize`가 먼저 비운 뒤 채우고, 보스가 없으면 `AbilitySystem`이 null인데, 그 경로로 만든 동적 소스가 선택(Optional)이 아니었기 때문이다. 엔진은 동적 소스에 부모 뷰모델의 Optional을 물려준다(`MVVMViewBlueprintCompiler.cpp` 4634행). 그래서 이미 승인된 범위의 버그 수정으로 WBP_Nameplate_Boss의 `VM_BossCharacter` Optional을 켰다(헤드리스 파이썬 `MVVMEditorSubsystem.get_view` → `available_view_models`, 컴파일·저장).
+- 확인: 고친 뒤 새 프로세스에서 같은 테스트가 Result=Success, MVVM 오류 0으로 끝났다. 임시 테스트를 지운 뒤 WxEditor Development 빌드(WxGame 재링크)가 성공했다.

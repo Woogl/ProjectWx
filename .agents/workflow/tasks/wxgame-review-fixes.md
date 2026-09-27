@@ -1,7 +1,7 @@
 # WxGame 코드 리뷰 지적 해결
 
-상태: 확인 대기 · 남은 UI 테스트 소스까지 제거하고 최종 빌드 통과
-다음 행동: 코드 리뷰와 실제 레벨 재표시·새 게임 진입을 확인한다.
+상태: 확인 대기 · 체크리스트 7/9 통과
+다음 행동: 코드 리뷰와 재표시 뒤 연출을 확인한다.
 
 - 계기: [WxGame — 코드 리뷰](module_review_WxGame.md)의 지적 세 개를 해결한 구현 작업이다. 2026-09-26 워크플로우 종합 점검(D6)에서 리뷰 문서에 있던 구현 부분을 이 기록으로 옮겼다.
 - **요청**: 사용자(2026-09-25) — “WxGame — 코드 리뷰 의 지적사항을 모두 올바른 방법으로 해결해주세요.”
@@ -19,9 +19,10 @@
 | 어빌리티 재등록 | `Wx.Game.Review.AbilityReregister`: 두 차례 등록 왕복, 스펙·인스턴스 복원과 HP·SP·효과 핸들 보존 | AI | 통과 | 최종 회귀 보고서: Success, 오류·경고 0 |
 | 태그 구독·처치 일회성 | `Wx.Game.Review.DeathNotification`: 반복 초기화 후 사망·래그돌 구독 각각 1개, 사망 태그 재적용과 시체 BeginPlay 재진입의 처치 통지 1회 | AI | 통과 | 최종 회귀 보고서: Success, 오류·경고 0; 재진입 두 차례 뒤 AI 피격 구독도 1개 |
 | 새 게임 실패 시 저장 보존 | `Wx.Game.Review.NewGameValidation`: 없는 경로·추상 클래스·잘못된 부모 거절, 유효 선택만 저장 삭제 | AI | 통과 | 이전 회귀 보고서(20260925_225721): Success, 오류·경고 0; 이후 해당 구현 변경 없음, 전용 UserDir에서 실행 |
-| 코드 리뷰 | WxAbilitySystemComponent·WxAbilitySet의 누락 스펙 보충, WxAIBehaviorComponent의 단일 구독, 캐릭터 사망 일회성, WxGameFlowSubsystem의 저장 삭제 전 검증을 확인한다. | 사람 | 대기 | 사용자 단순화 지시를 반영한 최종 구현 확인 |
-| 레벨 재표시 전투·연출 | 게임: 적이 있는 로드 유지 서브레벨을 두 번 숨겼다 표시한다. 공격·피격·사망이 동작하고 래그돌·보상이 중복되지 않는지 확인한다. | 사람 | 대기 | 자동 회귀는 컴포넌트·액터 수명 경로이며 실제 스트리밍 맵·연출 확인은 별도 |
-| 새 게임 캐릭터 선택 | 프런트엔드에서 유효 캐릭터를 선택해 목적지에 선택한 Pawn으로 진입하는지 확인한다. | 사람 | 대기 | 자동 회귀에서는 실제 맵 이동 전에 테스트 월드를 정리한다. |
+| 코드 리뷰 | WxAbilitySystemComponent·WxAbilitySet의 누락 스펙 보충, WxAIBehaviorComponent의 단일 구독, 캐릭터 사망 일회성, WxGameFlowSubsystem의 저장 삭제 전 검증을 확인한다. 2026-09-27 추가: WxCombat `AWxWeaponBase::PostInitializeComponents`의 겹침 구독을 `AddDynamic` → `AddUniqueDynamic`(레벨 재표시 때 같은 처리기가 두 번 붙어 엔진 ensure가 나던 것) | 사람 | 대기 | 사용자 단순화 지시를 반영한 최종 구현 확인 |
+| 레벨 재표시 전투 | 헤드리스 게임(LV_DevCombat -game -nullrhi): 적이 든 서브레벨을 로드 유지한 채 두 번 숨겼다 표시한다. 같은 적이 능력·효과·HP를 유지하고, 다시 보인 뒤 플레이어를 공격하고 피격·사망이 동작하며, 처치 통지·보상은 한 번이고 래그돌이 된다. 엔진 ensure가 없다 | AI | 통과 | 2026-09-27 임시 자동화 테스트와 임시 서브레벨(적 1명, 확인 뒤 삭제): 숨김마다 능력 7→0, 표시마다 7로 재부여, 효과 중복 없음, HP 80 유지, 사망·래그돌 구독 1개. 재표시 뒤 공격(플레이어 HP 72→65)·피격(80→70)·사망(처치 통지 1회, 보상 100 = 대조군 100, 래그돌). 처음 실행에서 무기 겹침 구독 중복 ensure를 찾아 고쳤고 고친 뒤 ensure 0 |
+| 재표시 뒤 연출 | 게임: 적이 있는 레벨을 숨겼다 다시 보인 뒤 적의 공격·피격 모션과 사망 래그돌이 자연스럽다 | 사람 | 대기 |  |
+| 새 게임 캐릭터 선택 | 헤드리스 게임(LV_FrontEnd -game -nullrhi): 프런트엔드에서 New Game → 캐릭터 BP_HGTest → 레벨 LV_DevCombat → 확인 Yes를 누르면 목적지에 선택한 Pawn으로 들어간다 | AI | 통과 | 2026-09-27 임시 자동화 테스트(확인 뒤 삭제): 버튼마다 CommonUI의 실제 클릭 처리기로 누름. LV_DevCombat 로드 뒤 플레이어 폰 BP_HGTest_C_0(클래스 BP_HGTest_C), 게임 흐름의 선택 폰도 BP_HGTest_C. 기본값이 아닌 캐릭터라 선택이 전달됨을 가림 |
 
 ## 구현
 
@@ -47,3 +48,12 @@
 ```powershell
 & "C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat" WxEditor Win64 Development "-Project=C:\Wx\Wx.uproject" -WaitMutex -NoHotReloadFromIDE
 ```
+
+## 헤드리스 테스트로 옮김 · 2026-09-27
+
+- 계기: 작업 절차의 헤드리스 규칙에 따라 사람 항목 두 개(레벨 재표시, 새 게임 캐릭터 선택)를 AI 항목으로 옮기고 AI가 끝까지 테스트했다(사용자 결정: `workflow-recheck.md` Q2 "지금 한 건씩 차례로"). 재표시 뒤의 모션·래그돌 모양은 사람 항목 「재표시 뒤 연출」로 남겼다.
+- 레벨 재표시 방법: 게임 맵이 모두 World Partition이라 일반 스트리밍 서브레벨이 없다. 그래서 적 1명만 둔 임시 레벨(`/Game/Tests/LV_VerifyStreamedEnemy`, 헤드리스 파이썬으로 생성)을 `ULevelStreamingDynamic::LoadLevelInstance`로 불러, 적이 플레이어를 마주 보게 두고 `SetShouldBeVisible` false/true를 두 번 반복했다. 보상 1회는 한 번도 숨기지 않은 대조군 적의 보상량(100)과 비교했다.
+- 발견·수정: 처음 실행에서 서브레벨을 다시 보일 때 `AWxWeaponBase::PostInitializeComponents`(WxCombat)가 무기 겹침 처리기를 한 번 더 등록해 엔진 ensure(`InvocationList[...] != InDelegate`)가 났다. 엔진은 ensure 뒤에도 등록을 더해 겹침 처리기가 여러 번 불린다. 이 작업이 AI 컨트롤러 이벤트에 쓴 방식과 같게 `AddUniqueDynamic`으로 고쳤다(이미 승인된 범위: 레벨 재표시 때 중복 구독 방지). 다른 액터의 `PostInitializeComponents`에는 같은 패턴이 없다.
+- 확인한 사실: 숨기면 적의 AI 컨트롤러가 떨어지고 능력 스펙이 비며, 다시 보이면 새 AI 컨트롤러가 빙의해 능력이 다시 부여된다. 작은 피해(10)에는 대조군도 다시 보인 적도 피격 반응 태그가 붙지 않았다.
+- 새 게임 흐름: 프런트엔드는 캐릭터·레벨 버튼을 고르면 확인 팝업(Yes/Cancel)이 뜨고, Yes를 눌러야 이동한다.
+- 확인: 고친 뒤 새 프로세스에서 두 테스트 모두 Result=Success, ensure 0. 임시 테스트·임시 레벨을 지운 뒤 WxEditor Development 빌드가 성공했다.
