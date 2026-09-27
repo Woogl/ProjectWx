@@ -1,7 +1,7 @@
 # SpawnerLibrary 제거
 
-상태: 확인 대기 · SpawnerLibrary 제거·빌드 확인
-다음 행동: 에셋 로드와 부활 시 적 재생성, 영구 처치 제한을 확인한다.
+상태: 확인 대기 · 체크리스트 1/4 통과
+다음 행동: 코드 리뷰와 부활 시 적 재생성, 영구 처치 제한을 확인한다.
 
 - 요청: UWxSpawnerLibrary 제거, BP 작업 최소화.
 - 구현 완료: AWxSpawner::RespawnAll C++ 전용 함수로 일괄 재생성을 이동. 플레이어 부활·StateTree의 C++ 호출부 전환. 라이브러리 헤더/cpp 삭제.
@@ -15,7 +15,7 @@
 
 | 항목 | 확인 방법 | 담당 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
-| 에셋 로드 | 스포너·부활 StateTree 에셋을 새 프로세스로 로드해 경고·오류가 없는지 확인 | AI | 대기 |  |
+| 에셋 로드 | 스포너·부활 StateTree 에셋을 새 프로세스로 로드해 경고·오류가 없는지 확인 | AI | 통과 | 2026-09-27 임시 자동화 테스트(헤드리스 Editor Development, 확인 뒤 삭제): ST_CheckPoint·BP_CheckPoint·ST_QuestStep_KillEnemies·ST_Quest_Main1·ST_Quest_Main2와 스포너가 배치된 외부 액터 패키지 23개(LV_DevCombat·LV_OpenWorld·SiegeCannonEmplacement01) 로드 성공, 오류 0. 경고 8건은 스포너와 무관한 없어진 GameplayTag(`Quest.Fail`·`Event.Device.Triggered`) 참조. 같은 날 실제 BP_CheckPoint 상호작용에서 「스포너 리스폰」 태스크도 오류 없이 실행 |
 | 부활 시 적 재생성 | 게임: 적을 처치하고 사망·부활하면 처치한 일반 적이 다시 나타난다 | 사람 | 대기 |  |
 | 영구 처치 제한 | 게임: 영구 처치 대상은 부활 뒤에도 다시 나타나지 않는다 | 사람 | 대기 |  |
 | 코드 리뷰 | AWxSpawner::RespawnAll과 부활·StateTree 호출부 | 사람 | 대기 |  |
