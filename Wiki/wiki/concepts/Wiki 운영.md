@@ -2,7 +2,7 @@
 type: concept
 title: "Wiki 운영"
 created: 2026-09-26
-updated: 2026-09-26
+updated: 2026-09-27
 status: developing
 tags:
   - concept
@@ -22,6 +22,7 @@ sources:
   - "[[작업 - wiki-claude-obsidian-migration]]"
   - "[[작업 - workflow-final-fixes]]"
   - "[[작업 - workflow-inspection]]"
+  - "[[작업 - workflow-wrapup-checks]]"
 ---
 
 # Wiki 운영
@@ -78,6 +79,7 @@ sources:
 - 문서 이미지 기능 제거는 Export-Wiki 재생성, CheckWikiLinks 0건, 뷰어 자동 테스트, 헤드리스 Edge 렌더로 확인했고 사람의 화면 확인은 노트에 없다. ([[결정 노트 - 2026-09-26-workflow-image-removal]])
 - claude-obsidian 전환의 사람 항목 「Wiki 갱신 버튼」「Obsidian으로 읽기」「Routine 순정 플러그인 설치」는 이우성이 2026-09-26 통과로 확인했다. 버튼 확인 실행은 새 원자료가 없어 커밋이 없었으므로 그 실행으로 쓰기 단계는 확인되지 않았고, 쓰기는 AI의 Windows Codex 시범 갱신(푸시 주소를 막은 사본)과 WSL 쓰기 시험으로 확인했다. ([[작업 - wiki-claude-obsidian-migration]])
 - 전환 작업의 사람 코드 리뷰는 2026-09-27 사용자 결정으로 이번에만 AI 코드 리뷰로 대신했고, 다음 날 예약 실행과 대시보드 Wiki 갱신의 실제 확인은 확인 대기 기록 `workflow-wrapup-checks.md`로 옮겨졌다. ([[작업 - wiki-claude-obsidian-migration]], [[작업 - workflow-inspection]])
+- 2026-09-27 woogle은 대시보드 Wiki 갱신을 한 번 끝까지 실행한 결과와 9/27 06:30(KST) Wiki 정기 갱신 결과를 통과로 확인했다. ([[작업 - workflow-wrapup-checks]])
 
 ## 미결정·충돌
 
@@ -102,3 +104,4 @@ sources:
 - [[작업 - wiki-claude-obsidian-migration]] — 옛 LLM Wiki를 claude-obsidian vault로 바꾸고 정기·즉시 Wiki 갱신을 만든 2026-09-26 완료 작업 기록
 - [[작업 - workflow-final-fixes]] — 최종 마무리 코드 리뷰 지적 수정과 워크플로우·Wiki 독립 관리 결정을 담은 2026-09-27 완료 작업 기록
 - [[작업 - workflow-inspection]] — 순정 우선·장치 축소·SSOT 기준의 워크플로우 종합 점검과 Wiki 절차 순정화·기한 결정을 담은 2026-09-26 완료 작업 기록
+- [[작업 - workflow-wrapup-checks]] — 워크플로우 개선 다섯 건의 남은 사람 확인을 통폐합하고 AI 코드 리뷰로 대신한 2026-09-27 완료 작업 기록

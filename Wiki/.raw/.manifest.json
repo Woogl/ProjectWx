@@ -113,6 +113,15 @@
       "source_id": "src-ef89d987e8946eef6271",
       "title": ".wiki/raw/notes/2026-09-26-workflow-image-removal.md"
     },
+    ".raw/captured/1b1a8ca3d6f0d5dc12a937dd3cd18b0856aa1815fa6ddc7317d5559c3e51e908.md": {
+      "ingested": "2026-09-27",
+      "pages": [
+        "wiki/sources/작업 - spawner-library-removal.md"
+      ],
+      "sha256": "1b1a8ca3d6f0d5dc12a937dd3cd18b0856aa1815fa6ddc7317d5559c3e51e908",
+      "source_id": "src-2dd920527f56cb3f8771",
+      "title": ".agents/workflow/tasks/spawner-library-removal.md"
+    },
     ".raw/captured/1b1ac274ccc99ee5a0c1f2401597cbad82f408872f620216cc592223cc8c38b0.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -481,6 +490,15 @@
       "source_id": "src-b41b3e5cba0feec06842",
       "title": ".wiki/raw/notes/2026-09-24-wxcombat-cleanup.md"
     },
+    ".raw/captured/6181e48bb2dd601aa5de9613f0bb5dd0f28ea92203ce0b50e35803c606d1b738.md": {
+      "ingested": "2026-09-27",
+      "pages": [
+        "wiki/sources/작업 - comment-cleanup-routine.md"
+      ],
+      "sha256": "6181e48bb2dd601aa5de9613f0bb5dd0f28ea92203ce0b50e35803c606d1b738",
+      "source_id": "src-1c802b86b4e0c4b04c6f",
+      "title": ".agents/workflow/tasks/comment-cleanup-routine.md"
+    },
     ".raw/captured/6212e2170cab28bdcf85566e9b536305e082a4e34d18462f2834707e127125ee.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -498,6 +516,15 @@
       "sha256": "63a9bcb713a22d060efe50277c576b84b6c3b7c629bb4a21ad71280c4b48bfb1",
       "source_id": "src-3bd37c07acf8bbad4701",
       "title": ".wiki/raw/notes/2026-09-25-exclusive-submission-cleanup.md"
+    },
+    ".raw/captured/64ebec0b27a873d0d5ff9a9c2619337bf3fbfff65056679ec411cc018df8b7e5.md": {
+      "ingested": "2026-09-27",
+      "pages": [
+        "wiki/sources/작업 - workflow-wrapup-checks.md"
+      ],
+      "sha256": "64ebec0b27a873d0d5ff9a9c2619337bf3fbfff65056679ec411cc018df8b7e5",
+      "source_id": "src-4cc865ee30b50aece97e",
+      "title": ".agents/workflow/tasks/workflow-wrapup-checks.md"
     },
     ".raw/captured/65032a2eeccae1de8b02306c9b4a8ca7c236cabec2ca70a9fa93246f5704a17f.md": {
       "ingested": "2026-09-26",
@@ -723,6 +750,15 @@
       "source_id": "src-31e474b69a18800c3fa0",
       "title": ".wiki/raw/notes/2026-09-24-nameplate-manager.md"
     },
+    ".raw/captured/9bc5aa0c5b27785660500cbc848027e1be0e6353819e8dea249161f8105e6e86.md": {
+      "ingested": "2026-09-27",
+      "pages": [
+        "wiki/sources/작업 - headless-ai-testing.md"
+      ],
+      "sha256": "9bc5aa0c5b27785660500cbc848027e1be0e6353819e8dea249161f8105e6e86",
+      "source_id": "src-57ab0fb2b119c6dd0d6b",
+      "title": ".agents/workflow/tasks/headless-ai-testing.md"
+    },
     ".raw/captured/9e5f21eddd56c690e6229d52af085197c8a9342c56298a67c33275b09602ae76.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -922,6 +958,15 @@
       "source_id": "src-7ee37681d10241dffc83",
       "title": ".wiki/raw/notes/2026-09-25-ui-data-interface-removal.md"
     },
+    ".raw/captured/cb8ffbe580deeced4b5d1f4d3e3063365b7607d7f1bfc9b64507dac59e7fdcb4.md": {
+      "ingested": "2026-09-27",
+      "pages": [
+        "wiki/sources/작업 - checkpoint-savegame.md"
+      ],
+      "sha256": "cb8ffbe580deeced4b5d1f4d3e3063365b7607d7f1bfc9b64507dac59e7fdcb4",
+      "source_id": "src-5b9c25cebf177d2df0e0",
+      "title": ".agents/workflow/tasks/checkpoint-savegame.md"
+    },
     ".raw/captured/cbaedec2f43d791ee90da776e29260366415dfd55a6aaf50b64f9e6de53d296f.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -1039,6 +1084,15 @@
       "sha256": "dce4c862ecb2c25d2de83da215c577e4d4b5a10a8229579b1baf7e860869d337",
       "source_id": "src-281f68be3034243b724f",
       "title": ".wiki/raw/notes/2026-09-23-interaction-list-vm.md"
+    },
+    ".raw/captured/de7a66490ad501e11e4211b5678afbcb64ab8e64ad9e16e33eddc0597ea7abc9.md": {
+      "ingested": "2026-09-27",
+      "pages": [
+        "wiki/sources/작업 - 이동속도의-어트리뷰트화.md"
+      ],
+      "sha256": "de7a66490ad501e11e4211b5678afbcb64ab8e64ad9e16e33eddc0597ea7abc9",
+      "source_id": "src-a1636a3bf5be9cea88c3",
+      "title": ".agents/workflow/tasks/이동속도의-어트리뷰트화.md"
     },
     ".raw/captured/df5e4463b4bfe0308075828c9cf94eefec6fa155651cf035af336138da271bdd.md": {
       "ingested": "2026-09-26",

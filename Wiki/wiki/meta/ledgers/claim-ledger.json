@@ -400,6 +400,146 @@
       "supersedes": null,
       "text": "네 인자 ApplyDamage에서 투사체는 저장된 ProjectileLevel과 Ability=nullptr를, 일반 공격은 적용 직전 AnimatingAbility와 그 레벨(없으면 1)을 사용한다."
     },
+    "clm-112f66c6bf-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/de7a66490ad501e11e4211b5678afbcb64ab8e64ad9e16e33eddc0597ea7abc9.md",
+          "relation": "supports",
+          "source_id": "src-a1636a3bf5be9cea88c3"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - 이동속도의-어트리뷰트화.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자(woogle)는 2026-09-27 MaxWalkSpeed에 MOV 스탯을 배율로 곱하던 방식을 MOV 스탯이 이동 속도(cm/s) 자체가 되도록 바꾸고 어트리뷰트 테이블에 MOV 입력을 추가하라고 요청했고, 같은 날 구현 계획을 승인했다."
+    },
+    "clm-112f66c6bf-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/de7a66490ad501e11e4211b5678afbcb64ab8e64ad9e16e33eddc0597ea7abc9.md",
+          "relation": "supports",
+          "source_id": "src-a1636a3bf5be9cea88c3"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - 이동속도의-어트리뷰트화.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이 작업으로 UWxCombatAttributeSet::SPD(배율, 기본 1.0)는 MOV로 이름과 의미가 바뀌었고, 캐릭터의 MaxWalkSpeed는 MOV 값을 그대로 쓰며 기본 이동 속도는 DT_CharacterAttribute의 MOV 열 한 곳에서만 정한다(열 기본값 0, 캐릭터 생성자의 500/400과 InitSPD(1) 삭제)."
+    },
+    "clm-112f66c6bf-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/de7a66490ad501e11e4211b5678afbcb64ab8e64ad9e16e33eddc0597ea7abc9.md",
+          "relation": "supports",
+          "source_id": "src-a1636a3bf5be9cea88c3"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - 이동속도의-어트리뷰트화.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "MOV 전환 뒤 질주(×1.5)와 정찰·배회 감속은 WxEffect_MoveSpeedScale이 MOV에 배율을 곱하고, 도플갱어 추적은 WxBTService_MirrorMovement가 Master MaxWalkSpeed × 1.25 절대 속도를 SetByCaller.Magnitude로 실어 WxEffect_MoveSpeedOverride로 MOV를 덮어쓴다."
+    },
+    "clm-112f66c6bf-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/de7a66490ad501e11e4211b5678afbcb64ab8e64ad9e16e33eddc0597ea7abc9.md",
+          "relation": "supports",
+          "source_id": "src-a1636a3bf5be9cea88c3"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - 이동속도의-어트리뷰트화.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "네트워크 PIE에서 클라이언트 적이 InitAbilitySystem을 거치지 않아 MaxWalkSpeed가 엔진 기본값 600으로 남는 회귀가 나와, MOV 구독과 1회 적용은 계획과 달리 PostInitializeComponents로 옮겨졌다."
+    },
+    "clm-112f66c6bf-c5": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/de7a66490ad501e11e4211b5678afbcb64ab8e64ad9e16e33eddc0597ea7abc9.md",
+          "relation": "supports",
+          "source_id": "src-a1636a3bf5be9cea88c3"
+        }
+      ],
+      "location": {
+        "anchor": "^c5",
+        "path": "wiki/sources/작업 - 이동속도의-어트리뷰트화.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "DT_CharacterAttribute의 MOV는 TemplatePlayer·HGTest 500, TemplateEnemy·Sandbag·Boss·Minion 400으로 채워졌고, 리슨 서버와 클라이언트 PIE에서 플레이어 500·적 400·적 배회 감속 중 200을 AI가 확인했으며, 질주·적·도플갱어 속도와 MOV 1000 변경은 woogle이 2026-09-27 통과로 확인했다."
+    },
+    "clm-112f66c6bf-c6": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/de7a66490ad501e11e4211b5678afbcb64ab8e64ad9e16e33eddc0597ea7abc9.md",
+          "relation": "supports",
+          "source_id": "src-a1636a3bf5be9cea88c3"
+        }
+      ],
+      "location": {
+        "anchor": "^c6",
+        "path": "wiki/sources/작업 - 이동속도의-어트리뷰트화.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이 작업 완료 시점에도 기획서 `Docs/CombatDesign/캐릭터 스탯 명세서.md`는 SPD를 이동 속도 배율로 정의했고, MOV(cm/s)로 바꾸자는 수정 제안만 보고에 남기고 기획서는 고치지 않았다."
+    },
+    "clm-112f66c6bf-c7": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/de7a66490ad501e11e4211b5678afbcb64ab8e64ad9e16e33eddc0597ea7abc9.md",
+          "relation": "supports",
+          "source_id": "src-a1636a3bf5be9cea88c3"
+        }
+      ],
+      "location": {
+        "anchor": "^c7",
+        "path": "wiki/sources/작업 - 이동속도의-어트리뷰트화.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "코드 리뷰에서 woogle은 2026-09-27 \"WxCombatAttributeInitTableRow.h 에서 Units 쓰지 마세요.\"라고 지적했고, MOV 열은 이웃 열처럼 ClampMin 메타만 둔다."
+    },
     "clm-11befcd369-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -2320,6 +2460,86 @@
       "supersedes": null,
       "text": "작업 절차 정본은 명확한 지시를 구현 승인으로 보는 규칙을 AI 대화로 한정하며, 웹 새 작업은 항상 정하기부터 시작한다."
     },
+    "clm-56dd9d7bc4-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/6181e48bb2dd601aa5de9613f0bb5dd0f28ea92203ce0b50e35803c606d1b738.md",
+          "relation": "supports",
+          "source_id": "src-1c802b86b4e0c4b04c6f"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - comment-cleanup-routine.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "매일 06:00(KST) main에 바로 푸시하는 클라우드 Routine 「일일 주석 정리 + 푸시」는 Git에 없는 `.claude/skills/comment-cleanup/SKILL.md`를 가리켰고, 얕은 클론 경계 커밋 때문에 대상이 저장소 전체로 잡힐 수 있었다(9/26 실행이 523개로 잡았다가 126개로 바로잡음)."
+    },
+    "clm-56dd9d7bc4-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/6181e48bb2dd601aa5de9613f0bb5dd0f28ea92203ce0b50e35803c606d1b738.md",
+          "relation": "supports",
+          "source_id": "src-1c802b86b4e0c4b04c6f"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - comment-cleanup-routine.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이우성의 2026-09-27 승인(\"네, 고쳐주세요\")으로 주석 정리 무인 실행 절차는 `.agents/skills/comment-cleanup/SKILL.md` 6절로 옮겨졌고, 대상은 기간 앞 마지막 main 커밋 BASE와 기간 끝 앞 마지막 커밋 TIP 사이 범위로 고르며 푸시는 `git push origin HEAD:main`으로 한다."
+    },
+    "clm-56dd9d7bc4-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/6181e48bb2dd601aa5de9613f0bb5dd0f28ea92203ce0b50e35803c606d1b738.md",
+          "relation": "supports",
+          "source_id": "src-1c802b86b4e0c4b04c6f"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - comment-cleanup-routine.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "얕은 클론 재현에서 6절 절차는 9/25 기간 대상 129개로 전체 이력의 정답과 목록까지 같았고(옛 절차 523개), 2026-09-27 수동 실행 한 번이 6절대로 대상 0개를 구해 커밋·푸시 없이 끝났다."
+    },
+    "clm-56dd9d7bc4-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/6181e48bb2dd601aa5de9613f0bb5dd0f28ea92203ce0b50e35803c606d1b738.md",
+          "relation": "supports",
+          "source_id": "src-1c802b86b4e0c4b04c6f"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - comment-cleanup-routine.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "comment-cleanup-routine 작업은 작업 절차에서 Git에 파일이 없는 `Docs/Programmer/` 읽기 전용 규칙을 지웠고, 기록 형식 두 건과 옛 이름 잔재는 고치지 않았으며 꺼진 옛 Routine 3개 삭제는 사용자가 따로 정한다고 남겼다."
+    },
     "clm-59a4d3a7e7-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -2839,6 +3059,86 @@
       "risk": "normal",
       "supersedes": null,
       "text": "boss_common_bt_draft 문서는 보스의 그로기 상태 처리 여부와 상위 우선순위 반영 방식을 추후 세부화 항목으로 남긴다."
+    },
+    "clm-64f972a5a1-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/9bc5aa0c5b27785660500cbc848027e1be0e6353819e8dea249161f8105e6e86.md",
+          "relation": "supports",
+          "source_id": "src-57ab0fb2b119c6dd0d6b"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - headless-ai-testing.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이우성은 2026-09-27 테스트 체크리스트에서 AI가 헤드리스 환경에서 테스트할 수 있는 모든 것은 AI가 끝까지 테스트하고, 도저히 AI가 테스트할 수 없는 부분만 사람이 테스트하도록 요청했다."
+    },
+    "clm-64f972a5a1-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/9bc5aa0c5b27785660500cbc848027e1be0e6353819e8dea249161f8105e6e86.md",
+          "relation": "supports",
+          "source_id": "src-57ab0fb2b119c6dd0d6b"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - headless-ai-testing.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "headless-ai-testing 작업으로 웹 처리에서 AI가 미실행·대기로 돌려준 AI 항목은 사람 항목으로 넘어가지 않고 담당 AI 그대로 실패로 남게 됐다(Workflow-TestFeedback.cjs handOver)."
+    },
+    "clm-64f972a5a1-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/9bc5aa0c5b27785660500cbc848027e1be0e6353819e8dea249161f8105e6e86.md",
+          "relation": "supports",
+          "source_id": "src-57ab0fb2b119c6dd0d6b"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - headless-ai-testing.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "headless-ai-testing 작업은 작업 절차에 사람 항목을 코드 리뷰와 화면·소리·조작감·연출처럼 헤드리스로 판정할 수 없는 것만 두고, 임시 테스트 코드·에셋은 결과를 근거에 남긴 뒤 인계 전에 지우도록 적었다."
+    },
+    "clm-64f972a5a1-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/9bc5aa0c5b27785660500cbc848027e1be0e6353819e8dea249161f8105e6e86.md",
+          "relation": "supports",
+          "source_id": "src-57ab0fb2b119c6dd0d6b"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - headless-ai-testing.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "headless-ai-testing 변경은 워크플로우 Node 테스트 4개, handOver 결함 주입, 문서 링크 검사(40개 문서 오류 0), 헤드리스 Edge 캡처로 확인했고 woogle이 2026-09-27 코드 리뷰를 통과시켰다."
     },
     "clm-6654fc7c0c-c1": {
       "assessment": "accepted",
@@ -3979,6 +4279,106 @@
       "risk": "normal",
       "supersedes": null,
       "text": "상호작용 계약 통합은 WxEditor 빌드만 통과했고 인게임 동작은 확인하지 않았다."
+    },
+    "clm-8cd541d961-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/cb8ffbe580deeced4b5d1f4d3e3063365b7607d7f1bfc9b64507dac59e7fdcb4.md",
+          "relation": "supports",
+          "source_id": "src-5b9c25cebf177d2df0e0"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - checkpoint-savegame.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-27 헤드리스 게임(LV_DevCombat -game -nullrhi) 임시 자동화 테스트에서 실제 BP_CheckPoint에서 쉰 뒤 사망해 사망 화면의 RequestRespawn으로 부활하면 체크포인트 위치에서 부활하고, 새 게임은 체크포인트 슬롯을 지웠다."
+    },
+    "clm-8cd541d961-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/cb8ffbe580deeced4b5d1f4d3e3063365b7607d7f1bfc9b64507dac59e7fdcb4.md",
+          "relation": "supports",
+          "source_id": "src-5b9c25cebf177d2df0e0"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - checkpoint-savegame.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-27 헤드리스 테스트에서 PIE 이름 월드가 저장한 WxCheckpoint 슬롯을 새 프로세스의 일반 월드가 읽었고, 재시작한 게임에서 사망하면 저장된 체크포인트에서 부활했다."
+    },
+    "clm-8cd541d961-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/cb8ffbe580deeced4b5d1f4d3e3063365b7607d7f1bfc9b64507dac59e7fdcb4.md",
+          "relation": "supports",
+          "source_id": "src-5b9c25cebf177d2df0e0"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - checkpoint-savegame.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "체크포인트 저장 실패 시 태스크 실패와 이전 체크포인트 유지, 슬롯 없음·다른 레벨·빈 파일·잘린 파일의 체크포인트 없음 처리, 새 게임의 슬롯 삭제 실패 시 이동 중단은 2026-09-27 자동화 테스트로 확인했고, 체크포인트 없음에서 RestartPlayer로 가는 부활 분기는 코드로만 확인했다."
+    },
+    "clm-8cd541d961-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/cb8ffbe580deeced4b5d1f4d3e3063365b7607d7f1bfc9b64507dac59e7fdcb4.md",
+          "relation": "supports",
+          "source_id": "src-5b9c25cebf177d2df0e0"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - checkpoint-savegame.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자가 2026-09-25 BP_CheckPoint의 RespawnPoint 컴포넌트를 Capsule로 바꾼 뒤 ST_CheckPoint의 체크포인트 저장 태스크가 여전히 RespawnPoint를 가리켜 저장이 실패했고 그동안 부활은 항상 PlayerStart였으며, 2026-09-27 태스크가 Capsule을 가리키도록 고쳐 `22d82a746`로 제출됐다."
+    },
+    "clm-8cd541d961-c5": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/cb8ffbe580deeced4b5d1f4d3e3063365b7607d7f1bfc9b64507dac59e7fdcb4.md",
+          "relation": "supports",
+          "source_id": "src-5b9c25cebf177d2df0e0"
+        }
+      ],
+      "location": {
+        "anchor": "^c5",
+        "path": "wiki/sources/작업 - checkpoint-savegame.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "UE 저장 파일이 아닌 임의 내용의 체크포인트 슬롯은 엔진 LoadGameFromSlot이 크래시하지만, 엔진 순정 동작이고 사람이 파일을 직접 바꿔야 생기는 경우라 조치하지 않았다."
     },
     "clm-8f97502eb6-c1": {
       "assessment": "accepted",
@@ -6205,6 +6605,66 @@
       "supersedes": null,
       "text": "노트 시점에 이 변경은 컴파일만 통과했고 링크는 LNK1104로 실패했으며 에디터 화면은 확인되지 않았다."
     },
+    "clm-d50f102421-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/1b1a8ca3d6f0d5dc12a937dd3cd18b0856aa1815fa6ddc7317d5559c3e51e908.md",
+          "relation": "supports",
+          "source_id": "src-2dd920527f56cb3f8771"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - spawner-library-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-27 헤드리스 에디터 임시 자동화 테스트에서 ST_CheckPoint·BP_CheckPoint·퀘스트 StateTree와 스포너가 배치된 외부 액터 패키지 23개가 오류 없이 로드됐고, 경고 8건은 스포너와 무관한 없어진 GameplayTag(Quest.Fail·Event.Device.Triggered) 참조였다."
+    },
+    "clm-d50f102421-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/1b1a8ca3d6f0d5dc12a937dd3cd18b0856aa1815fa6ddc7317d5559c3e51e908.md",
+          "relation": "supports",
+          "source_id": "src-2dd920527f56cb3f8771"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - spawner-library-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-27 헤드리스 게임 테스트에서 처치한 일반 스포너의 적은 사망·부활(RequestRespawn의 RespawnAll) 뒤 새로 스폰되고 시체가 정리됐으며, bNeverRevive 스포너의 적은 부활 뒤에도 다시 나타나지 않았다."
+    },
+    "clm-d50f102421-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/1b1a8ca3d6f0d5dc12a937dd3cd18b0856aa1815fa6ddc7317d5559c3e51e908.md",
+          "relation": "supports",
+          "source_id": "src-2dd920527f56cb3f8771"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - spawner-library-removal.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "AWxSpawner::RespawnAll과 부활·StateTree 호출부의 코드 리뷰는 woogle이 2026-09-27 통과시켰다."
+    },
     "clm-d65a7c607a-c1": {
       "assessment": "accepted",
       "confidence": "high",
@@ -6904,6 +7364,86 @@
       "risk": "normal",
       "supersedes": null,
       "text": "2026-09-26 최신화 시점 Export-AbilitySystemLists.ps1 재실행 결과 어빌리티·이펙트·캐릭터 목록은 모두 변하지 않았다."
+    },
+    "clm-e92d4abb00-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/64ebec0b27a873d0d5ff9a9c2619337bf3fbfff65056679ec411cc018df8b7e5.md",
+          "relation": "supports",
+          "source_id": "src-4cc865ee30b50aece97e"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - workflow-wrapup-checks.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-27 사용자 요청으로 워크플로우 개선 기록 다섯 개에 남은 사람 항목 11개와 전환 계획 재승인을 코드·실행 이력과 대조해 아직 유효한 확인 다섯 항목으로 합치고, 다섯 기록은 AI 항목이 모두 통과한 상태로 닫았다."
+    },
+    "clm-e92d4abb00-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/64ebec0b27a873d0d5ff9a9c2619337bf3fbfff65056679ec411cc018df8b7e5.md",
+          "relation": "supports",
+          "source_id": "src-4cc865ee30b50aece97e"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - workflow-wrapup-checks.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자는 2026-09-27 워크플로우 개선의 사람 코드 리뷰를 이번에만 건너뛰기로 했고(\"워크플로우 개선에 대해서 코드 리뷰는 이번에만 스킵하는거에요\"), 대신 새 문맥의 AI가 `70d34744d..5792614e9` 변경을 검토해 높음 0·중간 1·낮음 6 지적을 모두 코드로 확인하고 고쳤다."
+    },
+    "clm-e92d4abb00-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/64ebec0b27a873d0d5ff9a9c2619337bf3fbfff65056679ec411cc018df8b7e5.md",
+          "relation": "supports",
+          "source_id": "src-4cc865ee30b50aece97e"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - workflow-wrapup-checks.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "woogle은 2026-09-27 대시보드 사용감, 대시보드 Wiki 갱신 실제 실행, 9/27 06:30(KST) Wiki 정기 갱신, 휴지통 정리 확인을 모두 통과로 확인했다."
+    },
+    "clm-e92d4abb00-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/64ebec0b27a873d0d5ff9a9c2619337bf3fbfff65056679ec411cc018df8b7e5.md",
+          "relation": "supports",
+          "source_id": "src-4cc865ee30b50aece97e"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - workflow-wrapup-checks.md"
+      },
+      "notes": null,
+      "reviewed_at": "2026-09-27",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "AI 코드 리뷰의 중간 지적은 옛 이름(Wiki-AI.cjs)으로 떠 있는 서버를 새 시작 스크립트가 알아보지 못하는 문제였고, 시작 스크립트는 이 저장소의 서버임을 확인한 뒤 포트를 잡은 프로세스로 알아보도록 고쳤다."
     },
     "clm-ea855c6222-c1": {
       "assessment": "accepted",
@@ -8006,6 +8546,6 @@
       "text": "퀘스트 추적기 리졸버 구조는 2026-09-23 사용자가 인게임에서 문제없다고 확인했다."
     }
   },
-  "generated_at": "2026-09-26T17:55:04Z",
+  "generated_at": "2026-09-27T22:00:00Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }

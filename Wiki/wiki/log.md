@@ -3,7 +3,7 @@ type: meta
 title: Wiki Log
 status: evergreen
 created: 2026-09-26
-updated: 2026-09-26
+updated: 2026-09-27
 tags:
   - meta
   - log
@@ -12,6 +12,10 @@ tags:
 # Wiki Log
 
 Newest completed operations appear first.
+
+## 2026-09-27 · ingest-20260927T2200Z-task-records
+
+새로 완료된 작업 기록 6건을 수집했다: [[작업 - 이동속도의-어트리뷰트화]], [[작업 - checkpoint-savegame]], [[작업 - spawner-library-removal]], [[작업 - headless-ai-testing]], [[작업 - workflow-wrapup-checks]], [[작업 - comment-cleanup-routine]]. [[캐릭터 스탯과 전투 자원]]과 [[적 AI와 몬스터]]에 이동 속도 SPD(배율) → MOV(cm/s) 전환을 더하고, 기획서 캐릭터 스탯 명세서의 SPD 배율 정의와 어긋남을 미결정·충돌에 적었다. [[체크포인트와 리스폰]]에 2026-09-27 헤드리스 확인(사망·부활·재시작·실패 처리·스포너 재생성)과 부활 위치 컴포넌트 참조 결함 수정을 더하고, 옛 「인게임 미검증」 문장에 노트 시점 날짜를 붙였다. [[작업 절차(Workflow)]]에 헤드리스 테스트 결정(AI가 끝내지 못한 AI 항목은 사람 항목이 아니라 AI 실패), 워크플로우 개선 마무리 확인 통과, 일일 주석 정리 Routine 수정을 더하고, 해소된 「workflow-wrapup-checks 미수집」 미결 줄을 검증 범위로 옮겼다. [[Wiki 운영]]에 대시보드 Wiki 갱신·정기 갱신 사람 확인 통과를 더했다. 새 원자료의 재확인 기한은 다른 완료 작업 기록과 같은 2027-03-25로 정했다. 기획서 30개 파일과 나머지 완료 작업 기록 19건은 원장과 해시가 같았고, 30일 안에 재확인 기한이 오는 활성 원자료는 없었다. 기존 주장의 대체·폐기는 없었다. 게임 빌드·실행 재검증은 하지 않았다.
 
 ## 2026-09-26 · ingest-20260926T175000Z-workflow-records
 

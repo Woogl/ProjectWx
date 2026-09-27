@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T17:55:04Z",
+  "generated_at": "2026-09-27T22:00:00Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
     "src-002bb852bfddda1dbe57": {
@@ -401,6 +401,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-22-workflow-closure.md"
     },
+    "src-1c802b86b4e0c4b04c6f": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "6181e48bb2dd601aa5de9613f0bb5dd0f28ea92203ce0b50e35803c606d1b738",
+      "independence_key": ".agents/workflow/tasks/comment-cleanup-routine.md",
+      "ingested_at": "2026-09-27",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/6181e48bb2dd601aa5de9613f0bb5dd0f28ea92203ce0b50e35803c606d1b738.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - comment-cleanup-routine.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-27",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/comment-cleanup-routine.md"
+    },
     "src-1e7934105a2cce2c0778": {
       "authority": "primary",
       "content_kind": "conversation",
@@ -552,6 +571,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-26-animnotify-label-acceptance.md"
+    },
+    "src-2dd920527f56cb3f8771": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "1b1a8ca3d6f0d5dc12a937dd3cd18b0856aa1815fa6ddc7317d5559c3e51e908",
+      "independence_key": ".agents/workflow/tasks/spawner-library-removal.md",
+      "ingested_at": "2026-09-27",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/1b1a8ca3d6f0d5dc12a937dd3cd18b0856aa1815fa6ddc7317d5559c3e51e908.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - spawner-library-removal.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-27",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/spawner-library-removal.md"
     },
     "src-3007dd429116aa422551": {
       "authority": "primary",
@@ -800,6 +838,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-25-exclusive-tag-blocking.md"
     },
+    "src-4cc865ee30b50aece97e": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "64ebec0b27a873d0d5ff9a9c2619337bf3fbfff65056679ec411cc018df8b7e5",
+      "independence_key": ".agents/workflow/tasks/workflow-wrapup-checks.md",
+      "ingested_at": "2026-09-27",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/64ebec0b27a873d0d5ff9a9c2619337bf3fbfff65056679ec411cc018df8b7e5.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - workflow-wrapup-checks.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-27",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/workflow-wrapup-checks.md"
+    },
     "src-4d376dc7383e42ce7fe1": {
       "authority": "primary",
       "content_kind": "conversation",
@@ -895,6 +952,25 @@
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-23-hit-processing-functions.md"
     },
+    "src-57ab0fb2b119c6dd0d6b": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "9bc5aa0c5b27785660500cbc848027e1be0e6353819e8dea249161f8105e6e86",
+      "independence_key": ".agents/workflow/tasks/headless-ai-testing.md",
+      "ingested_at": "2026-09-27",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/9bc5aa0c5b27785660500cbc848027e1be0e6353819e8dea249161f8105e6e86.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - headless-ai-testing.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-27",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/headless-ai-testing.md"
+    },
     "src-5a9d3c91e03b611a51b4": {
       "authority": "primary",
       "content_kind": "document",
@@ -913,6 +989,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".agents/workflow/tasks/workflow-final-fixes.md"
+    },
+    "src-5b9c25cebf177d2df0e0": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "cb8ffbe580deeced4b5d1f4d3e3063365b7607d7f1bfc9b64507dac59e7fdcb4",
+      "independence_key": ".agents/workflow/tasks/checkpoint-savegame.md",
+      "ingested_at": "2026-09-27",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/cb8ffbe580deeced4b5d1f4d3e3063365b7607d7f1bfc9b64507dac59e7fdcb4.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - checkpoint-savegame.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-27",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/checkpoint-savegame.md"
     },
     "src-62727f69018c0cf3ae01": {
       "authority": "primary",
@@ -1597,6 +1692,25 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".wiki/raw/notes/2026-09-25-ability-data-on-ga.md"
+    },
+    "src-a1636a3bf5be9cea88c3": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "de7a66490ad501e11e4211b5678afbcb64ab8e64ad9e16e33eddc0597ea7abc9",
+      "independence_key": ".agents/workflow/tasks/이동속도의-어트리뷰트화.md",
+      "ingested_at": "2026-09-27",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/de7a66490ad501e11e4211b5678afbcb64ab8e64ad9e16e33eddc0597ea7abc9.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - 이동속도의-어트리뷰트화.md"
+      ],
+      "refresh_due": "2027-03-25",
+      "retrieved_at": "2026-09-27",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/이동속도의-어트리뷰트화.md"
     },
     "src-a23a1d7fb94ec48c6dd4": {
       "authority": "primary",
