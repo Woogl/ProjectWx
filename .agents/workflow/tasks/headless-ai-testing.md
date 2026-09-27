@@ -1,7 +1,7 @@
 # 헤드리스 테스트는 AI가 끝까지
 
-상태: 확인 대기 · 체크리스트 3/4 통과
-다음 행동: 사람 확인: 코드 리뷰 (대기)
+상태: 완료 · 체크리스트 4/4 통과
+다음 행동: 변경 시 기록된 테스트 범위와 제약을 참고한다.
 
 - 날짜: 2026-09-27
 - 계기: 체크포인트 SaveGame 전환(checkpoint-savegame.md)처럼 사망·부활·재시작 같은 흐름을 AI가 헤드리스로 판정할 수 있는데도 사람 항목으로 넘기는 일이 있었다.
@@ -31,4 +31,12 @@
 | 워크플로우 Node 테스트 | TestWorkflowTestFeedback·TestWorkflowFeedbackUI·TestWorkflowPage·TestWorkflowProviders | AI | 통과 | 4개 모두 exit 0. 끝내지 못한 AI 항목이 담당 AI·실패·「AI가 끝내지 못함: 이유」로 남고 상태가 실패 확인이 되는지 단언 추가 |
 | 결함 주입 | handOver를 옛 동작(사람 대기로 넘김)으로 되돌려 테스트가 실패하는지 본 뒤 복원 | AI | 통과 | 주입 시 TestWorkflowTestFeedback exit 1, 복원 뒤 exit 0 |
 | 문서·화면 | CheckDocLinks.ps1, Export-WorkflowPage 뒤 헤드리스 Edge로 작업 절차 화면 캡처 | AI | 통과 | 링크 오류 0(40개 문서). 도식의 확인하기 상자 문구·단계 표·예시 체크리스트 4행·새 규칙 목록이 그려짐 |
-| 코드 리뷰 | 변경 파일과 볼 점: process/index.md 테스트 체크리스트 절(사람 항목 기준·섞인 항목 나누기·임시 테스트 삭제 문구가 의도와 맞는지), Workflow-TestFeedback.cjs handOver 한 줄(AI가 끝내지 못한 항목을 사람 대신 AI 실패로 남김), TestWorkflowTestFeedback.cjs 해당 단언 | 사람 | 대기 |  |
+| 코드 리뷰 | 변경 파일과 볼 점: process/index.md 테스트 체크리스트 절(사람 항목 기준·섞인 항목 나누기·임시 테스트 삭제 문구가 의도와 맞는지), Workflow-TestFeedback.cjs handOver 한 줄(AI가 끝내지 못한 항목을 사람 대신 AI 실패로 남김), TestWorkflowTestFeedback.cjs 해당 단언 | 사람 | 통과 | woogle 2026-09-27 |
+
+
+## 사용자 테스트 결과 · 2026-09-27T11:59:24.366Z
+
+<!-- test-feedback:request-9d3f90d4-006a-4a9d-9f9c-5058cf130c84:submitted -->
+- 전달한 사람: woogle
+
+> 통과 · 코드 리뷰
