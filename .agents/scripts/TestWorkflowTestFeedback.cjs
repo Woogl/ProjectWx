@@ -37,7 +37,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.equal(readHead('# 제목\n\n상태: 완료된 일 정리\n').state,'','a state word must be complete');
   assert.equal(writeHead('# 제목\n\n본문\n','완료','체크리스트 1/1 통과','참고한다.'),'# 제목\n\n상태: 완료 · 체크리스트 1/1 통과\n다음 행동: 참고한다.\n\n본문\n');
   assert.equal(writeHead('# 제목\n\n- 상태: 확인 대기 · 단계\n\n본문\n','완료','','없음'),'# 제목\n\n- 상태: 완료\n- 다음 행동: 없음\n\n본문\n');
-  assert.equal(readTaskRecord('a.md','# 리뷰\n\n본문\n').state,'','records without a state line are listed as references');
+  assert.equal(readTaskRecord('a.md','# 리뷰\n\n본문\n').state,'','records without a state line have no state');
   // 표 형식: 머리글·담당·결과를 검사하고 셀의 | 와 줄바꿈은 기록할 때 지운다.
   assert.equal(readChecklist('# 제목\n'),null);
   assert.throws(()=>readChecklist('## 테스트 체크리스트\n\n| 항목 | 결과 |\n| --- | --- |\n'),/머리글/);

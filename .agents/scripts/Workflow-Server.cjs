@@ -123,7 +123,7 @@ if(require.main===module&&process.argv[2]==='--tasks'){
   const tasks=readTasks(repo);
   for(const state of ['확인 대기','진행 중','완료','']){
     const group=tasks.filter(task=>task.state===state);
-    console.log(`\n${state||'상태 없음(리뷰·참고)'} · ${group.length}`);
+    console.log(`\n${state||'상태 없음(대시보드에 안 보임)'} · ${group.length}`);
     for(const task of group)console.log(`- ${task.title} | ${task.summary||'-'} | ${task.next||'-'} | ${task.path}`);
   }
 }else if(require.main===module){

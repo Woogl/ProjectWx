@@ -17,10 +17,11 @@ async function workflowRequest(endpoint, body) {
 // 작업 현황은 기록 파일의 상태 줄에서 만든다. 서버가 연결되면 최신 목록으로 바꾼다.
 let taskRecordFilter='waiting',liveTaskRecords=null;
 function taskRecordGroups() {
-  const groups=[['waiting','확인 대기'],['active','진행 중'],['complete','완료'],['reference','리뷰·참고']].map(([id,title])=>({id,title,items:[]}));
+  const groups=[['waiting','확인 대기'],['active','진행 중'],['complete','완료']].map(([id,title])=>({id,title,items:[]}));
   const records=liveTaskRecords||(data.documents||[]).filter(d=>/^\.agents\/workflow\/tasks\/[^/]+\.md$/.test(d.path))
     .map(d=>WxTaskRecords.readTaskRecord(d.path,d.text,d.modified||'')).sort((a,b)=>b.modified.localeCompare(a.modified));
-  for(const record of records)(groups.find(g=>g.title===record.state)||groups[3]).items.push({title:record.title,path:record.path,evidence:record.summary,next:record.next});
+  // 상태 줄이 없는 기록(모듈 리뷰 등)은 할 일이 아니므로 보여주지 않는다.
+  for(const record of records)groups.find(g=>g.title===record.state)?.items.push({title:record.title,path:record.path,evidence:record.summary,next:record.next});
   return groups;
 }
 // Wiki 갱신: 고른 AI가 이 PC에서 Wiki/README.md 절차로 갱신한다. 상태는 서버에 있고 진행 중에만 다시 읽는다.
@@ -82,9 +83,8 @@ function renderTaskRecords() {
   list.id='task-record-list';list.setAttribute('tabindex','-1');list.setAttribute('aria-label',group.title);
   list.append(el('h3',group.title+' · '+group.items.length));
   if(group.id==='complete')list.append(el('p','기록 당시 완료·사용자 확인 범위입니다. 남은 제약은 상세 기록에 보존되어 있습니다. 새 문제는 새 작업으로 요청하세요.','notice'));
-  if(group.id==='reference')list.append(el('p','상태 줄이 없는 기록입니다. 모듈 리뷰의 지적을 고치려면 새 작업으로 요청하세요.','notice'));
   if(!group.items.length)list.append(el('p','이 상태의 작업이 없습니다.','notice'));
-  // 확인 대기·진행 중은 작업 탭에서 이어가며 AI 처리 상태를 붙이고, 완료·리뷰·참고는 기록을 읽기만 한다. 행마다 같은 버튼 이름에 작업 제목을 붙여 읽는다.
+  // 확인 대기·진행 중은 작업 탭에서 이어가며 AI 처리 상태를 붙이고, 완료는 기록을 읽기만 한다. 행마다 같은 버튼 이름에 작업 제목을 붙여 읽는다.
   const working=group.id==='waiting'||group.id==='active';
   for(const item of group.items){
     const link=el('div',undefined,'record-item');

@@ -93,11 +93,12 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   assert.match(script, /await mermaid\.run\(\{ nodes: \[diagram\] \}\)/, 'diagrams render with stock mermaid.run');
   assert.ok(html.includes('.wiki-diagram svg{display:block;'), 'rendered diagrams stay centered');
   console.log('PASS page rebuilt from sources, script closing text, marked rules, safe fragment and stock Mermaid rendering');
-  // Work records are listed from their own state lines without the local server, including records without a state.
-  assert.equal(vm.runInContext("taskRecordGroups().map(g=>g.title).join(',')", context), '확인 대기,진행 중,완료,리뷰·참고');
+  // Work records are listed from their own state lines without the local server; records without a state are left out.
+  assert.equal(vm.runInContext("taskRecordGroups().map(g=>g.title).join(',')", context), '확인 대기,진행 중,완료');
   const indexedPaths = Array.from(vm.runInContext('taskRecordGroups().flatMap(g=>g.items.map(item=>item.path))', context));
-  const taskPaths = data.documents.map(d => d.path).filter(p => /^\.agents\/workflow\/tasks\/[^/]+\.md$/.test(p));
-  assert.deepEqual(indexedPaths.slice().sort(), taskPaths.sort(), 'every Markdown task must be listed exactly once');
+  const taskPaths = data.documents.filter(d => /^\.agents\/workflow\/tasks\/[^/]+\.md$/.test(d.path) && vm.runInContext(`WxTaskRecords.readTaskRecord('', ${JSON.stringify(d.text)}).state`, context)).map(d => d.path);
+  assert.deepEqual(indexedPaths.slice().sort(), taskPaths.sort(), 'every Markdown task with a state must be listed exactly once');
+  assert.ok(!indexedPaths.some(p => p.includes('module_review_')), 'module reviews have no state and are not listed');
   assert.ok(byId('task-records').children.length > 0, 'records are available before the local server connects');
   // 메뉴는 화면 셋이고 지금 화면을 aria-current로 알린다. 첫 화면은 대시보드이고 제목으로 포커스를 옮긴다.
   const menu = byId('nav').children[0].children;
@@ -106,7 +107,7 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   assert.deepEqual(menu.map(link => link.attributes['aria-current']), ['page', undefined, undefined]);
   assert.equal(focused, byId('dashboard-title'), 'the first view focuses its heading');
   const recordFilters = () => byId('task-records').children.find(n => n.className === 'record-filters').children;
-  assert.equal(recordFilters().length, 4);
+  assert.equal(recordFilters().length, 3);
   recordFilters()[2].onclick();
   assert.equal(vm.runInContext('taskRecordFilter', context), 'complete');
   assert.equal(recordFilters()[2].attributes['aria-pressed'], 'true');
@@ -119,9 +120,6 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
     assert.ok(indexedPaths.some(p => actions.find(c => c.tagName === 'A').href === '#' + encodeURIComponent(p)));
     assert.ok(!actions.some(c => c.tagName === 'BUTTON'), 'completed records only open the record');
   }
-  recordFilters()[3].onclick();
-  for (const item of byId('task-records').children.at(-1).children.filter(n => n.className === 'record-item'))
-    assert.ok(!item.children.find(c => c.className === 'record-actions').children.some(c => c.tagName === 'BUTTON'), 'reference records have no task panel');
   assert.deepEqual(byId('task-records').children[0].children.map(c => c.tagName + ':' + c.textContent), ['H2:확인할 일과 작업 기록', 'BUTTON:새 작업', 'BUTTON:Wiki 갱신'], 'the dashboard heading starts new tasks and the Wiki update');
   assert.ok(html.includes('id="test-feedback-panel"'), 'generated page includes the task panel');
   // 확인 대기·진행 중은 이어서 작업 버튼과 AI 처리 상태만 두고, 완료는 기록 열기만 둔다. 서버 없이 페이지에 없는 기록은 다시 실행하라고 알린다.
@@ -148,11 +146,11 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   vm.runInContext(String.raw`{
    const extra=[{path:'.agents/workflow/tasks/zz-active.md',text:'# 진행 작업\n\n- 상태: 진행 중 · 구현\n- 다음 행동: 빌드한다.\n',modified:'9999'},{path:'.agents/workflow/tasks/zz-review.md',text:'# 리뷰\n\n상태: 구현 중\n',modified:'9999'}];
    data.documents.push(...extra);
-   try{const groups=taskRecordGroups();globalThis.activeItem=groups[1].items[0];globalThis.referenceTitles=groups[3].items.map(item=>item.title);}
+   try{const groups=taskRecordGroups();globalThis.activeItem=groups[1].items[0];globalThis.listedTitles=groups.flatMap(g=>g.items.map(item=>item.title));}
    finally{data.documents.splice(-2,2);}
   }`, context);
   assert.deepEqual(JSON.parse(JSON.stringify(context.activeItem)), { title: '진행 작업', path: '.agents/workflow/tasks/zz-active.md', evidence: '구현', next: '빌드한다.' });
-  assert.ok(context.referenceTitles.includes('리뷰'), 'a free-form legacy status is listed under reviews and references');
+  assert.ok(!context.listedTitles.includes('리뷰'), 'a free-form legacy status is not listed');
   // Workflow launcher starts the local AI server before opening the generated page.
   const launcher = fs.readFileSync(path.join(root, 'BatchFiles', 'OpenWorkflow.bat'), 'utf8');
   assert.ok(launcher.includes('Start-WorkflowServer.ps1') && launcher.includes('Export-WorkflowPage.ps1" -Open'));
