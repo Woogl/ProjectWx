@@ -3,7 +3,7 @@ type: meta
 title: Wiki Log
 status: evergreen
 created: 2026-09-26
-updated: 2026-09-27
+updated: 2026-09-28
 tags:
   - meta
   - log
@@ -12,6 +12,10 @@ tags:
 # Wiki Log
 
 Newest completed operations appear first.
+
+## 2026-09-28 · ingest-20260928-abilities-b1-v3
+
+완료 기록 첫 묶음 3건(44,173바이트)을 수집했다: [[작업 - ability-directional-section]], [[작업 - ability-resolver-to-wxui]], [[작업 - combo-stage-desync-after-rejection]]. [[어빌리티와 GAS]]의 번호 섹션 모델을 후속 배열 결정으로 대체하고 콤보 단계 이벤트 동기화·검증 한계를 추가했다. [[UI 표시 구조]]에 리졸버 WxGame 복귀를 연결했다. 이전 원자료 요약 2장에 이력 안내를 붙이고 대체된 주장 2건을 deprecated로 보존했다. 기한 재확인 대상은 없었다. 미수집 완료 기록 7건은 다음 묶음으로 남는다. 게임 재실행 검증은 하지 않았다.
 
 ## 2026-09-27 · ingest-20260927T2200Z-task-records
 

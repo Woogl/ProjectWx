@@ -2,7 +2,7 @@
 type: source
 title: "작업 - ability-table-driven"
 created: 2026-09-26
-updated: 2026-09-26
+updated: 2026-09-28
 status: developing
 tags:
   - "source"
@@ -38,6 +38,10 @@ key_claims:
 - 원본: `.agents/workflow/tasks/ability-table-driven.md`
 - 원자료 사본: `.raw/captured/21565402278f1bce23f6a53234d1f2719b5e28af492d15da81730d18ddca3eb8.md` (수집 2026-09-26, 재확인 기한 2027-03-25)
 - 원본 갱신(2026-09-26): 옛 원자료 사본 `.raw/captured/e08ab0df4442cca63ac5a88a17400d167b4417518b3b7e17d258986ab9cdf24e.md`를 대체했다. 2026-09-26 기록 정리로 머리의 옛 `이전 상태:` 문단을 `경과:` 목록 항목으로 바꾸고, 같은 취지로 세 번 전달된 마무리 추가 요청과 그 AI 처리 이력 두 건을 하나로 합쳤다. 작업 내용·상태·검증 범위는 그대로다.
+
+## 후속 반영 · 2026-09-28 UTC
+
+2026-09-25 후속 결정으로 번호 섹션 몽타주 모델은 ComboMontages 배열로 대체됐다. 아래 번호 섹션 설명·주장 c2는 과거 구현 이력이다. 현재 사용 규칙과 검증은 [[작업 - ability-directional-section]]을 따른다.
 
 ## 개요
 

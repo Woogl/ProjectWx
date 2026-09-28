@@ -5801,7 +5801,7 @@
       "text": "ability-table-driven 작업은 어빌리티 테이블 구동 전환을 구현한 뒤 사용자 결정(2026-09-25)으로 어빌리티마다 데이터 전용 GA_ 에셋을 두는 방식으로 돌아가 테이블화 없이 마무리됐다."
     },
     "clm-ba97418dba-c2": {
-      "assessment": "accepted",
+      "assessment": "deprecated",
       "confidence": "high",
       "evidence": [
         {
@@ -5814,8 +5814,8 @@
         "anchor": "^c2",
         "path": "wiki/sources/작업 - ability-table-driven.md"
       },
-      "notes": null,
-      "reviewed_at": "2026-09-26",
+      "notes": "2026-09-25 후속 결정으로 번호 섹션 모델을 ComboMontages 배열로 대체했다. 공격 타입·노티파이 유지 이력은 부정하지 않는다.",
+      "reviewed_at": "2026-09-28",
       "risk": "normal",
       "supersedes": null,
       "text": "ability-table-driven 작업은 GA_ 복귀 뒤에도 공격 4분할 타입, 번호 섹션 몽타주 모델, 처형·컷신·아이템 노티파이를 유지했다."
@@ -6846,7 +6846,7 @@
       "text": "2026-09-23 작업 트리에서 WxViewModelResolver_Ability는 WxGame에서 WxUI 플러그인(WXUI_API)으로 옮겨졌다."
     },
     "clm-da458a7691-c2": {
-      "assessment": "accepted",
+      "assessment": "deprecated",
       "confidence": "high",
       "evidence": [
         {
@@ -6859,8 +6859,8 @@
         "anchor": "^c2",
         "path": "wiki/sources/결정 노트 - 2026-09-23-ability-resolver-module.md"
       },
-      "notes": null,
-      "reviewed_at": "2026-09-26",
+      "notes": "2026-09-24 CoreRedirects 제거가 후속 작업 기록으로 확인됐다. 이전 이관 당시 연결은 역사적 사실로 보존한다.",
+      "reviewed_at": "2026-09-28",
       "risk": "normal",
       "supersedes": null,
       "text": "Ability Resolver 이동 후 DefaultEngine.ini의 CoreRedirects가 /Script/WxGame.WxViewModelResolver_Ability를 /Script/WxUI.WxViewModelResolver_Ability로 연결한다."
@@ -8544,8 +8544,188 @@
       "risk": "normal",
       "supersedes": null,
       "text": "퀘스트 추적기 리졸버 구조는 2026-09-23 사용자가 인게임에서 문제없다고 확인했다."
+    },
+    "clm-c107fac948-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/c107fac948fcc641a68afe44de2cade27c92fcbe38e09c8a803573638a777080.md",
+          "relation": "supports",
+          "source_id": "src-f8621e669bc408db998c"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - ability-directional-section.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": "clm-ba97418dba-c2",
+      "text": "2026-09-25 사용자 결정으로 콤보는 번호 섹션 몽타주 하나 대신 ComboMontages 배열의 단계별 몽타주를 사용하고, 방향 섹션은 각 몽타주 안에서 선택한다."
+    },
+    "clm-c107fac948-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/c107fac948fcc641a68afe44de2cade27c92fcbe38e09c8a803573638a777080.md",
+          "relation": "supports",
+          "source_id": "src-f8621e669bc408db998c"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - ability-directional-section.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "공통 PlayMontage가 입력 수집·로컬 좌표 변환·첫 방향 재생의 TargetData 동기화를 맡으며, 공용 무입력 기본값은 Forward이고 Dodge는 기존 Backstep·후방 기본값을 유지한다."
+    },
+    "clm-c107fac948-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/c107fac948fcc641a68afe44de2cade27c92fcbe38e09c8a803573638a777080.md",
+          "relation": "supports",
+          "source_id": "src-f8621e669bc408db998c"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - ability-directional-section.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "작업 기록은 2026-09-27 단독·리슨 서버와 원격 클라이언트 헤드리스 확인 및 woogle의 2026-09-28 코드 리뷰·콤보 블렌딩·방향 연출 통과를 기록한다."
+    },
+    "clm-941a27a626-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/941a27a626444ed3f7e17b6e1fc06864e7df5690065c17126adfab9f6579d6a4.md",
+          "relation": "supports",
+          "source_id": "src-67788c4f569f518b988d"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - ability-resolver-to-wxui.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "Ability Resolver의 2026-09-23 WxUI 이관은 과거 이력이며, 2026-09-25 IWxUIData 제거 결정 뒤 리졸버는 WxGame으로 복귀했다."
+    },
+    "clm-941a27a626-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/941a27a626444ed3f7e17b6e1fc06864e7df5690065c17126adfab9f6579d6a4.md",
+          "relation": "supports",
+          "source_id": "src-67788c4f569f518b988d"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - ability-resolver-to-wxui.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": "clm-da458a7691-c2",
+      "text": "이관 때 추가한 CoreRedirects는 2026-09-24 제거됐고, 작업 기록은 리다이렉트 없이 관련 WBP 6개 로드·컴파일 오류·경고 0을 기록한다."
+    },
+    "clm-941a27a626-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/941a27a626444ed3f7e17b6e1fc06864e7df5690065c17126adfab9f6579d6a4.md",
+          "relation": "supports",
+          "source_id": "src-67788c4f569f518b988d"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - ability-resolver-to-wxui.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-27 완료 처리 기록은 남았던 실제 슬롯 표시 확인을 IWxUIData 제거 작업의 HUD 플레이 확인(이우성 2026-09-25 통과)으로 마무리했다고 적는다."
+    },
+    "clm-6a3793cf9d-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/6a3793cf9df3641d1190138dab622a1f3f82a43908d1ddc8cb0d83cbf5260244.md",
+          "relation": "supports",
+          "source_id": "src-290cbcdca11539b033a8"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - combo-stage-desync-after-rejection.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-29(KST) 승인된 구현은 입력 발동 측이 콤보 단계를 EventMagnitude로 보내고 서버가 ServerTryActivateAbilityWithEventData 경로에서 받은 단계를 사용하도록 하며, 거절 초기화 ResetCombo·NotifyAbilityFailed 안은 폐기했다."
+    },
+    "clm-6a3793cf9d-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/6a3793cf9df3641d1190138dab622a1f3f82a43908d1ddc8cb0d83cbf5260244.md",
+          "relation": "supports",
+          "source_id": "src-290cbcdca11539b033a8"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - combo-stage-desync-after-rejection.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "UWxAbility_Combo는 이벤트 데이터 단계가 범위 밖이면 첫 단을 사용하고, 이벤트 데이터 없는 AI·도플갱어 미러링·서버 단독 발동은 기존 단계 진행을 유지한다."
+    },
+    "clm-6a3793cf9d-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/6a3793cf9df3641d1190138dab622a1f3f82a43908d1ddc8cb0d83cbf5260244.md",
+          "relation": "supports",
+          "source_id": "src-290cbcdca11539b033a8"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - combo-stage-desync-after-rejection.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "작업 기록의 네트워크 테스트 27회 중 26회는 전 항목 통과했으며, 완료·거절 뒤 다음 입력의 단계 일치는 27회 모두 통과했지만 첫 입력 누락 1회의 원인은 미확인이다."
     }
   },
-  "generated_at": "2026-09-27T22:00:00Z",
+  "generated_at": "2026-09-28T17:59:09Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }

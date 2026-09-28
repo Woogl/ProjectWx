@@ -2,7 +2,7 @@
 type: source
 title: "결정 노트 - 2026-09-23-ability-resolver-module"
 created: 2026-09-26
-updated: 2026-09-26
+updated: 2026-09-28
 status: developing
 tags:
   - "source"
@@ -37,6 +37,10 @@ key_claims:
 
 - 원본: `.wiki/raw/notes/2026-09-23-ability-resolver-module.md`
 - 원자료 사본: `.raw/captured/7ba0c6f3766e89e2b0c45d22cac919c9118480fa6dcd006ba0dc9fbeb3383911.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+
+## 후속 반영 · 2026-09-28 UTC
+
+2026-09-24 CoreRedirects가 제거되고 2026-09-25 책임 분리 뒤 리졸버는 WxGame으로 돌아왔다. 아래는 2026-09-23 정적 조사 이력이다. 후속 확인·완료 근거는 [[작업 - ability-resolver-to-wxui]]를 따른다.
 
 ## 개요
 

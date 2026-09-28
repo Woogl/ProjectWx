@@ -2,12 +2,14 @@
 type: concept
 title: "어빌리티와 GAS"
 created: 2026-09-26
-updated: 2026-09-26
+updated: 2026-09-28
 status: developing
 tags:
   - concept
 summary: "GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조"
 sources:
+  - "[[작업 - ability-directional-section]]"
+  - "[[작업 - combo-stage-desync-after-rejection]]"
   - "[[결정 노트 - 2026-09-23-damage-forward-flow]]"
   - "[[결정 노트 - 2026-09-23-zero-damage-hitstop]]"
   - "[[결정 노트 - 2026-09-24-wxcombat-cleanup]]"
@@ -50,6 +52,8 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 
 ## 확정 결정
 
+- 2026-09-25 사용자는 방향과 콤보를 모두 섹션으로 관리하기 어렵다고 판단해 콤보를 몽타주 배열로 복원했다. 공용 방향 선택은 UWxAbilityBase의 PlayMontage가 맡는다. ([[작업 - ability-directional-section]])
+- 2026-09-29(KST) 사용자는 콤보 입력 발동 측이 EventMagnitude로 단계를 보내고 서버가 따르도록 승인했다. 정상 완료 뒤 어긋남도 있어 거절 초기화만 하는 안은 폐기했다. ([[작업 - combo-stage-desync-after-rejection]])
 - 어빌리티는 테이블 구동 대신 어빌리티마다 구체 타입 C++을 부모로 하는 데이터 전용 GA_ 에셋 하나를 두기로 사용자가 2026-09-25 확정했으며, 규칙 칸 잠금과 BP 그래프 로직 금지는 관례로 둔다. ([[작업 - ability-table-driven]])
 - 공격 어빌리티는 UWxAbility_Attack_Light·Heavy·Air·DodgeCounter 네 타입으로 나누고 캐릭터 공통 발동 조건은 타입 규칙에 둔다. ([[작업 - ability-table-driven]])
 - 행이 에셋과 1:1인 DT_Effect는 제거하고 값은 GE 에셋에 두며, 여러 노티파이·투사체가 행을 골라 쓰는 DT_Damage는 유지한다. ([[작업 - ability-table-driven]])
@@ -70,8 +74,9 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 
 ## 구현 관찰
 
+- 2026-09-29(KST) 콤보 입력 두 경로는 TryActivateInputAbility에서 이벤트 데이터를 담아 InternalTryActivateAbility를 부르며 엔진의 ServerTryActivateAbilityWithEventData를 사용한다. 범위 밖 단계는 첫 단, 데이터 없는 AI·미러링은 기존 진행을 유지한다. ([[작업 - combo-stage-desync-after-rejection]])
 - GA_ 복귀 후 BT가 부르는 GA_는 엔진 AssetTags에 Ability.Skill.N·Ability.Pattern.N 번호 태그를 더하고, 스펙에 SourceObject나 동적 태그를 싣지 않는다. ([[작업 - ability-table-driven]])
-- 콤보·패턴 몽타주는 번호 섹션 1, 2…를 가진 몽타주 하나로 병합되었고 단계 전환은 같은 몽타주를 다음 섹션부터 새로 재생한다. ([[작업 - ability-table-driven]])
+- 과거 테이블 전환의 번호 섹션 모델은 2026-09-25 후속 결정으로 폐기됐다. 콤보·패턴은 ComboMontages 배열로 단계별 몽타주를 두고 각 몽타주 내부의 방향 섹션만 공용으로 고른다. ([[작업 - ability-table-driven]], [[작업 - ability-directional-section]])
 - ApplyCooldown은 CooldownTags를 스펙 DynamicGrantedTags에 붙이고, 같은 태그의 최대 남은 시간에 CooldownTime을 더한 값을 SetByCaller.Duration으로 넘겨 충전을 차례로 회복시킨다. ([[작업 - cooldown-unification]])
 - 공용 쿨다운 GE는 엔진 WarnCooldownEffectWithoutTags 규칙을 만족하도록 Cooldown 부모 태그를 부여하고, 빈 CooldownTags면 CheckCooldown이 먼저 통과시킨다. ([[작업 - cooldown-unification]])
 - 어빌리티 슬롯 VM은 어빌리티 제거로 인스턴스가 Garbage가 된 경우를 IsExplicitlyNull()로 처음부터 빈 슬롯과 구분해 제목·충전을 초기화한다. ([[작업 - ui-data-interface-removal]])
@@ -95,6 +100,8 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 
 ## 검증 범위
 
+- 방향·배열 콤보는 2026-09-27 단독·리슨 서버와 원격 클라이언트 헤드리스 검사, 2026-09-28 woogle의 코드·블렌딩·방향 연출 확인을 통과했다. 방향 스킬·반응은 인스턴스 교체·메모리 사본 검증이다. ([[작업 - ability-directional-section]])
+- 완료·거절 뒤 단계 수정의 27회 반복 중 26회는 전 항목 통과, 다음 입력 단계 일치는 27회 모두 통과했다. 호스트 선입력·후딜 회피·도플갱어 미러링 회귀와 테스트 제거 후 빌드도 통과했다. ([[작업 - combo-stage-desync-after-rejection]])
 - GA_ 복귀는 Development·DebugGame 빌드, GA_ 40개·세트 9개 데이터 검증 커맨드릿, 단독·리슨 서버 PIE로 AI가 확인했고, 사람이 HGTest·분신·도플갱어·조작감·가드 경감·패시브 UP·락온을 인게임으로 통과 확인했다. ([[작업 - ability-table-driven]])
 - 쿨다운 통합은 WxEditor Development 빌드와 GA_ 40개 데이터 검증을 통과했고, 사람이 회피 쿨다운·UI, 소환물 쿨다운 무시, 리슨 서버 네트워크 복제를 인게임으로 확인했다. ([[작업 - cooldown-unification]])
 - 구간 GE 노티파이 변경은 임시 자동화 테스트 Wx.Combat.ApplyEffectNotify.OwnHandleOnly로 확인한 뒤 테스트 파일을 지웠고 플레이는 미검증이다. ([[결정 노트 - 2026-09-24-wxcombat-cleanup]])
@@ -111,11 +118,14 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 
 ## 미결정·충돌
 
+- 콤보 네트워크 반복 검사에서 첫 입력이 발동·RPC 없이 누락된 1회의 원인은 미확인이다. 추가 로그 뒤 15회 재현되지 않았지만 해결됐다고 볼 수 없다. 서버가 클라이언트 단계의 범위만 검사하고 신뢰하는 것은 PvE 전제다. ([[작업 - combo-stage-desync-after-rejection]])
 - 어빌리티 클래스·데이터·몽타주 사이 암묵적 계약을 드러내는 방법(선언과 편집 화면 표시 등)은 미결로 남았고, 타입별 몽타주 검증기는 제거된 채 필요 시 재검토하기로 했다. ([[작업 - ability-table-driven]])
 - 사용자는 어빌리티 자식 클래스도 나중에 없앨 수 있으면 없애고 싶다고 했지만 클래스 통합 여부와 시점은 정하지 않았다. ([[결정 노트 - 2026-09-25-ability-block-policy-centralization]])
 
 ## 원자료
 
+- [[작업 - ability-directional-section]] — 방향 섹션 선택을 공통 PlayMontage로 옮기고 콤보는 몽타주 배열로 복원한 결정과 단독·네트워크·사람 연출 검증 기록
+- [[작업 - combo-stage-desync-after-rejection]] — 입력 발동 이벤트 데이터에 콤보 단계를 실어 정상 완료·서버 거절 뒤 단계 불일치를 고친 작업과 반복 검증·잔여 입력 누락 기록
 - [[결정 노트 - 2026-09-23-damage-forward-flow]] — Hit Wrapper GE와 전용 EffectContext를 없애고 ApplyDamage 판정에서 Damage GE 컴포넌트 반응으로 결과가 앞으로만 흐르게 한 2026-09-23 결정들
 - [[결정 노트 - 2026-09-23-zero-damage-hitstop]] — 히트스톱을 Hit Cue와 같은 조건(피해 0 초과 또는 퍼펙트 가드)으로 맞추고 Hit Cue 예측 발행 등 낡은 주석을 정정한 기록. 빌드 통과, 플레이 미검증.
 - [[결정 노트 - 2026-09-24-wxcombat-cleanup]] — 구간 GE 노티파이가 자기 핸들만 걷게 하고 처형 피해를 처형 어빌리티가 직접 적용하며 퍼펙트 가드 Cue를 Hit Cue로 통합한 WxCombat 정리 네 건 기록

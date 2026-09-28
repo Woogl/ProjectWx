@@ -2,12 +2,13 @@
 type: concept
 title: "UI 표시 구조"
 created: 2026-09-26
-updated: 2026-09-26
+updated: 2026-09-28
 status: developing
 tags:
   - concept
 summary: "VM·리졸버·Nameplate 등 화면 표시 연결 구조"
 sources:
+  - "[[작업 - ability-resolver-to-wxui]]"
   - "[[결정 노트 - 2026-09-23-ability-resolver-module]]"
   - "[[결정 노트 - 2026-09-23-boss-battle-three-layer]]"
   - "[[결정 노트 - 2026-09-23-dialogue-presentation-vm]]"
@@ -67,6 +68,7 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 
 ## 구현 관찰
 
+- 2026-09-25 책임 분리 뒤 Ability Resolver는 WxGame으로 복귀했다. 2026-09-23 WxUI 이관과 당시 CoreRedirects는 과거 이력이며 리다이렉트는 2026-09-24 제거됐다. ([[작업 - ability-resolver-to-wxui]])
 - 쿨다운 통합 뒤 어빌리티 슬롯 VM은 DynamicGrantedTags로 쿨다운 GE를 세고 주기는 IWxUIData::GetCooldownTime()으로 읽는다. ([[작업 - cooldown-unification]])
 - UWxViewModelResolver_Dialogue는 CreateInstance에서 세션 OnLineChanged와 VM의 OnAdvanceRequested를 잇고 DestroyInstance에서 RemoveAll(VM)로 해당 VM 구독만 끊으며 자체 상태를 갖지 않는다. ([[작업 - dialogue-presentation-vm]])
 - 상호작용 행 VM은 SetPrompt·SetSelected 없이 목록 VM이 필드를 직접 채우는 불변 데이터이며, 선택 변경마다 ListView 엔트리가 새로 붙는다. ([[작업 - interaction-list-vm-simplification]])
@@ -94,6 +96,7 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 
 ## 검증 범위
 
+- 2026-09-27 완료 처리에서 Ability Resolver의 남은 슬롯 표시 확인은 IWxUIData 제거 작업의 HUD 사람 확인으로 닫혔다. 이전 WBP 6개 로드·컴파일 확인과 사람 플레이 확인은 별개다. ([[작업 - ability-resolver-to-wxui]])
 - 대화 리졸버 구조는 빌드·WBP 컴파일로 AI가 확인했고, 대화 표시·클릭 진행·재대화는 2026-09-23 사용자가 인게임에서 통과로 확인했다. ([[작업 - dialogue-presentation-vm]])
 - 상호작용 목록 표시·휠 선택·범위 이탈과 리스폰 동작은 2026-09-25 이우성이 인게임에서 통과로 확인했다. ([[작업 - interaction-list-vm-simplification]])
 - Nameplate 교전·락온·사망 표시, 크기·위치, 리슨 서버와 원격 클라이언트 구분은 2026-09-25 이우성이 인게임에서 통과로 확인했다. ([[작업 - nameplate-manager]])
@@ -122,6 +125,7 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 
 ## 원자료
 
+- [[작업 - ability-resolver-to-wxui]] — Ability Resolver의 WxUI 이관을 과거 이력으로 닫고 IWxUIData 제거 후 WxGame 복귀와 표시 확인을 연결한 완료 기록
 - [[결정 노트 - 2026-09-23-ability-resolver-module]] — Ability ViewModel Resolver를 WxGame에서 WxUI로 옮기고 CoreRedirects로 기존 클래스 경로를 호환시킨 2026-09-23 정적 확인 기록
 - [[결정 노트 - 2026-09-23-boss-battle-three-layer]] — 보스 표시를 UWxBattleSubsystem·WxGame 리졸버·WxUI Character VM 세 층으로 재구성하고 보스 식별을 IdentityTags로 바꾼 2026-09-23 결정
 - [[결정 노트 - 2026-09-23-dialogue-presentation-vm]] — Dialogue VM을 WxUI의 순수 표시 데이터로 만들고 세션 연결은 WxGame Resolver, 진행 입력은 화면이 맡게 한 모듈 경계 결정과 정적 확인 기록.

@@ -3,7 +3,7 @@ type: meta
 title: Wiki Index
 status: evergreen
 created: 2026-09-26
-updated: 2026-09-27
+updated: 2026-09-28
 tags:
   - meta
   - index
@@ -67,6 +67,10 @@ WX의 게임 규칙·구현·결정을 모은 claude-obsidian vault입니다. Wi
 - [[기획서 - 캐릭터 스탯 명세서]] — DT_CharacterAttribute 기준 HP·MP·UP·SP·DP·PP와 ATK·DEF·Crit·SPD·ASPD의 의미·범위·처리 흐름과 미정 사항을 정리한 스탯 규격 초안
 
 ## 원자료: 작업 기록
+
+- [[작업 - ability-directional-section]] — 방향 섹션 선택을 공통 PlayMontage로 옮기고 콤보는 몽타주 배열로 복원한 결정과 단독·네트워크·사람 연출 검증 기록
+- [[작업 - ability-resolver-to-wxui]] — Ability Resolver의 WxUI 이관을 과거 이력으로 닫고 IWxUIData 제거 후 WxGame 복귀와 표시 확인을 연결한 완료 기록
+- [[작업 - combo-stage-desync-after-rejection]] — 입력 발동 이벤트 데이터에 콤보 단계를 실어 정상 완료·서버 거절 뒤 단계 불일치를 고친 작업과 반복 검증·잔여 입력 누락 기록
 
 - [[작업 - ability-table-driven]] — 어빌리티를 DataTable 행으로 구동하려던 전환 작업 기록으로, 여러 단계 구현 끝에 GA_ 에셋 방식으로 복귀해 테이블화 없이 체크리스트 7/7 통과로 마무리됐다.
 - [[작업 - animnotify-categories]] — AnimNotify 17종을 6개 분류 색상으로 묶고 공용 색상 설정을 WxCore의 에디터 전용 설정으로 옮긴 작업 기록으로, 체크리스트 6/6 통과로 완료됐다.

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-27T22:00:00Z",
+  "generated_at": "2026-09-28T17:59:09Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
     "src-002bb852bfddda1dbe57": {
@@ -2509,6 +2509,63 @@
       "review_status": "superseded",
       "supersedes": "src-a23a1d7fb94ec48c6dd4",
       "title": ".agents/workflow/tasks/animnotify-labels.md"
+    },
+    "src-f8621e669bc408db998c": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "c107fac948fcc641a68afe44de2cade27c92fcbe38e09c8a803573638a777080",
+      "independence_key": ".agents/workflow/tasks/ability-directional-section.md",
+      "ingested_at": "2026-09-28",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/c107fac948fcc641a68afe44de2cade27c92fcbe38e09c8a803573638a777080.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - ability-directional-section.md"
+      ],
+      "refresh_due": "2027-03-28",
+      "retrieved_at": "2026-09-28",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/ability-directional-section.md"
+    },
+    "src-67788c4f569f518b988d": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "941a27a626444ed3f7e17b6e1fc06864e7df5690065c17126adfab9f6579d6a4",
+      "independence_key": ".agents/workflow/tasks/ability-resolver-to-wxui.md",
+      "ingested_at": "2026-09-28",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/941a27a626444ed3f7e17b6e1fc06864e7df5690065c17126adfab9f6579d6a4.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - ability-resolver-to-wxui.md"
+      ],
+      "refresh_due": "2027-09-28",
+      "retrieved_at": "2026-09-28",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/ability-resolver-to-wxui.md"
+    },
+    "src-290cbcdca11539b033a8": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "6a3793cf9df3641d1190138dab622a1f3f82a43908d1ddc8cb0d83cbf5260244",
+      "independence_key": ".agents/workflow/tasks/combo-stage-desync-after-rejection.md",
+      "ingested_at": "2026-09-28",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/6a3793cf9df3641d1190138dab622a1f3f82a43908d1ddc8cb0d83cbf5260244.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - combo-stage-desync-after-rejection.md"
+      ],
+      "refresh_due": "2026-12-28",
+      "retrieved_at": "2026-09-28",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/combo-stage-desync-after-rejection.md"
     }
   }
 }
