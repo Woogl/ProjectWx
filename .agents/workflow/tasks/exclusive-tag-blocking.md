@@ -1,7 +1,7 @@
 # Exclusive 어빌리티 태그 차단 전환
 
-상태: 확인 대기 · 체크리스트 11/14 통과 · 실패 1
-다음 행동: 코드 리뷰와 화면 표시 모양을 확인한다. 실패한 「예측·복제와 거절 뒤 정리」는 `combo-stage-desync-after-rejection.md` 일감에서 고친 뒤 다시 테스트한다.
+상태: 완료 · 체크리스트 15/15 통과
+다음 행동: 커밋 전에 `combo-stage-desync-after-rejection.md`의 코드 리뷰를 함께 확인한다(마지막 항목의 통과가 그 수정에 기댄다).
 
 - 사용자 결정(2026-09-25): "콤보 구간 동안에는 자기 재발동 허용되게 합시다."
 - 현재 범위: 순정 태그 차단 전환·콤보 예외·도플갱어 효과 이관에 이어, 자식의 공통 차단 설정을 베이스 계산과 ASC 순정 확장 지점으로 옮겼다. 기존 자식 클래스 자체의 통합은 후속 검토다.
@@ -12,20 +12,21 @@
 
 | 항목 | 확인 방법 | 담당 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
-| Editor Development 빌드 | 테스트 코드 제거 후 build-doctor 실행 | AI | 통과 | `build_2026-09-25_234334_925_50992.log`: Succeeded, exit 0. 대기 중 선행 빌드가 완료되어 Target is up to date |
+| Editor Development 빌드 | 테스트 코드 제거 후 build-doctor 실행 | AI | 통과 | 2026-09-29 아이콘 수정 뒤 임시 테스트 삭제·프로젝트 파일 재생성 후 build_2026-09-29_013937_661_19216.log: Succeeded, exit 0 |
 | GA 차단 관계·점프 기본값 | 리다이렉트 없는 에디터에서 GA 40개 CDO의 계산 목록 대조 | AI | 통과 | GA 쌍 1,600건·점프 40건, `Saved/Tests/ExclusiveAbilityAssets-AscHook.json`. 개별 차단은 Death의 Ability뿐이며 재저장 불필요 |
 | 효과 이름·에셋 참조 | ABS_Doppelganger 저장 후 ClassRedirect 제거·새 프로세스 재로드·옛 이름 검색 | AI | 통과 | 네 효과 중 새 IgnoreAbilityActivationTags 참조 확인, Source·Plugins·Config·Content 옛 참조 없음 |
 | 콤보·외부 차단·면제 범위 | 제거 전 `Wx.Combat.AbilityBlocking.Lifecycle` 임시 자동화 | AI | 통과 | 자기/동일 태그 다른 스펙 구분·추가 차단·컷신 GE·소유자 조건 면제·Source 조건 검사 |
 | 취소·후딜·즉시 종료 수명 | 제거 전 `Lifecycle`·`AssetDefaults` 임시 자동화 | AI | 통과 | 재발동·Light→Heavy·Recovery 교체·취소·즉시 종료, `ExclusiveAbilityBlocking-AscHook/index.json`: 전체 성공 3·실패 0·경고 0 |
 | 공통 규칙·ASC 확장 경계 | 제거 전 `Wx.Combat.AbilityBlocking.HookRules` 임시 자동화 | AI | 통과 | 그룹·태그 기반 규칙, 명시 태그 보존, 비 Wx/빈 요청자, 적용·해제 일치 확인 |
-| 테스트 제거·주석 전용 변경 | 테스트 소스·friend 참조 검색, 주석 제외 코드 해시 비교 | AI | 통과 | C++ 2개·Python 2개 제거, 테스트 friend 참조 0, 주석 대상 12개 모두 코드 동일, 정정 21건·압축 4건·보류 0 |
-| 코드 리뷰 | `WxAbilityBase`·`WxAbilitySystemComponent`·각 자식 생성자: 공통 목록의 안정성, 콤보 자기 기여 제외, 순정 차단·취소 위임 | 사람 | 대기 | |
+| 테스트 제거·주석 전용 변경 | 테스트 소스·friend 참조 검색, 주석 제외 코드 해시 비교 | AI | 통과 | C++ 2개·Python 2개 제거, 테스트 friend 참조 0, 주석 대상 12개 모두 코드 동일, 정정 21건·압축 4건·보류 0. 2026-09-29 임시 테스트 Source/WxGame/Tests/도 삭제함 |
+| 코드 리뷰 | `WxAbilityBase`·`WxAbilitySystemComponent`·각 자식 생성자: 공통 목록의 안정성, 콤보 자기 기여 제외, 순정 차단·취소 위임. 추가(2026-09-29): `WxAbilityBase::DoesOwnerSatisfyActivationTags`, `WxViewModel_Ability`·`WxViewModel_AbilitySystem`의 FWxCanBindAbility 대리자, `WxViewModelResolver_Ability`의 판정 연결: 슬롯 후보 선택이 액션 차단을 보지 않고 CanActivate는 그대로인지 | 사람 | 통과 | woogle 2026-09-28 |
 | 콤보와 선입력 | 헤드리스 게임(LV_DevCombat -game -nullrhi): 실제 입력 경로(선입력 컴포넌트)로 콤보 창 안/밖 재입력, 콤보 창에서 누른 회피, 후딜의 스킬·강공격·점프와 본동작의 점프 | AI | 통과 | 2026-09-28 임시 자동화 테스트(확인 뒤 삭제): 창 안 재입력은 LL로 이어진다. 본동작에서 누른 재입력은 거절(같은 몽타주 인스턴스)되어 선입력으로 남았다가 창이 열리는 0.34초에 LL로 이어진다. LL 창(0.33초)에서 누른 회피는 창에서는 나가지 않고 후딜 시작(0.42초)에 나가 공격을 취소한다. 후딜의 스킬·강공격은 바로 나가 공격을 취소하고, 점프는 본동작에서 막히며 후딜에서는 뛰면서 공격을 취소한다. 매번 끝난 뒤 차단 태그가 남지 않는다 |
 | 반응 중첩·강공격 취소 | 헤드리스 게임: 약공격 본동작 중 강공격, 가드 중 피격(일반·퍼펙트 창), 공격 중 피격과 반응 중 재피격, 적 패턴 중 그로기·사망, 그로기 적 처형(상호작용 스캐너로 실행), 플레이어 사망 | AI | 통과 | 강공격은 막히지 않고 약공격을 취소한다. 가드 중 피격은 가드를 유지한 채 가드 반응(GuardHit·PerfectGuard)으로 들어간다. 공격 중 피격은 공격을 취소하고 Normal 반응으로, 반응 중 재피격은 반응을 새 인스턴스로 다시 시작한다. 패턴 중 그로기·사망은 패턴을 취소하고, 사망하면 다음 패턴 발동이 막힌다. 그로기 적 앞 상호작용으로 처형이 나간다. 플레이어가 죽은 뒤 공격·회피 입력은 나가지 않는다. 각 동작이 끝난 뒤 플레이어 차단 태그가 비어 있다 |
 | 도플갱어 미러링 | 헤드리스 게임: HGTest 궁극기 1로 분신을 불러 주인의 약공격 콤보(창 재입력·본동작 선입력)를 따라 쓰는지, 분신에 컷신 GE·사망과 같은 Ability 전체 차단을 걸면 따라 쓰기가 막히는지 본다 | AI | 통과 | 분신이 있으면 주인은 GA_HGTest_Attack_Light_2(Master.Doppelganger 조건)를 쓰고, 분신도 L→LL→LLL→LLLL을 같은 몽타주로 따라 쓴다. 선입력으로 이은 3단은 주인 노티파이 안의 커밋이라 분신이 한 번 거절된 뒤 0.007초 만에 재시도로 따라 쓴다. 컷신 GE·Ability 전체 차단 중에는 재시도가 0.401초에 만료되어 따라 쓰지 않는다. 차단을 푼 뒤 지난 입력을 늦게 쓰지 않고, 다음 입력은 다시 따라 쓴다 |
-| 예측·복제와 거절 뒤 정리 | 헤드리스 에디터 PIE(리슨 서버 + 원격 클라이언트, 한 프로세스): 소유 클라이언트의 콤보·후딜 회피, 서버만 첫 발동 거절(서버에만 공중 태그), 서버만 콤보 재발동 거절(서버에만 약공격 차단) 뒤 양쪽 차단 태그와 다음 입력 | AI | 실패 | 콤보·후딜 회피는 서버가 같게 따라가고 양쪽에 차단이 남지 않는다. 첫 발동을 거절하면 클라이언트 예측이 되돌려지고 차단이 남지 않으며 회피와 다음 입력도 정상이다. 콤보 재발동을 거절한 뒤에도 차단은 남지 않는다. 그러나 다음 공격에서 클라이언트는 L, 서버는 LL을 재생해 콤보 단계가 어긋난다. 원인과 검증한 수정안은 아래 「헤드리스 테스트로 옮김」에 있다 |
-| UI·상호작용 가용성 | 헤드리스 게임: 상호작용 대상(BP_CheckPoint) 옆에서 약공격 L→LL을 끝까지 두고, 단계마다 회피·스킬 어빌리티 뷰모델의 CanActivate와 상호작용 스캐너 목록을 본다. 4단 콤보 동안에는 매 틱 모든 어빌리티의 CanActivateAbility를 50번씩 더 부른다 | AI | 통과 | 본동작·콤보 창에서는 회피·스킬 CanActivate가 false이고 상호작용 목록이 0개다. 후딜·종료에서는 true이고 목록이 1개다. 조회를 약 110만 번 더해도 L→LL→LLL→LLLL과 단계 전환이 그대로이고, 끝난 뒤 차단이 남지 않는다 |
-| 화면 표시 모양 | 에디터 플레이로 본동작·콤보 창·후딜 전환 중 스킬·회피 아이콘의 사용 가능 표시와 상호작용 프롬프트가 자연스럽게 바뀌는지 본다 | 사람 | 대기 | |
+| 예측·복제와 거절 뒤 정리 | 헤드리스 에디터 PIE(리슨 서버 + 원격 클라이언트, 한 프로세스): 소유 클라이언트의 콤보·후딜 회피, 서버만 첫 발동 거절(서버에만 공중 태그), 서버만 콤보 재발동 거절(서버에만 약공격 차단) 뒤 양쪽 차단 태그와 다음 입력 | AI | 통과 | 2026-09-29 `combo-stage-desync-after-rejection.md` 수정(입력 발동이 콤보 단계를 이벤트 데이터로 보냄) 뒤 재테스트: 콤보·후딜 회피, 서버만 첫 발동 거절, 서버만 콤보 재발동 거절 뒤 양쪽 차단 없음·다음 입력 양쪽 L. 거절 없이 콤보가 끝난 뒤 다음 입력도 양쪽 L. 근거는 그 기록의 체크리스트 |
+| UI·상호작용 가용성 | 헤드리스 게임: 상호작용 대상(BP_CheckPoint) 옆에서 약공격 L→LL을 끝까지 두고, 단계마다 회피·스킬 어빌리티 뷰모델의 CanActivate와 상호작용 스캐너 목록을 본다. 4단 콤보 동안에는 매 틱 모든 어빌리티의 CanActivateAbility를 50번씩 더 부른다 | AI | 통과 | 본동작·콤보 창에서는 회피·스킬 CanActivate가 false이고 상호작용 목록이 0개다. 후딜·종료에서는 true이고 목록이 1개다. 조회를 약 110만 번 더해도 L→LL→LLL→LLLL과 단계 전환이 그대로이고, 끝난 뒤 차단이 남지 않는다. 2026-09-29 수정은 후보가 여럿인 슬롯의 후보 선택만 바꾸고 CanActivate 계산은 그대로라, 이 판정에 영향이 없다 |
+| 슬롯 아이콘 후보 전환 | 헤드리스 게임(LV_DevCombat -game -nullrhi): BP_HGTest를 빙의해 Ability.Action.Skill 슬롯 뷰모델을 만들고 Skill.1 발동 뒤 매 틱 아이콘·Master.Minion·스킬 2 차단 상태를 기록한다 | AI | 통과 | 2026-09-29 임시 테스트 Wx.Temp.SkillSlotIcon(확인 뒤 삭제). 수정 전에는 분신이 0.157초에 생겨도 아이콘이 스킬 1 종료 뒤 0.821초에야 T_HG_SkillE_02로 바뀌었다(Fail). 수정 후에는 분신이 생긴 0.158초의 다음 틱 0.167초에 T_HG_SkillE_02로 바뀌었다. 이 동안 스킬 2는 계속 차단 상태(satisfy=0)라 CanActivate는 false로 남는다. Result=Success, EXIT CODE 0 |
+| 화면 표시 모양 | 에디터 플레이로 본동작·콤보 창·후딜 전환 중 스킬·회피 아이콘의 사용 가능 표시와 상호작용 프롬프트가 자연스럽게 바뀌는지 본다. BP_HGTest로 스킬 1을 쓰면 분신이 나오는 순간 스킬 아이콘이 스킬 2로 바로 바뀌고, 스킬 1이 끝날 때까지는 사용 불가로 보인다 | 사람 | 통과 | woogle 2026-09-28 |
 
 ## 합의와 검토 이력
 
@@ -138,3 +139,93 @@ AI 검증은 위 체크리스트와 아래 로그에 기록했다. 렌더링·�
 - 실제 게임에서 생기는 경우: 서버만 아는 차단이 클라이언트의 콤보 재발동과 겹칠 때다(아직 복제되지 않은 GE 차단, 서버만 공중으로 판정한 순간 등). 그 콤보 동안 서버는 클라이언트와 다른 몽타주(피해 행·판정 시점)로 공격하고, 그 몽타주가 끝나면 다시 맞는다.
 - 검증한 수정안(적용하지 않음): `UWxAbilitySystemComponent::NotifyAbilityFailed`를 재정의해 발동이 거절된 어빌리티가 콤보이고 활성 상태가 아니면 단계를 비운다(`UWxAbility_Combo`에 단계 초기화 함수 추가). 엔진은 CanActivate 거절 때 이 통지를 인스턴스로 부른다. 활성 중인 거절(본동작에서 누른 재입력 등)은 제외하므로 창 선입력은 그대로다. 임시로 적용했을 때 네트워크 테스트(다음 입력이 양쪽 L)와 단독 테스트가 모두 통과했고, 적용분은 되돌렸다. 작업 절차에 따라 AI 실패 항목의 방향은 추가 요청으로 정한다.
 - 확인: 단독 테스트는 Result=Success, ensure 0이다. 네트워크 테스트는 콤보·후딜 전환과 첫 발동 거절이 통과했고, 콤보 재발동 거절 뒤 다음 입력만 실패했다. 임시 테스트 두 파일을 지우고 수정안도 되돌린 상태에서 WxEditor Development 빌드가 성공했다.
+
+
+## 사용자 테스트 결과 · 2026-09-28T16:31:45.372Z
+
+<!-- test-feedback:request-8b0e617c-921e-4e7b-8adb-ddf4004a1552:submitted -->
+- 전달한 사람: woogle
+
+> 실패 · 화면 표시 모양: BP_HGTest는 Ability.Action.Skill.1 발동 직후에 UI 표시되는 아이콘이 Ability.Action.Skill.2로 바로 바뀌지 않고 잠시 후에 행동해야 바뀌어요.
+
+
+## AI 수정 결과 · 2026-09-28T16:31:45.372Z
+
+<!-- test-feedback:request-8b0e617c-921e-4e7b-8adb-ddf4004a1552:1 -->
+- 전달한 사람: woogle
+- 처리 AI: Claude Code
+- 처리 결과: 실패 확인 필요
+
+AI 요약:
+
+> 스킬 아이콘이 늦게 바뀌던 원인을 찾아 고쳤습니다. 스킬 슬롯 뷰모델은 같은 슬롯의 후보 가운데 보여 줄 어빌리티를 DoesAbilitySatisfyTagRequirements로 골랐습니다. 이번 작업으로 액션 사이의 배타가 순정 BlockedAbilityTags로 옮겨지면서, 이 판정에 '지금 재생 중인 액션의 차단'까지 들어가게 됐습니다. 그래서 스킬 1 도중 분신이 생겨(Master.Minion) 스킬 2가 요건을 채워도, 스킬 2는 스킬 1의 Ability.Action 차단에 걸려 후보에서 빠졌습니다. 그 결과 스킬 1이 끝나고 태그 알림이 다시 올 때까지 옛 아이콘이 남았습니다.
+> 
+> 수정 내용: 후보는 이제 소유자 태그만으로 본 발동 조건(ActivationRequiredTags·ActivationBlockedTags)으로 고릅니다. 이 판정은 UWxAbilityBase::DoesOwnerSatisfyActivationTags가 하고, WxUI는 WxCombat을 모르므로 WxGame 리졸버가 판정 대리자를 넘깁니다. 발동 가능 표시(CanActivate)는 기존처럼 엔진 CanActivateAbility를 따르므로, 스킬 1 차단 동안 스킬 2는 계속 '사용 불가'로 보입니다.
+> 
+> 헤드리스 재현: 수정 전에는 분신이 0.157초에 생겼는데도 아이콘이 스킬 1이 끝난 0.821초에야 바뀌었습니다. 수정 후에는 다음 틱인 0.167초에 T_HG_SkillE_02로 바뀝니다. 임시 테스트는 지웠고, 지운 상태로 빌드가 성공했습니다.
+> 
+> 작업 트리에는 다른 작업(remove-get-ability-block-tags.md)의 미커밋 변경도 함께 있습니다. 이번 처리에서는 그 변경을 건드리지 않았습니다.
+
+> 변경: Plugins/WxCombat/.../WxAbilityBase.h/.cpp: 소유자 태그만으로 발동 조건을 보는 DoesOwnerSatisfyActivationTags 추가(재생 중인 액션의 차단은 보지 않음)
+
+> 변경: Plugins/WxUI/.../WxViewModel_Ability.h/.cpp: 후보 선택 대리자 FWxCanBindAbility 추가, RefreshBoundAbility가 이 대리자로 후보를 고름
+
+> 변경: Plugins/WxUI/.../WxViewModel_AbilitySystem.h/.cpp: GetOrCreateAbilityViewModel이 선택 대리자를 넘김
+
+> 변경: Source/WxGame/MVVM/WxViewModelResolver_Ability.cpp: Wx 어빌리티는 DoesOwnerSatisfyActivationTags, 그 밖은 순정 DoesAbilitySatisfyTagRequirements로 판정하는 대리자 연결
+
+> 변경: 임시 테스트 Source/WxGame/Tests/ 생성 뒤 삭제(남은 것 없음)
+
+> 근거: 읽음: .agents/workflow/process/index.md, .agents/workflow/tasks/exclusive-tag-blocking.md, remove-get-ability-block-tags.md 앞부분
+
+> 근거: 읽음: Plugins/WxUI/.../WxViewModel_Ability.cpp/.h (RefreshBoundAbility가 DoesAbilitySatisfyTagRequirements로 후보 선택), Source/WxGame/MVVM/WxViewModelResolver_Ability.cpp, WxAbilityBase.cpp의 SetActionPhase·DoesAbilitySatisfyTagRequirements, WxAbility_Skill.cpp(BlockAbilitiesWithTag=Ability.Action), WxMinionSubsystem.cpp(Master.Minion을 SetLooseGameplayTagCount로 부여)
+
+> 근거: 엔진 UE_5.8 GameplayAbility.cpp:349 DoesAbilitySatisfyTagRequirements가 GetBlockedAbilityTags를 검사함을 확인했고, ActivationRequired/BlockedTags는 protected이며 공개 getter가 없음을 확인
+
+> 근거: Saved/AbilitySystemLists/ability-list.md: GA_HGTest_Skill_1 Blocked Master.Minion, GA_HGTest_Skill_2 Required Master.Minion, AM_HGTest_Skill_1에 SpawnMinion 노티파이
+
+> 근거: 임시 테스트 Source/WxGame/Tests/WxSkillSlotIconTest.cpp (Wx.Temp.SkillSlotIcon): LV_DevCombat -game -nullrhi에서 BP_HGTest 빙의, Ability.Action.Skill 슬롯 VM 생성, Skill.1 발동 뒤 매 틱 아이콘을 기록
+
+> 근거: 수정 전 Saved/Logs/SkillSlotIconTest.log: t=0.157 minion=1인데 아이콘 T_HG_SkillE_01 유지, t=0.821(스킬 1 종료 뒤)에야 T_HG_SkillE_02, Result={Fail}
+
+> 근거: 수정 후 같은 테스트: t=0.158 minion=1, t=0.167 T_HG_SkillE_02, 이 동안 skill2 satisfy=0 blocked=1(차단은 그대로), Result={Success}, EXIT CODE 0
+
+> 근거: 빌드: build_2026-09-29_013821_872_22480.log(수정+테스트) Succeeded, 테스트 삭제·GenerateProjectFiles 뒤 build_2026-09-29_013937_661_19216.log Succeeded, EXIT 0
+
+> 근거: 줄바꿈: Python 편집으로 LF가 된 5개 파일을 작업 트리 형식(CRLF)으로 되돌림
+
+
+## 사용자 테스트 결과 · 2026-09-28T16:45:04.866Z
+
+<!-- test-feedback:request-43896b6a-3f26-4565-bd81-13cb214e1af1:submitted -->
+- 전달한 사람: woogle
+
+> 통과 · 코드 리뷰
+> 통과 · 화면 표시 모양
+
+
+## 사용자 테스트 결과 · 2026-09-28T16:45:14.747Z
+
+<!-- test-feedback:request-aedbbf44-13ed-4c22-8dee-b1a9137590b5:submitted -->
+- 전달한 사람: woogle
+
+> 통과 · 코드 리뷰
+> 통과 · 화면 표시 모양
+
+
+## 사용자 테스트 결과 · 2026-09-28T16:45:23.244Z
+
+<!-- test-feedback:request-bc648945-bdea-49ac-b22d-a4b8843643db:submitted -->
+- 전달한 사람: woogle
+
+> 통과 · 코드 리뷰
+> 통과 · 화면 표시 모양
+
+
+## 사용자 테스트 결과 · 2026-09-28T16:47:49.340Z
+
+<!-- test-feedback:request-cc244dce-1953-406b-8b39-644e28e185be:submitted -->
+- 전달한 사람: woogle
+
+> 통과 · 코드 리뷰
+> 통과 · 화면 표시 모양

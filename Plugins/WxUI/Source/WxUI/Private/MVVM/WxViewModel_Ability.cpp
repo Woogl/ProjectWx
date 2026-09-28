@@ -9,7 +9,7 @@
 #include "TimerManager.h"
 #include "WxGameplayTags.h"
 
-void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged)
+void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged, FWxCanBindAbility InCanBindAbility)
 {
 	// 호출자가 현재 슬롯의 태그를 다시 전달할 수도 있으므로 종료 전에 복사한다.
 	const FGameplayTagContainer NewAbilityTags = InAbilityTags;
@@ -22,6 +22,7 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGam
 	CachedASC = InASC;
 	AbilityTags = NewAbilityTags;
 	OnBoundAbilityChanged = MoveTemp(InOnBoundAbilityChanged);
+	CanBindAbility = MoveTemp(InCanBindAbility);
 
 	// 어빌리티가 갈려도 쿨다운 GE 는 같은 ASC 에서 오므로 구독은 한 번뿐이다 — 지금 물고 있는 쿨다운 태그로 거르는 것은 핸들러가 한다.
 	InASC->OnActiveGameplayEffectAddedDelegateToSelf
@@ -132,6 +133,7 @@ void UWxViewModel_Ability::Deinitialize()
 	CachedASC.Reset();
 	CachedAbility.Reset();
 	OnBoundAbilityChanged.Unbind();
+	CanBindAbility.Unbind();
 	AbilityTags.Reset();
 	CachedCooldownTags.Reset();
 	CachedCooldownTime = 0.f;
@@ -185,13 +187,13 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 			continue;
 		}
 
-		if (Ability->DoesAbilitySatisfyTagRequirements(*ASC))
+		if (CanBindAbility.Execute(*ASC, *Ability))
 		{
 			MatchedAbility = Ability;
 			break;
 		}
 
-		// 사망처럼 후보가 전부 막히는 구간에는 보던 얼굴을 유지한다.
+		// 후보가 전부 요건에 막히는 구간에는 보던 얼굴을 유지한다.
 		if (!FallbackAbility || Ability == CachedAbility.Get())
 		{
 			FallbackAbility = Ability;

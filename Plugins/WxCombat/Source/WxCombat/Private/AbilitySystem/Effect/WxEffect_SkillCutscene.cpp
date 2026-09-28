@@ -18,15 +18,9 @@ UWxEffect_SkillCutscene::UWxEffect_SkillCutscene()
 
 	UBlockAbilityTagsGameplayEffectComponent* BlockAbilityTagsComp = CreateDefaultSubobject<UBlockAbilityTagsGameplayEffectComponent>(TEXT("BlockAbilityTags"));
 	FInheritedTagContainer BlockedAbilityTags;
-	BlockedAbilityTags.Added.AddTag(WxGameplayTags::Ability_Attack);
-	BlockedAbilityTags.Added.AddTag(WxGameplayTags::Ability_Skill);
-	BlockedAbilityTags.Added.AddTag(WxGameplayTags::Ability_Ultimate);
-	BlockedAbilityTags.Added.AddTag(WxGameplayTags::Ability_Dodge);
-	BlockedAbilityTags.Added.AddTag(WxGameplayTags::Ability_Guard);
-	BlockedAbilityTags.Added.AddTag(WxGameplayTags::Ability_UseItem);
+	BlockedAbilityTags.Added.AddTag(WxGameplayTags::Ability_Action);
 	BlockedAbilityTags.Added.AddTag(WxGameplayTags::Ability_Sprint);
 	BlockedAbilityTags.Added.AddTag(WxGameplayTags::Ability_LockOn);
-	BlockedAbilityTags.Added.AddTag(WxGameplayTags::Ability_Interact);
 	BlockAbilityTagsComp->SetAndApplyBlockedAbilityTagChanges(BlockedAbilityTags);
 	GEComponents.Add(BlockAbilityTagsComp);
 

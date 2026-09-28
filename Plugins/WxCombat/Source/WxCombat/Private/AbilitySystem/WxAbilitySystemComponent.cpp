@@ -1,4 +1,4 @@
-// Copyright Woogle. All Rights Reserved.
+﻿// Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
@@ -6,6 +6,7 @@
 #include "AbilitySystem/Effect/WxEffect_Exhaust.h"
 #include "WxCombatModule.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "WxGameplayTags.h"
 
 UWxAbilitySystemComponent::UWxAbilitySystemComponent()
 {
@@ -279,21 +280,11 @@ void UWxAbilitySystemComponent::CancelRecoveringAbilities(UGameplayAbility* Igno
 
 		// 기반 생성자가 InstancedPerActor를 사용하므로 스펙당 인스턴스는 하나뿐이다.
 		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.GetPrimaryInstance());
-		if (Ability && Ability != IgnoreAbility && Ability->IsActive() && Ability->ActivationGroup == EWxAbilityActivationGroup::Exclusive && Ability->GetActionPhase() == EWxAbilityActionPhase::Recovery)
+		if (Ability && Ability != IgnoreAbility && Ability->IsActive() && Ability->GetAssetTags().HasTag(WxGameplayTags::Ability_Action) && Ability->GetActionPhase() == EWxAbilityActionPhase::Recovery)
 		{
 			CancelAbilitySpec(Spec, IgnoreAbility);
 		}
 	}
-}
-
-void UWxAbilitySystemComponent::ApplyAbilityBlockAndCancelTags(const FGameplayTagContainer& AbilityTags, UGameplayAbility* RequestingAbility, bool bEnableBlockTags, const FGameplayTagContainer& BlockTags, bool bExecuteCancelTags, const FGameplayTagContainer& CancelTags)
-{
-	FGameplayTagContainer EffectiveBlockTags = BlockTags;
-	if (const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(RequestingAbility))
-	{
-		EffectiveBlockTags.AppendTags(Ability->GetAbilityBlockTags());
-	}
-	Super::ApplyAbilityBlockAndCancelTags(AbilityTags, RequestingAbility, bEnableBlockTags, EffectiveBlockTags, bExecuteCancelTags, CancelTags);
 }
 
 bool UWxAbilitySystemComponent::AreAbilityTagsBlockedIgnoringContribution(const FGameplayTagContainer& AbilityTags, const FGameplayTagContainer& IgnoredBlockTags) const

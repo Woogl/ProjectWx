@@ -122,7 +122,7 @@ UWxViewModel_Attribute* UWxViewModel_AbilitySystem::GetOrCreateAttributeViewMode
 	return AttrVM;
 }
 
-UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged)
+UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged, FWxCanBindAbility InCanBindAbility)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 
@@ -141,7 +141,7 @@ UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(co
 	}
 
 	UWxViewModel_Ability* AbilityVM = NewObject<UWxViewModel_Ability>(this);
-	AbilityVM->Initialize(ASC, InAbilityTags, MoveTemp(InOnBoundAbilityChanged));
+	AbilityVM->Initialize(ASC, InAbilityTags, MoveTemp(InOnBoundAbilityChanged), MoveTemp(InCanBindAbility));
 	AbilityViewModels.Add(AbilityVM);
 	return AbilityVM;
 }

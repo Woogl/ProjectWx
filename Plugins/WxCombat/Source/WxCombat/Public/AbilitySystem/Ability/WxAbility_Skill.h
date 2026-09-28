@@ -24,11 +24,6 @@ public:
 	UWxAbility_Skill();
 
 protected:
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
-	/** 몽타주 재생이 완료되면 다음 발동은 첫 단부터 시작한다. */
-	virtual void HandleMontageCompleted() override;
-
+	/** 창이 닫힌 뒤의 입력은 첫 단부터 시작한다. */
 	virtual void OnComboWindowClosed() override;
 };

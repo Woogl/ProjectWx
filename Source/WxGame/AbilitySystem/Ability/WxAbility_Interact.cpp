@@ -19,12 +19,12 @@ UWxAbility_Interact::UWxAbility_Interact()
 
 	// 상호작용 스캐너 컴포넌트(WxWorld)가 이 태그로 스펙을 찾아 CanActivateAbility 로 클라 표시 게이트를 삼는다.
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Ability_Interact);
+	AssetTags.AddTag(WxGameplayTags::Ability_Action_Interact);
 	SetAssetTags(AssetTags);
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Interact);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Action_Interact);
 
 	// 다른 액션이 건 태그 차단을 표시 게이트도 읽으므로, 마시는 중·장치 연출 중에는 표시가 사라진다.
-	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 
 	// 소유 태그 조건도 서버 발동과 클라 표시에서 같은 CanActivateAbility 검사로 판정한다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);

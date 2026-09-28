@@ -14,18 +14,18 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 	AssetTags.AddTag(WxGameplayTags::Ability_HitReact);
 	SetAssetTags(AssetTags);
 
-	ActivationGroup = EWxAbilityActivationGroup::Override;
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 
-	// 진행 중인 것은 공격·스킬만 끊는다 — 부류(그룹)로 끊으면 적 패턴까지 평타 피격에 중단된다.
-	// Override는 막히지 않을 뿐 남을 끊지는 않는다 — 진행 중인 공격을 실제로 중단시키려면 지목이 필요하다.
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Attack);
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Skill);
+	// 진행 중인 것은 공격·스킬만 끊는다 — Ability.Action 전체로 끊으면 적 패턴까지 평타 피격에 중단된다.
+	// 반응은 Ability.Action 밖이라 액션에 막히지 않을 뿐 남을 끊지는 않는다 — 진행 중인 공격을 실제로 중단시키려면 지목이 필요하다.
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action_Attack);
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action_Skill);
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_HitReact);
 
 	// 사망·무적·슈퍼아머는 거는 쪽(사망 어빌리티·각 GE)이 이 어빌리티를 막으므로 여기에 더하지 않는다.
 	// 가드는 방어 판정(Effect.GuardReduction)이 아니라 어빌리티로 막는다 — GuardReact의 요구 태그와 같은 것을 봐야 한 히트에 둘 다 거부되는 상태가 없다.
-	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Guard);
+	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Action_Guard);
 
 	bRetriggerInstancedAbility = true;
 
@@ -52,11 +52,6 @@ bool UWxAbility_HitReact::ShouldAbilityRespondToEvent(const FGameplayAbilityActo
 	}
 
 	return Super::ShouldAbilityRespondToEvent(ActorInfo, Payload);
-}
-
-float UWxAbility_HitReact::GetMontagePlayRate() const
-{
-	return 1.f;
 }
 
 void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

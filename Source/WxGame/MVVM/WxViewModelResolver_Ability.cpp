@@ -20,6 +20,12 @@ namespace
 				WxAbility->GetMaxRecharges(), WxAbility->GetCooldownTime());
 		}
 	}
+
+	bool CanBindAbility(const UAbilitySystemComponent& ASC, const UGameplayAbility& Ability)
+	{
+		const UWxAbilityBase* WxAbility = Cast<UWxAbilityBase>(&Ability);
+		return WxAbility ? WxAbility->DoesOwnerSatisfyActivationTags(ASC) : Ability.DoesAbilitySatisfyTagRequirements(ASC);
+	}
 }
 
 UObject* UWxViewModelResolver_Ability::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
@@ -45,5 +51,6 @@ UWxViewModel_Ability* UWxViewModelResolver_Ability::GetOrCreate(UAbilitySystemCo
 		return nullptr;
 	}
 
-	return AbilitySystemViewModel->GetOrCreateAbilityViewModel(InAbilityTags, FWxOnBoundAbilityChanged::CreateStatic(&ApplyAbilityPresentation));
+	return AbilitySystemViewModel->GetOrCreateAbilityViewModel(InAbilityTags, FWxOnBoundAbilityChanged::CreateStatic(&ApplyAbilityPresentation),
+		FWxCanBindAbility::CreateStatic(&CanBindAbility));
 }

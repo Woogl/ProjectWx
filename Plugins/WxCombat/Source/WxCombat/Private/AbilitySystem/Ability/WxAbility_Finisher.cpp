@@ -28,8 +28,8 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	AssetTags.AddTag(WxGameplayTags::Ability_Finisher);
 	SetAssetTags(AssetTags);
 
-	// Ability.Finisher는 상호작용의 공통 차단 목록에 없어 도중에 발동할 수 있고, Override는 외부 취소를 막는다.
-	ActivationGroup = EWxAbilityActivationGroup::Override;
+	// Ability.Finisher는 Ability.Action 밖이라 상호작용 도중에도 발동한다.
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 
 	ActivationOwnedEffects.Add(UWxEffect_Invincible::StaticClass());
 
@@ -43,11 +43,6 @@ UWxAbility_Finisher::UWxAbility_Finisher()
 	AbilityTriggers.Add(TriggerData);
 
 	InteractionPrompt = NSLOCTEXT("WxAbility_Finisher", "InteractionPrompt", "Finisher");
-}
-
-float UWxAbility_Finisher::GetMontagePlayRate() const
-{
-	return 1.f;
 }
 
 void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

@@ -13,11 +13,12 @@
 UWxAbility_Ultimate::UWxAbility_Ultimate()
 {
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Ability_Ultimate);
+	AssetTags.AddTag(WxGameplayTags::Ability_Action_Ultimate);
 	SetAssetTags(AssetTags);
-	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
 
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Ultimate);
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
+
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Action_Ultimate);
 	ActivationOwnedEffects.Add(UWxEffect_SuperArmor::StaticClass());
 }
 

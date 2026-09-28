@@ -30,37 +30,6 @@ UWxAbilityBase::UWxAbilityBase()
 	CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
 }
 
-FGameplayTagContainer UWxAbilityBase::GetAbilityBlockTags() const
-{
-	FGameplayTagContainer BlockTags = BlockAbilitiesWithTag;
-	if (ActivationGroup == EWxAbilityActivationGroup::Independent)
-	{
-		return BlockTags;
-	}
-
-	// 강공격이 약공격을 취소하려면 순정 발동 검사를 먼저 통과해야 한다.
-	// 명시한 BlockAbilitiesWithTag는 유지하고, 공통 규칙에서만 Heavy를 제외한다.
-	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && GetAssetTags().HasTag(WxGameplayTags::Ability_Attack_Light))
-	{
-		BlockTags.AddTag(WxGameplayTags::Ability_Attack_Light);
-		BlockTags.AddTag(WxGameplayTags::Ability_Attack_Air);
-		BlockTags.AddTag(WxGameplayTags::Ability_Attack_DodgeCounter);
-	}
-	else
-	{
-		BlockTags.AddTag(WxGameplayTags::Ability_Attack);
-	}
-	BlockTags.AddTag(WxGameplayTags::Ability_Skill);
-	BlockTags.AddTag(WxGameplayTags::Ability_Pattern);
-	BlockTags.AddTag(WxGameplayTags::Ability_Ultimate);
-	BlockTags.AddTag(WxGameplayTags::Ability_Dodge);
-	BlockTags.AddTag(WxGameplayTags::Ability_Guard);
-	BlockTags.AddTag(WxGameplayTags::Ability_UseItem);
-	BlockTags.AddTag(WxGameplayTags::Ability_Interact);
-	BlockTags.AddTag(WxGameplayTags::Ability_Jump);
-	return BlockTags;
-}
-
 FText UWxAbilityBase::GetTitle() const
 {
 	return Title;
@@ -140,8 +109,7 @@ bool UWxAbilityBase::HasMontageSection(const UAnimMontage* Montage, FName Sectio
 
 float UWxAbilityBase::GetMontagePlayRate() const
 {
-	const UWxAbilitySystemComponent* ASC = Cast<UWxAbilitySystemComponent>(GetAbilitySystemComponentFromActorInfo());
-	return ASC ? ASC->GetMontagePlayRate() : 1.f;
+	return 1.f;
 }
 
 EWxAbilityActionPhase UWxAbilityBase::GetActionPhase() const
@@ -157,7 +125,7 @@ void UWxAbilityBase::SetActionPhase(EWxAbilityActionPhase NewPhase)
 	}
 
 	ActionPhase = NewPhase;
-	if (IsActive() && ActivationGroup == EWxAbilityActivationGroup::Exclusive)
+	if (IsActive() && GetAssetTags().HasTag(WxGameplayTags::Ability_Action))
 	{
 		SetShouldBlockOtherAbilities(NewPhase != EWxAbilityActionPhase::Recovery);
 	}
@@ -173,8 +141,8 @@ void UWxAbilityBase::SetActionPhase(EWxAbilityActionPhase NewPhase)
 
 void UWxAbilityBase::OpenComboWindow(int32 MontageInstanceID)
 {
-	// 공용 몽타주의 노티파이가 Independent·Override에 콤보 재발동 예외를 열지 않게 한다.
-	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && ActionPhase == EWxAbilityActionPhase::Blocking && IsPlayingMontageInstance(MontageInstanceID))
+	// 공용 몽타주의 노티파이가 액션이 아닌 어빌리티에 콤보 재발동 예외를 열지 않게 한다.
+	if (GetAssetTags().HasTag(WxGameplayTags::Ability_Action) && ActionPhase == EWxAbilityActionPhase::Blocking && IsPlayingMontageInstance(MontageInstanceID))
 	{
 		SetActionPhase(EWxAbilityActionPhase::ComboWindow);
 
@@ -209,8 +177,8 @@ void UWxAbilityBase::OnComboWindowClosed()
 
 void UWxAbilityBase::StartRecovery(int32 MontageInstanceID)
 {
-	// 공용 몽타주의 노티파이가 Independent·Override의 단계까지 바꾸지 않게 한다.
-	if (ActivationGroup == EWxAbilityActivationGroup::Exclusive && ActionPhase != EWxAbilityActionPhase::Recovery && IsPlayingMontageInstance(MontageInstanceID))
+	// 공용 몽타주의 노티파이가 액션이 아닌 어빌리티의 단계까지 바꾸지 않게 한다.
+	if (GetAssetTags().HasTag(WxGameplayTags::Ability_Action) && ActionPhase != EWxAbilityActionPhase::Recovery && IsPlayingMontageInstance(MontageInstanceID))
 	{
 		SetActionPhase(EWxAbilityActionPhase::Recovery);
 
@@ -234,25 +202,37 @@ bool UWxAbilityBase::IsPlayingMontageInstance(int32 MontageInstanceID) const
 
 bool UWxAbilityBase::DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	const bool bComboRetrigger = ActivationGroup == EWxAbilityActivationGroup::Exclusive && IsActive() && ActionPhase == EWxAbilityActionPhase::ComboWindow;
+	// 재생 중인 액션의 차단 몫은 콤보 창의 자기 재발동과, 그 액션을 CancelAbilitiesWithTag로 지목한 어빌리티에만 빼 준다.
+	const UWxAbilityBase* Occupant = Cast<UWxAbilityBase>(AbilitySystemComponent.GetAnimatingAbility());
+	if (Occupant && !(Occupant->IsActive() && Occupant->IsBlockingOtherAbilities()))
+	{
+		Occupant = nullptr;
+	}
+	const bool bComboRetrigger = Occupant == this && ActionPhase == EWxAbilityActionPhase::ComboWindow;
+	const bool bCancelEntry = Occupant && Occupant != this && Occupant->GetAssetTags().HasAny(CancelAbilitiesWithTag);
 	const bool bIgnoreActivationTags = AbilitySystemComponent.HasMatchingGameplayTag(WxGameplayTags::Effect_IgnoreAbilityActivationTags);
-	if (!bComboRetrigger && !bIgnoreActivationTags)
+	if (!bComboRetrigger && !bCancelEntry && !bIgnoreActivationTags)
 	{
 		return Super::DoesAbilitySatisfyTagRequirements(AbilitySystemComponent, SourceTags, TargetTags, OptionalRelevantTags);
 	}
 
 	bool bBlocked = AbilitySystemComponent.AreAbilityTagsBlocked(GetAssetTags());
-	if (bComboRetrigger && IsBlockingOtherAbilities())
+	if (bComboRetrigger || bCancelEntry)
 	{
 		if (const UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(&AbilitySystemComponent))
 		{
-			// 같은 태그를 쓰는 다른 GA까지 풀지 않고, 이 실행이 등록한 차단 1건만 제외한다.
-			bBlocked = WxASC->AreAbilityTagsBlockedIgnoringContribution(GetAssetTags(), GetAbilityBlockTags());
+			// 같은 태그를 쓰는 다른 GA까지 풀지 않고, 재생 중인 액션이 등록한 차단 1건만 제외한다.
+			bBlocked = WxASC->AreAbilityTagsBlockedIgnoringContribution(GetAssetTags(), Occupant->BlockAbilitiesWithTag);
 		}
 	}
 
-	// 콤보는 이미 성립한 액션의 다음 단이므로 소유자 발동 조건을 다시 요구하지 않는다.
+	// 콤보는 이미 성립한 액션의 다음 단이므로 소유자 발동 조건을 다시 요구하지 않는다. 끼어드는 어빌리티는 그대로 검사한다.
 	bool bMissing = false;
+	if (!bComboRetrigger && !bIgnoreActivationTags)
+	{
+		bBlocked |= AbilitySystemComponent.HasAnyMatchingGameplayTags(ActivationBlockedTags);
+		bMissing |= !AbilitySystemComponent.HasAllMatchingGameplayTags(ActivationRequiredTags);
+	}
 	if (SourceTags)
 	{
 		bBlocked |= SourceTags->HasAny(SourceBlockedTags);
@@ -277,9 +257,9 @@ bool UWxAbilityBase::DoesAbilitySatisfyTagRequirements(const UAbilitySystemCompo
 	return !bBlocked && !bMissing;
 }
 
-bool UWxAbilityBase::CanBeCanceled() const
+bool UWxAbilityBase::DoesOwnerSatisfyActivationTags(const UAbilitySystemComponent& AbilitySystemComponent) const
 {
-	return ActivationGroup != EWxAbilityActivationGroup::Override && Super::CanBeCanceled();
+	return AbilitySystemComponent.HasAllMatchingGameplayTags(ActivationRequiredTags) && !AbilitySystemComponent.HasAnyMatchingGameplayTags(ActivationBlockedTags);
 }
 
 void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -288,7 +268,7 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	MontageInputDirection = FVector::ZeroVector;
 	SetActionPhase(EWxAbilityActionPhase::Blocking);
 
-	if (ActivationGroup != EWxAbilityActivationGroup::Independent)
+	if (GetAssetTags().HasTag(WxGameplayTags::Ability_Action))
 	{
 		if (UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr))
 		{
@@ -379,7 +359,7 @@ bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
 				ASC->CallServerSetReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey(), DataHandle, FGameplayTag(), ASC->ScopedPredictionKey);
 			}
 		}
-		StartSection = SelectDirectionalSection(Montage, MontageInputDirection, Prefix);
+		StartSection = SelectInputDirectionSection(Montage, Prefix, MontageInputDirection);
 	}
 
 	// 대기 중 다른 섹션으로 교체됐으면 늦게 온 방향 데이터로 앞 요청을 재생하지 않는다.
@@ -412,6 +392,11 @@ bool UWxAbilityBase::PlayMontageInternal(UAnimMontage* Montage, FName StartSecti
 	NewMontageTask->OnCancelled.AddDynamic(this, &UWxAbilityBase::HandleMontageCancelled);
 	NewMontageTask->ReadyForActivation();
 	return true;
+}
+
+FName UWxAbilityBase::SelectInputDirectionSection(const UAnimMontage* Montage, const FString& Prefix, const FVector& LocalDirection)
+{
+	return SelectDirectionalSection(Montage, LocalDirection, Prefix);
 }
 
 FVector UWxAbilityBase::GetLocalMontageInputDirection() const

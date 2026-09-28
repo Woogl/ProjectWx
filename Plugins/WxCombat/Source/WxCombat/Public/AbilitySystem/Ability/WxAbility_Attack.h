@@ -21,15 +21,8 @@ public:
 	UWxAbility_Attack();
 
 protected:
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
-	virtual void HandleMontageCompleted() override;
-
+	/** 창이 닫힌 뒤의 입력은 첫 단부터 시작한다. */
 	virtual void OnComboWindowClosed() override;
-
-	/** 파생 타입이 자기 식별 태그를 에셋 태그와 소유 태그에 건다. */
-	void SetAttackTag(const FGameplayTag& AttackTag);
 };
 
 /** 공중·회피 중에는 나가지 않는다. */

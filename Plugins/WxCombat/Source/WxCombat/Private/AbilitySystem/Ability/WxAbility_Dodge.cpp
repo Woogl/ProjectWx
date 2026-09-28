@@ -4,7 +4,6 @@
 #include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
 #include "AbilitySystem/Effect/WxEffect_Damage.h"
-#include "AbilitySystem/TargetData/WxAbilityTargetData_Direction.h"
 #include "AbilitySystemComponent.h"
 #include "Animation/AnimMontage.h"
 #include "WxCollisionChannels.h"
@@ -18,17 +17,12 @@ const FString UWxAbility_Dodge::SuccessSectionPrefix(TEXT("Success"));
 UWxAbility_Dodge::UWxAbility_Dodge()
 {
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Ability_Dodge);
+	AssetTags.AddTag(WxGameplayTags::Ability_Action_Dodge);
 	SetAssetTags(AssetTags);
 
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Dodge);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Action_Dodge);
 
-	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
-}
-
-float UWxAbility_Dodge::GetMontagePlayRate() const
-{
-	return 1.f;
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 }
 
 void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -36,58 +30,17 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	bDodgeSuccessHandled = false;
 
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-
 	if (!GetMontage() || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	if (IsLocallyControlled())
+	// 원격 플레이어의 서버 인스턴스는 방향 데이터를 받은 뒤에야 실제로 재생한다.
+	if (!PlayMontage(GetMontage()))
 	{
-		FVector LocalDodgeDirection = FVector::ZeroVector;
-		if (const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get()))
-		{
-			const FVector WorldInput = Character->GetLastMovementInputVector();
-			LocalDodgeDirection = Character->GetActorTransform().InverseTransformVectorNoScale(WorldInput);
-		}
-
-		if (ASC && !HasAuthority(&ActivationInfo))
-		{
-			FGameplayAbilityTargetDataHandle DataHandle;
-			FWxAbilityTargetData_Direction* DirectionData = new FWxAbilityTargetData_Direction();
-			DirectionData->Direction = LocalDodgeDirection;
-			DataHandle.Add(DirectionData);
-
-			ASC->CallServerSetReplicatedTargetData(
-				Handle,
-				ActivationInfo.GetActivationPredictionKey(),
-				DataHandle,
-				FGameplayTag(),
-				ASC->ScopedPredictionKey);
-		}
-
-		if (!StartDodge(LocalDodgeDirection))
-		{
-			return;
-		}
-	}
-	else if (HasAuthority(&ActivationInfo))
-	{
-		// 리모트 플레이어의 서버 인스턴스는 방향 데이터를 받은 뒤에야 몽타주를 재생한다.
-		if (ASC)
-		{
-			// 해제는 엔진 EndAbility의 ClearAbilityReplicatedDataCache가 맵 엔트리째 걷는다.
-			FAbilityTargetDataSetDelegate& Delegate = ASC->AbilityTargetDataSetDelegate(
-				Handle,
-				ActivationInfo.GetActivationPredictionKey());
-			Delegate.AddUObject(this, &UWxAbility_Dodge::HandleTargetDataReceived);
-
-			ASC->CallReplicatedTargetDataDelegatesIfSet(
-				Handle,
-				ActivationInfo.GetActivationPredictionKey());
-		}
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
 
 	ListenForInvincibleWindow();
@@ -109,25 +62,17 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
+FName UWxAbility_Dodge::SelectInputDirectionSection(const UAnimMontage* Montage, const FString& Prefix, const FVector& LocalDirection)
 {
-	UAnimMontage* DodgeMontage = GetMontage();
 	const FVector Local = LocalDirection.GetSafeNormal2D();
-
-	if (Local.IsNearlyZero() && DodgeMontage->IsValidSectionName(BackstepSectionName))
+	if (Local.IsNearlyZero() && Montage->IsValidSectionName(BackstepSectionName))
 	{
-		if (!PlayMontage(DodgeMontage, BackstepSectionName))
-		{
-			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-			return false;
-		}
-
-		return true;
+		return BackstepSectionName;
 	}
 
-	const FName SectionName = SelectDirectionalSection(LocalDirection, FString(), EWxAbilityDirection::Back);
+	const FName SectionName = SelectDirectionalSection(Montage, LocalDirection, Prefix, EWxAbilityDirection::Back);
 
-	// 락온 중에는 락온이 Ability.Dodge를 보고 회전 태스크를 멈춰 회피 내내 몸 방향을 고정하므로, 회피도 몸을 돌리지 않는다.
+	// 락온 중에는 락온이 Ability.Action.Dodge를 보고 회전 태스크를 멈춰 회피 내내 몸 방향을 고정하므로, 회피도 몸을 돌리지 않는다.
 	// 비락온은 섹션 루트모션이 몸 기준 고정 방향이라, 양자화 잔차(±22.5°, 폴백 시 그 이상)만큼 몸을 돌려 이동을 입력 방향에 맞춘다.
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	const bool bLockedOn = ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_LockOn);
@@ -149,13 +94,7 @@ bool UWxAbility_Dodge::StartDodge(const FVector& LocalDirection)
 		}
 	}
 
-	if (!PlayMontage(DodgeMontage, SectionName))
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return false;
-	}
-
-	return true;
+	return SectionName;
 }
 
 void UWxAbility_Dodge::ListenForDodgeSuccess()
@@ -282,24 +221,6 @@ void UWxAbility_Dodge::DeactivateJudgementCapsule()
 
 	JudgementCapsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	JudgementCapsule->AttachToComponent(Character->GetCapsuleComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-}
-
-void UWxAbility_Dodge::HandleTargetDataReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag)
-{
-	// CallServerSetReplicatedTargetData는 등록된 어떤 파생 타입도 실어 보낼 수 있으므로, 구조체를 확인하고 캐스트한다.
-	FVector LocalDirection = FVector::ZeroVector;
-	const FGameplayAbilityTargetData* ReceivedData = DataHandle.Get(0);
-	if (ReceivedData && ReceivedData->GetScriptStruct() == FWxAbilityTargetData_Direction::StaticStruct())
-	{
-		LocalDirection = static_cast<const FWxAbilityTargetData_Direction*>(ReceivedData)->Direction;
-	}
-
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
-	{
-		ASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
-	}
-
-	StartDodge(LocalDirection);
 }
 
 void UWxAbility_Dodge::HandleInvincibleTagAdded()

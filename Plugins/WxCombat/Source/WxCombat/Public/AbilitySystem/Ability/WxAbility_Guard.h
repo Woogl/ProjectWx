@@ -19,7 +19,7 @@
  * Damage.CanGuard가 없는 피격은 퍼펙트 가드 윈도우 중이라도 가드로 막히지 않는다.
  * UWxEffectComponent_DamageReaction이 이 어빌리티를 Cancel한 뒤 Event.Hit을 보낸다.
  *
- * 가드 반격은 아직 성립하지 않는다 — 공통 차단 태그 Ability.Attack이 가드 중 공격 발동을 막는다.
+ * 가드 반격은 아직 성립하지 않는다 — 차단 태그 Ability.Action이 가드 중 공격 발동을 막는다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_Guard : public UWxAbilityBase
@@ -33,9 +33,6 @@ public:
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
-
-	/** 자세 루프가 공격 속도에 흔들리면 안 되므로 ASPD를 반영하지 않는다. */
-	virtual float GetMontagePlayRate() const override;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;

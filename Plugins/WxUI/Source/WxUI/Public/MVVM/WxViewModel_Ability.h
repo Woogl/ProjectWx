@@ -15,13 +15,14 @@ class UGameplayAbility;
 class UWxViewModel_Ability;
 
 DECLARE_DELEGATE_TwoParams(FWxOnBoundAbilityChanged, UWxViewModel_Ability&, const UGameplayAbility*);
+DECLARE_DELEGATE_RetVal_TwoParams(bool, FWxCanBindAbility, const UAbilitySystemComponent&, const UGameplayAbility&);
 struct FGameplayEventData;
 struct FGameplayEffectSpec;
 
 /**
  * 스킬 슬롯 하나의 뷰모델. 정체성은 어빌리티가 아니라 슬롯을 가리키는 어빌리티 태그다.
  * 그 태그에 맞는 어빌리티가 부여돼 있으면 그것을 물고, 교체되면 갈아타며, 없으면 빈 슬롯으로 남는다.
- * 슬롯 태그를 공유하는 후보가 여럿이면 발동 태그 요건을 만족하는 것을 표시하고, 전부 막히면 보던 것을 유지한다. 상황별 가시성은 위젯 바인딩이 맡는다.
+ * 슬롯 태그를 공유하는 후보가 여럿이면 소유자가 발동 태그 요건을 만족하는 것을 표시하고, 전부 막히면 보던 것을 유지한다. 상황별 가시성은 위젯 바인딩이 맡는다.
  * 무는 대상은 스펙의 기본 인스턴스다 — 엔진 발동 경로(InternalTryActivateAbility)처럼 인스턴스로 판정한다.
  *
  * 쿨다운은 어빌리티의 GetCooldownTags() 로 식별하고, 쿨다운 중에는 월드 타이머로 매 프레임 남은 시간·충전 수를 갱신한다.
@@ -38,8 +39,11 @@ class WXUI_API UWxViewModel_Ability : public UWxViewModel
 	GENERATED_BODY()
 
 public:
-	/** @param InAbilityTags 슬롯을 가리키는 어빌리티 에셋 태그. 비어 있으면 아무 어빌리티나 매칭되므로 거부한다. */
-	void Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged);
+	/**
+	 * @param InAbilityTags 슬롯을 가리키는 어빌리티 에셋 태그. 비어 있으면 아무 어빌리티나 매칭되므로 거부한다.
+	 * @param InCanBindAbility 후보가 소유자의 발동 태그 요건을 만족하는지. 재생 중인 액션의 차단까지 보면 액션 도중 바뀐 요건이 액션이 끝날 때까지 표시되지 않는다.
+	 */
+	void Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged, FWxCanBindAbility InCanBindAbility);
 	virtual void Deinitialize() override;
 
 	/** 슬롯 변경 통지에서 호출한다. 이후 충전·쿨다운 갱신이 이 값을 사용한다. */
@@ -178,6 +182,7 @@ private:
 	void UnbindCostAttributes(UAbilitySystemComponent& ASC);
 
 	FWxOnBoundAbilityChanged OnBoundAbilityChanged;
+	FWxCanBindAbility CanBindAbility;
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;

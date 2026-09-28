@@ -23,9 +23,6 @@ public:
 
 	virtual bool ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* Payload) const override;
 
-	/** 가드 반응 몽타주는 길이가 곧 연출 규칙이므로 ASPD를 반영하지 않는다. */
-	virtual float GetMontagePlayRate() const override;
-
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 

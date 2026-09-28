@@ -21,9 +21,6 @@ class WXCOMBAT_API UWxAbility_PlayMontageOnce : public UWxAbilityBase
 public:
 	UWxAbility_PlayMontageOnce();
 
-	/** 거는 쪽 몽타주와 프레임 싱크를 맞춰야 하므로 ASPD를 반영하지 않는다. */
-	virtual float GetMontagePlayRate() const override;
-
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 };

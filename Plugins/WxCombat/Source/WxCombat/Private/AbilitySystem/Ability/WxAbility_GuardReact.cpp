@@ -19,12 +19,12 @@ UWxAbility_GuardReact::UWxAbility_GuardReact()
 	SetAssetTags(AssetTags);
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_GuardReact);
 
-	// Ability.GuardReact는 가드의 공통 차단 목록에 없어 함께 발동하고, Override는 반응 도중 취소를 막는다.
-	ActivationGroup = EWxAbilityActivationGroup::Override;
+	// Ability.GuardReact는 Ability.Action 밖이라 가드 중에도 발동한다.
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 
 	// HitReact가 차단에 쓰는 것과 같은 태그라 한 히트에 둘 중 하나만 뜬다.
 	// 이 검사는 서버에서만 돈다 — 소유 클라는 ClientActivateAbilitySucceedWithEventData가 CallActivateAbility를 직접 불러 태그 요건을 건너뛴다.
-	ActivationRequiredTags.AddTag(WxGameplayTags::Ability_Guard);
+	ActivationRequiredTags.AddTag(WxGameplayTags::Ability_Action_Guard);
 
 	// 가드 중 연속 피격은 앞 연출을 끊고 새로 튼다.
 	bRetriggerInstancedAbility = true;
@@ -60,11 +60,6 @@ bool UWxAbility_GuardReact::ShouldAbilityRespondToEvent(const FGameplayAbilityAc
 	return Super::ShouldAbilityRespondToEvent(ActorInfo, Payload);
 }
 
-float UWxAbility_GuardReact::GetMontagePlayRate() const
-{
-	return 1.f;
-}
-
 void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -80,7 +75,7 @@ void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		// 이 어빌리티는 서버와 소유 클라 양쪽에서 활성화되므로 취소도 양쪽에서 로컬로 일어난다.
 		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 		{
-			const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Guard);
+			const FGameplayTagContainer GuardAbilityTags(WxGameplayTags::Ability_Action_Guard);
 			ASC->CancelAbilities(&GuardAbilityTags);
 		}
 	}

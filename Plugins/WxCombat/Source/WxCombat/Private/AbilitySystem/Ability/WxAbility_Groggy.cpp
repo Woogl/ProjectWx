@@ -23,10 +23,10 @@ UWxAbility_Groggy::UWxAbility_Groggy()
 	
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Death);
 
-	ActivationGroup = EWxAbilityActivationGroup::Override;
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 
-	// Override 어빌리티는 캔슬되지 않아, 처형 짝 피격처럼 겹쳐야 할 반응이 보존된다.
-	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability);
+	// 반응은 끊지 않아, 처형 짝 피격처럼 겹쳐야 할 반응이 보존된다.
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 
 	FAbilityTriggerData TriggerData;
 	TriggerData.TriggerTag = WxGameplayTags::Event_Groggy;
@@ -101,7 +101,7 @@ void UWxAbility_Groggy::HandleMontagePollTick()
 	UAbilitySystemComponent* ASC = CurrentActorInfo ? CurrentActorInfo->AbilitySystemComponent.Get() : nullptr;
 	if (!ASC || ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 	{
-		// 사망 어빌리티가 Override 그로기를 취소하지 못해 여기서 종료한다.
+		// 사망은 액션만 끊어 그로기를 취소하지 않으므로 여기서 종료한다.
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
 	}

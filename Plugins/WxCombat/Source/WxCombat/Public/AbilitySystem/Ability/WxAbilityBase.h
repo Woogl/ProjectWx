@@ -38,23 +38,7 @@ enum class EWxAbilityCostResource : uint8
 };
 
 /**
- * 입력 버퍼·캔슬 창·취소 면역의 분류다. 공통 차단 태그는 이 그룹과 에셋 태그로 계산한다.
- */
-UENUM()
-enum class EWxAbilityActivationGroup : uint8
-{
-	/** 배타 액션의 입력 버퍼·캔슬 창에 참여하지 않는다. */
-	Independent,
-
-	/** 콤보 창·후딜 전이에 따라 태그 차단을 조절한다. */
-	Exclusive,
-
-	/** 취소를 거부한다. 발동 차단 여부는 그룹과 별개로 에셋 태그로 판정한다. */
-	Override,
-};
-
-/**
- * Exclusive 어빌리티의 캔슬 창이며, 콤보 창을 닫아도 이미 시작한 Recovery는 유지한다.
+ * 액션(에셋 태그가 Ability.Action 아래)의 캔슬 창이며, 콤보 창을 닫아도 이미 시작한 Recovery는 유지한다.
  */
 enum class EWxAbilityActionPhase : uint8
 {
@@ -64,12 +48,12 @@ enum class EWxAbilityActionPhase : uint8
 	/** 차단 태그를 유지하되 자기 재발동 검사에서 자기 차단 기여만 제외한다. */
 	ComboWindow,
 
-	/** 태그 차단을 해제한 후딜레이. 뒤이어 발동한 Exclusive·Override가 이 액션을 취소한다. */
+	/** 태그 차단을 해제한 후딜레이. 뒤이어 발동한 액션이 이 액션을 취소한다. */
 	Recovery,
 };
 
 /**
- * 어빌리티 하나는 데이터 전용 GA_ 하나다. C++ 파생 클래스가 타입이고, 생성자에서 태그 관계와 발동 그룹 같은 규칙 기본값을 정한다.
+ * 어빌리티 하나는 데이터 전용 GA_ 하나다. C++ 파생 클래스가 타입이고, 생성자에서 식별 태그와 차단·취소·발동 조건 같은 태그 관계의 기본값을 정한다.
  * GA_는 몽타주·입력·수치·표시를 채운다.
  */
 UCLASS(Abstract, BlueprintType, Blueprintable)
@@ -98,15 +82,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<UInputAction> ActivationInputAction;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wx")
-	EWxAbilityActivationGroup ActivationGroup = EWxAbilityActivationGroup::Independent;
-
-	/** 지금 열려 있는 캔슬 창. Exclusive일 때만 뜻이 있고, 활성화마다 Blocking에서 다시 시작한다. */
+	/** 지금 열려 있는 캔슬 창. 액션일 때만 뜻이 있고, 활성화마다 Blocking에서 다시 시작한다. */
 	EWxAbilityActionPhase GetActionPhase() const;
-
-	/** 명시한 차단 태그에 그룹·에셋 태그의 공통 규칙을 합친다. 적용·해제·콤보 조회가 공유하므로 실행 중 변하는 상태에 의존하면 안 된다. */
-	UFUNCTION(BlueprintPure, Category = "Wx")
-	FGameplayTagContainer GetAbilityBlockTags() const;
 
 	/**
 	 * 활성 구간 동안 소유자에게 유지되는 효과. ActivationOwnedTags의 GE판으로, 활성화에서 걸고 종료에서 걷는다.
@@ -145,7 +122,7 @@ public:
 	/** 정확한 SectionName 또는 접두사 SectionName에 Forward를 붙인 섹션이 있는지 검사한다. NAME_None은 빈 접두사다. */
 	static bool HasMontageSection(const UAnimMontage* Montage, FName SectionName);
 
-	/** 일반적으로는 ASPD가 반영된 몽타주 재생 속도 사용. */
+	/** 몽타주 재생 속도. 공격 속도(ASPD)는 콤보(공격·스킬·패턴)만 따른다. */
 	virtual float GetMontagePlayRate() const;
 
 	/** 노티파이를 보낸 몽타주 인스턴스가 지금 재생 중인 것이 아니면 무시한다 — 끊긴 앞 단 몽타주도 블렌드아웃 동안 노티파이를 보낸다. */
@@ -153,15 +130,16 @@ public:
 	void CloseComboWindow(int32 MontageInstanceID);
 
 	/**
-	 * 본동작의 태그 차단을 풀어서 이후 발동하는 배타 액션에 의한 캔슬을 허용한다.
+	 * 본동작의 태그 차단을 풀어서 이후 발동하는 액션에 의한 캔슬을 허용한다.
 	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사한다.
 	 */
 	void StartRecovery(int32 MontageInstanceID);
 
-	/** 콤보 재발동·IgnoreAbilityActivationTags는 소유자의 발동 조건만 면제한다. 콤보의 자기 차단을 제외한 어빌리티·GE 차단은 유지한다. */
+	/** 재생 중인 액션의 차단 몫은 콤보 창의 자기 재발동과, 그 액션을 CancelAbilitiesWithTag로 지목한 어빌리티에 빼 준다. 소유자 발동 조건은 콤보 재발동·IgnoreAbilityActivationTags만 면제한다. */
 	virtual bool DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
-	virtual bool CanBeCanceled() const override;
+	/** 소유자 태그만으로 본 발동 조건(ActivationRequiredTags·ActivationBlockedTags). 재생 중인 액션의 차단은 보지 않아 같은 슬롯의 후보를 고르는 데 쓴다. */
+	bool DoesOwnerSatisfyActivationTags(const UAbilitySystemComponent& AbilitySystemComponent) const;
 
 	/** UWxEffect_Cooldown은 쿨다운 시간이 없으면 nullptr — 호출자들이 이것을 "쿨다운 없음" 게이트로 쓴다. */
 	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
@@ -195,6 +173,9 @@ protected:
 
 	/** 방향 선택 이후의 재생 수명. 그로기는 태스크 종료 대신 GP와 폴링으로 수명을 관리한다. */
 	virtual bool PlayMontageInternal(UAnimMontage* Montage, FName StartSection);
+
+	/** PlayMontage가 방향 섹션을 자동 선택할 때, 이 활성화에서 확정·동기화한 로컬 입력 방향으로 섹션을 고른다. */
+	virtual FName SelectInputDirectionSection(const UAnimMontage* Montage, const FString& Prefix, const FVector& LocalDirection);
 
 	/** 창이 닫힌 뒤의 발동은 첫 단부터 시작해야 한다. */
 	virtual void OnComboWindowClosed();

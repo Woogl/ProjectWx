@@ -8,12 +8,12 @@
 UWxAbility_Guard::UWxAbility_Guard()
 {
 	FGameplayTagContainer AssetTags;
-	AssetTags.AddTag(WxGameplayTags::Ability_Guard);
+	AssetTags.AddTag(WxGameplayTags::Ability_Action_Guard);
 	SetAssetTags(AssetTags);
-	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Guard);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Action_Guard);
 
-	// 본동작 중에는 공통 차단 목록에 포함된 Ability.Guard가 재발동을 막는다.
-	ActivationGroup = EWxAbilityActivationGroup::Exclusive;
+	// 본동작 중에는 자기 차단(Ability.Action)이 재발동을 막는다.
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 }
 
 bool UWxAbility_Guard::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
@@ -49,11 +49,6 @@ void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, co
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
-float UWxAbility_Guard::GetMontagePlayRate() const
-{
-	return 1.f;
-}
-
 void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -77,7 +72,7 @@ void UWxAbility_Guard::HandleMontageCompleted()
 
 void UWxAbility_Guard::HandleMontageInterrupted()
 {
-	// 그로기·사망은 Ability 태그로 이 어빌리티를 먼저 취소하므로 여기 걸리지 않는다.
+	// 그로기·사망은 Ability.Action 취소로 이 어빌리티를 먼저 끊으므로 여기 걸리지 않는다.
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_GuardReact))
 	{

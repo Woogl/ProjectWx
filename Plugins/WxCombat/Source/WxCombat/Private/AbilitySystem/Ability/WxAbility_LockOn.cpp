@@ -130,11 +130,11 @@ void UWxAbility_LockOn::HandleDodgeTagRemoved()
 
 void UWxAbility_LockOn::ListenForDodgeRotation()
 {
-	UAbilityTask_WaitGameplayTagAdded* AddedTask = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, WxGameplayTags::Ability_Dodge, nullptr, false);
+	UAbilityTask_WaitGameplayTagAdded* AddedTask = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, WxGameplayTags::Ability_Action_Dodge, nullptr, false);
 	AddedTask->Added.AddDynamic(this, &UWxAbility_LockOn::HandleDodgeTagAdded);
 	AddedTask->ReadyForActivation();
 
-	UAbilityTask_WaitGameplayTagRemoved* RemovedTask = UAbilityTask_WaitGameplayTagRemoved::WaitGameplayTagRemove(this, WxGameplayTags::Ability_Dodge, nullptr, false);
+	UAbilityTask_WaitGameplayTagRemoved* RemovedTask = UAbilityTask_WaitGameplayTagRemoved::WaitGameplayTagRemove(this, WxGameplayTags::Ability_Action_Dodge, nullptr, false);
 	RemovedTask->Removed.AddDynamic(this, &UWxAbility_LockOn::HandleDodgeTagRemoved);
 	RemovedTask->ReadyForActivation();
 }
@@ -162,7 +162,7 @@ void UWxAbility_LockOn::StopRotateToTargetTask()
 bool UWxAbility_LockOn::IsDodgeActive() const
 {
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	return ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Dodge);
+	return ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Action_Dodge);
 }
 
 void UWxAbility_LockOn::HandleTargetLost()

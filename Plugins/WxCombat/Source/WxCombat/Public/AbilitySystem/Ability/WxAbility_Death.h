@@ -24,9 +24,6 @@ class WXCOMBAT_API UWxAbility_Death : public UWxAbilityBase
 public:
 	UWxAbility_Death();
 
-	/** 사망 연출은 공격 속도를 타지 않는다. */
-	virtual float GetMontagePlayRate() const override;
-
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 

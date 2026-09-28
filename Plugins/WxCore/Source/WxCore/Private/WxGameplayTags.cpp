@@ -85,43 +85,45 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Damage_CanParry, "Damage.CanParry");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability, "Ability");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Light, "Ability.Attack.Light");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Heavy, "Ability.Attack.Heavy");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Air, "Ability.Attack.Air");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_DodgeCounter, "Ability.Attack.DodgeCounter");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Jump, "Ability.Jump");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Dodge, "Ability.Dodge");
+
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action, "Ability.Action");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack, "Ability.Action.Attack");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Light, "Ability.Action.Attack.Light");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Heavy, "Ability.Action.Attack.Heavy");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_Air, "Ability.Action.Attack.Air");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Attack_DodgeCounter, "Ability.Action.Attack.DodgeCounter");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Skill, "Ability.Action.Skill");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Skill_1, "Ability.Action.Skill.1");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Skill_2, "Ability.Action.Skill.2");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Skill_3, "Ability.Action.Skill.3");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Skill_4, "Ability.Action.Skill.4");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Ultimate, "Ability.Action.Ultimate");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Dodge, "Ability.Action.Dodge");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Guard, "Ability.Action.Guard");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_UseItem, "Ability.Action.UseItem");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Interact, "Ability.Action.Interact");
+
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Pattern, "Ability.Action.Pattern");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Pattern_1, "Ability.Action.Pattern.1");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Pattern_2, "Ability.Action.Pattern.2");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Pattern_3, "Ability.Action.Pattern.3");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Pattern_4, "Ability.Action.Pattern.4");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Pattern_5, "Ability.Action.Pattern.5");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Pattern_6, "Ability.Action.Pattern.6");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Pattern_7, "Ability.Action.Pattern.7");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Pattern_8, "Ability.Action.Pattern.8");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Action_Pattern_9, "Ability.Action.Pattern.9");
+
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Sprint, "Ability.Sprint");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Guard, "Ability.Guard");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_GuardReact, "Ability.GuardReact");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill, "Ability.Skill");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_1, "Ability.Skill.1");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_2, "Ability.Skill.2");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_3, "Ability.Skill.3");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_4, "Ability.Skill.4");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Ultimate, "Ability.Ultimate");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Interact, "Ability.Interact");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_UseItem, "Ability.UseItem");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Finisher, "Ability.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_LockOn, "Ability.LockOn");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Passive, "Ability.Passive");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_HitReact, "Ability.HitReact");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_GuardReact, "Ability.GuardReact");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Groggy, "Ability.Groggy");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Death, "Ability.Death");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Finisher, "Ability.Finisher");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_PlayMontageOnce, "Ability.PlayMontageOnce");
-
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern, "Ability.Pattern");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_1, "Ability.Pattern.1");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_2, "Ability.Pattern.2");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_3, "Ability.Pattern.3");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_4, "Ability.Pattern.4");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_5, "Ability.Pattern.5");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_6, "Ability.Pattern.6");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_7, "Ability.Pattern.7");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_8, "Ability.Pattern.8");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Pattern_9, "Ability.Pattern.9");
 
 	UE_DEFINE_GAMEPLAY_TAG(Cooldown, "Cooldown");
 

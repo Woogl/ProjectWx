@@ -93,7 +93,7 @@ private:
 	void SetActorHighlighted(AActor* Actor, bool bHighlighted) const;
 
 	/**
-	 * 상호작용 어빌리티(Ability.Interact 애셋 태그)를 찾아 그 CanActivateAbility 로 현재 상호작용 가능 여부를 판정한다.
+	 * 상호작용 어빌리티(Ability.Action.Interact 애셋 태그)를 찾아 그 CanActivateAbility 로 현재 상호작용 가능 여부를 판정한다.
 	 * 차단 조건의 단일 소스는 어빌리티(ActivationBlockedTags 등)이므로 컴포넌트가 상태 태그를 하드코딩하지 않는다.
 	 */
 	bool CanActivateInteract(const UAbilitySystemComponent* ASC) const;

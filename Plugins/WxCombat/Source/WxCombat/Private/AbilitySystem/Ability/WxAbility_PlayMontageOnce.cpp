@@ -9,8 +9,8 @@ UWxAbility_PlayMontageOnce::UWxAbility_PlayMontageOnce()
 	// 부여도 발동도 서버가 한다. 소유 클라가 없는 폰에도 걸리므로 몽타주는 복제로 퍼진다.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
-	// 진행 중인 액션 위에 겹쳐 재생되어야 하고, 그 액션의 전체 취소 지목에도 끊기지 않아야 한다.
-	ActivationGroup = EWxAbilityActivationGroup::Override;
+	// Ability.Action 밖이라 진행 중인 액션 위에 겹쳐 재생되고, 그로기·사망의 취소 대상에도 들지 않는다.
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_PlayMontageOnce);
@@ -18,11 +18,6 @@ UWxAbility_PlayMontageOnce::UWxAbility_PlayMontageOnce()
 
 	// 활성 태그는 존재가 전원에 복제되므로 다른 클라의 프롬프트 게이트에도 닿는다.
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_PlayMontageOnce);
-}
-
-float UWxAbility_PlayMontageOnce::GetMontagePlayRate() const
-{
-	return 1.f;
 }
 
 void UWxAbility_PlayMontageOnce::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

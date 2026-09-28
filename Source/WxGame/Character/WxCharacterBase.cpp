@@ -111,7 +111,7 @@ void AWxCharacterBase::OnJumped_Implementation()
 {
 	Super::OnJumped_Implementation();
 
-	// Ability.Jump 차단을 통과해 실제로 점프한 뒤에만 앞 액션의 후딜을 끊는다.
+	// 액션 차단을 통과해 실제로 점프한 뒤에만 앞 액션의 후딜을 끊는다.
 	AbilitySystemComponent->CancelRecoveringAbilities(nullptr);
 }
 
@@ -179,7 +179,8 @@ bool AWxCharacterBase::CanJumpInternal_Implementation() const
 		return false;
 	}
 
-	if (AbilitySystemComponent->AreAbilityTagsBlocked(FGameplayTagContainer(WxGameplayTags::Ability_Jump)))
+	// 점프는 어빌리티가 아니지만 액션으로 취급해 액션 차단(Ability.Action)에 막힌다.
+	if (AbilitySystemComponent->AreAbilityTagsBlocked(FGameplayTagContainer(WxGameplayTags::Ability_Action)))
 	{
 		return false;
 	}

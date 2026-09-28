@@ -6,6 +6,7 @@
 #include "AbilitySystemGlobals.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "WxGameplayTags.h"
 
 UWxInputBufferComponent::UWxInputBufferComponent()
 {
@@ -40,7 +41,7 @@ void UWxInputBufferComponent::InputActionTriggered(const UInputAction* Action)
 		return;
 	}
 
-	// 배타 게이트의 대상이 아닌 Independent(질주·락온)는 버퍼에 관여하지 않는다 — 거절 주체가 액션이 아니고, 락온 해제 입력을 기억하면 그 종료가 곧 재시도 지점이 되어 다시 켜진다.
+	// 액션이 아닌 어빌리티(질주·락온)는 버퍼에 관여하지 않는다 — 거절 주체가 액션이 아니고, 락온 해제 입력을 기억하면 그 종료가 곧 재시도 지점이 되어 다시 켜진다.
 	// 키 상태는 ASC가 이 호출에서 세우므로 그 전에 읽는다 — 이미 서 있으면 쥔 채 반복해서 들어온 홀드다.
 	bool bAction = false;
 	bool bHeld = false;
@@ -52,7 +53,7 @@ void UWxInputBufferComponent::InputActionTriggered(const UInputAction* Action)
 			continue;
 		}
 
-		bAction = bAction || Ability->ActivationGroup != EWxAbilityActivationGroup::Independent;
+		bAction = bAction || Ability->GetAssetTags().HasTag(WxGameplayTags::Ability_Action);
 		bHeld = bHeld || Spec.InputPressed;
 	}
 

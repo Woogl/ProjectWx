@@ -14,7 +14,19 @@ class WXCOMBAT_API UWxAbility_Combo : public UWxAbilityBase
 public:
 	virtual UAnimMontage* GetMontage() const override;
 
+	/** 콤보 동작만 공격 속도(ASPD)를 탄다. */
+	virtual float GetMontagePlayRate() const override;
+
 protected:
+	/** 커밋한 뒤 다음 단(마지막 단 뒤에는 첫 단)의 몽타주를 재생한다. */
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+	/** 취소되면 다음 발동은 첫 단부터 시작한다. */
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+
+	/** 끝까지 재생하면 다음 발동은 첫 단부터 시작한다. */
+	virtual void HandleMontageCompleted() override;
+
 	/** 배열 순서가 콤보 순서다. 한 단계도 배열에 하나를 지정한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Combo")
 	TArray<TObjectPtr<UAnimMontage>> ComboMontages;

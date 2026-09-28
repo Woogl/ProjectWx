@@ -13,7 +13,7 @@
  * 슬롯 그룹이 다른 반응(가산 슬롯의 일반 피격)이나 착지 섹션을 쓰는 넉업은 한 몽타주에 합칠 수 없어 어빌리티를 따로 둔다.
  *
  * HitReact 태그 없는 일반 히트와 반응 이름·[반응 이름]Forward 섹션이 모두 없는 반응은 활성화 전에 거부하여 진행 중인 반응과 공격을 유지한다 — 패리는 반응 태그와 무관하게 받는다.
- * 가드 중 피격 반응은 WxAbility_GuardReact가 맡는다 — 그쪽이 Ability.Guard를 요구하고 이쪽이 같은 태그에 막히므로 한 히트에 둘 중 하나만 뜬다.
+ * 가드 중 피격 반응은 WxAbility_GuardReact가 맡는다 — 그쪽이 Ability.Action.Guard를 요구하고 이쪽이 같은 태그에 막히므로 한 히트에 둘 중 하나만 뜬다.
  */
 UCLASS(Abstract)
 class WXCOMBAT_API UWxAbility_HitReact : public UWxAbilityBase
@@ -24,9 +24,6 @@ public:
 	UWxAbility_HitReact();
 
 	virtual bool ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* Payload) const override;
-
-	/** 피격 몽타주는 길이가 곧 경직 시간이므로 ASPD를 반영하지 않는다. */
-	virtual float GetMontagePlayRate() const override;
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;

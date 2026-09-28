@@ -491,7 +491,7 @@ bool UWxInventoryComponent::RequestUseConsumable()
 		return false;
 	}
 
-	return ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(WxGameplayTags::Ability_UseItem));
+	return ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(WxGameplayTags::Ability_Action_UseItem));
 }
 
 bool UWxInventoryComponent::CanUseConsumable() const
