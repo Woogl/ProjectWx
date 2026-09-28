@@ -30,6 +30,9 @@ sources:
   - "[[작업 - ability-table-driven]]"
   - "[[작업 - cooldown-unification]]"
   - "[[작업 - ui-data-interface-removal]]"
+  - "[[작업 - exclusive-tag-blocking]]"
+  - "[[작업 - remove-get-ability-block-tags]]"
+  - "[[작업 - damage-pipeline-structure-review]]"
 ---
 
 # 어빌리티와 GAS
@@ -59,10 +62,12 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 행이 에셋과 1:1인 DT_Effect는 제거하고 값은 GE 에셋에 두며, 여러 노티파이·투사체가 행을 골라 쓰는 DT_Damage는 유지한다. ([[작업 - ability-table-driven]])
 - 쿨다운은 그룹별 GE 파생 클래스 대신 공용 UWxEffect_Cooldown 하나와 어빌리티의 FGameplayTagContainer CooldownTags로 구분하기로 사용자가 승인했다. ([[작업 - cooldown-unification]])
 - Ability.Pattern.N 태그는 BT 재정비에 필요할 수 있어 유지하고 Ability.Skill.N 제거는 BT 재정비 때 하기로 사용자가 정했다. ([[작업 - cooldown-unification]])
-- 사용자는 2026-09-23 회피를 ASC의 OnImmunityBlockGameplayEffectDelegate를 쓰는 방식으로 재구현하도록 지시했고, Dodge 어빌리티가 활성 동안 막힌 UWxEffect_Damage를 감지해 극한 회피로 전환한다. ([[결정 노트 - 2026-09-23-damage-forward-flow]])
+- 사용자는 2026-09-23 회피를 ASC의 OnImmunityBlockGameplayEffectDelegate를 쓰는 방식으로 재구현하도록 지시했고, Dodge 어빌리티가 활성 동안 막힌 UWxEffect_Damage를 감지해 극한 회피로 전환한다. ([[결정 노트 - 2026-09-23-damage-forward-flow]], [[작업 - damage-pipeline-structure-review]])
 - 사용자는 2026-09-24 스택형이 아닌 GE도 쓸 수 있도록 구간 GE 노티파이가 자기가 건 핸들만 제거하는 B안을 골랐다. ([[결정 노트 - 2026-09-24-wxcombat-cleanup]])
 - 사용자는 2026-09-24 소환물 AbilitySet의 NoCooldown을 IgnoreCooldowns로 바꾸고 IgnoreCooldowns는 엔진 기본 GE 컴포넌트 방식으로 동작해야 한다고 결정했다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
 - 2026-09-25 사용자는 어빌리티 공통 차단 규칙을 ASC ApplyAbilityBlockAndCancelTags 확장에서 계산해 Super에 넘기는 방식을 승인하고 이번 범위를 자식의 차단 코드 제거로 한정했다. ([[결정 노트 - 2026-09-25-ability-block-policy-centralization]])
+- 2026-09-28 사용자는 GetAbilityBlockTags가 코드에서 Exclusive 어빌리티를 관리하게 만든다며 없애기로 하고, 차단 목록을 타입 클래스 생성자의 BlockAbilitiesWithTag에 두며(Q1) ActivationGroup 개념을 없애 액션을 Ability.Action 태그 위치로 표현하는 계획을 승인했다. 2026-09-29(KST) Q2 답변으로 피격 반응은 공격·스킬만 끊는 현행을 유지한다. ([[작업 - remove-get-ability-block-tags]])
+- 2026-09-29(KST) 사용자는 재생 중인 액션을 CancelAbilitiesWithTag로 지목한 어빌리티가 그 액션의 차단 몫을 빼고 발동 판정을 받도록(자기 재발동은 콤보 창에서만) 승인했다. 앞선 콤보 창 한정 안은 리슨 서버에서 본동작 중 선입력한 강공격이 서버에 8회 모두 거절되어 폐기됐다. ([[작업 - remove-get-ability-block-tags]])
 - 2026-09-25 사용자는 AI 입장의 작업 편의를 최우선 기준으로 삼았고, 어빌리티 데이터는 어빌리티별 데이터 전용 GA_ 에셋에 둔다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
 - 행이 에셋과 1:1인 데이터는 그 GA_·GE_ 에셋에 두고, DataTable은 DT_Damage 같은 여러 곳이 골라 쓰는 정의와 레벨 곡선에만 쓴다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
 - 사용자는 엔진 칸을 HideCategories로 숨기지 않고 스펙 DynamicSpecSourceTags를 쓰지 않도록 결정했다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
@@ -88,15 +93,19 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 2026-09-24 작업 트리의 UWxEffect_IgnoreCooldowns는 Infinite GE로 UImmunityGameplayEffectComponent와 URemoveOtherGameplayEffectComponent가 Cooldown 부모 태그를 부여하는 GE를 막고 걷는다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
 - 코스트 무시 UWxEffect_IgnoreCosts는 순정 CheckCost가 면역이 아니라 어트리뷰트를 보기 때문에 태그와 AbilityBase 판정을 유지한다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
 - 발동 그룹 점유·가드 입력·질주 SP·컷신 사용 중 같은 Wx 고유 발동 실패는 로그를 남기지 않는다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
-- 2026-09-25 작업 트리의 UWxAbilityBase::GetAbilityBlockTags는 명시 차단 목록과 ActivationGroup 공통 규칙을 합치며, Exclusive·Override는 Attack·Skill·Pattern·Ultimate·Dodge·Guard·UseItem·Interact·Jump를 막는다. ([[결정 노트 - 2026-09-25-ability-block-policy-centralization]])
-- Exclusive 약공격(Ability.Attack.Light)은 공통 Attack 부모 대신 Light·Air·DodgeCounter만 막아 강공격이 순정 CancelAbilitiesWithTag로 약공격을 끊을 수 있다. ([[결정 노트 - 2026-09-25-ability-block-policy-centralization]])
+- 2026-09-25 작업 트리의 UWxAbilityBase::GetAbilityBlockTags는 명시 차단 목록과 ActivationGroup 공통 규칙을 합치며, Exclusive·Override는 Attack·Skill·Pattern·Ultimate·Dodge·Guard·UseItem·Interact·Jump를 막는다. 2026-09-28 이 함수와 ActivationGroup은 삭제됐다(아래 remove-get-ability-block-tags 줄). ([[결정 노트 - 2026-09-25-ability-block-policy-centralization]])
+- 2026-09-25 기준 Exclusive 약공격(Ability.Attack.Light)은 공통 Attack 부모 대신 Light·Air·DodgeCounter만 막아 강공격이 순정 CancelAbilitiesWithTag로 약공격을 끊을 수 있다. ([[결정 노트 - 2026-09-25-ability-block-policy-centralization]])
 - 2026-09-25 커밋 이후 비용·쿨다운 시간·표시·몽타주는 UWxAbilityBase의 GA_ 프로퍼티이고 발동 조건·쿨다운 그룹 GE·BT 번호 태그·패시브 트리거는 엔진 칸에 둔다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
 - UWxAbilitySet은 캐릭터 ASC에 같은 어빌리티 클래스가 이미 있으면 경고하고 부여를 건너뛴다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
 - UWxAbilityBase::ApplyCooldown은 충전 하나당 공용 쿨다운 GE 하나를 걸고 같은 태그의 최대 남은 시간 + CooldownTime을 SetByCaller.Duration으로 넘겨 충전을 차례로 회복시킨다. ([[결정 노트 - 2026-09-25-cooldown-single-ge]])
 - 공용 쿨다운 GE는 순정 IsDataValid 규칙을 지키려고 Cooldown 부모 태그를 부여하며, CooldownTags가 빈 어빌리티는 CheckCooldown을 바로 통과한다. ([[결정 노트 - 2026-09-25-cooldown-single-ge]])
-- Exclusive 차단 정리 후 주석 기준으로 Override는 취소 면역일 뿐 발동 차단은 실제 에셋 태그와 차단 목록이 결정하며, 처형·가드 반응은 공통 차단 목록에 식별 태그가 없어 진입한다. ([[결정 노트 - 2026-09-25-exclusive-submission-cleanup]])
-- Exclusive 차단 전환 후 일반 액션·반응 타입 생성자가 Attack·Skill·Pattern·Ultimate·Dodge·Guard·UseItem·Interact·Jump를 BlockAbilitiesWithTag에 더하고, 반응·처형 태그는 목록에 없어 진입할 수 있다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
-- ActivationGroup은 입력 버퍼 분류·단계 전이·Override 취소 면역에만 남으므로 새 액션 분류를 도입하면 공통 차단 목록과 Light 개별 목록을 함께 검토해야 한다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
+- 2026-09-25 Exclusive 차단 정리 후 주석 기준으로 Override는 취소 면역일 뿐 발동 차단은 실제 에셋 태그와 차단 목록이 결정하며, 처형·가드 반응은 공통 차단 목록에 식별 태그가 없어 진입한다. Override 취소 면역(CanBeCanceled 재정의)은 2026-09-28 삭제됐다. ([[결정 노트 - 2026-09-25-exclusive-submission-cleanup]])
+- 2026-09-25 Exclusive 차단 전환 후 일반 액션·반응 타입 생성자가 Attack·Skill·Pattern·Ultimate·Dodge·Guard·UseItem·Interact·Jump를 BlockAbilitiesWithTag에 더하고, 반응·처형 태그는 목록에 없어 진입할 수 있다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
+- 2026-09-25 기준 ActivationGroup은 입력 버퍼 분류·단계 전이·Override 취소 면역에만 남으므로 새 액션 분류를 도입하면 공통 차단 목록과 Light 개별 목록을 함께 검토해야 한다. 2026-09-28 ActivationGroup이 삭제되어 이 자리들은 Ability.Action 에셋 태그 판정으로 바뀌었다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
+- 2026-09-29(KST) 기록 기준 액션 태그는 Ability.Action 아래(Attack.Light·Heavy·Air·DodgeCounter, Skill.1~4, Pattern.1~9, Ultimate, Dodge, Guard, UseItem, Interact)에 있고, Ability.Action.Jump는 지워져 점프 검사는 Ability.Action 차단을 본다. Sprint·LockOn·Passive·HitReact·GuardReact·Groggy·Death·Finisher·PlayMontageOnce는 그대로다. ([[작업 - remove-get-ability-block-tags]])
+- 같은 기록 기준 액션·반응 타입 생성자(약공격 포함)는 BlockAbilitiesWithTag에 Ability.Action 한 줄을, 사망은 Ability를 선언한다. 그로기 취소 대상은 Ability.Action, 사망은 Ability.Action·Sprint·LockOn이며 패시브는 빠졌다. 반응이 발동해도 후딜 중인 액션을 따로 취소하지 않는다. ([[작업 - remove-get-ability-block-tags]])
+- 컷신 효과 UWxEffect_SkillCutscene은 2026-09-29(KST)부터 Ability.Action·Sprint·LockOn을 막아 컷신 중 점프도 새로 막힌다. ([[작업 - remove-get-ability-block-tags]])
+- 같은 작업에서 콤보 진행(ActivateAbility·EndAbility·HandleMontageCompleted)이 UWxAbility_Combo로 올라가고(창 닫힘 초기화는 공격·스킬만), 재생 속도 기본값 1.0에 ASPD는 콤보 어빌리티만 따른다(궁극기·아이템 사용은 더 이상 따르지 않음). 회피 방향은 베이스 PlayMontage의 가상 훅 SelectInputDirectionSection으로 처리한다. ([[작업 - remove-get-ability-block-tags]])
 
 ## 검증 범위
 
@@ -110,7 +119,9 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - GA_ 복귀는 빌드, GA_ 40개 값 대조, 데이터 검증 커맨드릿, PIE 단독·리슨 서버 부여 확인까지 했고 락온·가드 경감률·조작감은 미확인이다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
 - 쿨다운 GE 통합은 에디터 빌드·데이터 검증 커맨드릿(GA 40개·WxAbilitySet 9개 오류 0)·임시 자동화 테스트와 사용자 인게임 회피 확인을 거쳤고, 소환물 쿨다운 무시와 네트워크 복제는 확인되지 않았다. ([[결정 노트 - 2026-09-25-cooldown-single-ge]])
 - Exclusive 차단 임시 테스트와 검증 스크립트는 사용자 요청으로 제거되었고, 그 회귀 결과는 삭제 전 근거로만 남으며 사람 코드 리뷰·플레이·예측/복제는 미확인이다. ([[결정 노트 - 2026-09-25-exclusive-submission-cleanup]])
-- Exclusive 태그 차단은 Editor 빌드, GA 40개 차단 관계 1,600건 대조, AbilityBlocking 자동화 테스트 2건 성공으로 확인되었고 몽타주·선입력 감각·UI·예측/복제·플레이는 미검증이다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
+- 결정 노트 시점(2026-09-25) Exclusive 태그 차단은 Editor 빌드, GA 40개 차단 관계 1,600건 대조, AbilityBlocking 자동화 테스트 2건 성공으로 확인되었고 몽타주·선입력 감각·UI·예측/복제·플레이는 미검증이다. 2026-09-28 확인은 아래 줄을 본다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
+- Exclusive 태그 차단 작업은 2026-09-28 헤드리스 게임·리슨 서버 PIE 임시 자동화로 콤보·선입력, 반응 중첩·강공격 취소, 도플갱어 미러링, UI·상호작용 가용성, 슬롯 아이콘 후보 전환을 AI가 확인했다. 서버 거절 뒤 콤보 단계 어긋남은 combo-stage-desync-after-rejection 수정 뒤 재테스트로 통과했고, woogle이 코드 리뷰·화면 표시 모양을 통과시켜 15/15로 완료됐다. ([[작업 - exclusive-tag-blocking]])
+- GetAbilityBlockTags·ActivationGroup 제거는 빌드, GA 40개 CDO 옛 규칙 대조, 에셋 19개 태그 이관(옛 태그 문자열 0), 헤드리스 전투 흐름·추가 변경·품질 개선 임시 자동화, 리슨 서버 강공격·회피 방향 일치로 AI가 확인했고 woogle이 2026-09-28 코드 리뷰·화면 표시를 통과시켰다. ([[작업 - remove-get-ability-block-tags]])
 - GA_ 유지 이후 HGTest·분신·도플갱어 어빌리티 발동과 연출, 블렌드 인 0.05초 통일 뒤 조작감, 가드 중 피해 절반 감소와 방패 버프 아이콘, 패시브 UP 5 지급, 타게팅 프리셋 락온을 사람이 2026-09-25 통과시켰다. ([[결정 노트 - 2026-09-26-ability-ga-play-acceptance]])
 - GA_ 유지의 사람 테스트는 네트워크 구성이 명시되지 않아 예측·복제·BT 타이밍 검증으로 확대하지 않는다. ([[결정 노트 - 2026-09-26-ability-ga-play-acceptance]])
 - 사람은 2026-09-25 공용 쿨다운 GE에 대해 회피 쿨다운·UI 진행률, 소환물 쿨다운 무시, 리슨 서버·클라이언트 PIE 복제, `UWxEffect_Cooldown`·`ApplyCooldown`·`CheckCooldown` 코드 리뷰를 통과시켰다. ([[결정 노트 - 2026-09-26-cooldown-play-acceptance]])
@@ -121,11 +132,15 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 콤보 네트워크 반복 검사에서 첫 입력이 발동·RPC 없이 누락된 1회의 원인은 미확인이다. 추가 로그 뒤 15회 재현되지 않았지만 해결됐다고 볼 수 없다. 서버가 클라이언트 단계의 범위만 검사하고 신뢰하는 것은 PvE 전제다. ([[작업 - combo-stage-desync-after-rejection]])
 - 어빌리티 클래스·데이터·몽타주 사이 암묵적 계약을 드러내는 방법(선언과 편집 화면 표시 등)은 미결로 남았고, 타입별 몽타주 검증기는 제거된 채 필요 시 재검토하기로 했다. ([[작업 - ability-table-driven]])
 - 사용자는 어빌리티 자식 클래스도 나중에 없앨 수 있으면 없애고 싶다고 했지만 클래스 통합 여부와 시점은 정하지 않았다. ([[결정 노트 - 2026-09-25-ability-block-policy-centralization]])
+- remove-get-ability-block-tags 기록의 「구현」 절은 약공격만 Heavy를 뺀 목록과 그로기의 Sprint·LockOn 취소를 적지만, 같은 기록의 2026-09-29(KST) 추가 변경·검증은 약공격 차단을 Ability.Action 한 줄로, 그로기 취소 대상을 Ability.Action 하나로 적는다. 이 페이지는 뒤의 추가 변경을 따른다. ([[작업 - remove-get-ability-block-tags]])
 
 ## 원자료
 
 - [[작업 - ability-directional-section]] — 방향 섹션 선택을 공통 PlayMontage로 옮기고 콤보는 몽타주 배열로 복원한 결정과 단독·네트워크·사람 연출 검증 기록
 - [[작업 - combo-stage-desync-after-rejection]] — 입력 발동 이벤트 데이터에 콤보 단계를 실어 정상 완료·서버 거절 뒤 단계 불일치를 고친 작업과 반복 검증·잔여 입력 누락 기록
+- [[작업 - exclusive-tag-blocking]] — Exclusive 어빌리티 차단을 순정 태그 차단으로 옮긴 작업의 완료 기록으로, 2026-09-28 헤드리스·리슨 서버 테스트와 스킬 슬롯 아이콘 후보 선택 수정, 체크리스트 15/15 통과
+- [[작업 - remove-get-ability-block-tags]] — GetAbilityBlockTags와 ActivationGroup을 지우고 액션을 Ability.Action 태그 위치와 생성자의 순정 차단·취소 필드로 표현하며 콤보 진행·재생 속도·회피 방향을 정리한 2026-09-28~29 완료 작업 기록
+- [[작업 - damage-pipeline-structure-review]] — 피해 파이프라인을 결과 API·출처 명시·Hit 분리를 거쳐 ApplyDamage → Damage GE 컴포넌트의 정방향 흐름으로 재설계한 2026-09-23 기록과 2026-09-27 헤드리스·2026-09-28 사람 확인
 - [[결정 노트 - 2026-09-23-damage-forward-flow]] — Hit Wrapper GE와 전용 EffectContext를 없애고 ApplyDamage 판정에서 Damage GE 컴포넌트 반응으로 결과가 앞으로만 흐르게 한 2026-09-23 결정들
 - [[결정 노트 - 2026-09-23-zero-damage-hitstop]] — 히트스톱을 Hit Cue와 같은 조건(피해 0 초과 또는 퍼펙트 가드)으로 맞추고 Hit Cue 예측 발행 등 낡은 주석을 정정한 기록. 빌드 통과, 플레이 미검증.
 - [[결정 노트 - 2026-09-24-wxcombat-cleanup]] — 구간 GE 노티파이가 자기 핸들만 걷게 하고 처형 피해를 처형 어빌리티가 직접 적용하며 퍼펙트 가드 Cue를 Hit Cue로 통합한 WxCombat 정리 네 건 기록

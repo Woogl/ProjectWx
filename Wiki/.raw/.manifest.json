@@ -196,6 +196,15 @@
       "superseded_by": ".raw/captured/65032a2eeccae1de8b02306c9b4a8ca7c236cabec2ca70a9fa93246f5704a17f.md",
       "title": ".agents/workflow/tasks/ui-data-interface-removal.md"
     },
+    ".raw/captured/28306becff62e6edfd6b6eacc8c938c5189129316e4b04e78519e9bb0f6ec254.md": {
+      "ingested": "2026-09-28",
+      "pages": [
+        "wiki/sources/작업 - remove-get-ability-block-tags.md"
+      ],
+      "sha256": "28306becff62e6edfd6b6eacc8c938c5189129316e4b04e78519e9bb0f6ec254",
+      "source_id": "src-71b7745ce4472d64c885",
+      "title": ".agents/workflow/tasks/remove-get-ability-block-tags.md"
+    },
     ".raw/captured/2a8e3cdfc0558872cd04ddc502f86f934022994b811419d1afcc0a34f9feb1bd.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -622,6 +631,15 @@
       "source_id": "src-757f477d3daaafa3f171",
       "title": "Docs/CombatDesign/WA_주인공_캐릭터.md"
     },
+    ".raw/captured/74f0285e53158c77bbbbf5ef602db33f923edb3a2a20506f2f11344286eca208.md": {
+      "ingested": "2026-09-28",
+      "pages": [
+        "wiki/sources/작업 - item-viewmodel-unification.md"
+      ],
+      "sha256": "74f0285e53158c77bbbbf5ef602db33f923edb3a2a20506f2f11344286eca208",
+      "source_id": "src-8019eb1136705395467d",
+      "title": ".agents/workflow/tasks/item-viewmodel-unification.md"
+    },
     ".raw/captured/75d7e3ca9197246e60b700c5a5c7fee28eecc2916840e2d21063f9f3518262c1.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -695,6 +713,15 @@
       "sha256": "89800b04230305cea3e80c038f683d446e185242501eba116e3be0f74e4cb1f7",
       "source_id": "src-f18b919b389d5ab5acdd",
       "title": "Docs/LevelDesign/Wx_Quest.md"
+    },
+    ".raw/captured/8bea528318ccbbb1622af9d60c8bdd74638caf0a0f10c6c09bd3d6f66e21d563.md": {
+      "ingested": "2026-09-28",
+      "pages": [
+        "wiki/sources/작업 - exclusive-tag-blocking.md"
+      ],
+      "sha256": "8bea528318ccbbb1622af9d60c8bdd74638caf0a0f10c6c09bd3d6f66e21d563",
+      "source_id": "src-6b9d64b9441a771c418a",
+      "title": ".agents/workflow/tasks/exclusive-tag-blocking.md"
     },
     ".raw/captured/8ec9c9277e25287f3375fd3c8297c2d2bab5f5ea158397c5e56cabf75dc2b4f5.md": {
       "ingested": "2026-09-26",
@@ -785,6 +812,15 @@
       "sha256": "9e5f21eddd56c690e6229d52af085197c8a9342c56298a67c33275b09602ae76",
       "source_id": "src-5a9d3c91e03b611a51b4",
       "title": ".agents/workflow/tasks/workflow-final-fixes.md"
+    },
+    ".raw/captured/a0a17c15cf78e70a44241c5e308fb09dff4089a59fb4ca524019f093f986c188.md": {
+      "ingested": "2026-09-28",
+      "pages": [
+        "wiki/sources/작업 - damage-pipeline-structure-review.md"
+      ],
+      "sha256": "a0a17c15cf78e70a44241c5e308fb09dff4089a59fb4ca524019f093f986c188",
+      "source_id": "src-20f7b73699ee66fdc835",
+      "title": ".agents/workflow/tasks/damage-pipeline-structure-review.md"
     },
     ".raw/captured/a2f7e5b8bf1d09961ed855182d7d6eb578a8b18062ed90ad0e796a17cfb5b58d.md": {
       "ingested": "2026-09-26",
@@ -1167,6 +1203,15 @@
       "source_id": "src-b8abe92095b411c6840f",
       "title": ".wiki/raw/notes/2026-09-23-item-viewmodel-unification.md"
     },
+    ".raw/captured/e649e119d7dcbd6ba4531128d58e59bdb4b3bf3f0918387696c64698d659ea1d.md": {
+      "ingested": "2026-09-28",
+      "pages": [
+        "wiki/sources/작업 - wxgame-review-fixes.md"
+      ],
+      "sha256": "e649e119d7dcbd6ba4531128d58e59bdb4b3bf3f0918387696c64698d659ea1d",
+      "source_id": "src-6b1e68159d9bf1eda424",
+      "title": ".agents/workflow/tasks/wxgame-review-fixes.md"
+    },
     ".raw/captured/e6adb3fe5b44c4d5f4f471ab1882e658b847413a077763d317542c1f10905d61.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -1186,6 +1231,24 @@
       "superseded_by": ".raw/captured/435c37ae39577b152d434be89a6164cfa0449a237c68b9dc6f576f849412e89f.md",
       "supersedes": ".raw/captured/59143c6ca03ca223cd6ea530ac450788dd9834454683104c9aadc6eab132e206.md",
       "title": ".agents/workflow/tasks/workflow-review.md"
+    },
+    ".raw/captured/ec0acfbffd502f2344488f67df00bfaa1634113de63272f3e47058f13331b9a8.md": {
+      "ingested": "2026-09-28",
+      "pages": [
+        "wiki/sources/작업 - workflow-recheck.md"
+      ],
+      "sha256": "ec0acfbffd502f2344488f67df00bfaa1634113de63272f3e47058f13331b9a8",
+      "source_id": "src-99375580e4966519d2e3",
+      "title": ".agents/workflow/tasks/workflow-recheck.md"
+    },
+    ".raw/captured/eeedc24b3183c11185daf45ac04bb4e1fb5517b26a8650a4d3e3aa66621bbe8a.md": {
+      "ingested": "2026-09-28",
+      "pages": [
+        "wiki/sources/작업 - reference-tab-removal.md"
+      ],
+      "sha256": "eeedc24b3183c11185daf45ac04bb4e1fb5517b26a8650a4d3e3aa66621bbe8a",
+      "source_id": "src-bb7fe4e0b6bd3930108f",
+      "title": ".agents/workflow/tasks/reference-tab-removal.md"
     },
     ".raw/captured/ef0aa55fead92e04406ea9314857498ef630e94fee3d4ae87ce744265f7b365f.md": {
       "ingested": "2026-09-26",

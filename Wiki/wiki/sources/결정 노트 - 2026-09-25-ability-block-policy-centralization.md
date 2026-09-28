@@ -2,7 +2,7 @@
 type: source
 title: "결정 노트 - 2026-09-25-ability-block-policy-centralization"
 created: 2026-09-26
-updated: 2026-09-26
+updated: 2026-09-28
 status: developing
 tags:
   - "source"
@@ -16,7 +16,7 @@ sha256: 2b0fa3b07a5a305a90fdd6e257001c6b75ec9bfa3cd0614bff4fba6149286295
 authority: primary
 independence_key: ".wiki/raw/notes/2026-09-25-ability-block-policy-centralization.md"
 review_state: active
-refresh_due: 2026-10-26
+refresh_due: 2027-09-26
 original_paths:
   - ".wiki/raw/notes/2026-09-25-ability-block-policy-centralization.md"
 raw_copy: ".raw/captured/2b0fa3b07a5a305a90fdd6e257001c6b75ec9bfa3cd0614bff4fba6149286295.md"
@@ -35,7 +35,11 @@ key_claims:
 # 결정 노트 - 2026-09-25-ability-block-policy-centralization
 
 - 원본: `.wiki/raw/notes/2026-09-25-ability-block-policy-centralization.md`
-- 원자료 사본: `.raw/captured/2b0fa3b07a5a305a90fdd6e257001c6b75ec9bfa3cd0614bff4fba6149286295.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원자료 사본: `.raw/captured/2b0fa3b07a5a305a90fdd6e257001c6b75ec9bfa3cd0614bff4fba6149286295.md` (수집 2026-09-26, 재확인 기한 2027-09-26)
+
+## 후속 반영 · 2026-09-28 UTC
+
+2026-09-28 [[작업 - remove-get-ability-block-tags]]에서 `GetAbilityBlockTags`·ASC `ApplyAbilityBlockAndCancelTags` 재정의·ActivationGroup이 삭제되고 차단은 타입 생성자의 `BlockAbilitiesWithTag`(Ability.Action)로 옮겨졌다. 아래 구현 계약과 주장 c2는 2026-09-25 당시 이력이다.
 
 ## 개요
 

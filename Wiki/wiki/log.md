@@ -13,6 +13,10 @@ tags:
 
 Newest completed operations appear first.
 
+## 2026-09-28 · ingest-20260928-task-records-b2
+
+완료 작업 기록 7건(152,258바이트)을 한 묶음으로 수집했다: [[작업 - damage-pipeline-structure-review]], [[작업 - exclusive-tag-blocking]], [[작업 - item-viewmodel-unification]], [[작업 - reference-tab-removal]], [[작업 - remove-get-ability-block-tags]], [[작업 - workflow-recheck]], [[작업 - wxgame-review-fixes]]. [[어빌리티와 GAS]]에 GetAbilityBlockTags·ActivationGroup 삭제와 Ability.Action 태그 계층, 생성자 차단·취소 선언, 끼어들기 판정 규칙, 콤보 진행 공통화·재생 속도·회피 방향 정리를 더하고, 2026-09-25 공통 차단 계산 줄에 날짜와 대체 안내를 붙였다. [[피해 파이프라인]]·[[UI 표시 구조]]·[[아이템과 회복]]·[[모듈 구조와 코드 정리]]·[[체크포인트와 리스폰]]·[[적 AI와 몬스터]]에 2026-09-27~28 헤드리스·사람 확인과 남은 경고·과제를, [[작업 절차(Workflow)]]에 워크플로우 재점검 결정과 리뷰·참고 탭 제거를 더했다. 대체된 주장 2건(clm-d9912a3acf-c2, clm-f1cb443cff-c4)을 deprecated로 보존하고 해당 결정 노트 2장에 후속 반영 안내를 붙였다(두 페이지의 재확인 기한 표기를 원장 값 2027-09-26으로 맞춤). 새 원자료 재확인 기한은 2027-03-28이다. 기획서 30개 파일과 나머지 완료 작업 기록 28건은 원장과 해시가 같았고, 30일 안에 재확인 기한이 오는 활성 원자료는 없었다. 게임 빌드·실행 재검증은 하지 않았다.
+
 ## 2026-09-28 · ingest-20260928-abilities-b1-v3
 
 완료 기록 첫 묶음 3건(44,173바이트)을 수집했다: [[작업 - ability-directional-section]], [[작업 - ability-resolver-to-wxui]], [[작업 - combo-stage-desync-after-rejection]]. [[어빌리티와 GAS]]의 번호 섹션 모델을 후속 배열 결정으로 대체하고 콤보 단계 이벤트 동기화·검증 한계를 추가했다. [[UI 표시 구조]]에 리졸버 WxGame 복귀를 연결했다. 이전 원자료 요약 2장에 이력 안내를 붙이고 대체된 주장 2건을 deprecated로 보존했다. 기한 재확인 대상은 없었다. 미수집 완료 기록 7건은 다음 묶음으로 남는다. 게임 재실행 검증은 하지 않았다.

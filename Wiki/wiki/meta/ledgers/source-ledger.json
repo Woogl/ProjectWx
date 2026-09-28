@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-28T17:59:09Z",
+  "generated_at": "2026-09-28T21:50:00Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
     "src-002bb852bfddda1dbe57": {
@@ -2566,6 +2566,139 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".agents/workflow/tasks/combo-stage-desync-after-rejection.md"
+    },
+    "src-20f7b73699ee66fdc835": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "a0a17c15cf78e70a44241c5e308fb09dff4089a59fb4ca524019f093f986c188",
+      "independence_key": ".agents/workflow/tasks/damage-pipeline-structure-review.md",
+      "ingested_at": "2026-09-28",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/a0a17c15cf78e70a44241c5e308fb09dff4089a59fb4ca524019f093f986c188.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - damage-pipeline-structure-review.md"
+      ],
+      "refresh_due": "2027-03-28",
+      "retrieved_at": "2026-09-28",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/damage-pipeline-structure-review.md"
+    },
+    "src-6b9d64b9441a771c418a": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "8bea528318ccbbb1622af9d60c8bdd74638caf0a0f10c6c09bd3d6f66e21d563",
+      "independence_key": ".agents/workflow/tasks/exclusive-tag-blocking.md",
+      "ingested_at": "2026-09-28",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/8bea528318ccbbb1622af9d60c8bdd74638caf0a0f10c6c09bd3d6f66e21d563.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - exclusive-tag-blocking.md"
+      ],
+      "refresh_due": "2027-03-28",
+      "retrieved_at": "2026-09-28",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/exclusive-tag-blocking.md"
+    },
+    "src-71b7745ce4472d64c885": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "28306becff62e6edfd6b6eacc8c938c5189129316e4b04e78519e9bb0f6ec254",
+      "independence_key": ".agents/workflow/tasks/remove-get-ability-block-tags.md",
+      "ingested_at": "2026-09-28",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/28306becff62e6edfd6b6eacc8c938c5189129316e4b04e78519e9bb0f6ec254.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - remove-get-ability-block-tags.md"
+      ],
+      "refresh_due": "2027-03-28",
+      "retrieved_at": "2026-09-28",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/remove-get-ability-block-tags.md"
+    },
+    "src-8019eb1136705395467d": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "74f0285e53158c77bbbbf5ef602db33f923edb3a2a20506f2f11344286eca208",
+      "independence_key": ".agents/workflow/tasks/item-viewmodel-unification.md",
+      "ingested_at": "2026-09-28",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/74f0285e53158c77bbbbf5ef602db33f923edb3a2a20506f2f11344286eca208.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - item-viewmodel-unification.md"
+      ],
+      "refresh_due": "2027-03-28",
+      "retrieved_at": "2026-09-28",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/item-viewmodel-unification.md"
+    },
+    "src-bb7fe4e0b6bd3930108f": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "eeedc24b3183c11185daf45ac04bb4e1fb5517b26a8650a4d3e3aa66621bbe8a",
+      "independence_key": ".agents/workflow/tasks/reference-tab-removal.md",
+      "ingested_at": "2026-09-28",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/eeedc24b3183c11185daf45ac04bb4e1fb5517b26a8650a4d3e3aa66621bbe8a.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - reference-tab-removal.md"
+      ],
+      "refresh_due": "2027-03-28",
+      "retrieved_at": "2026-09-28",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/reference-tab-removal.md"
+    },
+    "src-99375580e4966519d2e3": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "ec0acfbffd502f2344488f67df00bfaa1634113de63272f3e47058f13331b9a8",
+      "independence_key": ".agents/workflow/tasks/workflow-recheck.md",
+      "ingested_at": "2026-09-28",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/ec0acfbffd502f2344488f67df00bfaa1634113de63272f3e47058f13331b9a8.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - workflow-recheck.md"
+      ],
+      "refresh_due": "2027-03-28",
+      "retrieved_at": "2026-09-28",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/workflow-recheck.md"
+    },
+    "src-6b1e68159d9bf1eda424": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "e649e119d7dcbd6ba4531128d58e59bdb4b3bf3f0918387696c64698d659ea1d",
+      "independence_key": ".agents/workflow/tasks/wxgame-review-fixes.md",
+      "ingested_at": "2026-09-28",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/e649e119d7dcbd6ba4531128d58e59bdb4b3bf3f0918387696c64698d659ea1d.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - wxgame-review-fixes.md"
+      ],
+      "refresh_due": "2027-03-28",
+      "retrieved_at": "2026-09-28",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/wxgame-review-fixes.md"
     }
   }
 }

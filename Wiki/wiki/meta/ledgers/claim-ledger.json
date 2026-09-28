@@ -6766,7 +6766,7 @@
       "text": "2026-09-25 사용자는 ASC의 ApplyAbilityBlockAndCancelTags 확장으로 공통 차단 목록을 계산해 Super에 전달하는 방식을 승인했다."
     },
     "clm-d9912a3acf-c2": {
-      "assessment": "accepted",
+      "assessment": "deprecated",
       "confidence": "high",
       "evidence": [
         {
@@ -6779,8 +6779,8 @@
         "anchor": "^c2",
         "path": "wiki/sources/결정 노트 - 2026-09-25-ability-block-policy-centralization.md"
       },
-      "notes": null,
-      "reviewed_at": "2026-09-26",
+      "notes": "2026-09-28 remove-get-ability-block-tags 작업으로 GetAbilityBlockTags와 ActivationGroup이 삭제되어 clm-28306becff-c1이 대체했다. 2026-09-25 당시 공통 목록 계산은 역사적 사실로 보존한다.",
+      "reviewed_at": "2026-09-28",
       "risk": "normal",
       "supersedes": null,
       "text": "이 작업에서 Exclusive·Override 발동 그룹은 Attack·Skill·Pattern·Ultimate·Dodge·Guard·UseItem·Interact·Jump를 공통으로 막고 Independent는 명시 목록만 쓴다."
@@ -8086,7 +8086,7 @@
       "text": "도플갱어 면제 효과는 사용자 지시로 IgnoreAbilityActivationTags로 이름이 바뀌고 소유자 발동 조건만 면제하도록 범위가 좁혀졌다."
     },
     "clm-f1cb443cff-c4": {
-      "assessment": "accepted",
+      "assessment": "deprecated",
       "confidence": "high",
       "evidence": [
         {
@@ -8099,8 +8099,8 @@
         "anchor": "^c4",
         "path": "wiki/sources/결정 노트 - 2026-09-25-exclusive-tag-blocking.md"
       },
-      "notes": null,
-      "reviewed_at": "2026-09-26",
+      "notes": "2026-09-28 헤드리스·리슨 서버 테스트와 woogle의 코드 리뷰·화면 확인이 작업 기록으로 확인되어 clm-8bea528318-c3이 대체했다. 노트 시점의 미확인 상태는 역사적 사실로 보존한다.",
+      "reviewed_at": "2026-09-28",
       "risk": "normal",
       "supersedes": null,
       "text": "Exclusive 태그 차단은 빌드·GA 40개 차단 관계 대조·자동화 테스트 2건으로 확인되었으나 플레이·예측/복제·사람 코드 리뷰는 미확인이다."
@@ -8724,8 +8724,488 @@
       "risk": "normal",
       "supersedes": null,
       "text": "작업 기록의 네트워크 테스트 27회 중 26회는 전 항목 통과했으며, 완료·거절 뒤 다음 입력의 단계 일치는 27회 모두 통과했지만 첫 입력 누락 1회의 원인은 미확인이다."
+    },
+    "clm-a0a17c15cf-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/a0a17c15cf78e70a44241c5e308fb09dff4089a59fb4ca524019f093f986c188.md",
+          "relation": "supports",
+          "source_id": "src-20f7b73699ee66fdc835"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - damage-pipeline-structure-review.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 사용자 판단으로 피해 파이프라인은 Hit Wrapper GE·FWxHitEffectContext·FWxDamageResult를 없애고, 네 인자 ApplyDamage → Damage GE(ExecCalc 방어 판정) → DamageReaction·PerfectGuard·HitStop·AdditionalEffects 컴포넌트 순서로 결과가 앞으로만 흐르게 재설계됐으며 ApplyDamage는 Damage GE 적용 여부만 반환한다."
+    },
+    "clm-a0a17c15cf-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/a0a17c15cf78e70a44241c5e308fb09dff4089a59fb4ca524019f093f986c188.md",
+          "relation": "supports",
+          "source_id": "src-20f7b73699ee66fdc835"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - damage-pipeline-structure-review.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "사용자 지시(\"반응이 끝난 뒤에 만들어야해요\")로 추가 효과 Spec은 피해 반응 뒤 _AdditionalEffects가 만들며, 0 피해에도 적용하고 퍼펙트 가드일 때만 생략한다."
+    },
+    "clm-a0a17c15cf-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/a0a17c15cf78e70a44241c5e308fb09dff4089a59fb4ca524019f093f986c188.md",
+          "relation": "supports",
+          "source_id": "src-20f7b73699ee66fdc835"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - damage-pipeline-structure-review.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-27 헤드리스 임시 자동화 테스트로 일반 적중·일반 가드·퍼펙트 가드에는 히트스톱이 걸리고 완전 경감 가드·반올림 0 피해에는 걸리지 않으며, 퍼펙트 가드에 맞은 반사 가능 투사체는 쏜 적에게 되돌아가고 반사 불가 투사체는 파괴됨을 AI가 확인했다."
+    },
+    "clm-a0a17c15cf-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/a0a17c15cf78e70a44241c5e308fb09dff4089a59fb4ca524019f093f986c188.md",
+          "relation": "supports",
+          "source_id": "src-20f7b73699ee66fdc835"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - damage-pipeline-structure-review.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "woogle은 2026-09-28 히트스톱 체감과 피해 파이프라인 재설계 전체 코드 리뷰를 통과시켰고, 상태 전이 순서 정리와 가드 방향 등 기획 확인 항목은 기록에 대기로 남아 있다."
+    },
+    "clm-8bea528318-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/8bea528318ccbbb1622af9d60c8bdd74638caf0a0f10c6c09bd3d6f66e21d563.md",
+          "relation": "supports",
+          "source_id": "src-6b9d64b9441a771c418a"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - exclusive-tag-blocking.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-28 헤드리스 게임·리슨 서버 PIE 테스트에서 콤보·선입력, 반응 중첩·강공격 취소, 도플갱어 미러링, UI·상호작용 가용성은 통과했고, 서버만 콤보 재발동을 거절한 뒤의 client L / server LL 단계 어긋남은 combo-stage-desync-after-rejection 수정 뒤 재테스트로 통과했다."
+    },
+    "clm-8bea528318-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/8bea528318ccbbb1622af9d60c8bdd74638caf0a0f10c6c09bd3d6f66e21d563.md",
+          "relation": "supports",
+          "source_id": "src-6b9d64b9441a771c418a"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - exclusive-tag-blocking.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "스킬 1 발동 뒤 아이콘이 스킬 2로 늦게 바뀌던 문제는 슬롯 후보 선택이 재생 중 액션 차단까지 본 탓이었고, 2026-09-29(KST) 수정으로 후보는 UWxAbilityBase::DoesOwnerSatisfyActivationTags로 고르고 WxGame 리졸버가 판정 대리자 FWxCanBindAbility를 넘기며 CanActivate 표시는 엔진 CanActivateAbility를 따른다."
+    },
+    "clm-8bea528318-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/8bea528318ccbbb1622af9d60c8bdd74638caf0a0f10c6c09bd3d6f66e21d563.md",
+          "relation": "supports",
+          "source_id": "src-6b9d64b9441a771c418a"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - exclusive-tag-blocking.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": "clm-f1cb443cff-c4",
+      "text": "exclusive-tag-blocking 작업은 체크리스트 15/15 통과로 완료됐고 woogle이 2026-09-28 코드 리뷰와 화면 표시 모양을 통과시켰다."
+    },
+    "clm-28306becff-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/28306becff62e6edfd6b6eacc8c938c5189129316e4b04e78519e9bb0f6ec254.md",
+          "relation": "supports",
+          "source_id": "src-71b7745ce4472d64c885"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - remove-get-ability-block-tags.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": "clm-d9912a3acf-c2",
+      "text": "2026-09-28 사용자 승인으로 UWxAbilityBase::GetAbilityBlockTags·ASC ApplyAbilityBlockAndCancelTags 재정의·EWxAbilityActivationGroup·ActivationGroup·CanBeCanceled 재정의가 삭제되고, 액션 태그가 Ability.Action 아래로 옮겨져 액션 판정은 GetAssetTags().HasTag(Ability.Action)이 됐다."
+    },
+    "clm-28306becff-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/28306becff62e6edfd6b6eacc8c938c5189129316e4b04e78519e9bb0f6ec254.md",
+          "relation": "supports",
+          "source_id": "src-71b7745ce4472d64c885"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - remove-get-ability-block-tags.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-29(KST) 추가 변경 뒤 액션·반응 타입 생성자(약공격 포함)는 BlockAbilitiesWithTag에 Ability.Action 한 줄을, 사망은 Ability를 선언하며, 그로기의 취소 대상은 Ability.Action, 사망은 Ability.Action·Sprint·LockOn이다."
+    },
+    "clm-28306becff-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/28306becff62e6edfd6b6eacc8c938c5189129316e4b04e78519e9bb0f6ec254.md",
+          "relation": "supports",
+          "source_id": "src-71b7745ce4472d64c885"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - remove-get-ability-block-tags.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "베이스 DoesAbilitySatisfyTagRequirements는 재생 중인 액션을 CancelAbilitiesWithTag로 지목한 어빌리티에 그 액션의 차단 몫을 빼고 판정하고 자기 재발동은 콤보 창에서만 허용하며, 앞선 콤보 창 한정 규칙은 리슨 서버에서 선입력 강공격이 8회 모두 서버 거절되어 폐기됐다."
+    },
+    "clm-28306becff-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/28306becff62e6edfd6b6eacc8c938c5189129316e4b04e78519e9bb0f6ec254.md",
+          "relation": "supports",
+          "source_id": "src-71b7745ce4472d64c885"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - remove-get-ability-block-tags.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "같은 작업에서 콤보 진행이 UWxAbility_Combo로 올라가고, 재생 속도 기본값 1.0에 ASPD는 콤보 어빌리티만 따르며, 회피 방향은 베이스 PlayMontage의 가상 훅 SelectInputDirectionSection으로 처리하고, Ability.Action.Jump 태그는 삭제됐다."
+    },
+    "clm-28306becff-c5": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/28306becff62e6edfd6b6eacc8c938c5189129316e4b04e78519e9bb0f6ec254.md",
+          "relation": "supports",
+          "source_id": "src-71b7745ce4472d64c885"
+        }
+      ],
+      "location": {
+        "anchor": "^c5",
+        "path": "wiki/sources/작업 - remove-get-ability-block-tags.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "GetAbilityBlockTags 제거 작업은 빌드, GA 40개 CDO 규칙 대조, 에셋 19개 태그 이관, 헤드리스 전투 흐름·리슨 서버 임시 자동화로 AI가 확인했고 woogle이 2026-09-28 코드 리뷰와 화면 표시를 통과시켜 9/9로 완료됐다."
+    },
+    "clm-74f0285e53-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/74f0285e53158c77bbbbf5ef602db33f923edb3a2a20506f2f11344286eca208.md",
+          "relation": "supports",
+          "source_id": "src-8019eb1136705395467d"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - item-viewmodel-unification.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-23 확정 설계로 WxGame UWxViewModel_InventoryItem을 지우고 값을 받기만 하는 WxUI UWxViewModel_Item으로 단일화했으며, PC당 공유 UWxViewModel_Inventory가 값을 공급하고 카테고리 선택(CurrentCategory·CategorizedItems)을 가져 인벤토리를 다시 열어도 마지막 탭이 유지된다."
+    },
+    "clm-74f0285e53-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/74f0285e53158c77bbbbf5ef602db33f923edb3a2a20506f2f11344286eca208.md",
+          "relation": "supports",
+          "source_id": "src-8019eb1136705395467d"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - item-viewmodel-unification.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-27 헤드리스 임시 자동화 테스트로 퀵슬롯 사용(충전 3→2·아이콘 갱신), 골드 갱신, 획득 토스트, 인벤토리 탭 필터·다시 열기 유지, 리스폰 뒤 유지를 AI가 확인했고 woogle이 2026-09-28 화면 모양과 코드 리뷰를 통과시켰다."
+    },
+    "clm-74f0285e53-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/74f0285e53158c77bbbbf5ef602db33f923edb3a2a20506f2f11344286eca208.md",
+          "relation": "supports",
+          "source_id": "src-8019eb1136705395467d"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - item-viewmodel-unification.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "게임 시작 때 WBP_AcquiredItemList가 null LastAcquiredItem을 검사하지 않아 \"Cannot add null item into ListView\" 경고를 한 번 남기며, 동작 영향이 없어 고치지 않았다."
+    },
+    "clm-eeedc24b31-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/eeedc24b3183c11185daf45ac04bb4e1fb5517b26a8650a4d3e3aa66621bbe8a.md",
+          "relation": "supports",
+          "source_id": "src-bb7fe4e0b6bd3930108f"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - reference-tab-removal.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-27 결정으로 상태 줄이 없는 기록(모듈 리뷰 등)은 할 일이 아니어서 대시보드 리뷰·참고 탭을 없애고 --tasks 출력에만 나오게 했으며, 모듈 리뷰에 상태 줄을 넣는 안은 기각했다."
+    },
+    "clm-eeedc24b31-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/eeedc24b3183c11185daf45ac04bb4e1fb5517b26a8650a4d3e3aa66621bbe8a.md",
+          "relation": "supports",
+          "source_id": "src-bb7fe4e0b6bd3930108f"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - reference-tab-removal.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "리뷰·참고 탭 제거는 워크플로우 Node 테스트 4개, 헤드리스 Edge 1440px 캡처, --tasks 출력으로 확인했고 woogle이 2026-09-27 코드 리뷰를 통과시켰다."
+    },
+    "clm-ec0acfbffd-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/ec0acfbffd502f2344488f67df00bfaa1634113de63272f3e47058f13331b9a8.md",
+          "relation": "supports",
+          "source_id": "src-99375580e4966519d2e3"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - workflow-recheck.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "이우성은 2026-09-27 워크플로우 재점검 결과 반영을 승인해 작업 절차와 push 스킬 문구를 고쳤고, 재점검 Q1은 그대로 두고 Q2는 남은 확인 대기 6건의 헤드리스 판정 가능 사람 항목을 지금 한 건씩 AI 항목으로 옮겨 테스트하기로 답했다."
+    },
+    "clm-ec0acfbffd-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/ec0acfbffd502f2344488f67df00bfaa1634113de63272f3e47058f13331b9a8.md",
+          "relation": "supports",
+          "source_id": "src-99375580e4966519d2e3"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - workflow-recheck.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-28 옮기기 결과 보스 표시·아이템 VM·WxGame 리뷰 지적·피해 파이프라인·방향별 섹션은 옮긴 AI 항목이 모두 통과했고, Exclusive 태그 차단은 서버 거절 뒤 콤보 단계 어긋남 1개가 실패해 별도 일감으로 넘어갔다."
+    },
+    "clm-ec0acfbffd-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/ec0acfbffd502f2344488f67df00bfaa1634113de63272f3e47058f13331b9a8.md",
+          "relation": "supports",
+          "source_id": "src-99375580e4966519d2e3"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - workflow-recheck.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "워크플로우 재점검 반영은 가짜 AI로 실제 서버 코드를 돌린 대조, marked 표 해석, 문서 링크 42개 오류 0으로 확인했고 woogle이 2026-09-28 코드 리뷰를 통과시켰다."
+    },
+    "clm-e649e119d7-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/e649e119d7dcbd6ba4531128d58e59bdb4b3bf3f0918387696c64698d659ea1d.md",
+          "relation": "supports",
+          "source_id": "src-6b1e68159d9bf1eda424"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - wxgame-review-fixes.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-25 사용자 요청으로 WxGame 코드 리뷰 지적 세 개를 고쳤고, 사용자 단순화 지시로 부여 상태 enum과 OnRegister·OnUnregister·EndPlay 오버라이드 없이 실제 스펙 보유 여부로 판단한다."
+    },
+    "clm-e649e119d7-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/e649e119d7dcbd6ba4531128d58e59bdb4b3bf3f0918387696c64698d659ea1d.md",
+          "relation": "supports",
+          "source_id": "src-6b1e68159d9bf1eda424"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - wxgame-review-fixes.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "수정 뒤 GiveAbilitySets는 없는 스펙만 채우고 bAbilitySetsInitialized로 속성·GE를 최초 한 번만 적용하며, bDeathHandled·bDeathNotified로 사망 처리와 처치 보상을 객체 수명당 한 번으로 제한하고, 새 게임은 체크포인트 삭제 전에 선택 Pawn 클래스를 검증한다."
+    },
+    "clm-e649e119d7-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/e649e119d7dcbd6ba4531128d58e59bdb4b3bf3f0918387696c64698d659ea1d.md",
+          "relation": "supports",
+          "source_id": "src-6b1e68159d9bf1eda424"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - wxgame-review-fixes.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-27 헤드리스 레벨 재표시 테스트에서 AWxWeaponBase::PostInitializeComponents의 무기 겹침 구독 중복 ensure를 찾아 AddUniqueDynamic으로 고쳤고, 재표시 전투와 새 게임 캐릭터 선택이 통과했다."
+    },
+    "clm-e649e119d7-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/e649e119d7dcbd6ba4531128d58e59bdb4b3bf3f0918387696c64698d659ea1d.md",
+          "relation": "supports",
+          "source_id": "src-6b1e68159d9bf1eda424"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - wxgame-review-fixes.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-28",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "woogle은 2026-09-28 WxGame 리뷰 수정의 코드 리뷰와 재표시 뒤 연출을 통과시켜 체크리스트 9/9로 완료됐다."
     }
   },
-  "generated_at": "2026-09-28T17:59:09Z",
+  "generated_at": "2026-09-28T21:50:00Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }

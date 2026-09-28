@@ -70,32 +70,38 @@ WX의 게임 규칙·구현·결정을 모은 claude-obsidian vault입니다. Wi
 
 - [[작업 - ability-directional-section]] — 방향 섹션 선택을 공통 PlayMontage로 옮기고 콤보는 몽타주 배열로 복원한 결정과 단독·네트워크·사람 연출 검증 기록
 - [[작업 - ability-resolver-to-wxui]] — Ability Resolver의 WxUI 이관을 과거 이력으로 닫고 IWxUIData 제거 후 WxGame 복귀와 표시 확인을 연결한 완료 기록
-- [[작업 - combo-stage-desync-after-rejection]] — 입력 발동 이벤트 데이터에 콤보 단계를 실어 정상 완료·서버 거절 뒤 단계 불일치를 고친 작업과 반복 검증·잔여 입력 누락 기록
-
 - [[작업 - ability-table-driven]] — 어빌리티를 DataTable 행으로 구동하려던 전환 작업 기록으로, 여러 단계 구현 끝에 GA_ 에셋 방식으로 복귀해 테이블화 없이 체크리스트 7/7 통과로 마무리됐다.
 - [[작업 - animnotify-categories]] — AnimNotify 17종을 6개 분류 색상으로 묶고 공용 색상 설정을 WxCore의 에디터 전용 설정으로 옮긴 작업 기록으로, 체크리스트 6/6 통과로 완료됐다.
 - [[작업 - animnotify-labels]] — AnimNotify 17종의 타임라인 표시 이름을 종류: 대표 값 형식의 짧은 라벨로 바꾼 작업 기록으로, 사람 확인 2/2 통과로 완료됐다.
 - [[작업 - checkpoint-savegame]] — 체크포인트를 SaveGame 슬롯으로 옮긴 작업 기록으로, 2026-09-27 헤드리스 테스트와 부활 위치 결함 수정 뒤 완료
+- [[작업 - combo-stage-desync-after-rejection]] — 입력 발동 이벤트 데이터에 콤보 단계를 실어 정상 완료·서버 거절 뒤 단계 불일치를 고친 작업과 반복 검증·잔여 입력 누락 기록
 - [[작업 - comment-cleanup-routine]] — 일일 주석 정리 Routine의 스킬 경로·대상 결정 결함을 고치고 무인 절차를 스킬로 옮긴 2026-09-27 완료 작업 기록
 - [[작업 - cooldown-unification]] — 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 공용 GE 하나로 통합하고 CooldownTags로 구분하게 바꾼 작업 기록으로, 사람 확인 4/4 통과로 완료됐다.
+- [[작업 - damage-pipeline-structure-review]] — 피해 파이프라인을 결과 API·출처 명시·Hit 분리를 거쳐 ApplyDamage → Damage GE 컴포넌트의 정방향 흐름으로 재설계한 2026-09-23 기록과 2026-09-27 헤드리스·2026-09-28 사람 확인
 - [[작업 - dashboard-work-tab-split]] — Workflow 대시보드와 작업 탭을 나누고 작성자 칸·이어서 작업 용어·marked 렌더러로 바꾼 작업 기록으로, 체크리스트 7/7 통과로 완료됐다.
 - [[작업 - datatable-row-preview]] — DataTable 행 미리보기에서 데이터 없는 구조체를 {}로 축약하고 셀과 툴팁을 같은 텍스트로 맞춘 에디터 작업 기록으로, 사람 확인 3/3 통과로 완료됐다.
 - [[작업 - datatable-row-rename-reference-update]] — DataTable 행 이름 변경 시 FDataTableRowHandle 참조를 자동 갱신하는 에디터 플러그인 DataTableRowFixup을 추가한 작업으로 2026-09-23 완료됐다.
 - [[작업 - dialogue-presentation-vm]] — Dialogue VM을 WxUI의 순수 표시 데이터로 분리하고, 화면 클래스를 거쳐 최종적으로 WxGame 리졸버 세 층 구조로 정리한 완료 작업 기록
+- [[작업 - exclusive-tag-blocking]] — Exclusive 어빌리티 차단을 순정 태그 차단으로 옮긴 작업의 완료 기록으로, 2026-09-28 헤드리스·리슨 서버 테스트와 스킬 슬롯 아이콘 후보 선택 수정, 체크리스트 15/15 통과
 - [[작업 - harness-legacy-cleanup]] — AI 하네스·워크플로우·Wiki의 옛 흔적과 로컬 Saved 잔여 파일을 정리하고 워크플로우 스크립트 이름을 바꾼 작업 기록으로, 체크리스트 6/6 통과로 완료됐다.
 - [[작업 - headless-ai-testing]] — 헤드리스로 판정할 수 있는 테스트는 AI가 끝까지 하도록 작업 절차와 서버를 바꾼 2026-09-27 완료 작업 기록
 - [[작업 - interaction-list-vm-simplification]] — 상호작용 목록 VM을 유지하되 스캐너 신호를 OnRowsChanged 하나로 합쳐 단순화하고, 문구 출처 기준과 엘리베이터 탑승칸 버튼 잠금까지 정리한 완료 작업 기록
+- [[작업 - item-viewmodel-unification]] — WxGame 인벤토리 아이템 VM을 WxUI 아이템 VM으로 단일화한 작업의 완료 기록으로, 2026-09-27 헤드리스 표시 테스트와 2026-09-28 사람 확인으로 체크리스트 7/7 통과
 - [[작업 - nameplate-manager]] — 적 Nameplate와 락온 레티클을 로컬 플레이어 컨트롤러의 NameplateManager가 붙이고 떼는 구조로 바꾸고 WxGame으로 옮긴 완료 작업 기록
 - [[작업 - player-screen-classes-to-layout-component]] — 사망·대화 화면 클래스를 UI 개발자 설정에서 플레이어 레이아웃 컴포넌트로 옮기고 태그 관찰 책임도 함께 이동한 완료 작업 기록
 - [[작업 - quest-presentation-vm]] — Quest·QuestObjective VM을 WxUI 순수 표시 데이터로 옮기고, 화면 클래스를 거쳐 WxGame 퀘스트 리졸버 세 층 구조로 정리한 완료 작업 기록
+- [[작업 - reference-tab-removal]] — 상태 줄 없는 기록(모듈 리뷰 등)을 대시보드에서 숨기려고 리뷰·참고 탭을 없앤 2026-09-27 완료 작업 기록
+- [[작업 - remove-get-ability-block-tags]] — GetAbilityBlockTags와 ActivationGroup을 지우고 액션을 Ability.Action 태그 위치와 생성자의 순정 차단·취소 필드로 표현하며 콤보 진행·재생 속도·회피 방향을 정리한 2026-09-28~29 완료 작업 기록
 - [[작업 - spawner-library-removal]] — UWxSpawnerLibrary를 AWxSpawner::RespawnAll로 대체한 작업 기록으로, 2026-09-27 헤드리스 에셋 로드·부활 재생성 확인 뒤 완료
 - [[작업 - ui-data-interface-removal]] — 공용 IWxUIData 인터페이스를 없애고 WxCombat 데이터·규칙, WxUI VM, WxGame 리졸버 연결로 역할을 나눈 완료 작업 기록
 - [[작업 - wiki-claude-obsidian-migration]] — 옛 LLM Wiki를 claude-obsidian vault로 바꾸고 Routine 정기 갱신과 대시보드 즉시 갱신(WSL 래퍼)을 만든 작업 기록으로, 체크리스트 22/22 통과로 완료됐다.
 - [[작업 - wiki-regeneration]] — 옛 .wiki LLM Wiki를 현재 코드·설정·기획 기준으로 전면 재생성하고 대체된 legacy 문서를 정리한 2026-09-22 완료 작업 기록
 - [[작업 - workflow-final-fixes]] — 워크플로우 최종 마무리 코드 리뷰 지적을 고치고 실행 제한·자유 답변·기록 열기와 워크플로우·Wiki 독립 관리를 정한 작업 기록으로, 체크리스트 6/6 통과로 완료됐다.
 - [[작업 - workflow-inspection]] — 순정 우선·장치 축소·SSOT 기준으로 워크플로우를 종합 점검하고 Q1~Q9 결정을 반영한 작업 기록으로, 체크리스트 12/12 통과로 완료됐다.
+- [[작업 - workflow-recheck]] — 헤드리스 테스트 규칙 도입 날의 워크플로우 재점검 결과를 작업 절차·push 스킬에 반영하고 남은 확인 대기 6건을 헤드리스 테스트로 옮긴 2026-09-27~28 완료 작업 기록
 - [[작업 - workflow-review]] — AI 작업 워크플로우를 점검하고 작업 절차 한 장·세 단계·테스트 체크리스트·웹 새 작업과 이어하기로 단순화한 2026-09-22~26 완료 작업 기록
 - [[작업 - workflow-wrapup-checks]] — 워크플로우 개선 다섯 건의 남은 사람 확인을 통폐합하고 AI 코드 리뷰로 대신한 2026-09-27 완료 작업 기록
+- [[작업 - wxgame-review-fixes]] — WxGame 코드 리뷰 지적 세 개(ASC 재등록, 사망·이벤트 구독, 새 게임 검증 순서)를 단순한 방식으로 고치고 레벨 재표시 헤드리스 테스트에서 무기 겹침 구독 중복까지 고친 완료 작업 기록
 - [[작업 - 이동속도의-어트리뷰트화]] — 이동 속도 배율 SPD를 cm/s 절대 속도 MOV 어트리뷰트로 바꾸고 속성 테이블에 MOV 열을 더한 2026-09-27 완료 작업 기록
 
 ## 원자료: 결정 노트

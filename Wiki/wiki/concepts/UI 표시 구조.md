@@ -32,6 +32,8 @@ sources:
   - "[[작업 - player-screen-classes-to-layout-component]]"
   - "[[작업 - quest-presentation-vm]]"
   - "[[작업 - ui-data-interface-removal]]"
+  - "[[작업 - item-viewmodel-unification]]"
+  - "[[작업 - exclusive-tag-blocking]]"
 ---
 
 # UI 표시 구조
@@ -93,6 +95,8 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 쿨다운 통합 시점의 UWxViewModel_Ability는 활성 GE의 Spec.DynamicGrantedTags로 자기 쿨다운을 세고 표시 주기로 GE 지속시간 대신 어빌리티의 CooldownTime을 쓴다. ([[결정 노트 - 2026-09-25-cooldown-single-ge]])
 - UI 데이터 인터페이스 제거 후 어빌리티 리졸버는 슬롯 변경 시 SetPresentation으로 제목·설명·아이콘·최대 충전 수·충전 한 칸 시간을 넘긴 뒤 GAS 비용·쿨다운·발동 가능 상태를 갱신한다. ([[결정 노트 - 2026-09-25-ui-data-interface-removal]])
 - UWxViewModelResolver_AbilitySystem은 GE의 UWxEffectComponent_UIData를 직접 읽고 아이콘이 있을 때만 효과 VM 표시 필드를 채운다. ([[결정 노트 - 2026-09-25-ui-data-interface-removal]])
+- 2026-09-29(KST) 수정 뒤 스킬 슬롯 VM은 같은 슬롯 후보 중 표시할 어빌리티를 UWxAbilityBase::DoesOwnerSatisfyActivationTags(소유자 태그만 본 발동 조건)로 고르고, 사용 가능 표시는 엔진 CanActivateAbility를 따른다. WxUI는 WxCombat을 모르므로 WxGame 리졸버가 판정 대리자 FWxCanBindAbility를 넘긴다. ([[작업 - exclusive-tag-blocking]])
+- 2026-09-27 헤드리스 확인 기준 HUD의 인벤토리 액션 위젯(InventoryWidgetClass)은 비어 있어 인벤토리는 메인 메뉴 Inventory 버튼으로 열고, 인벤토리를 닫으면 메인 메뉴로 돌아오며 메인 메뉴까지 닫아야 일시정지가 풀린다. 부활하면 HUD가 새로 만들어지고 퀵슬롯 사용 VM은 새 폰 ASC에 묶인다. ([[작업 - item-viewmodel-unification]])
 
 ## 검증 범위
 
@@ -104,7 +108,9 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - IWxUIData 제거 후 HUD·버프·보스·이름표 표시는 2026-09-25 이우성이 플레이로 확인했고, 자동화 Wx.UI.Presentation 3개가 통과했다. ([[작업 - ui-data-interface-removal]])
 - 2026-09-23 Ability Resolver 이동 노트는 정적 조사이며 기존 WBP의 로드·표시 동작은 확인하지 않았다. ([[결정 노트 - 2026-09-23-ability-resolver-module]])
 - Dialogue VM 분리는 WxEditor Development 빌드와 WBP 새 프로세스 컴파일·세션 신호 전달 확인까지 했고 인게임 화면·클릭은 미검증이다. ([[결정 노트 - 2026-09-23-dialogue-presentation-vm]])
-- 아이템 VM 단일화는 Development·DebugGame 빌드와 관련 위젯 6개 컴파일만 확인했고 런타임 표시·갱신은 인간 확인 대상으로 남았다. ([[결정 노트 - 2026-09-23-item-viewmodel-unification]])
+- 2026-09-23 노트 시점 아이템 VM 단일화는 Development·DebugGame 빌드와 관련 위젯 6개 컴파일만 확인했고 런타임 표시·갱신은 인간 확인 대상으로 남았다. 2026-09-27~28 확인은 아래 줄을 본다. ([[결정 노트 - 2026-09-23-item-viewmodel-unification]])
+- 아이템 VM 단일화는 2026-09-27 헤드리스 게임 임시 자동화 테스트로 퀵슬롯 사용(충전 3→2·아이콘 갱신)·골드 갱신·획득 토스트·인벤토리 탭 필터와 다시 열기 유지·리스폰 뒤 유지를 AI가 확인했고, woogle이 2026-09-28 화면 모양과 코드 리뷰를 통과시켰다. ([[작업 - item-viewmodel-unification]])
+- 스킬 슬롯 아이콘 후보 전환은 수정 전 분신 생성(0.157초) 뒤 스킬 1이 끝난 0.821초에야 바뀌었고, 수정 뒤 헤드리스 테스트에서 다음 틱(0.167초)에 스킬 2 아이콘으로 바뀌었으며 그동안 스킬 2의 CanActivate는 false로 남았다. woogle이 2026-09-28 화면 표시 모양을 통과시켰다. ([[작업 - exclusive-tag-blocking]])
 - 사망·대화 화면 주인 이동 후 사용자가 2026-09-23 사망·부활·대화 동작을 인게임에서 확인했다고 노트가 기록한다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
 - 대화·퀘스트 화면 리졸버 전환은 WxEditor 빌드와 WBP 4개 경고-오류 컴파일을 통과했고 사용자가 2026-09-23 인게임에서 문제 없음을 확인했다. ([[결정 노트 - 2026-09-23-screen-classes-to-resolvers]])
 - NameplateManager의 WxGame 이동은 빌드·BP 컴파일·레벨 재로드까지 확인됐고 인게임 표시와 리슨 서버·원격 클라이언트는 미검증이다. ([[결정 노트 - 2026-09-24-nameplate-manager-wxgame]])
@@ -122,10 +128,13 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 상호작용 목록은 선택 변경마다 ListView 엔트리가 새로 붙으므로 선택 전환 애니메이션을 넣으려면 선택 신호를 다시 나눠야 한다. ([[결정 노트 - 2026-09-23-interaction-list-vm]])
 - 사망·대화 화면 클래스 값이 ini에서 컨트롤러 BP 에셋으로 옮겨져 git diff로 리뷰할 수 없다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
 - UI 데이터 인터페이스 제거 작업에서 원격 클라이언트의 스펙 복제 후 슬롯 재매칭 신호 누락은 별도 미해결 사항으로 남아 있다. ([[결정 노트 - 2026-09-26-ui-data-display-acceptance]])
+- 게임 시작 때 WBP_AcquiredItemList가 첫 뷰 초기화의 null LastAcquiredItem을 검사하지 않아 "Cannot add null item into ListView" 스크립트 경고를 한 번 남기며, 동작 영향이 없어 2026-09-27 고치지 않았다. ([[작업 - item-viewmodel-unification]])
 
 ## 원자료
 
 - [[작업 - ability-resolver-to-wxui]] — Ability Resolver의 WxUI 이관을 과거 이력으로 닫고 IWxUIData 제거 후 WxGame 복귀와 표시 확인을 연결한 완료 기록
+- [[작업 - exclusive-tag-blocking]] — Exclusive 어빌리티 차단을 순정 태그 차단으로 옮긴 작업의 완료 기록으로, 2026-09-28 헤드리스·리슨 서버 테스트와 스킬 슬롯 아이콘 후보 선택 수정, 체크리스트 15/15 통과
+- [[작업 - item-viewmodel-unification]] — WxGame 인벤토리 아이템 VM을 WxUI 아이템 VM으로 단일화한 작업의 완료 기록으로, 2026-09-27 헤드리스 표시 테스트와 2026-09-28 사람 확인으로 체크리스트 7/7 통과
 - [[결정 노트 - 2026-09-23-ability-resolver-module]] — Ability ViewModel Resolver를 WxGame에서 WxUI로 옮기고 CoreRedirects로 기존 클래스 경로를 호환시킨 2026-09-23 정적 확인 기록
 - [[결정 노트 - 2026-09-23-boss-battle-three-layer]] — 보스 표시를 UWxBattleSubsystem·WxGame 리졸버·WxUI Character VM 세 층으로 재구성하고 보스 식별을 IdentityTags로 바꾼 2026-09-23 결정
 - [[결정 노트 - 2026-09-23-dialogue-presentation-vm]] — Dialogue VM을 WxUI의 순수 표시 데이터로 만들고 세션 연결은 WxGame Resolver, 진행 입력은 화면이 맡게 한 모듈 경계 결정과 정적 확인 기록.

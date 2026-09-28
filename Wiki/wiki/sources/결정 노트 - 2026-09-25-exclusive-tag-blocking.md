@@ -2,7 +2,7 @@
 type: source
 title: "결정 노트 - 2026-09-25-exclusive-tag-blocking"
 created: 2026-09-26
-updated: 2026-09-26
+updated: 2026-09-28
 status: developing
 tags:
   - "source"
@@ -16,7 +16,7 @@ sha256: cf524c0eec75d943109812e200e937db12ec1cac535d51f06bbf3fdefb9d7ddc
 authority: primary
 independence_key: ".wiki/raw/notes/2026-09-25-exclusive-tag-blocking.md"
 review_state: active
-refresh_due: 2026-10-26
+refresh_due: 2027-09-26
 original_paths:
   - ".wiki/raw/notes/2026-09-25-exclusive-tag-blocking.md"
 raw_copy: ".raw/captured/cf524c0eec75d943109812e200e937db12ec1cac535d51f06bbf3fdefb9d7ddc.md"
@@ -35,7 +35,11 @@ key_claims:
 # 결정 노트 - 2026-09-25-exclusive-tag-blocking
 
 - 원본: `.wiki/raw/notes/2026-09-25-exclusive-tag-blocking.md`
-- 원자료 사본: `.raw/captured/cf524c0eec75d943109812e200e937db12ec1cac535d51f06bbf3fdefb9d7ddc.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원자료 사본: `.raw/captured/cf524c0eec75d943109812e200e937db12ec1cac535d51f06bbf3fdefb9d7ddc.md` (수집 2026-09-26, 재확인 기한 2027-09-26)
+
+## 후속 반영 · 2026-09-28 UTC
+
+이 노트의 미확인 범위(플레이·예측/복제·사람 코드 리뷰)는 2026-09-28 [[작업 - exclusive-tag-blocking]]의 헤드리스·리슨 서버 테스트와 woogle의 코드 리뷰·화면 확인으로 닫혔다. 주장 c4는 노트 시점 이력이다. ActivationGroup 기반 공통 목록은 [[작업 - remove-get-ability-block-tags]]에서 삭제됐다.
 
 ## 개요
 

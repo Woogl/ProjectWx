@@ -2,7 +2,7 @@
 type: concept
 title: "적 AI와 몬스터"
 created: 2026-09-26
-updated: 2026-09-27
+updated: 2026-09-28
 status: developing
 tags:
   - concept
@@ -24,6 +24,8 @@ sources:
   - "[[작업 - ability-table-driven]]"
   - "[[작업 - nameplate-manager]]"
   - "[[작업 - 이동속도의-어트리뷰트화]]"
+  - "[[작업 - exclusive-tag-blocking]]"
+  - "[[작업 - wxgame-review-fixes]]"
 ---
 
 # 적 AI와 몬스터
@@ -73,11 +75,13 @@ sources:
 - 2026-09-24 정리 이후 사망 시 BT 정지는 AWxAIController::HandlePawnDeath만 하고 UWxAbility_Death의 StopLogic 호출은 삭제됐다. ([[결정 노트 - 2026-09-24-wxcombat-machinery-cleanup]])
 - 노트 시점 도플갱어 미러링 BT 태스크는 RetryDuration 기본 0.4초로 최신 실패 요청 하나만 재시도하며 다중 요청의 완전 동기화를 보장하지 않는다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
 - 2026-09-27 MOV 전환 뒤 도플갱어 추적은 WxBTService_MirrorMovement가 Master MaxWalkSpeed × 1.25 절대 속도를 SetByCaller.Magnitude로 실어 WxEffect_MoveSpeedOverride로 MOV를 덮어쓰고(자기 CDO 속도로 나누던 배율 계산은 삭제), 정찰·배회 감속은 WxEffect_MoveSpeedScale이 MOV에 배율을 곱한다. ([[작업 - 이동속도의-어트리뷰트화]])
+- 2026-09-25 WxGame 리뷰 수정으로 WxAI 행동 컴포넌트는 컨트롤러 이벤트를 AddUniqueDynamic으로, 피격 이벤트는 유효한 구독 핸들이 없을 때만 등록한다. 2026-09-27 헤드리스 확인에서 적이 든 서브레벨을 숨기면 AI 컨트롤러가 떨어지고 능력 스펙이 비며, 다시 보이면 새 컨트롤러가 빙의해 능력이 다시 부여됐다. ([[작업 - wxgame-review-fixes]])
 
 ## 검증 범위
 
 - AI 브레인 제어 단일화는 WxEditor Development 빌드를 통과했고 사용자가 2026-09-24 인게임에서 동작과 교차 돌진을 확인했다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
 - 2026-09-27 리슨 서버·클라이언트 PIE에서 적(Sandbag·BP_Template·Soldier) MaxWalkSpeed 400과 배회 감속 중 200을 AI가 확인했고, 적 추격·정찰·배회와 도플갱어 추적 속도가 전과 같은지는 woogle이 통과로 확인했다. ([[작업 - 이동속도의-어트리뷰트화]])
+- 2026-09-28 헤드리스 게임 테스트에서 HGTest 궁극기 1로 소환한 분신이 주인의 약공격 L→LLLL을 같은 몽타주로 따라 썼고(선입력 3단은 한 번 거절 뒤 0.007초 만에 재시도), 컷신 GE·Ability 전체 차단 중에는 재시도가 0.401초에 만료되어 따라 쓰지 않았으며 차단을 푼 뒤 지난 입력을 늦게 쓰지 않았다. ([[작업 - exclusive-tag-blocking]])
 
 ## 미결정·충돌
 
@@ -110,3 +114,5 @@ sources:
 - [[작업 - ability-table-driven]] — 어빌리티를 DataTable 행으로 구동하려던 전환 작업 기록으로, 여러 단계 구현 끝에 GA_ 에셋 방식으로 복귀해 테이블화 없이 체크리스트 7/7 통과로 마무리됐다.
 - [[작업 - nameplate-manager]] — 적 Nameplate와 락온 레티클을 로컬 플레이어 컨트롤러의 NameplateManager가 붙이고 떼는 구조로 바꾸고 WxGame으로 옮긴 완료 작업 기록
 - [[작업 - 이동속도의-어트리뷰트화]] — 이동 속도 배율 SPD를 cm/s 절대 속도 MOV 어트리뷰트로 바꾸고 속성 테이블에 MOV 열을 더한 2026-09-27 완료 작업 기록
+- [[작업 - exclusive-tag-blocking]] — Exclusive 어빌리티 차단을 순정 태그 차단으로 옮긴 작업의 완료 기록으로, 2026-09-28 헤드리스·리슨 서버 테스트와 스킬 슬롯 아이콘 후보 선택 수정, 체크리스트 15/15 통과
+- [[작업 - wxgame-review-fixes]] — WxGame 코드 리뷰 지적 세 개(ASC 재등록, 사망·이벤트 구독, 새 게임 검증 순서)를 단순한 방식으로 고치고 레벨 재표시 헤드리스 테스트에서 무기 겹침 구독 중복까지 고친 완료 작업 기록
