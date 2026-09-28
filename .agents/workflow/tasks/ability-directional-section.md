@@ -1,7 +1,7 @@
 # 어빌리티 방향별 몽타주 섹션 공용화
 
-상태: 확인 대기 · 체크리스트 15/18 통과
-다음 행동: 코드 리뷰와 콤보·방향별 연출을 확인한다.
+상태: 완료 · 체크리스트 18/18 통과
+다음 행동: 변경 시 기록된 테스트 범위와 제약을 참고한다.
 
 - 사용자 요청·구현 승인(2026-09-25): "UWxAbility_Dodge::SelectDodgeSection , EWxDodgeDirection 의 방향 선택이 Dodge 어빌리티 전용으로 개발이 되어있습니다. 몽타주 섹션 규칙만 잘 지키면 모든 WxAbilityBase에서 쓸 수 있도록 개선해주실 수 있을까요?"
 - 결정: 8방향 열거형과 방향 판정·섹션 검색을 UWxAbilityBase로 옮긴다. C++ 함수로 제공하고 UFUNCTION 지정자는 사용하지 않는다. 공용 무입력 기본값은 Forward이며 호출자가 지정할 수 있다. Dodge는 Back을 지정해 기존 동작을 보존한다.
@@ -25,12 +25,12 @@
 | 콤보 에셋 이관·저장 후 재로드 | 단계별 몽타주 복원, GA 22개 배열 설정·컴파일·저장 후 별도 UE 프로세스에서 재검사 | AI | 통과 | ComboMontageMigration.json·ComboMontageVerification.json; 29개 원본 복원·총 길이/노티파이 종류와 수/블렌드 설정 일치·기타 GA 설정 유지 |
 | 생성 목록의 콤보 표시 | Export-AbilitySystemLists.ps1 실행 및 배열 순서·참조 목록 확인 | AI | 통과 | 어빌리티 40개·사용 몽타주 54개, 콤보를 배열 순서의 화살표로 표시 |
 | BP 함수 노출 제거 | UHT 생성 코드에 새 공용 함수 등록이 없는지 확인 | AI | 통과 | ResolveDirection·SelectDirectionalSection·HasMontageSection·PlayMontageInternal 등록 없음 |
-| 코드 리뷰 | WxAbilityBase·Combo·Attack·Skill·Pattern·Dodge·Groggy·HitReact, Export-AbilitySystemLists.ps1: 배열 단계·방향 선택 책임·동기화 수명·기존 회피 기본값·주석 정정 확인 | 사람 | 대기 | |
+| 코드 리뷰 | WxAbilityBase·Combo·Attack·Skill·Pattern·Dodge·Groggy·HitReact, Export-AbilitySystemLists.ps1: 배열 단계·방향 선택 책임·동기화 수명·기존 회피 기본값·주석 정정 확인 | 사람 | 통과 | woogle 2026-09-28 |
 | 콤보 배열·단계 연결 | 헤드리스 게임(LV_DevCombat -game -nullrhi): GA 9개의 ComboMontages 순서, 실제 입력 경로(선입력 컴포넌트)로 Template·HGTest 공격의 단계 연결과 순환, 몽타주가 끝난(콤보 창이 닫힌) 뒤·후딜 회피 취소 뒤 첫 단 복귀, Template·Soldier 패턴 4종의 자동 진행과 취소 뒤 첫 단 | AI | 통과 | 2026-09-27 임시 자동화 테스트(확인 뒤 삭제): 배열 순서가 모두 단계 이름 순서(L→LL…, _1→_2…)와 같다. 공격은 누를 때마다 다음 몽타주 인스턴스로 바뀌어 L→LL→LLL→LLLL→L. 몽타주가 끝난 뒤 입력과 후딜 회피(공격 취소 확인) 뒤 입력은 L. 패턴 Template_Pattern_1(4단)·Soldier_Pattern_1(4)·_2(3)·_3(2)은 배열 순서대로 재생되고 취소 없이 끝나며, 2단에서 취소하면 다음 발동은 1단 |
-| 콤보 연결 연출 | 에디터 플레이로 HGTest·Template 공격과 Soldier·Template 패턴의 단계 사이 블렌딩이 자연스러운지 본다 | 사람 | 대기 | |
+| 콤보 연결 연출 | 에디터 플레이로 HGTest·Template 공격과 Soldier·Template 패턴의 단계 사이 블렌딩이 자연스러운지 본다 | 사람 | 통과 | woogle 2026-09-28 |
 | 방향 섹션 선택(단독) | 헤드리스 게임: 이동 입력을 넣고 실제 입력 경로로 회피·스킬을 발동하거나 적이 때려 반응을 일으켜 재생 섹션을 본다. 회피 8방향·비스듬한 입력·무입력, 극한 회피(무적 구간 피격), 스킬(방향 섹션 없는 원래 몽타주와 방향 섹션을 둔 몽타주), 반응(Normal·KnockBack과 방향 변형 사본) | AI | 통과 | 회피 8방향은 입력 방향 섹션 하나만 재생하고, 30°는 ForwardRight에 몸 -15° 회전, 무입력은 Backstep. 극한 회피는 Forward·Backstep·Right 회피 중 피격에 진행 방향의 SuccessForward·SuccessBack·SuccessRight로 바뀌고 피해 0·전역 시간 0.40. 스킬 AM_Template_Skill은 오른쪽 입력에도 Default이고, 회피 몽타주를 넣으면 Right·BackLeft·무입력 Forward. 반응 Normal·KnockBack은 입력과 무관하게 그대로이고, 방향 변형 사본은 오른쪽 NormalRight·무입력 NormalForward·없는 방향(뒤) NormalForward |
 | 방향 섹션 네트워크 동기화 | 헤드리스 에디터 PIE(리슨 서버 + 원격 클라이언트, 한 프로세스): 원격 클라이언트 캐릭터를 실제 입력 경로로 조작하고 서버 쪽 같은 캐릭터의 재생 섹션과 비교 | AI | 통과 | 회피 Forward·Right·BackLeft·ForwardRight(양쪽 몸 -15°)·Backstep이 서버에서도 같은 섹션이다. 극한 회피는 서버가 무적 구간 피격을 판정해 SuccessRight·SuccessBack으로 바꾸고, 소유 클라이언트가 같은 섹션으로 이어가며, 전역 시간 0.40이 클라이언트에도 복제된다. 공격 콤보 L→LL→LLL→LLLL→L을 서버도 같은 순서로 재생한다. 서버가 건 피격 반응 Normal을 클라이언트도 재생한다. 방향 섹션을 둔 스킬(공용 방향 동기화 경로)은 Right·BackLeft를 양쪽이 같게 재생한다. 서버가 시작하는 반응(방향 변형 사본)은 서버가 클라이언트 방향을 받아 NormalRight·NormalForward를 양쪽이 같게 재생한다 |
-| 방향별 연출 모양 | 에디터 플레이(단독·리슨 서버)로 회피 8방향·Backstep·극한 회피의 이동과 모션, 극한 회피 슬로모션·잔상이 자연스러운지 본다 | 사람 | 대기 | |
+| 방향별 연출 모양 | 에디터 플레이(단독·리슨 서버)로 회피 8방향·Backstep·극한 회피의 이동과 모션, 극한 회피 슬로모션·잔상이 자연스러운지 본다 | 사람 | 통과 | woogle 2026-09-28 |
 
 2026-09-25의 방향·콤보 자동화 결과는 테스트 소스 제거 전 실행 이력이다. 제거 후에는 위 빌드와 잔여 참조 검사를 다시 수행했다. 2026-09-27에 사람 항목에서 옮긴 세 항목은 아래 「헤드리스 테스트로 옮김」에 적었다.
 
@@ -104,3 +104,13 @@
 - 확인된 사실: 치트 `WxKillEnemies`는 반경 안의 ASC 액터를 모두 처치하므로 리슨 서버에서는 다른 플레이어도 죽인다. 개발용 치트라 조치하지 않았다.
 - 확인된 사실: `AM_Shared_HitReact`는 약 0.37초라 가운데서 시작한 섹션이 곧바로 자동 블렌드아웃 구간에 든다. 그래서 활성 몽타주 조회에 잡히지 않아 몽타주 인스턴스 목록으로 확인했다. 테스트 사본의 구성 문제이며 제품 동작은 아니다.
 - 확인: 단독 테스트는 새 프로세스에서 Result=Success, ensure 0이다. 네트워크 테스트도 Result=Success다. 임시 테스트 두 파일을 지운 뒤 WxEditor Development 빌드가 성공했다.
+
+
+## 사용자 테스트 결과 · 2026-09-28T11:48:59.190Z
+
+<!-- test-feedback:request-a79f1cdd-ad2b-4af6-baa2-1d80a05557f4:submitted -->
+- 전달한 사람: woogle
+
+> 통과 · 코드 리뷰
+> 통과 · 콤보 연결 연출
+> 통과 · 방향별 연출 모양

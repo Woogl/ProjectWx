@@ -19,9 +19,11 @@ public class WxToolset : ModuleRules
 		{
 			"AssetTools",
 			"BlueprintGraph",
+			"Foliage",
 			"GameplayStateTreeModule",
 			"Json",
 			"JsonUtilities",
+			"Landscape",
 			"ModelViewViewModel",
 			"ModelViewViewModelBlueprint",
 			"ModelViewViewModelEditor",
@@ -31,6 +33,7 @@ public class WxToolset : ModuleRules
 			"ToolsetRegistry",
 			"UMGEditor",
 			"UnrealEd",
+			"Water",
 		});
 	}
 }
