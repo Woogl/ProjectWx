@@ -1,9 +1,11 @@
 # Ability Resolver를 WxUI로 이동
 
-이전 상태: 확인 대기 · 빌드·리다이렉트 없는 WBP 로드 확인
-대체: 남은 확인(실제 슬롯 표시)은 [UI 데이터 인터페이스 제거](ui-data-interface-removal.md)가 이어받았다.
+상태: 완료 · 후속 작업으로 대체(리졸버는 WxGame으로 복귀)
+다음 행동: 현재 구조와 확인 결과는 IWxUIData 제거(ui-data-interface-removal.md)를 참고한다.
 
 > 후속(2026-09-25): 사용자가 IWxUIData 제거와 모듈별 책임 분리를 승인했다. 어빌리티 리졸버는 도메인 데이터를 VM에 연결하기 위해 WxGame으로 돌아간다. 현재 상태는 [UI 데이터 인터페이스 제거](ui-data-interface-removal.md)를 따른다. 아래는 이전 이동의 판단·검증 이력이다.
+
+> 완료 처리(2026-09-27): 사용자 요청("이미 끝난것 같은데 확인해서 완료로 옮기든지 적절한 상태를 추가해주세요")으로 완료로 바꿨다. 리졸버는 현재 `Source/WxGame/MVVM/WxViewModelResolver_Ability.h`에 있고, 남은 확인(실제 슬롯 표시)은 IWxUIData 제거 체크리스트의 HUD 플레이 확인(이우성 2026-09-25 통과)으로 끝났다. 이전 상태 줄은 `확인 대기 · 빌드·리다이렉트 없는 WBP 로드 확인`이었다.
 
 - 날짜: 2026-09-23
 - 요청: `UWxViewModelResolver_Ability`를 WxUI로 이동.
