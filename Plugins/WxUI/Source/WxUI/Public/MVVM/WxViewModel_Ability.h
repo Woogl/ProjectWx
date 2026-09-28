@@ -187,7 +187,7 @@ private:
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;
 
-	/** 이 슬롯이 가리키는 어빌리티 에셋 태그. Asset Tags 가 이것을 모두 포함하는(HasAll) 어빌리티를 문다. */
+	/** Asset Tags 가 이것을 모두 포함하는(HasAll) 어빌리티를 문다. */
 	FGameplayTagContainer AbilityTags;
 
 	/** 비어 있으면 쿨다운이 없는 어빌리티다. */

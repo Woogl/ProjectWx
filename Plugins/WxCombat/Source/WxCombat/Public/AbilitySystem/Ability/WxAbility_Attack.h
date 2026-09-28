@@ -21,7 +21,6 @@ public:
 	UWxAbility_Attack();
 
 protected:
-	/** 창이 닫힌 뒤의 입력은 첫 단부터 시작한다. */
 	virtual void OnComboWindowClosed() override;
 };
 

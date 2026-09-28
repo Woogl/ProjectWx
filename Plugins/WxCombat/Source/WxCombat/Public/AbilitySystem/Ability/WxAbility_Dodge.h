@@ -40,8 +40,6 @@ protected:
 
 private:
 	static const FName BackstepSectionName;
-
-	/** 극한 회피 섹션은 이 접두사 뒤에 방향 항목명을 붙인다. */
 	static const FString SuccessSectionPrefix;
 
 	void ListenForDodgeSuccess();

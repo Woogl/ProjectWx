@@ -43,7 +43,7 @@ public:
 
 	TArray<const UInputAction*> GetAbilityInputActions() const;
 
-	/** 이 액터의 ASPD가 반영된 몽타주 재생 속도. 어빌리티가 오버라이드하지 않으면 그 어빌리티의 몽타주 재생 속도가 된다. */
+	/** 이 액터의 ASPD가 반영된 몽타주 재생 속도. UWxAbility_Combo 계열만 이 값을 몽타주 재생 속도로 쓰고, 나머지 어빌리티는 1이다. */
 	float GetMontagePlayRate() const;
 
 	/** Recovery 상태의 액션을 취소하되, 새로 발동한 IgnoreAbility는 제외한다. */

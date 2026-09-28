@@ -202,7 +202,6 @@ bool UWxAbilityBase::IsPlayingMontageInstance(int32 MontageInstanceID) const
 
 bool UWxAbilityBase::DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	// 재생 중인 액션의 차단 몫은 콤보 창의 자기 재발동과, 그 액션을 CancelAbilitiesWithTag로 지목한 어빌리티에만 빼 준다.
 	const UWxAbilityBase* Occupant = Cast<UWxAbilityBase>(AbilitySystemComponent.GetAnimatingAbility());
 	if (Occupant && !(Occupant->IsActive() && Occupant->IsBlockingOtherAbilities()))
 	{
