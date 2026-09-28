@@ -79,7 +79,7 @@ void UWxAbility_Interact::ExecuteInteract(AActor* Selected, int32 OptionValue, c
 	}
 
 	// 선택지 값도 클라가 보낸 것이라, 지금 대상이 내놓는 선택지에 있는 값인지 본다(엘리베이터가 움직여 목록이 바뀐 직후의 낡은 값 등).
-	// 클라가 자격 없는 대상을(또는 자격을 잃은 직후에) 보내면 선택지가 비어 여기서 걸린다. 통과하지 못한 상호작용은 실행도 아래 퀘스트 통지도 하지 않는다.
+	// 클라가 자격 없는 대상을(또는 자격을 잃은 직후에) 보내면 선택지가 비어 여기서 걸린다.
 	TArray<FWxInteractionOption> Options;
 	Target->GetInteractionOptions(Avatar, Options);
 	if (!Options.ContainsByPredicate([OptionValue](const FWxInteractionOption& Option) { return Option.Value == OptionValue; }))

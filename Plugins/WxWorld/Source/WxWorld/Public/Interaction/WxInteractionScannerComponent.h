@@ -69,7 +69,6 @@ protected:
 	int32 HighlightStencilValue = 1;
 
 private:
-	/** HUD 목록의 한 행. */
 	struct FWxInteractionRow
 	{
 		TWeakObjectPtr<AActor> Actor;

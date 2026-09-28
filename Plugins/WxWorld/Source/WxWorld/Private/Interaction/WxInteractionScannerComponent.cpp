@@ -174,7 +174,6 @@ void UWxInteractionScannerComponent::UpdateInRange(const TArray<AActor*>& InCand
 		return;
 	}
 
-	// 목록이 스캔마다 뒤섞이지 않게 한다.
 	TArray<AActor*> Ordered;
 	for (const FWxInteractionRow& Row : Rows)
 	{
