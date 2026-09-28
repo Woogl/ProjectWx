@@ -17,8 +17,11 @@ public:
 	/** 콤보 동작만 공격 속도(ASPD)를 탄다. */
 	virtual float GetMontagePlayRate() const override;
 
+	/** 활성 중인 인스턴스를 재발동할 때만 다음 단으로 잇고, 그 밖의 발동은 첫 단이다. */
+	int32 GetNextComboIndex() const;
+
 protected:
-	/** 커밋한 뒤 다음 단(마지막 단 뒤에는 첫 단)의 몽타주를 재생한다. */
+	/** 커밋한 뒤 다음 단(마지막 단 뒤에는 첫 단)의 몽타주를 재생한다. 이벤트 데이터가 있으면 EventMagnitude가 그 단계다. */
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
 	/** 취소되면 다음 발동은 첫 단부터 시작한다. */

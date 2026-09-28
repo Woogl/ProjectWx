@@ -61,6 +61,12 @@ private:
 	 */
 	void HandleSPChanged(const FOnAttributeChangeData& ChangeData);
 
+	/**
+	 * 입력 발동의 공통 경로다. 콤보는 클라이언트가 정한 단계를 이벤트 데이터로 실어 서버가 그 단계를 따르게 한다.
+	 * 서버에는 재발동 종료와 완료 종료가 똑같은 원격 종료로 보여 단계를 스스로 가릴 수 없기 때문이다.
+	 */
+	bool TryActivateInputAbility(const FGameplayAbilitySpec& Spec);
+
 	void EnableAnimatingMontageMeshTick();
 	void RestoreAnimatingMontageMeshTick();
 

@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
+#include "AbilitySystem/Ability/WxAbility_Combo.h"
 #include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effect/WxEffect_Exhaust.h"
 #include "WxCombatModule.h"
@@ -87,6 +88,20 @@ void UWxAbilitySystemComponent::HandleSPChanged(const FOnAttributeChangeData& Ch
 	}
 }
 
+bool UWxAbilitySystemComponent::TryActivateInputAbility(const FGameplayAbilitySpec& Spec)
+{
+	const UWxAbility_Combo* ComboAbility = Cast<UWxAbility_Combo>(Spec.GetPrimaryInstance());
+	if (!ComboAbility)
+	{
+		return TryActivateAbility(Spec.Handle);
+	}
+
+	// 엔진은 이벤트 데이터가 있으면 ServerTryActivateAbilityWithEventData로 서버 발동에 그대로 넘긴다.
+	FGameplayEventData EventData;
+	EventData.EventMagnitude = ComboAbility->GetNextComboIndex();
+	return InternalTryActivateAbility(Spec.Handle, FPredictionKey(), nullptr, nullptr, &EventData);
+}
+
 void UWxAbilitySystemComponent::EnableAnimatingMontageMeshTick()
 {
 	if (MontageTickMesh.IsValid())
@@ -152,7 +167,7 @@ bool UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 		}
 
 		// 신규 발동과 콤보 재발동은 엔진이 bRetriggerInstancedAbility로 가르므로 호출이 같다.
-		if (TryActivateAbility(Spec.Handle))
+		if (TryActivateInputAbility(Spec))
 		{
 			return true;
 		}
@@ -233,7 +248,7 @@ bool UWxAbilitySystemComponent::TryActivateByInputAction(const UInputAction* Act
 			continue;
 		}
 
-		if (TryActivateAbility(Spec.Handle))
+		if (TryActivateInputAbility(Spec))
 		{
 			return true;
 		}
