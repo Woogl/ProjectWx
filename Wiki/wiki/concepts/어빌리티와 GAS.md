@@ -2,7 +2,7 @@
 type: concept
 title: "어빌리티와 GAS"
 created: 2026-09-26
-updated: 2026-09-28
+updated: 2026-09-29
 status: developing
 tags:
   - concept
@@ -33,6 +33,7 @@ sources:
   - "[[작업 - exclusive-tag-blocking]]"
   - "[[작업 - remove-get-ability-block-tags]]"
   - "[[작업 - damage-pipeline-structure-review]]"
+  - "[[작업 - wxcombat-review-quick-fixes]]"
 ---
 
 # 어빌리티와 GAS
@@ -106,6 +107,7 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 같은 기록 기준 액션·반응 타입 생성자(약공격 포함)는 BlockAbilitiesWithTag에 Ability.Action 한 줄을, 사망은 Ability를 선언한다. 그로기 취소 대상은 Ability.Action, 사망은 Ability.Action·Sprint·LockOn이며 패시브는 빠졌다. 반응이 발동해도 후딜 중인 액션을 따로 취소하지 않는다. ([[작업 - remove-get-ability-block-tags]])
 - 컷신 효과 UWxEffect_SkillCutscene은 2026-09-29(KST)부터 Ability.Action·Sprint·LockOn을 막아 컷신 중 점프도 새로 막힌다. ([[작업 - remove-get-ability-block-tags]])
 - 같은 작업에서 콤보 진행(ActivateAbility·EndAbility·HandleMontageCompleted)이 UWxAbility_Combo로 올라가고(창 닫힘 초기화는 공격·스킬만), 재생 속도 기본값 1.0에 ASPD는 콤보 어빌리티만 따른다(궁극기·아이템 사용은 더 이상 따르지 않음). 회피 방향은 베이스 PlayMontage의 가상 훅 SelectInputDirectionSection으로 처리한다. ([[작업 - remove-get-ability-block-tags]])
+- 2026-09-30 수정으로 `UWxAbilityBase::PlayMontageInternal`은 태스크 활성화 뒤 `IsActive()`를 반환한다. 엔진이 몽타주 재생을 동기로 거부하면 같은 호출 안에서 어빌리티가 끝나므로 호출자는 `false`를 받아 띄우기·회전·후속 태스크를 건너뛴다. 취소 처리에서 끝내지 않는 `UWxAbility_Death`는 여전히 `true`이고 `UWxAbility_Groggy`는 자체 재정의라 영향이 없다. ([[작업 - wxcombat-review-quick-fixes]])
 
 ## 검증 범위
 
@@ -126,6 +128,7 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - GA_ 유지의 사람 테스트는 네트워크 구성이 명시되지 않아 예측·복제·BT 타이밍 검증으로 확대하지 않는다. ([[결정 노트 - 2026-09-26-ability-ga-play-acceptance]])
 - 사람은 2026-09-25 공용 쿨다운 GE에 대해 회피 쿨다운·UI 진행률, 소환물 쿨다운 무시, 리슨 서버·클라이언트 PIE 복제, `UWxEffect_Cooldown`·`ApplyCooldown`·`CheckCooldown` 코드 리뷰를 통과시켰다. ([[결정 노트 - 2026-09-26-cooldown-play-acceptance]])
 - 공용 쿨다운 GE 확인은 전용 서버·지연·패킷 손실 조건과 모든 어빌리티 조합으로 확대하지 않는다. ([[결정 노트 - 2026-09-26-cooldown-play-acceptance]])
+- 몽타주 동기 재생 실패 반환 수정은 LV_DevCombat 헤드리스 임시 테스트(정상 재생 띄우기 Z 640, AnimInstance를 비운 실패 시 어빌리티 종료·띄우기 없음, 수정 전 대조 실패)와 woogle 2026-09-29 코드 리뷰로 확인됐다. ([[작업 - wxcombat-review-quick-fixes]])
 
 ## 미결정·충돌
 
@@ -161,3 +164,4 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - [[작업 - ability-table-driven]] — 어빌리티를 DataTable 행으로 구동하려던 전환 작업 기록으로, 여러 단계 구현 끝에 GA_ 에셋 방식으로 복귀해 테이블화 없이 체크리스트 7/7 통과로 마무리됐다.
 - [[작업 - cooldown-unification]] — 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 공용 GE 하나로 통합하고 CooldownTags로 구분하게 바꾼 작업 기록으로, 사람 확인 4/4 통과로 완료됐다.
 - [[작업 - ui-data-interface-removal]] — 공용 IWxUIData 인터페이스를 없애고 WxCombat 데이터·규칙, WxUI VM, WxGame 리졸버 연결로 역할을 나눈 완료 작업 기록
+- [[작업 - wxcombat-review-quick-fixes]] — WxCombat 리뷰 지적 중 몽타주 동기 재생 실패 반환과 권위 없는 머신의 피해 판정 쿼리를 고친 2026-09-30 완료 작업 기록

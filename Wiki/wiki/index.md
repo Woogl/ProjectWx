@@ -3,7 +3,7 @@ type: meta
 title: Wiki Index
 status: evergreen
 created: 2026-09-26
-updated: 2026-09-28
+updated: 2026-09-29
 tags:
   - meta
   - index
@@ -96,13 +96,19 @@ WX의 게임 규칙·구현·결정을 모은 claude-obsidian vault입니다. Wi
 - [[작업 - ui-data-interface-removal]] — 공용 IWxUIData 인터페이스를 없애고 WxCombat 데이터·규칙, WxUI VM, WxGame 리졸버 연결로 역할을 나눈 완료 작업 기록
 - [[작업 - wiki-claude-obsidian-migration]] — 옛 LLM Wiki를 claude-obsidian vault로 바꾸고 Routine 정기 갱신과 대시보드 즉시 갱신(WSL 래퍼)을 만든 작업 기록으로, 체크리스트 22/22 통과로 완료됐다.
 - [[작업 - wiki-regeneration]] — 옛 .wiki LLM Wiki를 현재 코드·설정·기획 기준으로 전면 재생성하고 대체된 legacy 문서를 정리한 2026-09-22 완료 작업 기록
+- [[작업 - workflow-codex-mcp-connection]] — Workflow Codex 구현 실행에서 연결이 거부된 로컬 unreal-mcp 서버만 그 실행에서 빼도록 고친 2026-09-30 완료 작업 기록
+- [[작업 - workflow-codex-terminal-no-daemon]] — Codex 터미널 이어하기 창이 바로 닫히던 문제를 대화형 실행에 --no-daemon을 붙여 고친 2026-09-30 완료 작업 기록
 - [[작업 - workflow-final-fixes]] — 워크플로우 최종 마무리 코드 리뷰 지적을 고치고 실행 제한·자유 답변·기록 열기와 워크플로우·Wiki 독립 관리를 정한 작업 기록으로, 체크리스트 6/6 통과로 완료됐다.
 - [[작업 - workflow-inspection]] — 순정 우선·장치 축소·SSOT 기준으로 워크플로우를 종합 점검하고 Q1~Q9 결정을 반영한 작업 기록으로, 체크리스트 12/12 통과로 완료됐다.
 - [[작업 - workflow-recheck]] — 헤드리스 테스트 규칙 도입 날의 워크플로우 재점검 결과를 작업 절차·push 스킬에 반영하고 남은 확인 대기 6건을 헤드리스 테스트로 옮긴 2026-09-27~28 완료 작업 기록
+- [[작업 - workflow-remove-redundant-buttons]] — 작업 탭의 최신 상태 불러오기·대시보드로 버튼을 없앤 2026-09-30 완료 작업 기록
 - [[작업 - workflow-review]] — AI 작업 워크플로우를 점검하고 작업 절차 한 장·세 단계·테스트 체크리스트·웹 새 작업과 이어하기로 단순화한 2026-09-22~26 완료 작업 기록
+- [[작업 - workflow-table-error-recurrence]] — 손으로 고친 기록의 표 오류로 작업 탭 버튼이 사라지던 문제를 표 없는 절 허용과 표 오류 표시로 막은 2026-09-30 완료 작업 기록
 - [[작업 - workflow-wrapup-checks]] — 워크플로우 개선 다섯 건의 남은 사람 확인을 통폐합하고 AI 코드 리뷰로 대신한 2026-09-27 완료 작업 기록
+- [[작업 - wxcombat-review-quick-fixes]] — WxCombat 리뷰 지적 중 몽타주 동기 재생 실패 반환과 권위 없는 머신의 피해 판정 쿼리를 고친 2026-09-30 완료 작업 기록
 - [[작업 - wxgame-review-fixes]] — WxGame 코드 리뷰 지적 세 개(ASC 재등록, 사망·이벤트 구독, 새 게임 검증 순서)를 단순한 방식으로 고치고 레벨 재표시 헤드리스 테스트에서 무기 겹침 구독 중복까지 고친 완료 작업 기록
 - [[작업 - 이동속도의-어트리뷰트화]] — 이동 속도 배율 SPD를 cm/s 절대 속도 MOV 어트리뷰트로 바꾸고 속성 테이블에 MOV 열을 더한 2026-09-27 완료 작업 기록
+- [[작업 - 지침-SSOT-점검]] — 지침 SSOT 점검으로 AGENTS.md 절차 요약·스킬 규칙 사본·Wiki 도구 버전 사본을 정본 참조로 정리한 2026-09-29 완료 작업 기록
 
 ## 원자료: 결정 노트
 

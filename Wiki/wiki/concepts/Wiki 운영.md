@@ -2,7 +2,7 @@
 type: concept
 title: "Wiki 운영"
 created: 2026-09-26
-updated: 2026-09-27
+updated: 2026-09-29
 status: developing
 tags:
   - concept
@@ -23,6 +23,7 @@ sources:
   - "[[작업 - workflow-final-fixes]]"
   - "[[작업 - workflow-inspection]]"
   - "[[작업 - workflow-wrapup-checks]]"
+  - "[[작업 - 지침-SSOT-점검]]"
 ---
 
 # Wiki 운영
@@ -49,6 +50,7 @@ sources:
 - vault 위치는 사용자 결정 "vault 유지합시다"로 `Wiki/`에 두었고, 대시보드 생성물 폴더는 `Saved/Wiki`에서 `Saved/Workflow`로 옮겼으며, `Docs/`와 `.agents/workflow`는 옮기지 않았고 `OpenWiki.bat`은 지웠다(2026-09-26). ([[작업 - wiki-claude-obsidian-migration]])
 - 2026-09-26 워크플로우 종합 점검에서 사용자는 "Q4는 Markdown만 수집합시다."로 HTML 기획서를 수집하지 않기로 하고, "Q6는 플러그인 순정대로"로 원자료의 `refresh_due`를 일괄 값 없이 원자료마다 정하게 했으며, Wiki 절차를 순정 기준으로 고치고 순정 이탈은 무인 실행의 계획 자체 승인 하나로 밝히게 했다. ([[작업 - workflow-inspection]])
 - 사용자는 2026-09-27 워크플로우와 claude-obsidian 문서를 서로 독립적으로 관리하되 서로 참고하는 방향을 밝혔고, 원자료 변화 없이 워크플로우 정책으로 Wiki 페이지를 줄이게 하던 Wiki 안내 수집 단계를 뺐다. AI는 결정 이력 편찬이 순정 wiki-ingest의 기본 동작이라고 판단했다. ([[작업 - workflow-final-fixes]])
+- 2026-09-29 지침 SSOT 점검으로 claude-obsidian 버전은 `Wiki/README.md` 설정 스크립트의 태그만 정본으로 삼고 README 본문의 버전 사본을 없앴으며, Wiki 갱신 sparse 사본에 작업 절차 정본을 넣었다. ([[작업 - 지침-SSOT-점검]])
 
 ## 구현 관찰
 
@@ -105,3 +107,4 @@ sources:
 - [[작업 - workflow-final-fixes]] — 최종 마무리 코드 리뷰 지적 수정과 워크플로우·Wiki 독립 관리 결정을 담은 2026-09-27 완료 작업 기록
 - [[작업 - workflow-inspection]] — 순정 우선·장치 축소·SSOT 기준의 워크플로우 종합 점검과 Wiki 절차 순정화·기한 결정을 담은 2026-09-26 완료 작업 기록
 - [[작업 - workflow-wrapup-checks]] — 워크플로우 개선 다섯 건의 남은 사람 확인을 통폐합하고 AI 코드 리뷰로 대신한 2026-09-27 완료 작업 기록
+- [[작업 - 지침-SSOT-점검]] — 지침 SSOT 점검으로 AGENTS.md 절차 요약·스킬 규칙 사본·Wiki 도구 버전 사본을 정본 참조로 정리한 2026-09-29 완료 작업 기록

@@ -9204,8 +9204,328 @@
       "risk": "normal",
       "supersedes": null,
       "text": "woogle은 2026-09-28 WxGame 리뷰 수정의 코드 리뷰와 재표시 뒤 연출을 통과시켜 체크리스트 9/9로 완료됐다."
+    },
+    "clm-cb5c1ef3d9-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/cb5c1ef3d9ba32c338e232757fb8092e8f8015b3214346706c56a879c023f2eb.md",
+          "relation": "supports",
+          "source_id": "src-8cf2df7806143046de76"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - workflow-codex-mcp-connection.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-30 Workflow Codex 구현 실행은 꺼진 로컬 unreal-mcp(127.0.0.1:8000)에 연결하다 실패했고, 원인은 에디터 MCP 리스너가 멈춘 뒤 work 실행이 꺼진 서버에도 연결한 것이었다."
+    },
+    "clm-cb5c1ef3d9-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/cb5c1ef3d9ba32c338e232757fb8092e8f8015b3214346706c56a879c023f2eb.md",
+          "relation": "supports",
+          "source_id": "src-8cf2df7806143046de76"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - workflow-codex-mcp-connection.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "수정 뒤 Workflow-Providers.cjs는 Codex 구현 실행 전에 unreal-mcp 로컬 HTTP 서버를 확인해 TCP 연결 거부일 때만 그 실행에서 빼고, 정상·원격·다른 MCP와 설정 파일은 유지하며 제외 사실을 콘솔·AI 입력·결과 근거에 남긴다."
+    },
+    "clm-cb5c1ef3d9-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/cb5c1ef3d9ba32c338e232757fb8092e8f8015b3214346706c56a879c023f2eb.md",
+          "relation": "supports",
+          "source_id": "src-8cf2df7806143046de76"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - workflow-codex-mcp-connection.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "MCP 연결 수정은 실제 Codex 모델 응답까지 서버 꺼짐·켜짐 두 경우로 확인했고, 코드 리뷰는 사용자 지시로 AI 검토로 대신했으며 Unreal 에디터 도구 호출은 검증하지 않았다."
+    },
+    "clm-7d1f6c5b48-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/7d1f6c5b48808aab0d8f9d124d8c076074e3a3c7d84e22986eb2f1a9f469eeb5.md",
+          "relation": "supports",
+          "source_id": "src-f1c1ee3a4db1d8361cff"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - workflow-codex-terminal-no-daemon.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-30 원인 조사에서 데스크톱 앱에 딸린 codex.exe는 대화형 실행 때 --no-daemon 없이 바로 종료되어 대시보드 터미널 이어하기 창이 닫혔고, codex exec 자동 처리는 영향이 없었다."
+    },
+    "clm-7d1f6c5b48-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/7d1f6c5b48808aab0d8f9d124d8c076074e3a3c7d84e22986eb2f1a9f469eeb5.md",
+          "relation": "supports",
+          "source_id": "src-f1c1ee3a4db1d8361cff"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - workflow-codex-terminal-no-daemon.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "수정 뒤 Workflow-TestFeedback.cjs의 openSession은 Codex일 때만 --no-daemon을 붙이며, 실제 서버 경유 이어하기와 woogle의 2026-09-29 코드 리뷰·화면 확인이 통과해 체크리스트 6/6으로 완료됐다."
+    },
+    "clm-a619da7ca7-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/a619da7ca7460f86a2097ea36d8f7cf2ff1e2c188001ff2993a93145eb1c959f.md",
+          "relation": "supports",
+          "source_id": "src-e5fb7ec6d60d68028ff6"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - workflow-remove-redundant-buttons.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-30 사용자 지시로 워크플로우 작업·새 작업·빈 작업 화면의 최신 상태 불러오기·대시보드로 버튼을 없애고 안내를 브라우저 새로고침과 왼쪽 대시보드 메뉴 기준으로 바꿨으며, woogle의 2026-09-29 확인으로 체크리스트 2/2 완료됐다."
+    },
+    "clm-891dff7112-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/891dff71123057c55eb9570a62c08d79aa5e5a82002f897dbf0b347cf02c6fbb.md",
+          "relation": "supports",
+          "source_id": "src-475b81d10347e5b6464f"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - workflow-table-error-recurrence.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-30 워크플로우 점검에서 작업 탭 버튼이 사라진 원인은 대화·터미널에서 AI가 손으로 고친 기록의 표 오류(표 없는 \"추가 질문 없음.\" 두 건, 질문 행 || 오타 한 건)였고, 대시보드와 --tasks에는 드러나지 않았다."
+    },
+    "clm-891dff7112-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/891dff71123057c55eb9570a62c08d79aa5e5a82002f897dbf0b347cf02c6fbb.md",
+          "relation": "supports",
+          "source_id": "src-475b81d10347e5b6464f"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - workflow-table-error-recurrence.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "수정 뒤 task-records.js는 질문·체크리스트 절에 표 줄이 하나도 없으면 표 없음으로 읽고, 표 오류를 대시보드와 --tasks 요약에 `표 오류 · …`로 보이며, 작업 탭 상태 칸은 처리 중·실패·중단·충돌인 웹 처리만 제목으로 보인다."
+    },
+    "clm-891dff7112-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/891dff71123057c55eb9570a62c08d79aa5e5a82002f897dbf0b347cf02c6fbb.md",
+          "relation": "supports",
+          "source_id": "src-475b81d10347e5b6464f"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - workflow-table-error-recurrence.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "표 오류 재발 방지는 워크플로우 Node 테스트 4개와 결함 주입, 실제 기록 전체 읽기로 확인했고 woogle이 2026-09-29 코드 리뷰와 작업 탭 화면을 통과시켜 체크리스트 7/7로 완료됐다."
+    },
+    "clm-1965e44cb0-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/1965e44cb0b39e827752bb3baa83595d8a79e71dfa2747ef3b50ecc7fa967b95.md",
+          "relation": "supports",
+          "source_id": "src-89305af912a4c4ce859e"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - 지침-SSOT-점검.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-29 지침 SSOT 점검으로 AGENTS.md의 절차 요약을 작업 절차 링크로 바꾸고, 모듈 리뷰 기록 보존 규칙을 정본으로 옮기며, 주석 정리의 worklog 금지 충돌을 정본 참조로 바꾸고, Git 스킬·무인 Routine의 실행 범위를 정본에서 구분했다."
+    },
+    "clm-1965e44cb0-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/1965e44cb0b39e827752bb3baa83595d8a79e71dfa2747ef3b50ecc7fa967b95.md",
+          "relation": "supports",
+          "source_id": "src-89305af912a4c4ce859e"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - 지침-SSOT-점검.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "같은 작업에서 Wiki 갱신 sparse 사본에 작업 절차 정본을 넣고, claude-obsidian 버전은 Wiki/README.md 설정 스크립트의 태그만 정본으로 삼아 본문의 버전 사본을 없앴다."
+    },
+    "clm-1965e44cb0-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/1965e44cb0b39e827752bb3baa83595d8a79e71dfa2747ef3b50ecc7fa967b95.md",
+          "relation": "supports",
+          "source_id": "src-89305af912a4c4ce859e"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - 지침-SSOT-점검.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "지침 SSOT 점검은 문서 링크 검사와 TestWorkflowTestFeedback.cjs로 확인했고, 코드 리뷰는 2026-09-30 사용자 지시로 AI 검토로 대신해 체크리스트 3/3으로 완료됐다."
+    },
+    "clm-50bd0f194a-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/50bd0f194a597fcd7c5ca14af99665739bcdeb50cd0e8ef5dfa872a9ade7fdee.md",
+          "relation": "supports",
+          "source_id": "src-ec22ecc42c819fc7cc91"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - wxcombat-review-quick-fixes.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-30 수정으로 UWxAbilityBase::PlayMontageInternal은 태스크 활성화 뒤 IsActive()를 반환해, 몽타주 동기 재생 실패 시 호출자가 false를 받아 띄우기·회전·후속 태스크를 건너뛴다."
+    },
+    "clm-50bd0f194a-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/50bd0f194a597fcd7c5ca14af99665739bcdeb50cd0e8ef5dfa872a9ade7fdee.md",
+          "relation": "supports",
+          "source_id": "src-ec22ecc42c819fc7cc91"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - wxcombat-review-quick-fixes.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-30 수정으로 AWxWeaponBase::BeginAttack과 UWxAnimNotify_AreaDamage::Notify는 무기가 아니라 소유 공격자 캐릭터에 권위가 없으면 피해 판정을 시작하지 않는다."
+    },
+    "clm-50bd0f194a-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/50bd0f194a597fcd7c5ca14af99665739bcdeb50cd0e8ef5dfa872a9ade7fdee.md",
+          "relation": "supports",
+          "source_id": "src-ec22ecc42c819fc7cc91"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - wxcombat-review-quick-fixes.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WxCombat 리뷰 지적 2(겹친 슬로모션이 전역 배율을 먼저 되돌림)는 월드 단위 배율 요청 관리처와 겹침 정책이 필요해 2026-09-30 수정 범위에서 보류됐다."
+    },
+    "clm-50bd0f194a-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/50bd0f194a597fcd7c5ca14af99665739bcdeb50cd0e8ef5dfa872a9ade7fdee.md",
+          "relation": "supports",
+          "source_id": "src-ec22ecc42c819fc7cc91"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - wxcombat-review-quick-fixes.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "WxCombat 리뷰 수정은 Editor 빌드와 LV_DevCombat 헤드리스 임시 테스트(수정 전 대조 포함, 비권위는 로컬 역할 전환으로 재현)로 확인했고 woogle이 2026-09-29 코드 리뷰를 통과시켜 체크리스트 4/4로 완료됐다."
     }
   },
-  "generated_at": "2026-09-28T21:50:00Z",
+  "generated_at": "2026-09-29T21:44:45Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }

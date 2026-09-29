@@ -3,7 +3,7 @@ type: meta
 title: Wiki Log
 status: evergreen
 created: 2026-09-26
-updated: 2026-09-28
+updated: 2026-09-29
 tags:
   - meta
   - log
@@ -12,6 +12,10 @@ tags:
 # Wiki Log
 
 Newest completed operations appear first.
+
+## 2026-09-29 · ingest-20260929-task-records-b1
+
+새로 완료된 작업 기록(1/2) 6건(31,299바이트)을 수집했다: [[작업 - workflow-codex-mcp-connection]], [[작업 - workflow-codex-terminal-no-daemon]], [[작업 - workflow-remove-redundant-buttons]], [[작업 - workflow-table-error-recurrence]], [[작업 - 지침-SSOT-점검]], [[작업 - wxcombat-review-quick-fixes]]. [[작업 절차(Workflow)]]에 MCP 연결 거부 서버 제외, Codex `--no-daemon` 이어하기, 중복 버튼 제거, 표 없는 질문 절 허용·표 오류 표시, SSOT 점검과 사람 리뷰를 AI 검증으로 대신한 완료 지시를, [[Wiki 운영]]에 claude-obsidian 버전 단일 정본과 sparse 사본의 작업 절차 정본 포함을, [[어빌리티와 GAS]]·[[피해 파이프라인]]·[[모듈 구조와 코드 정리]]에 WxCombat 리뷰 지적 1·3 수정과 지적 2 보류를 더했다. 새 원자료 재확인 기한은 2027-03-28이다. 기획서 30개 파일과 기존 완료 작업 기록 35건은 원장과 해시가 같았고, 30일 안에 재확인 기한이 오는 활성 원자료는 없었다. 남은 새 완료 기록 4건은 다음 묶음에서 수집한다. 게임 빌드·실행 재검증은 하지 않았다.
 
 ## 2026-09-28 · ingest-20260928-task-records-b2
 
