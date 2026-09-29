@@ -11,15 +11,15 @@ WX의 게임 규칙·구현·결정과 검증 범위를 모은 팀 공유 지식
 
 Wiki 갱신은 매일 06:30(KST)에 도는 클라우드 Routine 「Wiki 정기 갱신」과 Workflow 대시보드의 **Wiki 갱신**입니다. 둘 다 아래 절차를 되묻지 않고 끝까지 진행합니다.
 
-- claude-obsidian은 순정 코드를 그대로 쓰고 순정 절차를 따릅니다. 지금 버전은 `v2.2.0`입니다.
+- claude-obsidian은 순정 코드를 그대로 쓰고 순정 절차를 따릅니다. 버전 정본은 아래 Routine 환경 설정 스크립트의 `AgriciDaniel/claude-obsidian#` 뒤 태그입니다.
   - Routine: 클라우드 환경 `Wiki`의 설정 스크립트가 세션 시작 전에 이 태그로 플러그인을 설치합니다(아래 Routine 환경 절). 플러그인 스킬(`claude-obsidian:wiki-ingest`·`claude-obsidian:wiki-lint` 등)과 그 설치본의 `scripts/claude-obsidian.py` CLI를 씁니다.
   - 대시보드: 서버가 아래 설정 스크립트의 태그를 `Saved/Workflow/claude-obsidian/<태그>/`에 받아 둡니다. 그 폴더의 `skills/` 절차를 따르고, `scripts/claude-obsidian.py` CLI는 아래 래퍼로 부릅니다.
-  - 이 저장소에는 claude-obsidian 코드를 두지 않습니다. 버전은 사람이 올립니다. 아래 설정 스크립트의 `#` 뒤 태그, 이 줄, 클라우드 환경의 설정 스크립트를 함께 바꿉니다.
-  - 설치된 버전이 이 줄과 다르면 쓰지 않고 멈춰 보고합니다. `git ls-remote --tags https://github.com/AgriciDaniel/claude-obsidian`에 더 새 태그가 있으면 보고에 적습니다.
+  - 이 저장소에는 claude-obsidian 코드를 두지 않습니다. 버전은 사람이 아래 설정 스크립트의 태그를 바꿔 올리고, 클라우드 환경에는 그 스크립트를 그대로 반영합니다.
+  - 설치된 버전이 설정 스크립트의 태그와 다르면 쓰지 않고 멈춰 보고합니다. `git ls-remote --tags https://github.com/AgriciDaniel/claude-obsidian`에 더 새 태그가 있으면 보고에 적습니다.
   - 순정에서 벗어나는 곳은 하나입니다. 스킬이 사람에게 맡기는 적용 전 계획 검토를 갱신하는 AI가 스스로 하고 승인 해시로 적용합니다(사람 검토 없이 자동으로 갱신하기로 한 결정 때문). 원본을 inbox에 넣는 일도 AI가 합니다. claude-obsidian을 찾지 못하면 다른 곳에서 받아 쓰지 않고 멈춰 보고합니다.
 - 대시보드 갱신(이 PC, Windows)에서 더 지킬 것:
-  - 고른 AI는 권한 확인 없이 모든 명령을 허용한 채 돕니다. 이 권한과 실행 제한은 작업 절차(`.agents/workflow/process/index.md`)의 작업 탭 절을 따릅니다.
-  - 서버가 origin/main으로 맞춘 전용 작업 트리 `Saved/Workflow/wiki-update-tree`에서 일합니다. Wiki·기획서 Markdown·작업 기록만 받은 sparse 사본입니다. 줄바꿈을 바꾸지 않고 받아(LF) 파일 해시가 저장소와 같습니다. 사용자의 작업 트리는 건드리지 않습니다.
+  - 권한과 실행 제한은 [작업 절차의 작업 탭 절](../.agents/workflow/process/index.md#작업-탭)을 따릅니다.
+  - 서버가 origin/main으로 맞춘 전용 작업 트리 `Saved/Workflow/wiki-update-tree`에서 일합니다. Wiki·기획서 Markdown·작업 기록과 프로젝트 지침·작업 절차 정본을 받은 sparse 사본입니다. 줄바꿈을 바꾸지 않고 받아(LF) 파일 해시가 저장소와 같습니다. 사용자의 작업 트리는 건드리지 않습니다.
   - 서버는 갱신마다 작업 트리를 되돌립니다(남은 rebase·merge 정리, sparse·LF 설정 다시 적용, `reset --hard origin/main`, `clean -fdx`). 작업 트리에 남긴 것은 다음 갱신에서 지워집니다.
   - claude-obsidian은 Windows에서 vault를 쓰지 못합니다. 그래서 claude-obsidian 명령은 읽기·드라이런까지 모두 작업 트리 루트에서 래퍼로 실행합니다(`node "<래퍼>" <명령> <인자>`). 래퍼가 같은 명령을 WSL에서 실행하므로 드라이런과 적용의 승인 해시가 맞습니다. 스킬 문서의 `python3 .../claude-obsidian.py <명령>`도 래퍼로 바꿔 실행합니다. 래퍼 명령은 서버가 요청문의 `command`에 넣어 줍니다.
   - 파일은 LF 줄바꿈으로 씁니다. 트랜잭션 번들 속 페이지 본문도 마찬가지입니다.

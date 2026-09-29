@@ -393,7 +393,7 @@ function fixture(providers=['codex'],content=taskText){
   await settleUpdate();
   assert.deepEqual([updateState().status,updateState().provider,updateState().summary],['complete','claude',runResult.summary]);
   const treeSetup=[`git config extensions.worktreeConfig true`,`git -C ${tree} config --worktree core.autocrlf false`,`git -C ${tree} rebase --abort`,`git -C ${tree} merge --abort`,
-    `git -C ${tree} sparse-checkout set --no-cone /Wiki/ /Docs/**/*.md /.agents/workflow/tasks/ /AGENTS.md /.gitattributes`,`git -C ${tree} reset --quiet --hard origin/main`,`git -C ${tree} clean -q -fdx`];
+    `git -C ${tree} sparse-checkout set --no-cone /Wiki/ /Docs/**/*.md /.agents/workflow/tasks/ /.agents/workflow/process/index.md /AGENTS.md /.gitattributes`,`git -C ${tree} reset --quiet --hard origin/main`,`git -C ${tree} clean -q -fdx`];
   assert.deepEqual(calls.filter(c=>c.startsWith('git ')),['git fetch --quiet origin main','git worktree prune',`git worktree add --quiet --no-checkout --detach ${tree} origin/main`,...treeSetup,
     `git -c core.autocrlf=false clone --quiet --depth 1 --branch v9.9.9 https://github.com/AgriciDaniel/claude-obsidian ${pluginDir}.download`]);
   assert.ok(fs.existsSync(path.join(pluginDir,'scripts/claude-obsidian.py'))&&!fs.existsSync(pluginDir+'.download'));

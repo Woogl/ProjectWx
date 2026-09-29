@@ -70,7 +70,7 @@ if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
 
 ### 줄인다
 
-내용이 비자명해도 문단이 됐으면 결론 한 줄로 줄인다. 엔진 호출 순서 추적·소스 인용 중 재사용할 결론은 작업 절차(`.agents/workflow/process/index.md`)의 기록 절대로 남긴다. 단순 조사 과정이나 작업별 worklog는 작성하지 않는다.
+내용이 비자명해도 문단이 됐으면 결론 한 줄로 줄인다. 작업 기록과 재사용할 결론은 [작업 절차의 기록 규칙](../../workflow/process/index.md#기록)을 따른다.
 
 ### 고친다 — 가장 중요한 작업
 

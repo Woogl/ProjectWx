@@ -10,9 +10,9 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 
 ## 산출물 보존 조건
 
-아래 문서 작성 절차는 후속 조치·미결정·필요한 수용 근거가 있을 때만 적용한다. 해결된 지적은 현재 코드와 대조해 제거하고 수정 경위를 누적하지 않는다. 발견이 없고 별도 보존 이유도 없으면 대화로 결과·검토 범위를 전달하며 새 파일을 만들지 않는다. 기존 문서가 불필요해졌으면 오케스트레이터가 `.agents/workflow/process/index.md`의 기록 정리 규칙에 따라 정리한다. 서브에이전트는 삭제를 하지 않고 정리 후보와 근거를 반환한다. 보존할 문서가 없는 모듈은 다음 실행 때 missing으로 다시 검토될 수 있으며, 이를 막기 위한 빈 보고서나 별도 이력 파일을 만들지 않는다. 문서가 없는 결과의 다이제스트에는 링크 대신 ‘대화로 전달’을 표시한다.
+산출물 보존 여부와 정리는 [작업 절차의 기록 규칙](../../workflow/process/index.md#기록)을 따른다. 서브에이전트는 삭제를 하지 않고 정리 후보와 근거를 반환한다. 보존할 문서가 없는 모듈은 다음 실행 때 missing으로 다시 검토될 수 있다. 문서가 없는 결과의 다이제스트에는 링크 대신 ‘대화로 전달’을 표시한다.
 
-리뷰를 생성·갱신하기 전에 `Wiki/README.md`와 `.agents/workflow/process/index.md`를 읽는다. AI 보고서는 `.agents/workflow/tasks/`에만 저장한다.
+리뷰를 생성·갱신하기 전에 [Wiki 안내](../../../Wiki/README.md)와 [작업 절차](../../workflow/process/index.md)를 읽는다.
 
 프로젝트의 각 **플러그인/모듈**을 코드 리뷰해, 개발자·미래 세션이 **무엇을 고쳐야 하는지**를 심각도별로 정리한다. 후속 조치에 필요한 결과만 `.agents/workflow/tasks/module_review_<Module>.md`에 유지한다.
 
@@ -151,7 +151,7 @@ allowed-tools: Read, Grep, Glob, Bash, Agent
 
 ## 3. 마무리 보고 (아침 다이제스트)
 
-리뷰 문서에는 상태 줄을 두지 않는다. 오케스트레이터는 `.agents/scripts/CheckDocLinks.ps1`로 링크를 확인한다.
+리뷰 문서의 상태 표시는 [작업 절차](../../workflow/process/index.md#상태)를 따른다. 오케스트레이터는 `.agents/scripts/CheckDocLinks.ps1`로 링크를 확인한다.
 
 짧게 보고한다. 사용자가 아침에 한눈에 "어디에 불이 났는지" 보게 하는 것이 목표다.
 

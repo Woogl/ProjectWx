@@ -44,7 +44,7 @@ function createWikiUpdate({root,providers,commands,exec=execText,open=openTermin
     await git('config','extensions.worktreeConfig','true');
     await git('-C',tree,'config','--worktree','core.autocrlf','false');
     for(const command of ['rebase','merge'])await git('-C',tree,command,'--abort').catch(()=>{});
-    await git('-C',tree,'sparse-checkout','set','--no-cone','/Wiki/','/Docs/**/*.md','/.agents/workflow/tasks/','/AGENTS.md','/.gitattributes');
+    await git('-C',tree,'sparse-checkout','set','--no-cone','/Wiki/','/Docs/**/*.md','/.agents/workflow/tasks/','/.agents/workflow/process/index.md','/AGENTS.md','/.gitattributes');
     await git('-C',tree,'reset','--quiet','--hard','origin/main');
     await git('-C',tree,'clean','-q','-fdx');
   }
