@@ -82,6 +82,9 @@ DerivedDataCache/*
 .claude/**/*.local.json
 .agents/**/*.local.json
 
+# .claude/skills 는 .agents/skills 를 가리키는 junction 이라 추적하지 않는다.
+/.claude/skills/
+
 # Python
 __pycache__/
 
