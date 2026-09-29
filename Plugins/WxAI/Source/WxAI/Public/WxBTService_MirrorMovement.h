@@ -11,11 +11,11 @@
 
 class ACharacter;
 class UAbilitySystemComponent;
+class UAnimMontage;
 class UGameplayAbility;
 class UGameplayEffect;
-struct FAbilityEndedData;
 
-/** Master 옆으로 이동하며, 어빌리티 종료 또는 도달 제한 시간 초과 시 위치를 보정한다. */
+/** Master 옆으로 이동하며, 몽타주 종료 또는 도달 제한 시간 초과 시 위치를 보정한다. */
 UCLASS()
 class WXAI_API UWxBTService_MirrorMovement : public UBTService
 {
@@ -30,7 +30,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Wx|AI")
 	FBlackboardKeySelector MirrorTarget;
 	UPROPERTY(EditAnywhere, Category="Wx|AI")
-	FVector LocalOffset = FVector(0.f, 100.f, 0.f);
+	FVector LocalOffset = FVector(0.f, 50.f, 0.f);
 	UPROPERTY(EditAnywhere, Category="Wx|AI", meta=(ClampMin="1.0"))
 	float ArrivalRadius = 15.f;
 	UPROPERTY(EditAnywhere, Category="Wx|AI", meta=(ClampMin="0.01"))
@@ -49,12 +49,12 @@ protected:
 private:
 	void Release(UBehaviorTreeComponent& OwnerComp);
 	void HandleAbilityActivated(UGameplayAbility* Ability);
-	void HandleAbilityEnded(const FAbilityEndedData& Data);
+	UFUNCTION()
+	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	TWeakObjectPtr<ACharacter> Master;
 	TWeakObjectPtr<ACharacter> Follower;
 	TWeakObjectPtr<UAbilitySystemComponent> FollowerAbilitySystem;
 	FActiveGameplayEffectHandle MoveSpeedEffectHandle;
-	bool bPendingAbilityEndTeleport = false;
+	bool bPendingMontageEndTeleport = false;
 	float TravelTime = 0.f;
-	int32 PreviousJumpCount = 0;
 };

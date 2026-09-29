@@ -6,9 +6,9 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
+#include "Animation/AnimInstance.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayEffect.h"
@@ -43,21 +43,21 @@ void UWxBTService_MirrorMovement::Release(UBehaviorTreeComponent& OwnerComp)
 	if (FollowerAbilitySystem.IsValid())
 	{
 		FollowerAbilitySystem->AbilityActivatedCallbacks.RemoveAll(this);
-		FollowerAbilitySystem->OnAbilityEnded.RemoveAll(this);
+		if (UAnimInstance* AnimInstance = FollowerAbilitySystem->AbilityActorInfo.IsValid() ? FollowerAbilitySystem->AbilityActorInfo->GetAnimInstance() : nullptr)
+		{
+			AnimInstance->OnMontageEnded.RemoveDynamic(this, &ThisClass::HandleMontageEnded);
+		}
 		// MOV 가 자기 값으로 다시 계산되면 캐릭터가 MaxWalkSpeed 를 되돌린다.
 		FollowerAbilitySystem->RemoveActiveGameplayEffect(MoveSpeedEffectHandle);
 	}
 	MoveSpeedEffectHandle.Invalidate();
 	FollowerAbilitySystem.Reset();
-	bPendingAbilityEndTeleport = false;
+	bPendingMontageEndTeleport = false;
 	if (ACharacter* Pawn = Follower.Get())
 	{
-		// 앉은 속도는 MOV 가 다루지 않아 클래스 기본값이 주인이다.
-		Pawn->GetCharacterMovement()->MaxWalkSpeedCrouched = Pawn->GetClass()->GetDefaultObject<ACharacter>()->GetCharacterMovement()->MaxWalkSpeedCrouched;
+		// 비행 속도는 MOV 가 다루지 않아 클래스 기본값이 주인이다.
+		Pawn->GetCharacterMovement()->MaxFlySpeed = Pawn->GetClass()->GetDefaultObject<ACharacter>()->GetCharacterMovement()->MaxFlySpeed;
 		Pawn->GetCharacterMovement()->RemoveTickPrerequisiteComponent(&OwnerComp);
-		Pawn->UnCrouch();
-		Pawn->StopJumping();
-		if (Master.IsValid()) { Pawn->GetCapsuleComponent()->IgnoreActorWhenMoving(Master.Get(), false); }
 	}
 	if (Master.IsValid()) { OwnerComp.RemoveTickPrerequisiteComponent(Master->GetCharacterMovement()); }
 	Master.Reset();
@@ -82,15 +82,14 @@ void UWxBTService_MirrorMovement::HandleAbilityActivated(UGameplayAbility* Abili
 	Pawn->SetActorRotation(Facing);
 	if (AController* Controller = Pawn->GetController()) { Controller->SetControlRotation(Facing); }
 	Pawn->ConsumeMovementInputVector();
-	Pawn->StopJumping();
 	Pawn->GetCharacterMovement()->StopMovementImmediately();
 	TravelTime = 0.f;
 }
 
-void UWxBTService_MirrorMovement::HandleAbilityEnded(const FAbilityEndedData& Data)
+void UWxBTService_MirrorMovement::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	// 콤보 재발동은 종료 통지 직후 다음 단계가 시작된다. 모든 발동이 끝났는지는 BT 틱에서 판단한다.
-	bPendingAbilityEndTeleport = true;
+	// 애님 갱신 중 통지라 이동은 BT 틱에서 한다. 콤보 다음 단계에 끊긴 몽타주도 매 단계 보정한다.
+	bPendingMontageEndTeleport = true;
 }
 
 void UWxBTService_MirrorMovement::OnCeaseRelevant(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -122,26 +121,29 @@ void UWxBTService_MirrorMovement::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 		if (FollowerAbilitySystem.IsValid())
 		{
 			FollowerAbilitySystem->AbilityActivatedCallbacks.AddUObject(this, &ThisClass::HandleAbilityActivated);
-			FollowerAbilitySystem->OnAbilityEnded.AddUObject(this, &ThisClass::HandleAbilityEnded);
+			if (UAnimInstance* AnimInstance = FollowerAbilitySystem->AbilityActorInfo.IsValid() ? FollowerAbilitySystem->AbilityActorInfo->GetAnimInstance() : nullptr)
+			{
+				AnimInstance->OnMontageEnded.AddUniqueDynamic(this, &ThisClass::HandleMontageEnded);
+			}
 		}
-		PreviousJumpCount = Target->JumpCurrentCount;
 		OwnerComp.AddTickPrerequisiteComponent(Target->GetCharacterMovement());
 		Movement->AddTickPrerequisiteComponent(&OwnerComp);
-		Pawn->GetCapsuleComponent()->IgnoreActorWhenMoving(Target, true);
-		if (SourceMovement->IsFalling())
-		{
-			Movement->SetMovementMode(MOVE_Falling);
-			Movement->Velocity = Target->GetVelocity();
-		}
 	}
+	// 콜리전이 없어 바닥 판정을 못 하므로, 높이는 직접 맞추고 공중 자세만 Master 를 따른다(중력 0).
+	const EMovementMode DesiredMode = SourceMovement->IsFalling() ? MOVE_Falling : MOVE_Flying;
+	if (Movement->MovementMode != DesiredMode)
+	{
+		Movement->SetMovementMode(DesiredMode);
+		if (DesiredMode == MOVE_Falling) { Movement->Velocity.Z = 0.f; }
+	}
+	const FVector Destination = Target->GetActorLocation() + Target->GetActorRotation().RotateVector(LocalOffset);
+	Pawn->SetActorLocation(FVector(Pawn->GetActorLocation().X, Pawn->GetActorLocation().Y, Destination.Z));
 	if (FollowerAbilitySystem.IsValid() && FollowerAbilitySystem->HasAnyMatchingGameplayTags(FaceMasterAbilityTags))
 	{
 		const FRotator Facing(0.f, (Target->GetActorLocation() - Pawn->GetActorLocation()).Rotation().Yaw, 0.f);
 		Pawn->SetActorRotation(Facing);
 		Controller->SetControlRotation(Facing);
 		Pawn->ConsumeMovementInputVector();
-		Pawn->StopJumping();
-		PreviousJumpCount = Target->JumpCurrentCount;
 		TravelTime = 0.f;
 		return;
 	}
@@ -166,18 +168,13 @@ void UWxBTService_MirrorMovement::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 			MoveSpeedEffectHandle = FollowerAbilitySystem->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
 		}
 	}
-	Movement->MaxWalkSpeedCrouched = SourceMovement->MaxWalkSpeedCrouched * 1.25f;
-	if (Target->IsCrouched()) { Pawn->Crouch(); } else { Pawn->UnCrouch(); }
-	if (Target->JumpCurrentCount > PreviousJumpCount) { Pawn->StopJumping(); Pawn->Jump(); }
-	else if (!Target->bPressedJump) { Pawn->StopJumping(); }
-	PreviousJumpCount = Target->JumpCurrentCount;
+	Movement->MaxFlySpeed = FollowSpeed;
 
-	const FVector Destination = Target->GetActorLocation() + Target->GetActorRotation().RotateVector(LocalOffset);
 	// 몽타주 없이 켜져 있는 락온·질주는 몸을 쥐지 않으므로 보정을 막지 않는다.
 	const bool bAbilityActive = FollowerAbilitySystem.IsValid() && FollowerAbilitySystem->GetAnimatingAbility();
-	if (bPendingAbilityEndTeleport && !bAbilityActive && Pawn->TeleportTo(Destination, Target->GetActorRotation()))
+	if (bPendingMontageEndTeleport && Pawn->TeleportTo(Destination, Target->GetActorRotation()))
 	{
-		bPendingAbilityEndTeleport = false;
+		bPendingMontageEndTeleport = false;
 		TravelTime = 0.f;
 		Movement->StopMovementImmediately();
 	}
@@ -185,7 +182,7 @@ void UWxBTService_MirrorMovement::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 	Error.Z = 0.f;
 	if (Error.SizeSquared() <= FMath::Square(ArrivalRadius)) { TravelTime = 0.f; Error = FVector::ZeroVector; }
 	else if (bAbilityActive) { TravelTime = 0.f; }
-	else if (Movement->IsMovingOnGround() && SourceMovement->IsMovingOnGround())
+	else if (SourceMovement->IsMovingOnGround())
 	{
 		TravelTime += DeltaSeconds;
 		// 충돌이 있는 목표에는 무조건 겹쳐 넣지 않고 TeleportTo의 배치 검사를 따른다.
