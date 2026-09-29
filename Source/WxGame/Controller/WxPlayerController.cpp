@@ -81,14 +81,11 @@ void AWxPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void AWxPlayerController::SetPawn(APawn* InPawn)
 {
-	const APawn* PreviousPawn = GetPawn();
 	Super::SetPawn(InPawn);
 
+	// 복제 경로는 Pawn 을 먼저 대입한 뒤 부르므로 전후 폰 비교로는 교체를 알 수 없어, 매번 갱신하고 같은 ASC 판정은 VM 에 맡긴다.
 	// 빙의 교체 통지(OnPossessedPawnChanged)보다 먼저 불리므로, 그 통지로 다시 뜨는 HUD 가 새 폰으로 채워진 VM 을 받는다.
-	if (GetPawn() != PreviousPawn)
-	{
-		RefreshPlayerCharacterViewModel();
-	}
+	RefreshPlayerCharacterViewModel();
 }
 
 UWxViewModel_Item* AWxPlayerController::GetOrCreateItemViewModel(const UWxItemDefinition* ItemDef)

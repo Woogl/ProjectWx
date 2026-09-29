@@ -22,6 +22,13 @@ UWxViewModel_Character* UWxViewModel_Character::FindPlayer(const UObject* WorldC
 
 void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, FText InCharacterName)
 {
+	// 새로 만들면 위젯 바인딩과 자식 VM 이 전부 다시 만들어지므로, 같은 ASC 면 유지한다.
+	if (InASC && AbilitySystem && AbilitySystem->GetBoundASC() == InASC)
+	{
+		UE_MVVM_SET_PROPERTY_VALUE(CharacterName, InCharacterName);
+		return;
+	}
+
 	Deinitialize();
 
 	if (!InASC)

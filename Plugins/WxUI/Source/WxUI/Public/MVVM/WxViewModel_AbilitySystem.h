@@ -33,6 +33,8 @@ public:
 	/** Character VM 이 자기 것을 만들 때 한 번 부른다. ASC 가 바뀌면 Character VM 이 새 인스턴스를 만든다. */
 	void Initialize(UAbilitySystemComponent* InASC);
 
+	UAbilitySystemComponent* GetBoundASC() const;
+
 	/**
 	 * 현재값과 최대치 쌍이 같아야 같은 뷰모델이다 — 최대치가 비율과 가득참 여부를 결정한다.
 	 * Max 가 유효하지 않으면 Current 자신을 최대값으로 사용한다.

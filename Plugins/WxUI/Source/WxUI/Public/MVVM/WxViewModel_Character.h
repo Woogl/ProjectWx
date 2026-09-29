@@ -28,7 +28,7 @@ public:
 	/** 로컬 PC 가 등록한 플레이어 Character VM. 등록 전이거나 원격 PC 뿐인 월드면 nullptr. */
 	static UWxViewModel_Character* FindPlayer(const UObject* WorldContextObject);
 
-	/** 자기 AbilitySystem VM 을 새로 만들어 소유한다. 이전 것은 놓는다. */
+	/** ASC 가 바뀌면 자기 AbilitySystem VM 을 새로 만들어 소유하고 이전 것은 놓는다. 같은 ASC 면 이름만 갱신한다. */
 	void Initialize(UAbilitySystemComponent* InASC, FText InCharacterName);
 
 	/** 표시 필드를 비우고 통지해, 소스가 빠졌다는 사실이 화면에 반영되게 한다. */

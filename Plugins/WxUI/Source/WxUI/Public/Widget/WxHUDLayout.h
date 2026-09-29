@@ -19,6 +19,7 @@ class WXUI_API UWxHUDLayout : public UWxActivatableWidget
 
 protected:
 	virtual void NativeOnInitialized() override;
+	virtual void NativeDestruct() override;
 
 	void HandleInventoryAction();
 	void HandleMainMenuAction();

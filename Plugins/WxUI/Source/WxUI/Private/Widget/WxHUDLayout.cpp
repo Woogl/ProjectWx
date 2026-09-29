@@ -35,6 +35,17 @@ void UWxHUDLayout::NativeOnInitialized()
 	RegisterUIActionBinding(FreeCursorReleasedArgs);
 }
 
+void UWxHUDLayout::NativeDestruct()
+{
+	// 폰 교체로 걷힌 HUD 의 요청이 로드를 마친 뒤 새 HUD 위에 메뉴를 띄우지 않게 한다.
+	if (PendingMenuPush)
+	{
+		PendingMenuPush->Cancel();
+	}
+
+	Super::NativeDestruct();
+}
+
 void UWxHUDLayout::HandleInventoryAction()
 {
 	PushMenuWidget(InventoryWidgetClass);

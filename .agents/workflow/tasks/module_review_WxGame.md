@@ -1,25 +1,29 @@
 # WxGame — 코드 리뷰
 
-> 캐릭터 재초기화·사망 통지·새 게임 선택과 UI 조립 경로를 현재 소스로 대조했다. 아래 검토 범위에서는 새로운 확정적 결함을 찾지 못했다. 기존 세 지적의 수정·검증과 남은 사람 확인은 [WxGame 코드 리뷰 지적 해결](wxgame-review-fixes.md)에 있다.
+> 플레이어 Character VM 갱신은 이제 서버 빙의·RPC·프로퍼티 복제 어느 경로로 들어와도 같은 판정을 거치고, 빙의 교체 통지보다 먼저 채워지는 순서도 엔진 경로와 맞는다. 남은 미해결 지적은 이미 알려진 모듈 경계 예외 하나다.
+> 이번 리뷰는 `0260099b1` 위의 미커밋 변경(`Source/WxGame/Controller/WxPlayerController.cpp`)과 그 호출 경로(`WxGameViewModel::InitializeCharacter`의 모든 호출자, 연동 WxUI VM, UE 5.8 빙의·복제 경로)를 깊게 봤다.
 
 ## 요약
 
 | 심각도 | 개수 |
 | --- | --- |
 | 🔴 심각 | 0 |
-| 🟡 개선 | 0 |
+| 🟡 개선 | 1 |
 | 🟢 사소 | 0 |
 
 ## 결과
 
-현재 미해결로 유지할 코드 지적은 없다. 기존 세 지적은 [WxGame 코드 리뷰 지적 해결](wxgame-review-fixes.md)의 수정 내용과 현재 소스를 대조해 해소를 확인했으므로 이전 정적 리뷰 원문을 제거한다.
+### 1. 🟡 InteractionList 뷰모델이 아직 WxGame에 있고 도메인 컴포넌트를 직접 호출한다
+- **위치**: `Source/WxGame/MVVM/WxViewModel_InteractionList.h:21`
+- **범주**: 설계/구조
+- **문제**: 2026-09-30 채택한 UI 설계 원칙 2번(모든 뷰모델은 WxUI에 두고 도메인 타입을 쓰지 않음)과 9번(도메인 명령은 뷰모델이 델리게이트로 내보내고 조립 층이 모델을 호출)에 어긋난다. `UWxViewModel_InteractionList`는 WxWorld의 `UWxInteractionScannerComponent`를 약참조로 들고 `OnRowsChanged`를 직접 구독하며(`Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:17`), `RequestInteract`·`RequestCycle`이 스캐너를 바로 호출한다(같은 파일 55·63행). [MVVM 원칙에 맞춘 뷰모델 재설계](viewmodel-mvvm-redesign.md)는 이를 "알려진 예외(후속 일감)"로, [뷰모델 품질 정리](viewmodel-quality-cleanup.md)는 7번 "나중"으로 남겼지만 이를 맡은 일감 문서는 아직 없다.
+- **제안**: 뷰모델은 표시 값(`Entries`)과 요청 델리게이트만 가진 WxUI 클래스로 옮기고, 스캐너 구독·값 넣기·요청 전달은 WxGame의 `UWxViewModelResolver_InteractionList`가 맡게 한다(원칙 3번: 위젯마다 만드는 뷰모델은 리졸버가 만든다). WBP 참조는 ClassRedirects로 잇고 리세이브 뒤 지운다.
+- **확신도**: 높음
 
 ## 검토 범위
-
-- **깊게 본 파일**: `Source/WxGame/Character/WxCharacterBase.h`, `Source/WxGame/Character/WxCharacterBase.cpp`, `Source/WxGame/Character/WxEnemyCharacter.h`, `Source/WxGame/Character/WxEnemyCharacter.cpp`, `Source/WxGame/Character/WxPlayerCharacter.cpp`, `Source/WxGame/Controller/WxAIController.cpp`, `Source/WxGame/Controller/WxNameplateManagerComponent.h`, `Source/WxGame/Controller/WxNameplateManagerComponent.cpp`, `Source/WxGame/Framework/WxRespawnLibrary.cpp`, `Source/WxGame/Framework/WxGameMode.cpp`, `Source/WxGame/FrontEnd/WxGameFlowSubsystem.h`, `Source/WxGame/FrontEnd/WxGameFlowSubsystem.cpp`, `Source/WxGame/Battle/WxBattleSubsystem.cpp`, `Source/WxGame/MVVM/WxViewModel_Inventory.cpp`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_Ability.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_AbilitySystem.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_PlayerCharacter.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_Dialogue.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_Quest.cpp`이다.
-- **훑은 파일**: `Source/WxGame/WxGame.Build.cs`, `Source/WxGame/Controller/WxPlayerController.cpp`, `Source/WxGame/Character/Component/WxCharacterMovementComponent.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_Interact.cpp`, `Source/WxGame/AbilitySystem/Ability/WxAbility_UseItem.cpp`이다. 헤더의 인라인 정의를 검색했다.
-- **교차 근거**: 기존 재등록 지적의 해결 여부 확인에 한해 `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySystemComponent.cpp:48`과 `Plugins/WxCombat/Source/WxCombat/Private/AbilitySystem/WxAbilitySet.cpp:58`의 최초 속성·GE 초기화와 누락 스펙 부여 분리를 대조했다.
-- **미검토 / 한계**: 2026-09-26 작업 트리의 정적 리뷰이다. 소스 61개는 생성물 제외 `.h`·`.cpp` 개수이며 전 파일 정밀 검토를 뜻하지 않는다. 이번 리뷰에서 빌드·자동화 테스트·게임 실행을 다시 수행하지 않았으며, BP/WBP·DataTable·BT·StateTree 내부 및 멀티플레이 동작은 검증하지 않았다. 빌드·회귀 결과는 [WxGame 코드 리뷰 지적 해결](wxgame-review-fixes.md)의 검증 이력이다.
+- **깊게 본 파일**: `Source/WxGame/Controller/WxPlayerController.cpp`, `Source/WxGame/Controller/WxPlayerController.h`, `Source/WxGame/MVVM/WxGameViewModelUtils.h`, `Source/WxGame/MVVM/WxGameViewModelUtils.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_BossCharacter.cpp`, `Source/WxGame/Controller/WxNameplateManagerComponent.cpp`, `Source/WxGame/MVVM/WxViewModelResolver_Ability.cpp`, `Source/WxGame/MVVM/WxViewModel_InteractionList.h`, `Source/WxGame/MVVM/WxViewModel_InteractionList.cpp`
+- **훑은 파일**: `Source/WxGame/Battle/WxBattleSubsystem.h`, `Source/WxGame/Battle/WxBattleSubsystem.cpp`, `Source/WxGame/Framework/WxRespawnLibrary.cpp`, `Source/WxGame/Character/WxCharacterBase.cpp`(ASC 소유 위치). 교차 근거로 `Plugins/WxUI/Source/WxUI/Private/MVVM/WxViewModel_Character.cpp`·`WxViewModel_AbilitySystem.cpp`와 헤더, `Plugins/WxUI/Source/WxUI/Private/Component/WxPlayerLayoutComponent.cpp`, UE 5.8 `Controller.cpp`(`Possess`·`UnPossess`·`SetPawnFromRep`·`OnRep_Pawn`, `Pawn`의 `REPNOTIFY_Always`)·`PlayerController.cpp`(`ClientRetryClientRestart`·`ClientRestart`·`OnPossess`·`OnUnPossess`·`SetPawn`)·`Pawn.cpp`(`OnRep_Controller`)를 대조했다. 전 59파일에서 첫 줄 저작권 문구와 인라인 정의를 검색했고 위반은 없었다.
+- **미검토 / 한계**: 이번 리뷰는 커밋 `0260099b1` 위의 미커밋 작업 트리 변경(`Source/WxGame/Controller/WxPlayerController.cpp`)을 포함해 봤다. 검토 중 다른 세션의 임시 검증(`Source/WxEditor/Tests/WxTempPossessionMenuTest.cpp`)이 `SetPawn`에 전후 폰 비교를 잠시 되넣었다가 되돌렸고, 되돌린 뒤의 상태(위 diff와 같음)를 기준으로 판정했다. 정적 리뷰이며 빌드·자동화 테스트·리슨 서버 실행은 직접 하지 않았다. 이전 AbilitySystem VM 트리의 구독 해제는 WxUI 리뷰 3번으로 보류된 WxUI 문제라 다루지 않았다. 변경이 없는 나머지 영역(캐릭터·AI 컨트롤러·프런트엔드·치트 등)은 직전 리뷰에서 봤고 다시 통독하지 않았다. BP/WBP·DataTable·BT·StateTree 내부는 범위 밖이다.
 
 ---
-*문서 기준 커밋 `ad0db6de0` · 리뷰일 2026-09-26 · 소스 61파일 — `/module-review`로 갱신*
+*문서 기준 커밋 `0260099b1` · 리뷰일 2026-09-30 · 소스 59파일 — `/module-review`로 갱신*

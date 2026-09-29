@@ -18,6 +18,11 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 	RefreshOwnedTags();
 }
 
+UAbilitySystemComponent* UWxViewModel_AbilitySystem::GetBoundASC() const
+{
+	return CachedASC.Get();
+}
+
 const TArray<TObjectPtr<UWxViewModel_Effect>>& UWxViewModel_AbilitySystem::GetActiveEffectViewModels() const
 {
 	// 리플렉션 Getter는 const 계약이므로, 표시 데이터의 지연 초기화만 비const 경로로 넘긴다.
