@@ -577,7 +577,6 @@ EDataValidationResult UWxAbilityBase::IsDataValid(FDataValidationContext& Contex
 	const EDataValidationResult Result = Super::IsDataValid(Context);
 	const uint32 NumErrors = Context.GetNumErrors();
 
-	// 쿨다운 태그가 없으면 순정 판정이 통과시켜 쿨다운이 조용히 사라진다.
 	if (CooldownTime > 0.f && CooldownTags.IsEmpty())
 	{
 		Context.AddError(INVTEXT("쿨다운 시간이 있는데 쿨다운 태그가 없어 쿨다운이 걸리지 않는다."));
