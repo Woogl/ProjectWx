@@ -9,7 +9,7 @@
 
 /**
  * 플레이어 Character VM 의 어빌리티시스템 VM 에서 AbilityTags 가 가리키는 스킬 슬롯의 뷰모델을 얻는다.
- * 슬롯 태그 하나에 뷰모델 하나이며, 후보가 여럿인 슬롯에서 누구를 무는지는 뷰모델이 스스로 정한다.
+ * AbilityTags 컨테이너(정확 일치) 하나에 뷰모델 하나이며, 후보가 여럿인 슬롯에서 누구를 무는지는 뷰모델이 스스로 정한다.
  */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_Ability : public UMVVMViewModelContextResolver
