@@ -6,6 +6,7 @@
 #include "UObject/SoftObjectPtr.h"
 
 struct FStreamableHandle;
+class UMVVMViewModelCollectionObject;
 
 namespace WxViewModel
 {
@@ -14,4 +15,7 @@ namespace WxViewModel
 	 * InOutHandle 은 이미지 필드마다 하나 두며, 같은 필드의 이전 요청을 취소하는 데 쓴다. 완료 통지는 Owner 가 살아 있을 때만 온다.
 	 */
 	WXUI_API void RequestImageAsync(UObject& Owner, TSharedPtr<FStreamableHandle>& InOutHandle, const TSoftObjectPtr<UObject>& Image, TFunction<void(UObject*)> OnLoaded);
+
+	/** 월드의 게임 인스턴스가 가진 엔진 Global Collection. WBP 의 Global Viewmodel Collection 소스가 찾는 곳과 같다. */
+	WXUI_API UMVVMViewModelCollectionObject* GetGlobalCollection(const UObject* WorldContextObject);
 }

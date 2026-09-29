@@ -30,12 +30,8 @@ class WXUI_API UWxViewModel_AbilitySystem : public UMVVMViewModelBase
 	GENERATED_BODY()
 
 public:
-	/**
-	 * ASC 하나당 하나. 없으면 ASC 를 Outer 로 만들어 초기화한다.
-	 * 폰이 바뀌면 ASC 도 바뀌므로 새 인스턴스가 생긴다.
-	 * ASC 를 Outer 로 둬도 생존은 보장되지 않는다 — 이 VM 이나 자식 VM 이 루트에서 강한 참조로 닿는 동안만 유지된다.
-	 */
-	static UWxViewModel_AbilitySystem* GetOrCreate(UAbilitySystemComponent* InASC);
+	/** Character VM 이 자기 것을 만들 때 한 번 부른다. ASC 가 바뀌면 Character VM 이 새 인스턴스를 만든다. */
+	void Initialize(UAbilitySystemComponent* InASC);
 
 	/**
 	 * 현재값과 최대치 쌍이 같아야 같은 뷰모델이다 — 최대치가 비율과 가득참 여부를 결정한다.
@@ -50,7 +46,7 @@ public:
 	 */
 	UWxViewModel_Ability* GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged, FWxCanBindAbility InCanBindAbility);
 
-	/** 공유본의 연결은 한 번만 설정한다. 먼저 조회된 빈 목록도 현재 활성 효과로 채운다. */
+	/** 먼저 조회된 빈 목록도 현재 활성 효과로 채운다. */
 	void ConfigureEffectPresentation(FWxConfigureEffectViewModel InConfigurePresentation);
 
 	const TArray<TObjectPtr<UWxViewModel_Effect>>& GetActiveEffectViewModels() const;
@@ -95,7 +91,4 @@ private:
 
 	/** 최초 목록 구성에서도 사용하므로 FieldNotify 없이 추가 성공 여부만 반환한다. */
 	bool AddActiveEffectViewModel(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
-
-	/** ASC별 일회 초기화 계약을 팩토리 내부로 제한한다. */
-	void Initialize(UAbilitySystemComponent* InASC);
 };

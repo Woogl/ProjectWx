@@ -3,7 +3,10 @@
 #include "MVVM/WxViewModelUtils.h"
 
 #include "Engine/AssetManager.h"
+#include "Engine/GameInstance.h"
 #include "Engine/StreamableManager.h"
+#include "Engine/World.h"
+#include "MVVMGameSubsystem.h"
 
 void WxViewModel::RequestImageAsync(UObject& Owner, TSharedPtr<FStreamableHandle>& InOutHandle, const TSoftObjectPtr<UObject>& Image, TFunction<void(UObject*)> OnLoaded)
 {
@@ -32,4 +35,12 @@ void WxViewModel::RequestImageAsync(UObject& Owner, TSharedPtr<FStreamableHandle
 	{
 		InOutHandle = Handle;
 	}
+}
+
+UMVVMViewModelCollectionObject* WxViewModel::GetGlobalCollection(const UObject* WorldContextObject)
+{
+	const UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
+	const UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
+	const UMVVMGameSubsystem* ViewModelSubsystem = GameInstance ? GameInstance->GetSubsystem<UMVVMGameSubsystem>() : nullptr;
+	return ViewModelSubsystem ? ViewModelSubsystem->GetViewModelCollection() : nullptr;
 }

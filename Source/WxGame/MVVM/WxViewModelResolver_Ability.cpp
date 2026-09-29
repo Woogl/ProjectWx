@@ -2,21 +2,16 @@
 
 #include "MVVM/WxViewModelResolver_Ability.h"
 #include "AbilitySystem/Ability/WxAbilityBase.h"
-#include "AbilitySystemBlueprintLibrary.h"
 #include "Blueprint/UserWidget.h"
-#include "GameFramework/Pawn.h"
-#include "GameFramework/PlayerController.h"
 #include "MVVM/WxViewModel_Ability.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
-#include "MVVM/WxViewModelResolver_AbilitySystem.h"
+#include "MVVM/WxViewModel_Character.h"
 
 UObject* UWxViewModelResolver_Ability::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
-	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
-
-	// 슬롯 뷰모델의 소유는 ASC 의 어빌리티시스템 VM 이 맡는다 — 같은 슬롯을 보는 위젯끼리 하나를 나눠 쓴다.
-	UWxViewModel_AbilitySystem* AbilitySystemViewModel = UWxViewModelResolver_AbilitySystem::GetOrCreate(
-		UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PC ? PC->GetPawn() : nullptr));
+	// 슬롯 뷰모델의 소유는 플레이어 Character VM 의 어빌리티시스템 VM 이 맡는다 — 같은 슬롯을 보는 위젯끼리 하나를 나눠 쓴다.
+	const UWxViewModel_Character* PlayerViewModel = UWxViewModel_Character::FindPlayer(UserWidget);
+	UWxViewModel_AbilitySystem* AbilitySystemViewModel = PlayerViewModel ? PlayerViewModel->AbilitySystem.Get() : nullptr;
 	if (!AbilitySystemViewModel)
 	{
 		return nullptr;

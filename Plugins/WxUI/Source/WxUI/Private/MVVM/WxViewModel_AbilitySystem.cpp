@@ -7,25 +7,6 @@
 #include "Engine/World.h"
 #include "MVVM/WxViewModel_Effect.h"
 #include "TimerManager.h"
-#include "UObject/UObjectHash.h"
-
-UWxViewModel_AbilitySystem* UWxViewModel_AbilitySystem::GetOrCreate(UAbilitySystemComponent* InASC)
-{
-	if (!IsValid(InASC))
-	{
-		return nullptr;
-	}
-
-	// 데이터 소스를 Outer 로 만들어 두므로, 소스의 자식 중에서 찾으면 공유본이다.
-	if (UWxViewModel_AbilitySystem* Existing = static_cast<UWxViewModel_AbilitySystem*>(FindObjectWithOuter(InASC, StaticClass())))
-	{
-		return Existing;
-	}
-
-	UWxViewModel_AbilitySystem* ViewModel = NewObject<UWxViewModel_AbilitySystem>(InASC);
-	ViewModel->Initialize(InASC);
-	return ViewModel;
-}
 
 void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 {

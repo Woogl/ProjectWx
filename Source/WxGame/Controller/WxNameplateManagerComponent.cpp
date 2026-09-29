@@ -10,8 +10,8 @@
 #include "EngineUtils.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/PlayerController.h"
+#include "MVVM/WxGameViewModelUtils.h"
 #include "MVVM/WxViewModel_Character.h"
-#include "MVVM/WxViewModelResolver_AbilitySystem.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "View/MVVMView.h"
 #include "WxGame.h"
@@ -121,11 +121,15 @@ void UWxNameplateManagerComponent::UpdateNameplates(const AActor* Viewer, const 
 			Nameplates.Add(Target, Nameplate);
 			Nameplate->SetRelativeLocation(FVector(0.0, 0.0, Capsule->GetUnscaledCapsuleHalfHeight() + HeadClearance));
 
-			// 공유본의 수명은 이를 참조하는 MVVM View가 유지한다. 여기서 직접 초기화·해제하지 않는다.
+			// 위젯을 Outer 로 두고 MVVM View 가 들게 해, 위젯과 함께 사라진다.
 			UUserWidget* Widget = Nameplate->GetWidget();
 			UMVVMView* View = Widget ? Widget->GetExtension<UMVVMView>() : nullptr;
-			if (!View || !View->SetViewModelByClass(UWxViewModel_Character::GetOrCreate(
-				UWxViewModelResolver_AbilitySystem::GetOrCreate(Target->GetAbilitySystemComponent()), Target->GetTitle())))
+			UWxViewModel_Character* ViewModel = Widget ? NewObject<UWxViewModel_Character>(Widget) : nullptr;
+			if (ViewModel)
+			{
+				WxGameViewModel::InitializeCharacter(*ViewModel, *Target);
+			}
+			if (!View || !View->SetViewModelByClass(ViewModel))
 			{
 				UE_LOG(LogWxGame, Warning, TEXT("Nameplate: Character 뷰모델을 연결하지 못했다. 위젯의 MVVM View·Manual 소스를 확인한다. Widget=%s Target=%s"), *GetNameSafe(Widget), *GetNameSafe(Target));
 			}

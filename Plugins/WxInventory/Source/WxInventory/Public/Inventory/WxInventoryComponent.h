@@ -121,8 +121,6 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged, UWxItemInstanc
  */
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventoryChargeChanged, UWxItemInstance* /*Instance*/, int32 /*NewCharges*/, int32 /*Delta*/);
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnInventoryReady, UWxInventoryComponent* /*Inventory*/);
-DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnInventoryEnded, UWxInventoryComponent* /*Inventory*/);
 DECLARE_MULTICAST_DELEGATE(FWxOnInventoryContentsChanged);
 
 /**
@@ -142,19 +140,9 @@ public:
 
 	//~ Begin UActorComponent interface
 	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void ReadyForReplication() override;
 	//~ End UActorComponent interface
-
-	/**
-	 * 인벤토리가 쓸 수 있게 될 때마다 발행된다. 서버 생성·복제 도착(클라) 어느 경로든 BeginPlay 로 수렴한다.
-	 * 관찰자가 인벤토리보다 먼저 존재할 수 있어(HUD 뷰모델) 인스턴스가 아니라 클래스 차원에 둔다 — 구독자는 소유 액터로 자기 것인지 가린다.
-	 */
-	static FWxOnInventoryReady OnAnyInventoryReady;
-
-	/** EndPlay 후 발행된다. 종료된 인벤토리는 조회에서 제외된다. */
-	static FWxOnInventoryEnded OnAnyInventoryEnded;
 
 	/**
 	 * 권한: ItemDef 를 StackCount 만큼 추가한다.

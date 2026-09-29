@@ -35,3 +35,8 @@ void UWxViewModel_Item::SetGradeColor(const FLinearColor& InGradeColor)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(GradeColor, InGradeColor);
 }
+
+void UWxViewModel_Item::SetCategory(const FGameplayTag& InCategory)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(Category, InCategory);
+}

@@ -1,13 +1,12 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModelResolver_BossCharacter.h"
-#include "AbilitySystemComponent.h"
 #include "Battle/WxBattleSubsystem.h"
 #include "Blueprint/UserWidget.h"
 #include "Character/WxCharacterBase.h"
 #include "Engine/World.h"
+#include "MVVM/WxGameViewModelUtils.h"
 #include "MVVM/WxViewModel_Character.h"
-#include "MVVM/WxViewModelResolver_AbilitySystem.h"
 
 UObject* UWxViewModelResolver_BossCharacter::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
@@ -22,7 +21,7 @@ UObject* UWxViewModelResolver_BossCharacter::CreateInstance(const UClass* Expect
 	{
 		if (CurrentBoss)
 		{
-			ViewModel->Initialize(UWxViewModelResolver_AbilitySystem::GetOrCreate(CurrentBoss->GetAbilitySystemComponent()), CurrentBoss->GetTitle());
+			WxGameViewModel::InitializeCharacter(*ViewModel, *CurrentBoss);
 		}
 		else
 		{

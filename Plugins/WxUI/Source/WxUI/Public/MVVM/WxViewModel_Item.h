@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "MVVMViewModelBase.h"
 #include "WxViewModel_Item.generated.h"
 
@@ -21,6 +22,7 @@ public:
 	void SetTotalCount(int32 InTotalCount);
 	void SetCurrentCharges(int32 InCurrentCharges);
 	void SetGradeColor(const FLinearColor& InGradeColor);
+	void SetCategory(const FGameplayTag& InCategory);
 
 	UPROPERTY(Transient, BlueprintReadOnly, FieldNotify, Category = "Wx|UI")
 	TObjectPtr<const UObject> SourceObject;
@@ -48,6 +50,10 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|UI")
 	FLinearColor GradeColor = FLinearColor::White;
+
+	/** 인벤토리 VM 의 탭 필터 키. */
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|UI", meta = (Categories = "Item.Category"))
+	FGameplayTag Category;
 
 private:
 	TSharedPtr<FStreamableHandle> IconHandle;

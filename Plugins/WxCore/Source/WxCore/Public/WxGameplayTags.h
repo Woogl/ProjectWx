@@ -251,6 +251,11 @@ namespace WxGameplayTags
 	/** WxEffect_MoveSpeedScale이 MOV 어트리뷰트에 곱하는 배율 */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_MoveSpeedScale);
 	
+	/** 아이템 분류. 인벤토리 VM 이 탭 필터 키로 쓰고, 컨트롤러가 아이템 정의의 분류를 이 태그로 옮겨 싣는다. */
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Category_Equipment);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Category_Consumable);
+	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Category_Currency);
+
 	/** HUD 레이어 (플레이어 체력 바 등) */
 	WXCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Game);
 
