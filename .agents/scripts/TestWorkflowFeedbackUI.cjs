@@ -24,7 +24,7 @@ const view=taskPath=>({taskPath,providers,revision:tasks[taskPath].revision,late
 const api=async(route,body)=>{
   assert.equal(route,'/test-feedback');
   body=JSON.parse(JSON.stringify(body));
-  if(body.action==='read'){reads++;const task=tasks[body.taskPath];if(!task)throw Error('작업 기록 폴더 안의 파일만 사용할 수 있습니다.');return {...view(body.taskPath),title:task.title,next:task.next||'',request:task.request,questions:task.questions,plan:task.plan,checklist:task.checklist,tableError:''};}
+  if(body.action==='read'){reads++;const task=tasks[body.taskPath];if(!task)throw Error('작업 기록 폴더 안의 파일만 사용할 수 있습니다.');return {...view(body.taskPath),title:task.title,next:task.next||'',request:task.request,questions:task.questions,plan:task.plan,checklist:task.checklist,tableError:task.tableError||''};}
   if(gate)await gate;
   // 서버처럼 처리한 적이 없는 작업은 기록 목록에 없다.
   if(body.action==='list')return {records:Object.fromEntries(Object.keys(tasks).filter(taskPath=>tasks[taskPath].latest).map(taskPath=>[taskPath,view(taskPath)])),providers,tasks:[{path:item.path,title:item.title,state:'확인 대기',summary:'체크리스트 1/3 통과',next:item.next,modified:''}]};
@@ -32,7 +32,7 @@ const api=async(route,body)=>{
   if(refuse||Object.values(tasks).some(task=>task.latest?.status==='running'))throw Error('다른 AI가 작업 중입니다. 입력은 유지됩니다. 잠시 후 전달하세요.');
   const taskPath=body.action==='create'?newPath:body.taskPath;
   if(body.action==='create')tasks[newPath]={title:body.title,request:'- 요청자: '+body.actor+'\n\n> '+body.request,questions:[],plan:{text:'',approval:''},checklist:[],revision:0,latest:null};
-  else if(body.taskHash!=='task-'+tasks[taskPath].revision)throw Error('작업 기록이 바뀌었습니다. 최신 상태를 불러와 확인 후 전달하세요.');
+  else if(body.taskHash!=='task-'+tasks[taskPath].revision)throw Error('작업 기록이 바뀌었습니다. 브라우저를 새로고침해 확인한 뒤 전달하세요.');
   const task=tasks[taskPath];starts++;task.revision++;savedRequest=structuredClone(body);
   // 서버처럼 테스트 결과는 실패가 있으면 AI 수정, 모두 통과면 그 자리에서 완료, 나머지는 결과만 기록한다.
   const checks=body.checks?.map(check=>({item:task.checklist[check.index].item,result:check.result,note:check.note}));
@@ -67,7 +67,8 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   assert.equal(byId('test-feedback-submit').textContent,'테스트 결과 전달');
   assert.equal(text('task-next'),'다음 행동 · 재개 후 좌표 확인','the panel shows the recorded next action');
   assert.equal(byId('task-title').textContent,item.title);assert.equal(run("storageGet(taskKey('last'))"),item.path,'the work tab remembers the last opened task');
-  context.location.hash='#work';await button('대시보드로').onclick();assert.equal(context.location.hash,'','the work tab returns to the dashboard');
+  assert.ok(!button('최신 상태 불러오기'));assert.ok(!button('대시보드로'));
+  assert.equal(byId('test-feedback-result').hidden,true,'a task never sent from the web shows no web result');
   assert.ok(!descendants(byId('task-phase')).some(node=>node.attributes['aria-label']?.startsWith('빌드 ')),'AI rows are read-only');
   assert.deepEqual(descendants(byId('task-phase')).filter(node=>node.tagName==='H3').map(node=>node.textContent),['사람이 확인할 항목 · 2','AI가 확인한 항목 · 1'],'human work is listed before AI results');
   assert.ok(descendants(byId('task-phase')).some(node=>node.textContent==='통과 · exit 0'));
@@ -93,6 +94,7 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   assert.equal(savedRequest.action,'submit');assert.equal(savedRequest.actor,'테스터');assert.equal(savedRequest.provider,'claude');
   assert.equal(byId('test-feedback-submit').disabled,true);assert.deepEqual(JSON.parse(JSON.stringify(run('taskDraft(item.path).checks'))),{},'sent choices are cleared');
   assert.match(text('task-phase'),/AI가 처리하는 동안/);assert.match(text('test-feedback-result'),/Claude Code 처리 중 · 3분 경과 · 터미널 창/);
+  assert.equal(byId('test-feedback-result').hidden,false);assert.equal(byId('test-feedback-result').children[0].textContent,'AI 처리 중','a running web process is the heading');
   assert.equal(byId('task-terminal').disabled,true,'a running task cannot be continued in a terminal');assert.equal(byId('task-terminal').hidden,false,'an open task can be continued in a terminal');
   t.checklist=[row('빌드','AI','통과','exit 0'),row('저장 후 복원','사람','대기','좌표 복원 순서 수정 후 재확인'),row('부활 시 적 재생성','사람','통과','테스터')];
   t.latest={...t.latest,status:'retest',report:{summary:'복원 좌표 수정',changes:['좌표 복원 순서 수정'],evidence:['회귀 테스트 통과']}};t.revision++;
@@ -128,6 +130,11 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   // 사람 항목은 모두 통과했는데 AI 항목이 남으면 추가 요청으로 이어가라고 안내한다.
   t.checklist=[row('빌드','AI','실패','exit 1'),row('저장 후 복원','사람','통과','테스터')];t.latest={...t.latest,status:'issues'};t.revision++;await run('refreshTaskContext()');
   assert.match(text('task-phase'),/AI 항목이 남아 완료되지 않았습니다/);assert.equal(byId('task-request').hidden,false);
+  // 표가 깨진 기록은 입력 대신 이유와 고치는 법을 보이고, 서버가 받지 않는 추가 요청도 숨긴다. 터미널에서 이어하기는 남는다.
+  t.tableError='질문 6번째 행의 형식이 올바르지 않습니다.';t.revision++;await run('refreshTaskContext()');
+  assert.match(text('task-phase'),/표 형식이 깨져 이 작업은 전달을 받지 않습니다\. 질문 6번째 행의 형식이 올바르지 않습니다\. 터미널에서 이어하기로/);
+  assert.equal(byId('test-feedback-submit').hidden,true);assert.equal(byId('task-request').hidden,true,'a record with a broken table takes no extra requests');assert.equal(byId('task-terminal').hidden,false,'it is fixed from a terminal');
+  delete t.tableError;t.revision++;await run('refreshTaskContext()');assert.equal(byId('task-request').hidden,false);
 
   // 질문 단계: 선택지를 고르거나(고른 것은 선택 안 함으로 되돌릴 수 있다) 직접 적고, 모든 질문에 답해야 전달된다.
   providers=[{id:'codex',label:'Codex'},{id:'claude',label:'Claude Code'},{id:'gemini',label:'Gemini CLI'}];t.checklist=[];
@@ -158,7 +165,7 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   await run('loadTaskJobs()');
   assert.equal(byId('test-feedback-submit').hidden,true);assert.match(text('task-phase'),/지금 답하거나 확인할 항목이 없습니다/);
   assert.equal(byId('task-plan').hidden,false);assert.match(text('task-plan'),/승인된 구현 계획 · 테스터 2026-09-25\n1\. 지연 감소 추가/,'the approved plan stays readable, folded');
-  assert.match(text('test-feedback-result'),/처리 결과 확인/);assert.match(text('test-feedback-result'),/설명만 필요한 요청이었습니다/,'the latest result shows its summary');
+  assert.doesNotMatch(text('test-feedback-result'),/처리 결과 확인/,'a finished web result is not shown as the current state');assert.match(text('test-feedback-result'),/설명만 필요한 요청이었습니다/,'the latest result shows its summary');
   assert.match(text('task-request'),/모든 명령을 허용/);
   // 계획이 바뀌어 승인 줄이 사라지면 체크리스트가 있어도 추가 요청은 다시 읽기 전용이다.
   t.plan={...t.plan,approval:''};t.checklist=[row('빌드','AI','통과','exit 0')];t.revision++;await run('refreshTaskContext()');
@@ -181,6 +188,7 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   // 새 작업: 브라우저 저장소를 못 써도 입력을 메모리로 이어가고, 만든 뒤 작업 탭에서 그 작업으로 넘어간다.
   storageBroken=true;context.location.hash='#work!new';
   run('openNewTask()');
+  assert.ok(!button('최신 상태 불러오기'));assert.ok(!button('대시보드로'));
   assert.equal(descendants(byId('test-feedback-panel')).find(node=>node.tagName==='H2').textContent,'새 작업');assert.equal(input('작성자').value,'테스터','the name is remembered across tasks');
   await button('AI에게 전달').onclick();assert.match(message(),/제목을 입력/);
   type('제목','Boss HP');await button('AI에게 전달').onclick();assert.match(message(),/요청을 입력/);
@@ -202,7 +210,7 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   // 작업 탭을 주소 없이 열면 지금 연 작업, 없으면 마지막으로 연 작업, 그것도 없으면 대시보드로 안내한다.
   run("openWork('')");assert.equal(byId('task-title').textContent,'새 작업','what is open stays when the work tab is reopened');assert.equal(input('제목').value,'Second');
   run("taskSelected=null;newTaskOpen=false;liveTaskRecords=[{path:item.path,title:item.title}];storageSet(taskKey('last'),item.path)");await run("openWork('')");assert.equal(run('taskSelected.path'),item.path,'the last opened task comes back');
-  run("taskSelected=null;newTaskOpen=false;storageRemove(taskKey('last'));openWork('')");assert.match(text('test-feedback-panel'),/열린 작업이 없습니다/);assert.ok(button('대시보드로'));
+  run("taskSelected=null;newTaskOpen=false;storageRemove(taskKey('last'));openWork('')");assert.match(text('test-feedback-panel'),/열린 작업이 없습니다/);assert.ok(!button('대시보드로'));
   await run("openWork('new')");assert.equal(byId('task-title').textContent,'새 작업');
   run("taskSelected=null;newTaskOpen=false;liveTaskRecords=null");const openingByAddress=run("openWork(item.path)");assert.equal(byId('task-title').textContent,'example','an address-only task starts with its file name');await openingByAddress;assert.equal(byId('task-title').textContent,item.title,'then shows the record title');
   // 기록을 읽지 못하면 불러오는 중에 멈추지 않고 이유를 보이며, 그 작업을 마지막으로 연 작업으로 기억하지 않는다.
@@ -226,5 +234,5 @@ const markOf=title=>descendants(byId('task-phase')).find(node=>String(node.class
   gate=new Promise(resolve=>{release=resolve;});type('추가 요청','옮기기 전 요청');const requesting=button('추가 요청 전달').onclick();
   await run(`openTaskPanel({title:'Third',path:'${newPath}'})`);release();gate=null;await requesting;
   assert.equal(run('taskSelected.path'),newPath);assert.doesNotMatch(message(),/AI에게 전달했습니다/,'the result of a send is not shown on another task');
-  console.log('PASS work tab (last task, empty state, back to dashboard, unreadable record), task panel phases (checklist, questions, approval, complete, empty), next action and folded approved plan, instant completion and record-only messages, read-only AI rows, required failure notes and answers, clearable choices, draft preservation without browser storage, remembered name, lost responses keep inputs without resend, quiet polling that keeps the AI select box, running lock, result refresh and announcement, local times, retry (also after a record conflict), additional requests (read-only before approval, box cleared after sending, hidden after completion), moving between tasks during a send, AI-only failure guidance and single terminal opening');
+  console.log('PASS work tab (last task, empty state, back to dashboard, unreadable record), task panel phases (checklist, questions, approval, complete, empty), next action and folded approved plan, instant completion and record-only messages, read-only AI rows, required failure notes and answers, clearable choices, draft preservation without browser storage, remembered name, lost responses keep inputs without resend, quiet polling that keeps the AI select box, running lock, result refresh and announcement, local times, retry (also after a record conflict), web result heading only while running or failed, broken-table guidance without extra requests, additional requests (read-only before approval, box cleared after sending, hidden after completion), moving between tasks during a send, AI-only failure guidance and single terminal opening');
 })().catch(error=>{console.error(error);process.exitCode=1;});

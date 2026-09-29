@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {spawn}=require('node:child_process');
 const {createFeedbackService,runJob,openTerminal,openSession,taskPrompt,schemaFor,readTasks,writeChecklist,writeHead}=require('./Workflow-TestFeedback.cjs');
-const {readChecklist,readHead,readTaskRecord}=require('./workflow-page/task-records.js');
+const {readChecklist,readHead,readQuestions,readTaskRecord}=require('./workflow-page/task-records.js');
 const {createServer,createWikiUpdate}=require('./Workflow-Server.cjs');
 const {toWsl,wslArgs}=require('./Wiki-Obsidian.cjs');
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'wx-test-feedback-'));
@@ -44,6 +44,13 @@ function fixture(providers=['codex'],content=taskText){
   assert.throws(()=>readChecklist(checklistText.replace('| 사람 | 대기 |','| 테스터 | 대기 |')),/2번째 행/);
   assert.deepEqual(readChecklist(writeChecklist(taskText,[row('줄|바꿈\n항목','사람','대기')])).rows,[row('줄 바꿈 항목','사람','대기')]);
   assert.match(writeChecklist('# 제목\n\n본문\n\n## 이력\n',[row('새 항목','사람','대기')]),/본문\n\n## 테스트 체크리스트\n\n\| 항목[\s\S]*\| 새 항목 [\s\S]*\n\n## 이력/);
+  // 표 줄이 하나도 없는 절은 표가 없는 것이고, 표가 있는데 어긋나면 오류다. 목록 요약은 체크리스트 대신 표 오류를 알린다.
+  const questionTable='| ID | 질문 | 선택지 | 추천 | 답변 |\n| --- | --- | --- | --- | --- |\n';
+  assert.equal(readQuestions('# 제목\n\n## 질문\n\n추가 질문 없음.\n\n## 구현 계획\n\n계획\n'),null,'a question section without a table has no questions');
+  assert.equal(readChecklist('# 제목\n\n## 테스트 체크리스트\n\n아직 없음.\n'),null);
+  assert.throws(()=>readQuestions('# 제목\n\n## 질문\n\n추가 질문 없음.\n\n'+questionTable),/질문 표의 머리글/,'a table below other text is still broken');
+  assert.equal(readTaskRecord('a.md','# 작업\n\n상태: 확인 대기 · 코드 리뷰\n\n## 질문\n\n'+questionTable+'| Q1 | 범위? | 보스 / 전체 | 보스 || 보스 |\n\n'+checklistText).summary,'표 오류 · 질문 1번째 행의 형식이 올바르지 않습니다.','the task list shows a broken table instead of the checklist count');
+  assert.equal(readTaskRecord('a.md',taskText).summary,'체크리스트 1/2 통과');
   // 단계마다 AI가 채울 수 있는 칸
   assert.deepEqual(schemaFor('plan').required,['summary','evidence','questions','plan']);
   assert.deepEqual(schemaFor('implement').required,['summary','evidence','changes','questions','checklist']);
@@ -183,6 +190,14 @@ function fixture(providers=['codex'],content=taskText){
   const brokenQuestions=fixture(['codex'],taskText.replace('## 테스트 체크리스트','## 질문\n\n| ID | 질문 |\n| --- | --- |\n\n## 테스트 체크리스트'));
   assert.match(brokenQuestions.context().tableError,/질문 표의 머리글/);assert.equal(brokenQuestions.context().checklist.length,2,'a broken question table does not hide the checklist');
   assert.throws(()=>brokenQuestions.send(taskPath,'request',{message:'고쳐줘'}),/질문 표의 머리글/);assert.equal(brokenQuestions.runs,0);
+  // 표 없이 "추가 질문 없음."만 적은 질문 절은 전달을 막지 않고, AI가 새 질문을 돌려주면 그 자리에 질문 표가 생긴다.
+  const noQuestions=taskText.replace('## 테스트 체크리스트','## 질문\n\n추가 질문 없음.\n\n## 테스트 체크리스트');
+  const answered=fixture(['codex'],noQuestions);assert.equal(answered.context().tableError,'');
+  answered.service.act(answered.request());assert.equal(answered.head().state,'완료','a table-less question section does not block test results');
+  const asking=fixture(['codex'],noQuestions);asking.send(taskPath,'request',{message:'범위를 넓혀줘'});await settle();
+  asking.finish({summary:'범위 질문',evidence:['코드 읽음'],changes:[],questions:[{id:'Q1',question:'어디까지?',options:['보스','전체'],recommendation:'보스'}],plan:'',checklist:[]});await settle();
+  assert.deepEqual(readQuestions(asking.task()).rows.map(q=>[q.id,q.answer]),[['Q1','']]);assert.doesNotMatch(asking.task(),/추가 질문 없음/,'new questions replace the note with a table');
+  assert.equal(asking.context().latest.status,'questions');
   // 옛 기록에도 추가 요청을 보낼 수 있고, 요청 절은 체크리스트 앞에 생긴다. 설명만 한 결과는 상태를 바꾸지 않는다.
   const extra=fixture();extra.send(taskPath,'request',{message:'복원 위치를 로그로 남겨줘'});await settle();
   assert.equal(extra.input.kind,'request');assert.match(extra.task(),/원본 결정과 검증 근거\n\n## 요청\n\n- 추가 요청 · 테스터 \d{4}-\d{2}-\d{2}\n\n> 복원 위치를 로그로 남겨줘\n\n## 테스트 체크리스트/);
@@ -344,6 +359,7 @@ function fixture(providers=['codex'],content=taskText){
   assert.equal(session.title,'Wx AI · 보스');assert.equal(session.argv.length,2);assert.equal(session.argv[0],'claude.exe');
   assert.equal(session.argv[1],`Continue the Wx task recorded in ${sessionPath}. Follow AGENTS.md and .agents/workflow/process/index.md.`);
   openSession({root:'C:\\Wx',command:{file:'node.exe',args:['gemini.js']},provider:'gemini',taskPath:sessionPath,title:'보스',open:capture});assert.deepEqual(session.argv.slice(0,3),['node.exe','gemini.js','-i']);
+  openSession({root:'C:\\Wx',command:{file:'codex.exe',args:[]},provider:'codex',taskPath:sessionPath,title:'보스',open:capture});assert.deepEqual(session.argv.slice(0,2),['codex.exe','--no-daemon']);assert.equal(session.argv.length,3);
   assert.throws(()=>openSession({root:'C:\\Wx',command:null,provider:'codex',taskPath:sessionPath,title:'보스',open:capture}),/Codex CLI/);
 
   // Wiki 갱신: 준비물(WSL, claude-obsidian)을 확인·설치하고 origin/main의 sparse 작업 트리에서 고른 AI를 돌린다. claude-obsidian 명령은 래퍼가 WSL에서 실행한다.

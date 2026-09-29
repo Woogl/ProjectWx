@@ -167,7 +167,8 @@ function openTerminal(root,title,argv,start=spawn){
 function openSession({root,command,provider,taskPath,title,open=openTerminal}){
   if(!command?.file)throw Error(`${labels[provider]||provider} CLI 설치·로그인이 필요합니다.`);
   const prompt=`Continue the Wx task recorded in ${taskPath}. Follow AGENTS.md and .agents/workflow/process/index.md.`;
-  return open(root,'Wx AI · '+title,[command.file,...(command.args||[]),...(provider==='gemini'?['-i',prompt]:[prompt])]);
+  // 데스크톱 앱에 딸린 Codex는 공유 백그라운드 서버로는 대화형 창을 열지 못하고 바로 끝난다.
+  return open(root,'Wx AI · '+title,[command.file,...(command.args||[]),...(provider==='gemini'?['-i',prompt]:provider==='codex'?['--no-daemon',prompt]:[prompt])]);
 }
 const alive=pid=>{try{process.kill(pid,0);return true;}catch(error){return error.code==='EPERM';}};
 function waitResult(job,wait){
@@ -344,10 +345,10 @@ function createFeedbackService({root,run,open=()=>{throw Error('터미널 연결
     }
     const digest=sha(JSON.stringify(body)),previous=record.requests.find(r=>r.operationId===body.operationId);
     if(previous){if(previous.digest!==digest)throw Error('같은 접수의 내용이 바뀌었습니다.');return view(record);}
-    if(running)throw Error('AI가 이 작업을 처리하는 중입니다. 끝난 뒤 최신 상태를 불러와 전달하세요.');
+    if(running)throw Error('AI가 이 작업을 처리하는 중입니다. 끝난 뒤 브라우저를 새로고침해 전달하세요.');
     const current=context(relative);
-    if(current.taskHash!==body.taskHash)throw Error('작업 기록이 바뀌었습니다. 최신 상태를 불러와 확인 후 전달하세요.');
-    if(current.tableError)throw Error(current.tableError+' 작업 기록의 표를 고친 뒤 다시 불러오세요.');
+    if(current.taskHash!==body.taskHash)throw Error('작업 기록이 바뀌었습니다. 브라우저를 새로고침해 확인한 뒤 전달하세요.');
+    if(current.tableError)throw Error(current.tableError+' 작업 기록의 표를 고친 뒤 브라우저를 새로고침하세요.');
     if(['request','submit','retry'].includes(body.action)&&complete(current.text))throw completeError();
     // 결과만 기록하는 전달(실패 없는 테스트 결과)은 AI를 부르지 않으므로 다른 작업의 AI가 돌아도 받는다.
     if(body.action!=='submit'&&isBusy())throw busyError();

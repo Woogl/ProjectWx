@@ -123,16 +123,17 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   assert.deepEqual(byId('task-records').children[0].children.map(c => c.tagName + ':' + c.textContent), ['H2:확인할 일과 작업 기록', 'BUTTON:새 작업', 'BUTTON:Wiki 갱신'], 'the dashboard heading starts new tasks and the Wiki update');
   assert.ok(html.includes('id="test-feedback-panel"'), 'generated page includes the task panel');
   // 확인 대기·진행 중은 이어서 작업 버튼과 AI 처리 상태만 두고, 완료는 기록 열기만 둔다. 서버 없이 페이지에 없는 기록은 다시 실행하라고 알린다.
-  const rowActions = (filter, title) => {
+  const rowActions = (filter, title, status = 'failed') => {
     vm.runInContext(String.raw`{
      data.documents.push({path:'.agents/workflow/tasks/zz-waiting.md',text:'# 대기 작업\n\n상태: 확인 대기 · 질문 1개\n다음 행동: 질문에 답한다.\n',modified:'9999'},{path:'.agents/workflow/tasks/zz-running.md',text:'# 처리 작업\n\n상태: 진행 중 · AI 구현 중\n다음 행동: 기다린다.\n',modified:'9999'},{path:'.agents/workflow/tasks/zz-done.md',text:'# 끝난 작업\n\n상태: 완료 · 체크리스트 1/1 통과\n다음 행동: 참고한다.\n',modified:'9999'});
-     for(const name of ['zz-waiting','zz-done'])taskJobs['.agents/workflow/tasks/'+name+'.md']={latest:{status:'questions'}};
+     for(const name of ['zz-waiting','zz-done'])taskJobs['.agents/workflow/tasks/'+name+'.md']={latest:{status:'${status}'}};
      try{recordFilters()[${filter}].onclick();}finally{data.documents.splice(-3,3);taskJobs=Object.create(null);}
     }`, Object.assign(context, { recordFilters }));
     const row = byId('task-records').children.at(-1).children.find(n => n.className === 'record-item' && n.children[0].children[0].textContent === title);
     return row.children.find(c => c.className === 'record-actions').children.map(c => c.tagName + ':' + c.textContent);
   };
-  assert.deepEqual(rowActions(0, '대기 작업'), ['BUTTON:이어서 작업', 'SPAN:질문 답변 필요'], 'waiting records are handled in the task panel with their AI status');
+  assert.deepEqual(rowActions(0, '대기 작업'), ['BUTTON:이어서 작업', 'SPAN:AI 처리 실패'], 'waiting records are handled in the task panel with a failed or running web process');
+  assert.deepEqual(rowActions(0, '대기 작업', 'questions'), ['BUTTON:이어서 작업'], 'a finished web result is not shown as the task state');
   assert.equal(byId('task-records').children.at(-1).children.find(n => n.className === 'record-item' && n.children[0].children[0].textContent === '대기 작업').children.at(-1).children[0].attributes['aria-label'], '이어서 작업: 대기 작업', 'row buttons are named after their task');
   assert.deepEqual(rowActions(1, '처리 작업'), ['BUTTON:이어서 작업'], 'running records are followed in the task panel');
   assert.deepEqual(rowActions(2, '끝난 작업'), ['A:기록 열기 →'], 'completed records show no AI status');

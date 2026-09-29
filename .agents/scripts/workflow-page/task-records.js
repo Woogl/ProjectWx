@@ -28,10 +28,10 @@ var WxTaskRecords = (() => {
     const end = lines.findIndex((line, i) => i > at && line.startsWith('## '));
     return lines.slice(at + 1, end < 0 ? lines.length : end).join('\n').trim();
   }
-  // 절 제목 바로 아래의 5열 표를 읽는다. 머리글이나 행이 어긋나면 이름을 붙여 알린다.
+  // 절 제목 바로 아래의 5열 표를 읽는다. 표 줄이 하나도 없는 절("추가 질문 없음." 등)은 표가 없는 것이고, 표가 있는데 머리글이나 행이 어긋나면 이름을 붙여 알린다.
   function readTable(content, heading, header, name, valid) {
     const lines = content.split(/\r?\n/), at = lines.indexOf(heading);
-    if (at < 0) return null;
+    if (at < 0 || !/^\s*\|/m.test(readSection(content, heading))) return null;
     let table = at + 1; while (table < lines.length && !lines[table].trim()) table++;
     if (lines[table]?.trim() !== header || !/^\| ---/.test(lines[table + 1] || '')) throw Error(`${name} 표의 머리글이 올바르지 않습니다.`);
     const rows = []; let end = table + 2;
@@ -59,11 +59,12 @@ var WxTaskRecords = (() => {
     const approval = at < 0 ? '' : lines.splice(at, 1)[0].replace(/^구현 승인: /, '').trim();
     return { text: lines.join('\n').trim(), approval };
   }
-  // 목록 한 줄에 필요한 값만 만든다. 상태 줄이 없는 기록(모듈 리뷰 등)은 state가 빈 문자열이고, 표가 깨진 기록은 상태 줄의 설명을 보인다.
+  // 목록 한 줄에 필요한 값만 만든다. 상태 줄이 없는 기록(모듈 리뷰 등)은 state가 빈 문자열이다. 표가 깨진 기록은 웹이 어떤 전달도 받지 않으므로 요약에 표 오류를 보인다.
   function readTaskRecord(path, content, modified = '') {
-    const head = readHead(content); let rows = null;
-    try { rows = readChecklist(content)?.rows || null; } catch {}
-    const summary = rows ? `체크리스트 ${rows.filter(row => row.result === '통과').length}/${rows.length} 통과` : head.detail;
+    const head = readHead(content); let rows = null, tableError = '';
+    try { readQuestions(content); } catch (error) { tableError = error.message; }
+    try { rows = readChecklist(content)?.rows || null; } catch (error) { tableError ||= error.message; }
+    const summary = tableError ? '표 오류 · ' + tableError : rows ? `체크리스트 ${rows.filter(row => row.result === '통과').length}/${rows.length} 통과` : head.detail;
     return { path, title: head.title || path.split('/').pop(), state: head.state, summary, next: head.next, modified };
   }
   return { owners, results, checklistHeading, checklistHeader, requestHeading, questionHeading, questionHeader, planHeading, sectionOrder, stateLine, nextLine, validRow, headRange, readHead, readSection, readChecklist, readQuestions, readPlan, readTaskRecord };

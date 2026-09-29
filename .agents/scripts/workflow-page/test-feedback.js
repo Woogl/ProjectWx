@@ -87,7 +87,7 @@ function openWork(target){
   const last=storageGet(taskKey('last'));
   if(typeof last==='string'&&taskTitle(last,null))return openTaskPanel({title:taskTitle(last),path:last});
   const {panel,heading}=openTaskShell('작업');
-  panel.append(el('p','열린 작업이 없습니다. 대시보드에서 새 작업을 누르거나 목록의 이어서 작업을 고르세요.','notice'),workflowButton('대시보드로',()=>{location.hash='';}));
+  panel.append(el('p','열린 작업이 없습니다. 왼쪽 메뉴의 대시보드에서 새 작업을 누르거나 목록의 이어서 작업을 고르세요.','notice'));
   showTaskShell(heading);
 }
 // 기록 목록에서 제목을 찾는다. 목록에 없는 기록이면 fallback을 돌려준다.
@@ -102,8 +102,7 @@ function openNewTask(){
     taskField('요청',Object.assign(taskInput('textarea','요청',draft.request,20000,value=>remember({request:value})),{rows:8,placeholder:'무엇을 왜 바꾸고 싶은지, 알고 있는 제약이나 참고할 기록을 적어주세요.'})),
     actorField());
   const submit=workflowButton('AI에게 전달',()=>sendNewTask());submit.id='new-task-submit';
-  panel.append(el('p','요청을 적어 전달하면 왼쪽 메뉴 아래에서 고른 AI가 코드와 Wiki를 읽기 전용으로 조사한 뒤 질문이나 구현 계획을 돌려줍니다. 진행 과정은 새 터미널 창에 보입니다.','notice'),fields,message,submit,
-    workflowButton('대시보드로',()=>{location.hash='';}));
+  panel.append(el('p','요청을 적어 전달하면 왼쪽 메뉴 아래에서 고른 AI가 코드와 Wiki를 읽기 전용으로 조사한 뒤 질문이나 구현 계획을 돌려줍니다. 진행 과정은 새 터미널 창에 보입니다.','notice'),fields,message,submit);
   renderSendState();showTaskShell(heading);
 }
 function renderSendState(){
@@ -150,7 +149,7 @@ async function openTaskPanel(item){
   const send=workflowButton('추가 요청 전달',()=>sendTaskAction('request'));send.id='task-request-send';
   extra.append(el('summary','AI에게 추가 요청'),hint,taskField('요청',note),send);
   const terminal=workflowButton('터미널에서 이어하기',()=>openTaskTerminal());terminal.id='task-terminal';
-  panel.append(next,status,origin,plan,fields,message,submit,terminal,workflowButton('최신 상태 불러오기',()=>refreshTaskContext()),workflowButton('대시보드로',()=>{location.hash='';}),extra);
+  panel.append(next,status,origin,plan,fields,message,submit,terminal,extra);
   renderTaskPanel();showTaskShell(heading);await refreshTaskContext();
 }
 // 지금 사람이 할 일: 질문 답변 → 구현 승인 → 사람 항목 테스트. AI가 처리 중이면 기다린다.
@@ -177,15 +176,15 @@ function renderTaskPanel(){
 function renderTaskPhase(){
   const box=$('task-phase'),phase=taskPhase(),submit=$('test-feedback-submit');box.replaceChildren();
   submit.hidden=!['questions','approval','checklist'].includes(phase);submit.textContent=({questions:'답변 전달',approval:'구현 승인',checklist:'테스트 결과 전달'})[phase]||'';
-  // 완료된 작업은 추가 요청도 터미널 이어하기도 받지 않는다(새 문제는 새 작업). 구현 승인 전의 추가 요청은 읽기 전용 조사다.
-  $('task-request').hidden=phase==='complete';$('task-terminal').hidden=phase==='complete';
+  // 완료된 작업은 추가 요청도 터미널 이어하기도 받지 않는다(새 문제는 새 작업). 표가 깨진 기록은 서버가 추가 요청도 받지 않으므로 터미널에서 고친다. 구현 승인 전의 추가 요청은 읽기 전용 조사다.
+  $('task-request').hidden=['complete','error'].includes(phase);$('task-terminal').hidden=phase==='complete';
   $('task-request-hint').textContent=taskContext?.plan.approval||(!taskContext?.plan.text&&taskContext?.checklist.length)
     ?'승인된 범위 안의 수정은 AI가 바로 고치고, 범위를 바꾸는 요청은 질문이나 새 계획으로 돌려줍니다. 권한 확인 없이 모든 명령을 허용해 처리합니다.'
     :'구현 승인 전이라 AI가 읽기 전용으로 조사해 질문이나 구현 계획으로 답합니다.';
   if(phase==='running')return box.append(el('p','AI가 처리하는 동안에는 입력할 수 없습니다. 진행 과정은 터미널 창에서 볼 수 있고, 끝나면 이 화면이 갱신됩니다.','notice'));
   if(phase==='loading')return box.append(el('p','작업 기록을 불러오는 중입니다.','notice'));
-  if(phase==='unreadable')return box.append(el('p','작업 기록을 불러오지 못했습니다. '+taskLoadError+' 최신 상태 불러오기로 다시 시도하세요.','notice'));
-  if(phase==='error')return box.append(el('p',taskContext.tableError+' 작업 기록의 표를 고친 뒤 최신 상태를 불러오세요.','notice'));
+  if(phase==='unreadable')return box.append(el('p','작업 기록을 불러오지 못했습니다. '+taskLoadError+' 브라우저를 새로고침해 다시 시도하세요.','notice'));
+  if(phase==='error')return box.append(el('p','작업 기록의 표 형식이 깨져 이 작업은 전달을 받지 않습니다. '+taskContext.tableError+' 터미널에서 이어하기로 AI에게 표를 고치게 한 뒤 브라우저를 새로고침하세요.','notice'));
   if(phase==='questions')return renderQuestions(box);
   if(phase==='approval')return renderPlan(box);
   if(phase==='checklist')return renderChecklist(box);
@@ -248,10 +247,11 @@ function renderChecklist(box){
   box.append(el('h3','AI가 확인한 항목 · '+ai.length));
   for(const {row} of ai){const item=el('div',undefined,'check-item marked ai');item.append(checkMark(row.result),el('strong',row.item),el('span',row.result+(row.evidence?' · '+row.evidence:''),'check-state'));box.append(item);}
 }
+// 웹 처리 상태는 처리 중·실패·중단·충돌일 때만 제목으로 보인다. 끝난 처리의 결과는 뒤에 대화·터미널에서 기록이 바뀌면 지난 값이 되므로 최근 전달로만 남긴다.
 function renderTaskStatus(){
   if(!taskSelected)return;
-  const panel=$('test-feedback-result'),latest=taskJobs[taskSelected.path]?.latest;panel.replaceChildren();
-  panel.append(el('h3',latest?taskStatusText(latest.status):'아직 AI에게 맡긴 일 없음'));
+  const panel=$('test-feedback-result'),latest=taskJobs[taskSelected.path]?.latest;panel.replaceChildren();panel.hidden=!latest;
+  if(['running','failed','interrupted','conflict'].includes(latest?.status))panel.append(el('h3',taskStatusText(latest.status)));
   if(latest?.status==='running'){
     const minutes=Math.max(0,Math.floor((Date.now()-Date.parse(latest.startedAt||latest.at))/60000));
     panel.append(el('p',`${providerLabel(latest.provider)} 처리 중 · ${minutes}분 경과 · 터미널 창에서 진행 과정을 볼 수 있습니다.`,'notice'));
@@ -300,7 +300,7 @@ async function sendTaskAction(action){
   taskSending=true;renderTaskStatus();
   try{
     if(action==='retry')await refreshTaskContext(false);
-    if(!taskContext)throw Error('최신 상태를 먼저 불러오세요.');
+    if(!taskContext)throw Error('브라우저를 새로고침해 최신 상태를 먼저 불러오세요.');
     const request={action,provider:selectedProvider(),taskPath:item.path,operationId:requestId(),taskHash:taskContext.taskHash};
     if(action==='submit'){
       const checks=[];
@@ -343,7 +343,7 @@ async function openTaskTerminal(){
   try{
     if(!availableProviders().some(p=>p.id===provider))throw Error(providerMissing);
     await workflowRequest('/test-feedback',{action:'terminal',taskPath:taskSelected.path,provider});
-    showTaskMessage(providerLabel(provider)+' 터미널 창을 열었습니다. 창에서 AI와 대화하며 이어가고, 끝나면 최신 상태 불러오기를 누르세요.');
+    showTaskMessage(providerLabel(provider)+' 터미널 창을 열었습니다. 창에서 AI와 대화하며 이어가고, 끝나면 브라우저를 새로고침하세요.');
   }catch(error){showTaskMessage(error.message);}
   finally{terminalOpening=false;renderTaskStatus();}
 }
