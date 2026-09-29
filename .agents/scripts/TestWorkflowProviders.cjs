@@ -60,6 +60,7 @@ const sample = { summary:'처리', evidence:['exit 0'], changes:[], questions:[]
     for (const provider of ['codex', 'claude', 'gemini']) {
       let received;
       const execute = (file, args, options, done) => {
+        if (provider === 'codex' && args.includes('mcp')) return done(null, '[]');
         assert.equal(file, process.execPath);
         assert.equal(options.cwd, dir);
         assert.equal(options.shell, undefined);
@@ -101,7 +102,7 @@ const sample = { summary:'처리', evidence:['exit 0'], changes:[], questions:[]
     } finally { if (previousSettings === undefined) delete process.env.GEMINI_CLI_SYSTEM_SETTINGS_PATH; else process.env.GEMINI_CLI_SYSTEM_SETTINGS_PATH = previousSettings; }
     // 터미널 창 실행: Codex는 출력을 그대로 보여주고, Claude Code는 진행 이벤트를 한 줄씩 보여준 뒤 결과 이벤트를 쓴다.
     const fakeChild = (onEnd, stdout = null) => { const handlers = {}; const child = { pid:4321, stdout, stdin:{ on() {}, end(prompt) { onEnd(prompt, child); } }, on(name, fn) { handlers[name] = fn; }, kill() {}, close(code) { handlers.close(code); } }; return child; };
-    const visibleCodex = await runProvider({provider:'codex',command:{file:'codex'},prompt:'x',repo:dir,output,schema,visible:true,launch:(file,args,options)=>{
+    const visibleCodex = await runProvider({provider:'codex',command:{file:'codex'},prompt:'x',repo:dir,output,schema,visible:true,execute:(_file,_args,_options,done)=>done(null,'[]'),launch:(file,args,options)=>{
       assert.deepEqual(options.stdio, ['pipe', 'inherit', 'inherit']);assert.equal(options.windowsHide, false);assert.equal(flag(args, '--sandbox'), 'danger-full-access');
       return fakeChild((_prompt, child) => { fs.writeFileSync(output, JSON.stringify(sample)); queueMicrotask(() => child.close(0)); });
     }});
@@ -122,7 +123,7 @@ const sample = { summary:'처리', evidence:['exit 0'], changes:[], questions:[]
       const stdout = new EventEmitter();stdout.setEncoding = () => {};
       return fakeChild((_prompt, child) => { stdout.emit('data', lines.split('\n')[1] + '\n'); queueMicrotask(() => child.close(0)); }, stdout);
     }}), /구조화된 응답이 없습니다/, 'a stream without a result event is a failure');
-    await assert.rejects(runProvider({provider:'codex',command:{file:'codex'},prompt:'x',repo:dir,output,schema,visible:true,launch:()=>fakeChild((_prompt, child) => queueMicrotask(() => child.close(1)))}), /Codex 처리에 실패/);
+    await assert.rejects(runProvider({provider:'codex',command:{file:'codex'},prompt:'x',repo:dir,output,schema,visible:true,execute:(_file,_args,_options,done)=>done(null,'[]'),launch:()=>fakeChild((_prompt, child) => queueMicrotask(() => child.close(1)))}), /Codex 처리에 실패/);
     console.log('PASS provider routing, plan/work permission modes, Codex plan MCP isolation, time limits with process-tree stop, stdin isolation, response parsing, Gemini tool narrowing, visible Codex and streamed Claude progress, errors and cleanup');
   } finally {
     assert.equal(path.dirname(dir), path.resolve(os.tmpdir()));

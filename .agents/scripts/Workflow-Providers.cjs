@@ -1,17 +1,18 @@
 // Copyright Woogle. All Rights Reserved.
 const fs = require('node:fs');
 const path = require('node:path');
+const net = require('node:net');
 const { execFile, spawn } = require('node:child_process');
 const labels = { codex: 'Codex', claude: 'Claude Code', gemini: 'Gemini CLI' };
 const writeTools = ['replace', 'write_file', 'run_shell_command'];
 
 // plan은 조사만 하는 읽기 전용이다. work는 사용자 결정(2026-09-25)에 따라 권한 확인 없이 모든 명령을 실행한다.
-// stream이면 Claude Code가 진행 이벤트를 한 줄씩 내보낸다. mcpOff는 Codex plan에서 끌 설정 MCP 서버의 -c 인자다.
+// stream이면 Claude Code가 진행 이벤트를 한 줄씩 내보낸다. mcpOff는 이번 Codex 실행에서 끌 설정 MCP 서버의 -c 인자다.
 function invocation(provider, schema, output, mode = 'work', stream = false, mcpOff = []) {
   if (!['plan', 'work'].includes(mode)) throw new Error('지원하지 않는 AI 실행 모드입니다.');
   const work = mode === 'work';
   // Codex의 MCP 서버는 샌드박스 밖에서 돌므로 plan에서는 플러그인·앱과 설정의 MCP 서버를 끈다.
-  if (provider === 'codex') return ['exec', '--sandbox', work ? 'danger-full-access' : 'read-only', ...(work ? [] : ['--disable', 'plugins', '--disable', 'apps', ...mcpOff]), '--ephemeral', '--output-schema', schema, '--output-last-message', output, '-'];
+  if (provider === 'codex') return ['exec', '--sandbox', work ? 'danger-full-access' : 'read-only', ...(work ? [] : ['--disable', 'plugins', '--disable', 'apps']), ...mcpOff, '--ephemeral', '--output-schema', schema, '--output-last-message', output, '-'];
   if (provider === 'claude') return ['--print', '--output-format', stream ? 'stream-json' : 'json', ...(stream ? ['--verbose'] : []), '--json-schema', JSON.stringify(JSON.parse(fs.readFileSync(schema, 'utf8'))), ...(work ? ['--permission-mode', 'bypassPermissions'] : ['--tools', 'Read,Glob,Grep', '--allowedTools', 'Read,Glob,Grep', '--permission-mode', 'dontAsk']), '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}', '--no-session-persistence', '--disable-slash-commands', '--settings', '{"disableAllHooks":true}'];
   if (provider === 'gemini') return ['--prompt', '표준 입력의 작업 요청을 수행하고 JSON 객체만 반환하세요.', '--output-format', 'json', '--approval-mode', work ? 'yolo' : 'default', '--extensions', 'none', '--allowed-mcp-server-names', 'wx-wiki-no-mcp'];
   throw new Error('지원하지 않는 AI 서비스입니다.');
@@ -25,6 +26,27 @@ function codexMcpOff(command, repo, execute) {
         if (error) throw error;
         resolve(JSON.parse(stdout).filter(server => server.enabled !== false).flatMap(server => ['-c', `mcp_servers.${server.name}.enabled=false`]));
       } catch { reject(new Error('Codex의 MCP 서버 목록을 읽지 못해 읽기 전용 조사를 시작하지 않았습니다. Codex CLI를 업데이트하세요.')); }
+    });
+  });
+}
+
+// 에디터가 종료된 경우만 이번 실행에서 제외한다. 시간 초과·다른 오류는 서버 중단으로 단정하지 않는다.
+function unrealMcpOff(command, repo, execute) {
+  return new Promise(resolve => {
+    execute(command.file, [...(command.args || []), '--disable', 'plugins', 'mcp', 'list', '--json'], { cwd: repo, windowsHide: true, timeout: 60 * 1000 }, (error, stdout) => {
+      let server, url;
+      try {
+        if (error) throw error;
+        server = JSON.parse(stdout).find(item => item.name === 'unreal-mcp' && item.enabled !== false);
+        if (!server || server.required || server.transport?.type !== 'streamable_http') return resolve([]);
+        url = new URL(server.transport.url);
+        if (url.protocol !== 'http:' || !['127.0.0.1', '[::1]'].includes(url.hostname)) return resolve([]);
+      } catch { return resolve([]); } // 목록을 읽지 못하면 기존 Codex 연결·진단을 유지한다.
+      const socket = net.createConnection({ host: url.hostname.replace(/^\[|\]$/g, ''), port: Number(url.port || 80) });
+      const finish = refused => { socket.destroy(); resolve(refused ? ['-c', 'mcp_servers.unreal-mcp.enabled=false'] : []); };
+      socket.setTimeout(1500, () => finish(false));
+      socket.once('connect', () => finish(false));
+      socket.once('error', error => finish(error.code === 'ECONNREFUSED'));
     });
   });
 }
@@ -83,8 +105,12 @@ function runProvider({ provider, command, prompt, repo, output, schema, mode = '
     if (provider === 'claude' && JSON.parse(stdout).permission_denials?.length && Array.isArray(result.evidence)) result.evidence.push('Claude Code에서 도구 실행 권한이 거부되었습니다. 거부된 검증·정리 범위를 확인하세요.');
     return result;
   };
-  const isolation = provider === 'codex' && mode === 'plan' ? codexMcpOff(command, repo, execute) : Promise.resolve([]);
+  const isolation = provider !== 'codex' ? Promise.resolve([]) : mode === 'plan' ? codexMcpOff(command, repo, execute) : unrealMcpOff(command, repo, execute);
   return isolation.then(mcpOff => new Promise((resolve, reject) => {
+    const mcpNotice = provider === 'codex' && mode === 'work' && mcpOff.length
+      ? 'Unreal MCP 로컬 서버가 연결을 거부해 이번 실행에서만 unreal-mcp를 제외했습니다. 에디터 MCP 검증이 필요하면 서버를 시작한 뒤 다시 실행하세요. 수행하지 못한 검증은 통과로 기록하지 마세요.' : '';
+    if (mcpNotice) { print(mcpNotice); prompt += '\n\n실행 환경 안내: ' + mcpNotice; }
+    const withEvidence = result => { if (mcpNotice && Array.isArray(result.evidence)) result.evidence.push(mcpNotice); return result; };
     const args = [...(command.args || []), ...invocation(provider, schema, output, mode, stream, mcpOff)];
     let child, timedOut = false;
     const timer = setTimeout(() => { timedOut = true; stop(child); }, limit);
@@ -102,7 +128,7 @@ function runProvider({ provider, command, prompt, repo, output, schema, mode = '
         try {
           if (pending.trim()) read(pending);
           if (code !== 0 || timedOut) throw failure(timedOut);
-          resolve(stream ? finish(last || '{}') : parseResponse(provider, '', output));
+          resolve(withEvidence(stream ? finish(last || '{}') : parseResponse(provider, '', output)));
         }
         catch (error) { reject(error); }
         finally { cleanup(); }
@@ -112,7 +138,7 @@ function runProvider({ provider, command, prompt, repo, output, schema, mode = '
         clearTimeout(timer);
         try {
           if (error || timedOut) throw failure(timedOut);
-          resolve(finish(stdout));
+          resolve(withEvidence(finish(stdout)));
         } catch (error) { reject(error); }
         finally { cleanup(); }
       });
