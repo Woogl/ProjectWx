@@ -2,7 +2,7 @@
 type: concept
 title: "적 AI와 몬스터"
 created: 2026-09-26
-updated: 2026-09-28
+updated: 2026-09-29
 status: developing
 tags:
   - concept
@@ -26,6 +26,7 @@ sources:
   - "[[작업 - 이동속도의-어트리뷰트화]]"
   - "[[작업 - exclusive-tag-blocking]]"
   - "[[작업 - wxgame-review-fixes]]"
+  - "[[작업 - Doppelganger-캐릭터-개선]]"
 ---
 
 # 적 AI와 몬스터
@@ -56,6 +57,7 @@ sources:
 - 적 규격서는 모든 적이 전투·반응형·히트 리액션 어빌리티를 공통으로 갖고, 반응형 어빌리티(기상·사망·그로기)는 BT 밖 조건으로 발생하도록 요구한다. ([[기획서 - 적 규격서]])
 - 적 규격서는 적 콤보를 하나의 AM으로 관리하고, 일반공격은 위협 신호 없이 최대 4타, 연속공격은 붉은빛, 가드 불가 공격은 노란빛 신호를 쓰도록 요구한다. ([[기획서 - 적 규격서]])
 - 적 규격서는 보스급은 필살기·페이즈 전환기를 포함한 모든 패턴, 엘리트급은 가드 불가 공격까지, 일반급은 연속공격까지 사용하도록 등급을 정한다. ([[기획서 - 적 규격서]])
+- woogle은 2026-09-29 도플갱어가 중력 영향을 받지 않고 NoCollision이며 Master 우측 50cm를 미러링하고, Action 어빌리티 완료마다 그 위치로 재조정하도록 요청했다. ([[작업 - Doppelganger-캐릭터-개선]])
 
 ## 확정 결정
 
@@ -65,6 +67,7 @@ sources:
 - Elite_monster 기획서는 엘리트 01의 무기를 양손 망치로, 외형을 외골격 파워드 슈트로, 가드 불가 패턴 수를 1개로 확정으로 표시한다. ([[기획서 - Elite_monster]])
 - 사용자는 돌진 modifier가 AI 브레인을 건드리지 않고 그로기·사망 모두 AWxAIController에서 처리하도록 정했다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
 - 사용자 지시로 도플갱어 면제 효과 이름은 IgnoreAbilityActivationTags이며 소유자 발동 조건만 면제하고 어빌리티·GE 차단은 지킨다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
+- woogle은 2026-09-29 도플갱어 캡슐·메시를 모두 NoCollision으로 하고, Master가 공중이면 낙하(중력 0) 그 밖에는 비행으로 두며 높이는 Master Z로 맞추는 안을 골랐다. 사람 확인에서 "어빌리티가 끝날 때마다가 아닌, 몽타주가 끝날 때마다 위치 재조정하게 수정해주세요."로 재조정 신호를 바꿨다. ([[작업 - Doppelganger-캐릭터-개선]])
 
 ## 구현 관찰
 
@@ -76,12 +79,15 @@ sources:
 - 노트 시점 도플갱어 미러링 BT 태스크는 RetryDuration 기본 0.4초로 최신 실패 요청 하나만 재시도하며 다중 요청의 완전 동기화를 보장하지 않는다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
 - 2026-09-27 MOV 전환 뒤 도플갱어 추적은 WxBTService_MirrorMovement가 Master MaxWalkSpeed × 1.25 절대 속도를 SetByCaller.Magnitude로 실어 WxEffect_MoveSpeedOverride로 MOV를 덮어쓰고(자기 CDO 속도로 나누던 배율 계산은 삭제), 정찰·배회 감속은 WxEffect_MoveSpeedScale이 MOV에 배율을 곱한다. ([[작업 - 이동속도의-어트리뷰트화]])
 - 2026-09-25 WxGame 리뷰 수정으로 WxAI 행동 컴포넌트는 컨트롤러 이벤트를 AddUniqueDynamic으로, 피격 이벤트는 유효한 구독 핸들이 없을 때만 등록한다. 2026-09-27 헤드리스 확인에서 적이 든 서브레벨을 숨기면 AI 컨트롤러가 떨어지고 능력 스펙이 비며, 다시 보이면 새 컨트롤러가 빙의해 능력이 다시 부여됐다. ([[작업 - wxgame-review-fixes]])
+- 2026-09-29 이후 WxBTService_MirrorMovement는 Master 우측 50cm(LocalOffset 0,50,0)를 따라가고, 매 틱 Master IsFalling에 맞춰 MOVE_Falling·MOVE_Flying을 고르며 Z를 직접 맞추고 MaxFlySpeed를 추종 속도로 맞춘다. 재조정은 AnimInstance OnMontageEnded의 모든 몽타주 종료에서 일어나 콤보 중에도 단계마다(다음 단계 시작 약 0.2초 뒤) 돌아온다. 점프·앉기 흉내와 IgnoreActorWhenMoving은 지워졌다. ([[작업 - Doppelganger-캐릭터-개선]])
+- 2026-09-29 이후 BP_Doppelganger는 GravityScale 0, 기본 이동 모드 Flying, BrakingDecelerationFlying 2000(계획 밖, 비행 제동이 없어 목표 주위를 오가던 문제 수정)이고 캡슐·메시가 NoCollision이다. ([[작업 - Doppelganger-캐릭터-개선]])
 
 ## 검증 범위
 
 - AI 브레인 제어 단일화는 WxEditor Development 빌드를 통과했고 사용자가 2026-09-24 인게임에서 동작과 교차 돌진을 확인했다. ([[결정 노트 - 2026-09-24-ai-brain-control-single-owner]])
 - 2026-09-27 리슨 서버·클라이언트 PIE에서 적(Sandbag·BP_Template·Soldier) MaxWalkSpeed 400과 배회 감속 중 200을 AI가 확인했고, 적 추격·정찰·배회와 도플갱어 추적 속도가 전과 같은지는 woogle이 통과로 확인했다. ([[작업 - 이동속도의-어트리뷰트화]])
 - 2026-09-28 헤드리스 게임 테스트에서 HGTest 궁극기 1로 소환한 분신이 주인의 약공격 L→LLLL을 같은 몽타주로 따라 썼고(선입력 3단은 한 번 거절 뒤 0.007초 만에 재시도), 컷신 GE·Ability 전체 차단 중에는 재시도가 0.401초에 만료되어 따라 쓰지 않았으며 차단을 푼 뒤 지난 입력을 늦게 쓰지 않았다. ([[작업 - exclusive-tag-blocking]])
+- 도플갱어 개선은 헤드리스 PIE·게임 모드 임시 테스트(점프 공중 표본 Z 오차 0, 우측 목표 14.11cm, 몽타주 종료 재조정 9.12cm·0.00cm)와 빌드로 AI가 확인했고 woogle이 2026-09-29 코드 리뷰와 게임 플레이를 통과시켰다. ([[작업 - Doppelganger-캐릭터-개선]])
 
 ## 미결정·충돌
 
@@ -116,3 +122,4 @@ sources:
 - [[작업 - 이동속도의-어트리뷰트화]] — 이동 속도 배율 SPD를 cm/s 절대 속도 MOV 어트리뷰트로 바꾸고 속성 테이블에 MOV 열을 더한 2026-09-27 완료 작업 기록
 - [[작업 - exclusive-tag-blocking]] — Exclusive 어빌리티 차단을 순정 태그 차단으로 옮긴 작업의 완료 기록으로, 2026-09-28 헤드리스·리슨 서버 테스트와 스킬 슬롯 아이콘 후보 선택 수정, 체크리스트 15/15 통과
 - [[작업 - wxgame-review-fixes]] — WxGame 코드 리뷰 지적 세 개(ASC 재등록, 사망·이벤트 구독, 새 게임 검증 순서)를 단순한 방식으로 고치고 레벨 재표시 헤드리스 테스트에서 무기 겹침 구독 중복까지 고친 완료 작업 기록
+- [[작업 - Doppelganger-캐릭터-개선]] — 도플갱어를 중력 없는 NoCollision 분신으로 바꾸고 Master 우측 50cm 추종과 몽타주 종료마다 위치 재조정을 넣은 2026-09-29 완료 작업 기록

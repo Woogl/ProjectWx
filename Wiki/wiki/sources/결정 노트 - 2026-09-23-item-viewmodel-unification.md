@@ -2,7 +2,7 @@
 type: source
 title: "결정 노트 - 2026-09-23-item-viewmodel-unification"
 created: 2026-09-26
-updated: 2026-09-26
+updated: 2026-09-29
 status: developing
 tags:
   - "source"
@@ -17,7 +17,7 @@ sha256: e40c8a9d21db2023e89b8f5f920d52e5fa062932cad545c583e286d8d2115910
 authority: primary
 independence_key: ".wiki/raw/notes/2026-09-23-item-viewmodel-unification.md"
 review_state: active
-refresh_due: 2026-10-26
+refresh_due: 2027-09-26
 original_paths:
   - ".wiki/raw/notes/2026-09-23-item-viewmodel-unification.md"
 raw_copy: ".raw/captured/e40c8a9d21db2023e89b8f5f920d52e5fa062932cad545c583e286d8d2115910.md"
@@ -36,7 +36,11 @@ key_claims:
 # 결정 노트 - 2026-09-23-item-viewmodel-unification
 
 - 원본: `.wiki/raw/notes/2026-09-23-item-viewmodel-unification.md`
-- 원자료 사본: `.raw/captured/e40c8a9d21db2023e89b8f5f920d52e5fa062932cad545c583e286d8d2115910.md` (수집 2026-09-26, 재확인 기한 2026-10-26)
+- 원자료 사본: `.raw/captured/e40c8a9d21db2023e89b8f5f920d52e5fa062932cad545c583e286d8d2115910.md` (수집 2026-09-26, 재확인 기한 2027-09-26)
+
+## 후속 반영 · 2026-09-29 UTC
+
+2026-09-30 [[작업 - viewmodel-mvvm-redesign]]에서 `UWxViewModel_Inventory`가 WxUI로 옮겨지고 로컬 PC가 엔진 Global Collection에 `VM_Inventory`로 등록해 값을 넣게 됐으며, 인벤토리 리졸버는 삭제됐다. 아래 주장 c2는 2026-09-23 당시 이력이다.
 
 ## 개요
 

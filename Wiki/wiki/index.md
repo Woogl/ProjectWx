@@ -68,6 +68,8 @@ WX의 게임 규칙·구현·결정을 모은 claude-obsidian vault입니다. Wi
 
 ## 원자료: 작업 기록
 
+- [[작업 - BP-HGTest-개선]] — BP_HGTest 궁극기 코스트 UP 100 통일, 미니언·분신 소환 중 UP 회복, 분신 소환 중 전기 루프 GameplayCue를 넣은 2026-09-29 완료 작업 기록
+- [[작업 - Doppelganger-캐릭터-개선]] — 도플갱어를 중력 없는 NoCollision 분신으로 바꾸고 Master 우측 50cm 추종과 몽타주 종료마다 위치 재조정을 넣은 2026-09-29 완료 작업 기록
 - [[작업 - ability-directional-section]] — 방향 섹션 선택을 공통 PlayMontage로 옮기고 콤보는 몽타주 배열로 복원한 결정과 단독·네트워크·사람 연출 검증 기록
 - [[작업 - ability-resolver-to-wxui]] — Ability Resolver의 WxUI 이관을 과거 이력으로 닫고 IWxUIData 제거 후 WxGame 복귀와 표시 확인을 연결한 완료 기록
 - [[작업 - ability-table-driven]] — 어빌리티를 DataTable 행으로 구동하려던 전환 작업 기록으로, 여러 단계 구현 끝에 GA_ 에셋 방식으로 복귀해 테이블화 없이 체크리스트 7/7 통과로 마무리됐다.
@@ -94,6 +96,8 @@ WX의 게임 규칙·구현·결정을 모은 claude-obsidian vault입니다. Wi
 - [[작업 - remove-get-ability-block-tags]] — GetAbilityBlockTags와 ActivationGroup을 지우고 액션을 Ability.Action 태그 위치와 생성자의 순정 차단·취소 필드로 표현하며 콤보 진행·재생 속도·회피 방향을 정리한 2026-09-28~29 완료 작업 기록
 - [[작업 - spawner-library-removal]] — UWxSpawnerLibrary를 AWxSpawner::RespawnAll로 대체한 작업 기록으로, 2026-09-27 헤드리스 에셋 로드·부활 재생성 확인 뒤 완료
 - [[작업 - ui-data-interface-removal]] — 공용 IWxUIData 인터페이스를 없애고 WxCombat 데이터·규칙, WxUI VM, WxGame 리졸버 연결로 역할을 나눈 완료 작업 기록
+- [[작업 - viewmodel-mvvm-redesign]] — UI 설계 원칙을 채택하고 플레이어 공유 VM을 PC가 Global Collection에 등록하며 Inventory VM을 WxUI로 옮긴 2026-09-30 완료 작업 기록
+- [[작업 - viewmodel-quality-cleanup]] — VM Setter/Getter·바인딩 없는 필드·베이스 VM 클래스를 지우고 공유 VM 조회를 직접 쓰기로 바꾼 2026-09-29 완료 작업 기록
 - [[작업 - wiki-claude-obsidian-migration]] — 옛 LLM Wiki를 claude-obsidian vault로 바꾸고 Routine 정기 갱신과 대시보드 즉시 갱신(WSL 래퍼)을 만든 작업 기록으로, 체크리스트 22/22 통과로 완료됐다.
 - [[작업 - wiki-regeneration]] — 옛 .wiki LLM Wiki를 현재 코드·설정·기획 기준으로 전면 재생성하고 대체된 legacy 문서를 정리한 2026-09-22 완료 작업 기록
 - [[작업 - workflow-codex-mcp-connection]] — Workflow Codex 구현 실행에서 연결이 거부된 로컬 unreal-mcp 서버만 그 실행에서 빼도록 고친 2026-09-30 완료 작업 기록

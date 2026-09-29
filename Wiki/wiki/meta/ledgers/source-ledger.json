@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T21:44:45Z",
+  "generated_at": "2026-09-29T21:49:24Z",
   "schema": "claude-obsidian.source-ledger.v1",
   "sources": {
     "src-002bb852bfddda1dbe57": {
@@ -2813,6 +2813,82 @@
       "review_status": "active",
       "supersedes": null,
       "title": ".agents/workflow/tasks/wxcombat-review-quick-fixes.md"
+    },
+    "src-052f476092678a6a0d42": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "4f960430d61dfbd06c2424e498e0b9ec8ed7b45be6ea6a86c730d098aea45ec4",
+      "independence_key": ".agents/workflow/tasks/BP-HGTest-개선.md",
+      "ingested_at": "2026-09-29",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/4f960430d61dfbd06c2424e498e0b9ec8ed7b45be6ea6a86c730d098aea45ec4.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - BP-HGTest-개선.md"
+      ],
+      "refresh_due": "2027-03-28",
+      "retrieved_at": "2026-09-29",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/BP-HGTest-개선.md"
+    },
+    "src-eec4ffdf0ec6173c5379": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "63e8005080aa1c44267b201876eddda0789f98bffd8ae33e6a12fac3e21f7634",
+      "independence_key": ".agents/workflow/tasks/Doppelganger-캐릭터-개선.md",
+      "ingested_at": "2026-09-29",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/63e8005080aa1c44267b201876eddda0789f98bffd8ae33e6a12fac3e21f7634.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - Doppelganger-캐릭터-개선.md"
+      ],
+      "refresh_due": "2027-03-28",
+      "retrieved_at": "2026-09-29",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/Doppelganger-캐릭터-개선.md"
+    },
+    "src-f597b4c874bdc54d6da1": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "c51b0688a5ba707ec1dfbee28c57e41c0a97359abc875b6b7354f38945ceac6a",
+      "independence_key": ".agents/workflow/tasks/viewmodel-quality-cleanup.md",
+      "ingested_at": "2026-09-29",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/c51b0688a5ba707ec1dfbee28c57e41c0a97359abc875b6b7354f38945ceac6a.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - viewmodel-quality-cleanup.md"
+      ],
+      "refresh_due": "2027-03-28",
+      "retrieved_at": "2026-09-29",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/viewmodel-quality-cleanup.md"
+    },
+    "src-f614d7f1449876a92d86": {
+      "authority": "primary",
+      "content_kind": "document",
+      "content_sha256": "a73f18be2decf23caf539dcffc0d834b142f03cb27c3ef381aac9901a7336a88",
+      "independence_key": ".agents/workflow/tasks/viewmodel-mvvm-redesign.md",
+      "ingested_at": "2026-09-29",
+      "origin": {
+        "kind": "file",
+        "locator": ".raw/captured/a73f18be2decf23caf539dcffc0d834b142f03cb27c3ef381aac9901a7336a88.md"
+      },
+      "pages": [
+        "wiki/sources/작업 - viewmodel-mvvm-redesign.md"
+      ],
+      "refresh_due": "2027-03-28",
+      "retrieved_at": "2026-09-29",
+      "review_status": "active",
+      "supersedes": null,
+      "title": ".agents/workflow/tasks/viewmodel-mvvm-redesign.md"
     }
   }
 }

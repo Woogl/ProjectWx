@@ -396,6 +396,15 @@
       "source_id": "src-c34545fea3552723390e",
       "title": "Docs/CombatDesign/normal_monster_BT.md"
     },
+    ".raw/captured/4f960430d61dfbd06c2424e498e0b9ec8ed7b45be6ea6a86c730d098aea45ec4.md": {
+      "ingested": "2026-09-29",
+      "pages": [
+        "wiki/sources/작업 - BP-HGTest-개선.md"
+      ],
+      "sha256": "4f960430d61dfbd06c2424e498e0b9ec8ed7b45be6ea6a86c730d098aea45ec4",
+      "source_id": "src-052f476092678a6a0d42",
+      "title": ".agents/workflow/tasks/BP-HGTest-개선.md"
+    },
     ".raw/captured/50bd0f194a597fcd7c5ca14af99665739bcdeb50cd0e8ef5dfa872a9ade7fdee.md": {
       "ingested": "2026-09-29",
       "pages": [
@@ -543,6 +552,15 @@
       "sha256": "63a9bcb713a22d060efe50277c576b84b6c3b7c629bb4a21ad71280c4b48bfb1",
       "source_id": "src-3bd37c07acf8bbad4701",
       "title": ".wiki/raw/notes/2026-09-25-exclusive-submission-cleanup.md"
+    },
+    ".raw/captured/63e8005080aa1c44267b201876eddda0789f98bffd8ae33e6a12fac3e21f7634.md": {
+      "ingested": "2026-09-29",
+      "pages": [
+        "wiki/sources/작업 - Doppelganger-캐릭터-개선.md"
+      ],
+      "sha256": "63e8005080aa1c44267b201876eddda0789f98bffd8ae33e6a12fac3e21f7634",
+      "source_id": "src-eec4ffdf0ec6173c5379",
+      "title": ".agents/workflow/tasks/Doppelganger-캐릭터-개선.md"
     },
     ".raw/captured/64ebec0b27a873d0d5ff9a9c2619337bf3fbfff65056679ec411cc018df8b7e5.md": {
       "ingested": "2026-09-27",
@@ -885,6 +903,15 @@
       "source_id": "src-e5fb7ec6d60d68028ff6",
       "title": ".agents/workflow/tasks/workflow-remove-redundant-buttons.md"
     },
+    ".raw/captured/a73f18be2decf23caf539dcffc0d834b142f03cb27c3ef381aac9901a7336a88.md": {
+      "ingested": "2026-09-29",
+      "pages": [
+        "wiki/sources/작업 - viewmodel-mvvm-redesign.md"
+      ],
+      "sha256": "a73f18be2decf23caf539dcffc0d834b142f03cb27c3ef381aac9901a7336a88",
+      "source_id": "src-f614d7f1449876a92d86",
+      "title": ".agents/workflow/tasks/viewmodel-mvvm-redesign.md"
+    },
     ".raw/captured/a8e987aff16a7d77c8fd03f2217f4cad69155d03ddb6a7114127f0fecdffec18.md": {
       "ingested": "2026-09-26",
       "pages": [
@@ -1011,6 +1038,15 @@
       "sha256": "c2a0caa9fce4784c6ca575f588760e258d99ff69c8e237776d00c6f2c9ce89e9",
       "source_id": "src-c50b38fd4c3e9da6a2b4",
       "title": ".wiki/raw/notes/2026-09-23-zero-damage-hitstop.md"
+    },
+    ".raw/captured/c51b0688a5ba707ec1dfbee28c57e41c0a97359abc875b6b7354f38945ceac6a.md": {
+      "ingested": "2026-09-29",
+      "pages": [
+        "wiki/sources/작업 - viewmodel-quality-cleanup.md"
+      ],
+      "sha256": "c51b0688a5ba707ec1dfbee28c57e41c0a97359abc875b6b7354f38945ceac6a",
+      "source_id": "src-f597b4c874bdc54d6da1",
+      "title": ".agents/workflow/tasks/viewmodel-quality-cleanup.md"
     },
     ".raw/captured/c5d4d393d3f2facb9de1a3e5c4a7d48b40298d89fcdf6b82d89f93486332ff4e.md": {
       "ingested": "2026-09-26",

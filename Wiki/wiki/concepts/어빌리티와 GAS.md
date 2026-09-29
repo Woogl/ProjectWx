@@ -34,6 +34,7 @@ sources:
   - "[[작업 - remove-get-ability-block-tags]]"
   - "[[작업 - damage-pipeline-structure-review]]"
   - "[[작업 - wxcombat-review-quick-fixes]]"
+  - "[[작업 - BP-HGTest-개선]]"
 ---
 
 # 어빌리티와 GAS
@@ -53,6 +54,7 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - WX_AM_기능정리 문서는 WX_Snap_To_Target이 구간 동안 타겟 프리셋 규칙으로 고른 대상을 바라보게 해 공격 방향을 보정한다고 적는다. ([[기획서 - WX_AM_기능정리]])
 - 경직 수정본 기획서는 GA 종류를 일반 공격(Ability.Attack), 패턴(Ability.Pattern), 스킬(Ability.Skill), 가드, 회피, 궁극기로 나누고 히트 리액션 판정 기준으로 쓴다. ([[기획서 - 경직 수정본]])
 - 그로기 피니시 기획서는 그로기 피니시 GA의 에셋 태그를 Ability.GroggyFinish로, 차단 태그를 Ability로, 활성화 차단 태그를 State.Dead로 지정한다. ([[기획서 - 그로기_피니시_시스템_기획서]])
+- woogle은 2026-09-29 BP_HGTest의 궁극기 1·2 코스트를 UP 100으로 통일하고, BP_Minion 소환 중 Heavy.2·Skill.2 발동마다 UP 33.4, BP_Doppelganger 소환 중 적 피해마다 UP 10을 회복하며, 분신 소환 중 Niagara GameplayCue 연출을 유지하도록 요청했다. ([[작업 - BP-HGTest-개선]])
 
 ## 확정 결정
 
@@ -77,6 +79,7 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 사용자는 2026-09-25에 Exclusive 어빌리티 발동 차단을 엔진 순정 태그 차단(BlockAbilitiesWithTag)으로 바꾸고 콤보 구간의 자기 재발동을 허용하기로 승인했다. ([[결정 노트 - 2026-09-25-exclusive-tag-blocking]])
 - 어빌리티 테이블 전환은 철회되었고 데이터 전용 GA_를 유지하며, 행 컬럼·세트의 테이블 목록·동적 행 태그 설계는 과거 이력으로만 남는다. ([[결정 노트 - 2026-09-26-ability-ga-play-acceptance]])
 - 쿨다운은 공용 GE·동적 쿨다운 태그·충전당 GE 하나·적용 전 SetByCaller 대기열 계산 구조를 유지한다. ([[결정 노트 - 2026-09-26-cooldown-play-acceptance]])
+- woogle은 2026-09-29 분신 중 피해 UP 10을 공격 발동 1회당 한 번, 플레이어 본인 피해만으로 유지하고(Q1·Q2), HGTest의 MP 획득 GE를 없애 MaxMP 0으로 하며(Q3), 분신 소환 중 연출은 사람 확인에서 전기 루프(NS_Player_Electricity_Looping)로 바꾸게 했다. ([[작업 - BP-HGTest-개선]])
 
 ## 구현 관찰
 
@@ -108,6 +111,7 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 컷신 효과 UWxEffect_SkillCutscene은 2026-09-29(KST)부터 Ability.Action·Sprint·LockOn을 막아 컷신 중 점프도 새로 막힌다. ([[작업 - remove-get-ability-block-tags]])
 - 같은 작업에서 콤보 진행(ActivateAbility·EndAbility·HandleMontageCompleted)이 UWxAbility_Combo로 올라가고(창 닫힘 초기화는 공격·스킬만), 재생 속도 기본값 1.0에 ASPD는 콤보 어빌리티만 따른다(궁극기·아이템 사용은 더 이상 따르지 않음). 회피 방향은 베이스 PlayMontage의 가상 훅 SelectInputDirectionSection으로 처리한다. ([[작업 - remove-get-ability-block-tags]])
 - 2026-09-30 수정으로 `UWxAbilityBase::PlayMontageInternal`은 태스크 활성화 뒤 `IsActive()`를 반환한다. 엔진이 몽타주 재생을 동기로 거부하면 같은 호출 안에서 어빌리티가 끝나므로 호출자는 `false`를 받아 띄우기·회전·후속 태스크를 건너뛴다. 취소 처리에서 끝내지 않는 `UWxAbility_Death`는 여전히 `true`이고 `UWxAbility_Groggy`는 자체 재정의라 영향이 없다. ([[작업 - wxcombat-review-quick-fixes]])
+- 2026-09-29 이후 분신 소환 중 VFX는 ABS_HGTest가 부여한 Infinite GE_HGTest_Doppelganger(Ongoing 요건 Master.Doppelganger)가 GameplayCue.Doppelganger를 켜고, 순정 GameplayCueNotify_Looping BP GC_Doppelganger가 Niagara를 캐릭터 메시에 붙이는 구조다. 태그는 WxCore 네이티브 태그다. ([[작업 - BP-HGTest-개선]])
 
 ## 검증 범위
 
@@ -129,6 +133,7 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - 사람은 2026-09-25 공용 쿨다운 GE에 대해 회피 쿨다운·UI 진행률, 소환물 쿨다운 무시, 리슨 서버·클라이언트 PIE 복제, `UWxEffect_Cooldown`·`ApplyCooldown`·`CheckCooldown` 코드 리뷰를 통과시켰다. ([[결정 노트 - 2026-09-26-cooldown-play-acceptance]])
 - 공용 쿨다운 GE 확인은 전용 서버·지연·패킷 손실 조건과 모든 어빌리티 조합으로 확대하지 않는다. ([[결정 노트 - 2026-09-26-cooldown-play-acceptance]])
 - 몽타주 동기 재생 실패 반환 수정은 LV_DevCombat 헤드리스 임시 테스트(정상 재생 띄우기 Z 640, AnimInstance를 비운 실패 시 어빌리티 종료·띄우기 없음, 수정 전 대조 실패)와 woogle 2026-09-29 코드 리뷰로 확인됐다. ([[작업 - wxcombat-review-quick-fixes]])
+- BP_HGTest 개선은 헤드리스 임시 자동화(궁극기 UP 100 거절·차감, 미니언 중 33.4 클램프, 분신 중 발동당 UP 10, Niagara 부착은 -RenderOffscreen)와 빌드로 AI가 확인했고 woogle이 2026-09-29 VFX 연출과 코드 리뷰를 통과시켰다. ([[작업 - BP-HGTest-개선]])
 
 ## 미결정·충돌
 
@@ -165,3 +170,4 @@ GA·GE·쿨다운·차단 태그 등 GAS 어빌리티 구조에 관한 원자료
 - [[작업 - cooldown-unification]] — 쿨다운 그룹별 UWxEffect_Cooldown 파생 클래스를 공용 GE 하나로 통합하고 CooldownTags로 구분하게 바꾼 작업 기록으로, 사람 확인 4/4 통과로 완료됐다.
 - [[작업 - ui-data-interface-removal]] — 공용 IWxUIData 인터페이스를 없애고 WxCombat 데이터·규칙, WxUI VM, WxGame 리졸버 연결로 역할을 나눈 완료 작업 기록
 - [[작업 - wxcombat-review-quick-fixes]] — WxCombat 리뷰 지적 중 몽타주 동기 재생 실패 반환과 권위 없는 머신의 피해 판정 쿼리를 고친 2026-09-30 완료 작업 기록
+- [[작업 - BP-HGTest-개선]] — BP_HGTest 궁극기 코스트 UP 100 통일, 미니언·분신 소환 중 UP 회복, 분신 소환 중 전기 루프 GameplayCue를 넣은 2026-09-29 완료 작업 기록

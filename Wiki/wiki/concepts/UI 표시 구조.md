@@ -2,7 +2,7 @@
 type: concept
 title: "UI 표시 구조"
 created: 2026-09-26
-updated: 2026-09-28
+updated: 2026-09-29
 status: developing
 tags:
   - concept
@@ -34,6 +34,8 @@ sources:
   - "[[작업 - ui-data-interface-removal]]"
   - "[[작업 - item-viewmodel-unification]]"
   - "[[작업 - exclusive-tag-blocking]]"
+  - "[[작업 - viewmodel-quality-cleanup]]"
+  - "[[작업 - viewmodel-mvvm-redesign]]"
 ---
 
 # UI 표시 구조
@@ -45,6 +47,7 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - Nameplate_System 기획서는 일반/네임드 몬스터 네임플레이트에 HP·DP 게이지를 좌측 기준 잔량 방식으로 표시하고, 이름은 표시하지 않으며, 디버프는 하단에 쿨타임 형식으로 표시하도록 요구한다. ([[기획서 - Nameplate_System]])
 - Nameplate_System 기획서는 네임플레이트를 숨김 상태로 시작해 인식 또는 카메라 락온 시 표시하고, 추적 종료 시 페이드 없이 즉시 숨기도록 요구한다. ([[기획서 - Nameplate_System]])
 - Nameplate_System 기획서는 한번 표시된 네임플레이트를 벽에 가려져도 가림 처리 없이 계속 보여 주고, 동시 표시 상한 없이 겹치면 카메라에 가까운 적을 위에 그리도록 요구한다. ([[기획서 - Nameplate_System]])
+- woogle은 2026-09-29 "ViewModel 관련 코드를 읽고 코드 품질을 개선할 수 있는 부분을 조사해주세요."라고 요청했다. ([[작업 - viewmodel-quality-cleanup]])
 
 ## 확정 결정
 
@@ -67,6 +70,9 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - Nameplate 태그 조건은 NameplateManager 한 곳에만 두고, 락온 대상에는 표시 거리 제한을 두지 않으며 표시 거리 경계에 히스테리시스를 둔다. ([[결정 노트 - 2026-09-24-nameplate-manager]])
 - 사용자 합의로 IWxUIData를 제거하고 WxGame 리졸버가 구체 도메인 타입의 어빌리티·GE 데이터를 WxUI VM에 전달하며, GAS 공통 구독·갱신은 WxUI에 남긴다. ([[결정 노트 - 2026-09-25-ui-data-interface-removal]])
 - Nameplate는 교전 전 숨김, 적 인식 시 표시, 추적 종료 시 즉시 숨김이며 교전하지 않은 적도 락온하면 Nameplate와 Reticle을 표시한다. ([[결정 노트 - 2026-09-26-nameplate-play-acceptance]])
+- woogle은 2026-09-30 UI 설계 원칙을 채택했다("네 이것을 우리 프로젝트의 UI 설계 원칙으로 합시다."): 모델→뷰모델→뷰 층, 모든 뷰모델·위젯은 WxUI에 두고 도메인 타입을 쓰지 않음, 조립 층(PC·리졸버·네임플레이트 관리자)의 역할 분담, 부모의 UPROPERTY 소유와 소스를 열쇠로 찾는 저장소 금지, Global Collection에 둔 것만 조회. 원칙 전문은 원자료 사본에 있다. ([[작업 - viewmodel-mvvm-redesign]])
+- 2026-09-30 결정으로 플레이어 공유 뷰모델(Character·Inventory)은 로컬 PC가 만들어 엔진 Global Collection에 각자 등록하고(루트 VM 없음, "B로 하죠."), WBP는 이름 문자열 대신 플레이어 리졸버로 받으며, 인벤토리 탭 키는 게임플레이 태그이고, 화면 분할은 대비하지 않는다. ([[작업 - viewmodel-mvvm-redesign]])
+- woogle은 2026-09-29 베이스 VM 클래스를 없애고 바인딩이 없는 VM 필드는 지금 지우고 필요해지면 다시 만들기로 했다("6번은 지금은 안쓰는게 맞고, 나중에 필요해지면 그 때 구현하죠"). ([[작업 - viewmodel-quality-cleanup]])
 
 ## 구현 관찰
 
@@ -82,7 +88,7 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 2026-09-23 WxViewModelResolver_BossCharacter는 상태를 들지 않는 공유 const 객체로, CreateInstance에서 VM을 만들어 WeakLambda로 구독하고 DestroyInstance에서 RemoveAll(ViewModel)로 그 VM 구독만 끊는다. ([[결정 노트 - 2026-09-23-boss-battle-three-layer]])
 - 2026-09-23 정적 확인 기준 WxGame의 WxViewModelResolver_Dialogue가 대화 세션 OnLineChanged를 WxUI Dialogue VM의 SetLine에 연결하고, 세션이 없으면 빈 VM을 만든다. ([[결정 노트 - 2026-09-23-dialogue-presentation-vm]])
 - 상호작용 목록 VM은 WxGame에 있고 스캐너를 직접 구독해 신호마다 행 VM 전체를 다시 만들며, WxUI 행 VM은 Prompt·bSelected만 가진 불변 VM이다. ([[결정 노트 - 2026-09-23-interaction-list-vm]])
-- 2026-09-23 정적 조사 기준 UWxViewModel_Inventory는 PC당 공유 합성 VM으로 인벤토리 등장·제거를 관찰해 내부 연결만 바꾸며 두 리졸버가 공유본을 쓴다. ([[결정 노트 - 2026-09-23-item-viewmodel-unification]])
+- 2026-09-23 정적 조사 기준 UWxViewModel_Inventory는 PC당 공유 합성 VM으로 인벤토리 등장·제거를 관찰해 내부 연결만 바꾸며 두 리졸버가 공유본을 쓴다. ([[결정 노트 - 2026-09-23-item-viewmodel-unification]]) 2026-09-30 재설계로 이 VM은 WxUI로 옮겨지고 로컬 PC가 Global Collection에 등록해 값을 넣으며 인벤토리 리졸버는 삭제됐다. ([[작업 - viewmodel-mvvm-redesign]])
 - UE 5.8 MVVM 변환 함수는 위젯 블루프린트의 Pure·const 함수나 BlueprintFunctionLibrary 정적 Pure 함수만 허용되고 암시적 변환기는 enum을 제외한다. ([[결정 노트 - 2026-09-23-item-viewmodel-unification]])
 - 2026-09-23 정적 조사 기준 UWxPlayerLayoutComponent는 폰 교체 시 새 폰의 Ability.Death·State.Dialogue 태그 관찰로 갈아타고, 대화 창만 닫고 사망 화면은 부활 완료 때 스스로 비활성화되게 둔다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
 - UWxUIManagerSubsystem은 레이아웃·팝업·일시정지만 맡고 TrackedPlayerController는 일시정지에만 쓴다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
@@ -94,9 +100,12 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 2026-09-25 GE 표시 데이터는 DT_Effect 행 대신 UWxEffectComponent_UIData의 Title·Description·Icon 프로퍼티에 있고 버프 목록은 아이콘을 채운 GE만 그린다. ([[결정 노트 - 2026-09-25-ability-data-on-ga]])
 - 쿨다운 통합 시점의 UWxViewModel_Ability는 활성 GE의 Spec.DynamicGrantedTags로 자기 쿨다운을 세고 표시 주기로 GE 지속시간 대신 어빌리티의 CooldownTime을 쓴다. ([[결정 노트 - 2026-09-25-cooldown-single-ge]])
 - UI 데이터 인터페이스 제거 후 어빌리티 리졸버는 슬롯 변경 시 SetPresentation으로 제목·설명·아이콘·최대 충전 수·충전 한 칸 시간을 넘긴 뒤 GAS 비용·쿨다운·발동 가능 상태를 갱신한다. ([[결정 노트 - 2026-09-25-ui-data-interface-removal]])
-- UWxViewModelResolver_AbilitySystem은 GE의 UWxEffectComponent_UIData를 직접 읽고 아이콘이 있을 때만 효과 VM 표시 필드를 채운다. ([[결정 노트 - 2026-09-25-ui-data-interface-removal]])
+- UWxViewModelResolver_AbilitySystem은 GE의 UWxEffectComponent_UIData를 직접 읽고 아이콘이 있을 때만 효과 VM 표시 필드를 채운다. ([[결정 노트 - 2026-09-25-ui-data-interface-removal]]) 2026-09-30 재설계로 이 리졸버는 삭제되고 이펙트 표시 연결은 WxGame 공용 함수로 옮겨졌다. ([[작업 - viewmodel-mvvm-redesign]])
 - 2026-09-29(KST) 수정 뒤 스킬 슬롯 VM은 같은 슬롯 후보 중 표시할 어빌리티를 UWxAbilityBase::DoesOwnerSatisfyActivationTags(소유자 태그만 본 발동 조건)로 고르고, 사용 가능 표시는 엔진 CanActivateAbility를 따른다. WxUI는 WxCombat을 모르므로 WxGame 리졸버가 판정 대리자 FWxCanBindAbility를 넘긴다. ([[작업 - exclusive-tag-blocking]])
 - 2026-09-27 헤드리스 확인 기준 HUD의 인벤토리 액션 위젯(InventoryWidgetClass)은 비어 있어 인벤토리는 메인 메뉴 Inventory 버튼으로 열고, 인벤토리를 닫으면 메인 메뉴로 돌아오며 메인 메뉴까지 닫아야 일시정지가 풀린다. 부활하면 HUD가 새로 만들어지고 퀵슬롯 사용 VM은 새 폰 ASC에 묶인다. ([[작업 - item-viewmodel-unification]])
+- 2026-09-29 정리 뒤 WxUI VM 14개는 엔진 UMVVMViewModelBase를 직접 상속하고(베이스 UWxViewModel 삭제), 파괴 때의 가상 Deinitialize는 없으며, Ability VM은 CanActivate 필드 없이 CheckCost만 부르고, WxViewModelUtils에는 RequestImageAsync만 남았다. ([[작업 - viewmodel-quality-cleanup]])
+- 2026-09-30 재설계 뒤 AWxPlayerController가 Super::BeginPlay 앞에서(로컬 PC만) VM_PlayerCharacter·VM_Inventory를 Global Collection에 등록하고 EndPlay에서 빼며, 빙의가 바뀌면 같은 Character VM을 새 ASC로 다시 초기화하고 인벤토리 값도 넣는다. Character VM이 자기 AbilitySystem VM을 소유하고, 적 네임플레이트·보스 바는 위젯마다 Character VM을 만든다. MVVM 코드에서 FindObjectWithOuter는 사라졌다. ([[작업 - viewmodel-mvvm-redesign]])
+- 같은 재설계로 UWxViewModelResolver_AbilitySystem·PlayerCharacter·Inventory가 삭제되고 WxUI UWxViewModelResolver_Player와 WxGame WxViewModelResolver_Item이 생겼다. 이펙트 표시 연결(UWxEffectComponent_UIData 읽기)은 WxGame 공용 함수로 옮겨졌다. ([[작업 - viewmodel-mvvm-redesign]])
 
 ## 검증 범위
 
@@ -120,6 +129,8 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - Nameplate는 거리별 크기 변화와 3000cm 밖 숨김, 캡슐 윗면 약 90cm 위 표시가 사람 확인되었으나 락온 대상의 거리 제한 예외는 유지된다. ([[결정 노트 - 2026-09-26-nameplate-play-acceptance]])
 - 사람은 2026-09-25 `IWxUIData` 제거와 WxGame 리졸버 연결 이후 코드 리뷰와 HUD·버프·보스·이름표 표시를 플레이로 통과시켰다. ([[결정 노트 - 2026-09-26-ui-data-display-acceptance]])
 - UI 데이터 인터페이스 제거의 사람 확인은 네트워크 환경과 클라이언트별 락온 독립성이 명시되지 않아 멀티플레이 검증으로 확대하지 않는다. ([[결정 노트 - 2026-09-26-ui-data-display-acceptance]])
+- VM 코드 품질 정리는 빌드, 위젯 BP 88개 헤드리스 컴파일, 헤드리스 게임 임시 자동화(nullrhi 75개·RenderOffscreen 76개)로 AI가 확인했고 woogle이 2026-09-29 코드 리뷰를 통과시켰다. ([[작업 - viewmodel-quality-cleanup]])
+- MVVM 재설계는 리슨 서버 + 원격 클라이언트와 단독 헤드리스 에디터 PIE 임시 테스트(등록·로컬 판정, 탭 유지, GC 틈 생존, 리졸버 값, 부활은 빙의 교체로 재현, 맵 이동 재등록, 네임플레이트·보스 바)로 AI가 확인했고 woogle이 2026-09-29 코드 리뷰와 HUD·인벤토리 표시를 통과시켰다. ([[작업 - viewmodel-mvvm-redesign]])
 
 ## 미결정·충돌
 
@@ -129,6 +140,7 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - 사망·대화 화면 클래스 값이 ini에서 컨트롤러 BP 에셋으로 옮겨져 git diff로 리뷰할 수 없다. ([[결정 노트 - 2026-09-23-player-screen-owner]])
 - UI 데이터 인터페이스 제거 작업에서 원격 클라이언트의 스펙 복제 후 슬롯 재매칭 신호 누락은 별도 미해결 사항으로 남아 있다. ([[결정 노트 - 2026-09-26-ui-data-display-acceptance]])
 - 게임 시작 때 WBP_AcquiredItemList가 첫 뷰 초기화의 null LastAcquiredItem을 검사하지 않아 "Cannot add null item into ListView" 스크립트 경고를 한 번 남기며, 동작 영향이 없어 2026-09-27 고치지 않았다. ([[작업 - item-viewmodel-unification]])
+- 2026-09-30 UI 설계 원칙의 알려진 예외로 자막 뷰모델(StateTree 노드가 직접 호출, GameState 컴포넌트 안이 1순위)과 WxGame의 InteractionList 뷰모델(도메인 타입 사용)이 후속 일감으로 남았다. ([[작업 - viewmodel-mvvm-redesign]])
 
 ## 원자료
 
@@ -158,3 +170,5 @@ VM·리졸버·Nameplate 등 화면 표시 연결 구조에 관한 원자료 요
 - [[작업 - player-screen-classes-to-layout-component]] — 사망·대화 화면 클래스를 UI 개발자 설정에서 플레이어 레이아웃 컴포넌트로 옮기고 태그 관찰 책임도 함께 이동한 완료 작업 기록
 - [[작업 - quest-presentation-vm]] — Quest·QuestObjective VM을 WxUI 순수 표시 데이터로 옮기고, 화면 클래스를 거쳐 WxGame 퀘스트 리졸버 세 층 구조로 정리한 완료 작업 기록
 - [[작업 - ui-data-interface-removal]] — 공용 IWxUIData 인터페이스를 없애고 WxCombat 데이터·규칙, WxUI VM, WxGame 리졸버 연결로 역할을 나눈 완료 작업 기록
+- [[작업 - viewmodel-quality-cleanup]] — VM Setter/Getter·바인딩 없는 필드·베이스 VM 클래스를 지우고 공유 VM 조회를 직접 쓰기로 바꾼 2026-09-29 완료 작업 기록
+- [[작업 - viewmodel-mvvm-redesign]] — UI 설계 원칙을 채택하고 플레이어 공유 VM을 PC가 Global Collection에 등록하며 Inventory VM을 WxUI로 옮긴 2026-09-30 완료 작업 기록

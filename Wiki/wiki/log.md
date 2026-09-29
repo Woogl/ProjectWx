@@ -13,6 +13,10 @@ tags:
 
 Newest completed operations appear first.
 
+## 2026-09-29 · ingest-20260929-task-records-b2
+
+새로 완료된 작업 기록(2/2) 4건(126,214바이트)을 수집했다: [[작업 - BP-HGTest-개선]], [[작업 - Doppelganger-캐릭터-개선]], [[작업 - viewmodel-quality-cleanup]], [[작업 - viewmodel-mvvm-redesign]]. [[UI 표시 구조]]에 베이스 VM 제거·필드 정리와 2026-09-30 UI 설계 원칙·Global Collection 등록·플레이어 리졸버·알려진 예외를, [[모듈 구조와 코드 정리]]·[[아이템과 회복]]에 Inventory VM의 WxUI 이동과 태그 탭 키를, [[어빌리티와 GAS]]·[[캐릭터 스탯과 전투 자원]]에 HGTest UP 코스트·회복과 분신 GameplayCue를, [[적 AI와 몬스터]]에 도플갱어 비행·NoCollision·우측 50cm·몽타주 종료 재조정을 더했다. 대체된 주장 1건(clm-af54e35eb6-c2)을 deprecated로 보존하고 [[결정 노트 - 2026-09-23-item-viewmodel-unification]]에 후속 반영 안내를 붙였으며(그 페이지의 재확인 기한 표기를 원장 값 2027-09-26으로 맞춤), [[UI 표시 구조]]의 2026-09-23·25 리졸버 문장 두 줄에 2026-09-30 변경을 덧붙였다. 새 원자료 재확인 기한은 2027-03-28이다. 새 완료 기록 10건을 모두 수집했다. 게임 빌드·실행 재검증은 하지 않았다.
+
 ## 2026-09-29 · ingest-20260929-task-records-b1
 
 새로 완료된 작업 기록(1/2) 6건(31,299바이트)을 수집했다: [[작업 - workflow-codex-mcp-connection]], [[작업 - workflow-codex-terminal-no-daemon]], [[작업 - workflow-remove-redundant-buttons]], [[작업 - workflow-table-error-recurrence]], [[작업 - 지침-SSOT-점검]], [[작업 - wxcombat-review-quick-fixes]]. [[작업 절차(Workflow)]]에 MCP 연결 거부 서버 제외, Codex `--no-daemon` 이어하기, 중복 버튼 제거, 표 없는 질문 절 허용·표 오류 표시, SSOT 점검과 사람 리뷰를 AI 검증으로 대신한 완료 지시를, [[Wiki 운영]]에 claude-obsidian 버전 단일 정본과 sparse 사본의 작업 절차 정본 포함을, [[어빌리티와 GAS]]·[[피해 파이프라인]]·[[모듈 구조와 코드 정리]]에 WxCombat 리뷰 지적 1·3 수정과 지적 2 보류를 더했다. 새 원자료 재확인 기한은 2027-03-28이다. 기획서 30개 파일과 기존 완료 작업 기록 35건은 원장과 해시가 같았고, 30일 안에 재확인 기한이 오는 활성 원자료는 없었다. 남은 새 완료 기록 4건은 다음 묶음에서 수집한다. 게임 빌드·실행 재검증은 하지 않았다.

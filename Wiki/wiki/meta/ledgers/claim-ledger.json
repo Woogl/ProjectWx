@@ -5481,7 +5481,7 @@
       "text": "사용자는 WxGame UWxViewModel_InventoryItem을 삭제하고 WxUI UWxViewModel_Item으로 단일화하기로 확정했다."
     },
     "clm-af54e35eb6-c2": {
-      "assessment": "accepted",
+      "assessment": "deprecated",
       "confidence": "high",
       "evidence": [
         {
@@ -5494,8 +5494,8 @@
         "anchor": "^c2",
         "path": "wiki/sources/결정 노트 - 2026-09-23-item-viewmodel-unification.md"
       },
-      "notes": null,
-      "reviewed_at": "2026-09-26",
+      "notes": "2026-09-30 viewmodel-mvvm-redesign 작업으로 Inventory VM이 WxUI로 옮겨지고 로컬 PC가 Global Collection에 등록하게 되어 clm-a73f18be2d-c2가 대체했다. 2026-09-23 당시 구조는 역사적 사실로 보존한다.",
+      "reviewed_at": "2026-09-29",
       "risk": "normal",
       "supersedes": null,
       "text": "UWxViewModel_Inventory는 PC당 공유 합성 VM이며 인벤토리·아이템 두 리졸버가 같은 공유본을 쓰고 DestroyInstance에서 정리하지 않는다."
@@ -9524,8 +9524,368 @@
       "risk": "normal",
       "supersedes": null,
       "text": "WxCombat 리뷰 수정은 Editor 빌드와 LV_DevCombat 헤드리스 임시 테스트(수정 전 대조 포함, 비권위는 로컬 역할 전환으로 재현)로 확인했고 woogle이 2026-09-29 코드 리뷰를 통과시켜 체크리스트 4/4로 완료됐다."
+    },
+    "clm-4f960430d6-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/4f960430d61dfbd06c2424e498e0b9ec8ed7b45be6ea6a86c730d098aea45ec4.md",
+          "relation": "supports",
+          "source_id": "src-052f476092678a6a0d42"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - BP-HGTest-개선.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-29 woogle 요청으로 GA_HGTest_Ultimate_1 코스트가 MP 3에서 UP 100으로 바뀌어 궁극기 1·2가 모두 UP 100을 쓰고, GE_HGTest_Attack_Heavy_2·Skill_2는 Master.Minion 상태에서 발동마다 UP 33.4를 준다."
+    },
+    "clm-4f960430d6-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/4f960430d61dfbd06c2424e498e0b9ec8ed7b45be6ea6a86c730d098aea45ec4.md",
+          "relation": "supports",
+          "source_id": "src-052f476092678a6a0d42"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - BP-HGTest-개선.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "woogle은 2026-09-29 분신 소환 중 피해 UP 10을 공격 발동 1회당 한 번, 플레이어 본인의 피해만으로 유지하기로 답했고(Q1·Q2), 기존 GA_HGTest_Passive와 GE_HGTest_AddUP를 그대로 쓴다."
+    },
+    "clm-4f960430d6-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/4f960430d61dfbd06c2424e498e0b9ec8ed7b45be6ea6a86c730d098aea45ec4.md",
+          "relation": "supports",
+          "source_id": "src-052f476092678a6a0d42"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - BP-HGTest-개선.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "같은 작업에서 GE_HGTest_Skill_3이 삭제되고 DT_CharacterAttribute HGTest 행 MaxMP가 0이 되어 HGTest는 MP를 쓰지 않는다."
+    },
+    "clm-4f960430d6-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/4f960430d61dfbd06c2424e498e0b9ec8ed7b45be6ea6a86c730d098aea45ec4.md",
+          "relation": "supports",
+          "source_id": "src-052f476092678a6a0d42"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - BP-HGTest-개선.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "분신 소환 중 VFX는 Master.Doppelganger 지속 요건의 Infinite GE_HGTest_Doppelganger가 GameplayCue.Doppelganger를 켜고, 순정 루프 Cue GC_Doppelganger가 NS_Player_Electricity_Looping을 캐릭터 메시에 붙이는 방식이며 ABS_HGTest가 이 GE를 부여한다."
+    },
+    "clm-4f960430d6-c5": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/4f960430d61dfbd06c2424e498e0b9ec8ed7b45be6ea6a86c730d098aea45ec4.md",
+          "relation": "supports",
+          "source_id": "src-052f476092678a6a0d42"
+        }
+      ],
+      "location": {
+        "anchor": "^c5",
+        "path": "wiki/sources/작업 - BP-HGTest-개선.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "BP_HGTest 개선은 헤드리스 임시 자동화 테스트(Niagara는 -RenderOffscreen)와 빌드로 AI가 확인했고 woogle이 2026-09-29 VFX 연출과 코드 리뷰를 통과시켜 체크리스트 8/8로 완료됐다."
+    },
+    "clm-63e8005080-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/63e8005080aa1c44267b201876eddda0789f98bffd8ae33e6a12fac3e21f7634.md",
+          "relation": "supports",
+          "source_id": "src-eec4ffdf0ec6173c5379"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - Doppelganger-캐릭터-개선.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-29 이후 BP_Doppelganger는 GravityScale 0, 기본 이동 모드 Flying, BrakingDecelerationFlying 2000이고 캡슐·메시 콜리전이 NoCollision이어서 적에게 맞지 않는다."
+    },
+    "clm-63e8005080-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/63e8005080aa1c44267b201876eddda0789f98bffd8ae33e6a12fac3e21f7634.md",
+          "relation": "supports",
+          "source_id": "src-eec4ffdf0ec6173c5379"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - Doppelganger-캐릭터-개선.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-29 이후 WxBTService_MirrorMovement는 Master 우측 50cm(LocalOffset 0,50,0)를 따라가며, Master가 IsFalling이면 MOVE_Falling 아니면 MOVE_Flying으로 두고 Z를 매 틱 직접 맞추며 MaxFlySpeed를 Master MaxWalkSpeed×1.25로 맞춘다."
+    },
+    "clm-63e8005080-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/63e8005080aa1c44267b201876eddda0789f98bffd8ae33e6a12fac3e21f7634.md",
+          "relation": "supports",
+          "source_id": "src-eec4ffdf0ec6173c5379"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - Doppelganger-캐릭터-개선.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "woogle의 2026-09-29 실패 메모에 따라 도플갱어 위치 재조정은 Action 어빌리티 종료가 아니라 AnimInstance OnMontageEnded의 모든 몽타주 종료(끊긴 것 포함)에서 일어나며, 콤보 중에도 단계마다 우측 50cm로 돌아온다."
+    },
+    "clm-63e8005080-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/63e8005080aa1c44267b201876eddda0789f98bffd8ae33e6a12fac3e21f7634.md",
+          "relation": "supports",
+          "source_id": "src-eec4ffdf0ec6173c5379"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - Doppelganger-캐릭터-개선.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "도플갱어 개선은 헤드리스 PIE·게임 모드 임시 테스트와 빌드로 AI가 확인했고 woogle이 2026-09-29 코드 리뷰와 게임 플레이 확인을 통과시켜 체크리스트 8/8로 완료됐다."
+    },
+    "clm-c51b0688a5-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/c51b0688a5ba707ec1dfbee28c57e41c0a97359abc875b6b7354f38945ceac6a.md",
+          "relation": "supports",
+          "source_id": "src-f597b4c874bdc54d6da1"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - viewmodel-quality-cleanup.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "2026-09-29 VM 코드 품질 정리로 베이스 UWxViewModel이 삭제돼 WxUI VM 14개가 UMVVMViewModelBase를 직접 상속하고, BeginDestroy의 가상 Deinitialize가 없어졌으며 WxViewModelUtils에는 RequestImageAsync만 남았다."
+    },
+    "clm-c51b0688a5-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/c51b0688a5ba707ec1dfbee28c57e41c0a97359abc875b6b7354f38945ceac6a.md",
+          "relation": "supports",
+          "source_id": "src-f597b4c874bdc54d6da1"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - viewmodel-quality-cleanup.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "같은 정리에서 Setter/Getter 보일러플레이트, Ability VM의 비용 최대치 구독, 바인딩이 없는 VM 필드(CanActivate·CooldownDuration·IsAttributeEmpty·Portrait·bHasSubtitle·bHasActiveQuest·bClamped 등)가 지워졌고 Ability VM은 CheckCost만 부른다."
+    },
+    "clm-c51b0688a5-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/c51b0688a5ba707ec1dfbee28c57e41c0a97359abc875b6b7354f38945ceac6a.md",
+          "relation": "supports",
+          "source_id": "src-f597b4c874bdc54d6da1"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - viewmodel-quality-cleanup.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "woogle은 2026-09-29 공유 VM 조회 방식 검토 뒤 MVVM 원칙에 맞춘 재설계를 새 일감으로 넘기고 이 일감은 Outer 키와 FindObjectWithOuter 직접 쓰기 구조로 완료하게 했다."
+    },
+    "clm-c51b0688a5-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/c51b0688a5ba707ec1dfbee28c57e41c0a97359abc875b6b7354f38945ceac6a.md",
+          "relation": "supports",
+          "source_id": "src-f597b4c874bdc54d6da1"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - viewmodel-quality-cleanup.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "VM 코드 품질 정리는 빌드, 위젯 BP 88개 헤드리스 컴파일, 헤드리스 게임 임시 자동화로 AI가 확인했고 woogle이 2026-09-29 코드 리뷰를 통과시켜 체크리스트 5/5로 완료됐다."
+    },
+    "clm-a73f18be2d-c1": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/a73f18be2decf23caf539dcffc0d834b142f03cb27c3ef381aac9901a7336a88.md",
+          "relation": "supports",
+          "source_id": "src-f614d7f1449876a92d86"
+        }
+      ],
+      "location": {
+        "anchor": "^c1",
+        "path": "wiki/sources/작업 - viewmodel-mvvm-redesign.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "woogle은 2026-09-30 모델→뷰모델→뷰 층, 모든 뷰모델·위젯의 WxUI 배치와 도메인 타입 금지, 조립 층(PC·리졸버·네임플레이트 관리자) 역할 분담, 소스를 열쇠로 뷰모델을 찾는 저장소 금지를 담은 UI 설계 원칙을 프로젝트 원칙으로 채택했다."
+    },
+    "clm-a73f18be2d-c2": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/a73f18be2decf23caf539dcffc0d834b142f03cb27c3ef381aac9901a7336a88.md",
+          "relation": "supports",
+          "source_id": "src-f614d7f1449876a92d86"
+        }
+      ],
+      "location": {
+        "anchor": "^c2",
+        "path": "wiki/sources/작업 - viewmodel-mvvm-redesign.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": "clm-af54e35eb6-c2",
+      "text": "2026-09-30 재설계 뒤 로컬 AWxPlayerController가 Character·Inventory 뷰모델을 한 번 만들어 엔진 Global Collection에 VM_PlayerCharacter·VM_Inventory로 등록하고 EndPlay에서 빼며, UWxViewModel_Inventory는 WxUI로 옮겨졌고 인벤토리·PlayerCharacter·AbilitySystem 리졸버는 삭제됐다."
+    },
+    "clm-a73f18be2d-c3": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/a73f18be2decf23caf539dcffc0d834b142f03cb27c3ef381aac9901a7336a88.md",
+          "relation": "supports",
+          "source_id": "src-f614d7f1449876a92d86"
+        }
+      ],
+      "location": {
+        "anchor": "^c3",
+        "path": "wiki/sources/작업 - viewmodel-mvvm-redesign.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "같은 재설계에서 WBP는 플레이어 공유 VM을 이름 문자열 대신 WxUI UWxViewModelResolver_Player로 받고, 인벤토리 탭 키는 Item.Category.* 게임플레이 태그이며, MVVM 코드의 FindObjectWithOuter 조회는 모두 사라졌다."
+    },
+    "clm-a73f18be2d-c4": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/a73f18be2decf23caf539dcffc0d834b142f03cb27c3ef381aac9901a7336a88.md",
+          "relation": "supports",
+          "source_id": "src-f614d7f1449876a92d86"
+        }
+      ],
+      "location": {
+        "anchor": "^c4",
+        "path": "wiki/sources/작업 - viewmodel-mvvm-redesign.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "자막 뷰모델(StateTree 노드의 직접 호출)과 WxGame의 InteractionList 뷰모델은 2026-09-30 UI 설계 원칙의 알려진 예외로 후속 일감에 남았다."
+    },
+    "clm-a73f18be2d-c5": {
+      "assessment": "accepted",
+      "confidence": "high",
+      "evidence": [
+        {
+          "locator": ".raw/captured/a73f18be2decf23caf539dcffc0d834b142f03cb27c3ef381aac9901a7336a88.md",
+          "relation": "supports",
+          "source_id": "src-f614d7f1449876a92d86"
+        }
+      ],
+      "location": {
+        "anchor": "^c5",
+        "path": "wiki/sources/작업 - viewmodel-mvvm-redesign.md"
+      },
+      "notes": "완료 작업 기록의 결정·관찰·실행 이력을 수집했으며 이번 갱신에서 게임을 재검증하지 않았다.",
+      "reviewed_at": "2026-09-29",
+      "risk": "normal",
+      "supersedes": null,
+      "text": "MVVM 재설계는 빌드, 위젯 BP 88개 헤드리스 컴파일, 리슨 서버·단독 헤드리스 에디터 PIE 임시 테스트로 AI가 확인했고 woogle이 2026-09-29 코드 리뷰와 HUD·인벤토리 표시를 통과시켜 체크리스트 11/11로 완료됐다."
     }
   },
-  "generated_at": "2026-09-29T21:44:45Z",
+  "generated_at": "2026-09-29T21:49:24Z",
   "schema": "claude-obsidian.claim-ledger.v1"
 }
