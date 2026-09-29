@@ -21,8 +21,9 @@ void UWxAnimNotify_AreaDamage::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 
+	// 피해는 권위 머신에서만 적용되므로 타게팅도 거기서만 돌린다.
 	AActor* Owner = MeshComp ? MeshComp->GetOwner() : nullptr;
-	UTargetingSubsystem* TargetingSubsystem = Owner ? UTargetingSubsystem::Get(Owner->GetWorld()) : nullptr;
+	UTargetingSubsystem* TargetingSubsystem = Owner && Owner->HasAuthority() ? UTargetingSubsystem::Get(Owner->GetWorld()) : nullptr;
 	if (!TargetingPreset || !TargetingSubsystem)
 	{
 		return;
@@ -41,7 +42,7 @@ void UWxAnimNotify_AreaDamage::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 	TargetingSubsystem->GetTargetingResults(RequestHandle, Results);
 	UTargetingSubsystem::ReleaseTargetRequestHandle(RequestHandle);
 
-	// 서버 권위 검사와 아군·시체·무적 처리는 ApplyDamage의 타격 경로에서 맡는다.
+	// 아군·시체·무적 처리는 ApplyDamage의 타격 경로에서 맡는다.
 	for (const FHitResult& Result : Results)
 	{
 		if (AActor* TargetActor = Result.GetActor())

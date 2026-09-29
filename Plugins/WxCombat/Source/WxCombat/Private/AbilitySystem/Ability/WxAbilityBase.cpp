@@ -390,7 +390,8 @@ bool UWxAbilityBase::PlayMontageInternal(UAnimMontage* Montage, FName StartSecti
 	NewMontageTask->OnInterrupted.AddDynamic(this, &UWxAbilityBase::HandleMontageInterrupted);
 	NewMontageTask->OnCancelled.AddDynamic(this, &UWxAbilityBase::HandleMontageCancelled);
 	NewMontageTask->ReadyForActivation();
-	return true;
+	// 재생이 동기로 실패하면 태스크가 같은 호출 안에서 취소를 방송해 어빌리티가 이미 끝나 있다.
+	return IsActive();
 }
 
 FName UWxAbilityBase::SelectInputDirectionSection(const UAnimMontage* Montage, const FString& Prefix, const FVector& LocalDirection)

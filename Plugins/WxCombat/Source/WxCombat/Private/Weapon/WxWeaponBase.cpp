@@ -47,8 +47,10 @@ AWxWeaponBase* AWxWeaponBase::FindWeapon(const AActor* Owner)
 
 void AWxWeaponBase::BeginAttack(const FDataTableRowHandle& InDamageInfo)
 {
+	// 피해는 권위 머신에서만 적용되므로 판정도 거기서만 켠다.
+	// 복제하지 않는 차일드 액터 무기는 클라이언트에서도 자신이 권위라 소유자로 가른다.
 	AActor* OwnerActor = GetOwner();
-	if (!OwnerActor)
+	if (!OwnerActor || !OwnerActor->HasAuthority())
 	{
 		return;
 	}
@@ -221,7 +223,7 @@ void AWxWeaponBase::HandleHitShapeOverlap(UPrimitiveComponent* OverlappedCompone
 
 void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 {
-	// 충돌은 양쪽에서 들어오지만 ApplyDamage는 서버에서만 적용하며, 큐·히트스톱도 서버 판정을 따른다.
+	// 판정은 권위 머신에서만 켜지고(BeginAttack), 큐·히트스톱도 서버 판정을 따른다.
 
 	AActor* WeaponOwner = GetOwner();
 	if (!OtherActor || OtherActor == WeaponOwner || HitActorsThisSwing.Contains(OtherActor))
