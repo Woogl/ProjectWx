@@ -39,25 +39,8 @@ UWxViewModel_Subtitle* UWxViewModel_Subtitle::GetOrCreate(const UObject* WorldCo
 int32 UWxViewModel_Subtitle::ShowSubtitle(const FText& InSpeakerText, const FText& InSubtitleText)
 {
 	CurrentHandle = NextHandle++;
-
-	if (!bHasSubtitle)
-	{
-		bHasSubtitle = true;
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(bHasSubtitle);
-	}
-
-	if (!SpeakerText.IdenticalTo(InSpeakerText))
-	{
-		SpeakerText = InSpeakerText;
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(SpeakerText);
-	}
-
-	if (!SubtitleText.IdenticalTo(InSubtitleText))
-	{
-		SubtitleText = InSubtitleText;
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(SubtitleText);
-	}
-
+	UE_MVVM_SET_PROPERTY_VALUE(SpeakerText, InSpeakerText);
+	UE_MVVM_SET_PROPERTY_VALUE(SubtitleText, InSubtitleText);
 	return CurrentHandle;
 }
 
@@ -69,24 +52,8 @@ void UWxViewModel_Subtitle::HideSubtitle(int32 InSubtitleHandle)
 	}
 
 	CurrentHandle = INDEX_NONE;
-
-	if (bHasSubtitle)
-	{
-		bHasSubtitle = false;
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(bHasSubtitle);
-	}
-
-	if (!SpeakerText.IsEmpty())
-	{
-		SpeakerText = FText::GetEmpty();
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(SpeakerText);
-	}
-
-	if (!SubtitleText.IsEmpty())
-	{
-		SubtitleText = FText::GetEmpty();
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(SubtitleText);
-	}
+	UE_MVVM_SET_PROPERTY_VALUE(SpeakerText, FText::GetEmpty());
+	UE_MVVM_SET_PROPERTY_VALUE(SubtitleText, FText::GetEmpty());
 }
 
 UObject* UWxViewModelResolver_Subtitle::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const

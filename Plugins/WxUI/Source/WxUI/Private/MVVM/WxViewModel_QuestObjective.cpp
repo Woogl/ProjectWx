@@ -4,11 +4,5 @@
 
 void UWxViewModel_QuestObjective::SetObjectiveText(const FText& InObjectiveText)
 {
-	if (ObjectiveText.IdenticalTo(InObjectiveText))
-	{
-		return;
-	}
-
-	ObjectiveText = InObjectiveText;
-	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ObjectiveText);
+	UE_MVVM_SET_PROPERTY_VALUE(ObjectiveText, InObjectiveText);
 }

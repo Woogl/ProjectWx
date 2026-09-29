@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MVVM/WxViewModel.h"
+#include "MVVMViewModelBase.h"
 #include "WxViewModel_Dialogue.generated.h"
 
 /** 대화의 표시 값과 진행 입력 통로. 세션 연결은 값을 공급하는 쪽이 담당한다. */
 UCLASS()
-class WXUI_API UWxViewModel_Dialogue : public UWxViewModel
+class WXUI_API UWxViewModel_Dialogue : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 

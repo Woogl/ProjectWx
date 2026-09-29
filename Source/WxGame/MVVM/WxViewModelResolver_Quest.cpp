@@ -16,7 +16,7 @@ UObject* UWxViewModelResolver_Quest::CreateInstance(const UClass* ExpectedType, 
 	{
 		const FWxOnQuestJournalChanged::FDelegate ApplyJournal = FWxOnQuestJournalChanged::FDelegate::CreateWeakLambda(ViewModel, [ViewModel, Quest]
 		{
-			ViewModel->SetJournal(Quest->HasActiveQuest(), Quest->GetQuestTitle(), Quest->GetObjectiveTexts());
+			ViewModel->SetJournal(Quest->GetQuestTitle(), Quest->GetObjectiveTexts());
 		});
 
 		// 위젯보다 먼저 등록된 저널도 보여 준다.

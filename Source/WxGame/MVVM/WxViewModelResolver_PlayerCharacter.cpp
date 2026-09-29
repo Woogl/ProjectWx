@@ -19,5 +19,5 @@ UObject* UWxViewModelResolver_PlayerCharacter::CreateInstance(const UClass* Expe
 	}
 	return UWxViewModel_Character::GetOrCreate(
 		UWxViewModelResolver_AbilitySystem::GetOrCreate(PlayerCharacter->GetAbilitySystemComponent()),
-		PlayerCharacter->GetTitle(), PlayerCharacter->GetIcon());
+		PlayerCharacter->GetTitle());
 }

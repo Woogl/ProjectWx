@@ -2,17 +2,7 @@
 
 #include "MVVM/WxViewModel_Indicator.h"
 
-void UWxViewModel_Indicator::SetProjection(float InCameraDistance, bool bInClamped)
+void UWxViewModel_Indicator::SetCameraDistance(float InDistanceMeters)
 {
-	if (CameraDistance != InCameraDistance)
-	{
-		CameraDistance = InCameraDistance;
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(CameraDistance);
-	}
-
-	if (bClamped != bInClamped)
-	{
-		bClamped = bInClamped;
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(bClamped);
-	}
+	UE_MVVM_SET_PROPERTY_VALUE(CameraDistance, InDistanceMeters);
 }

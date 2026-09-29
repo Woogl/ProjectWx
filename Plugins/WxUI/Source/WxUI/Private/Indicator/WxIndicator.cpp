@@ -185,7 +185,7 @@ void AWxIndicator::UpdateProjection()
 	if (ViewModel)
 	{
 		// 미세한 거리 변화까지 흘리면 매 프레임 바인딩이 돈다.
-		ViewModel->SetProjection(FMath::RoundToFloat(static_cast<float>(DistanceToCamera) / 100.f), bClamped);
+		ViewModel->SetCameraDistance(FMath::RoundToFloat(static_cast<float>(DistanceToCamera) / 100.f));
 	}
 }
 

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/TimerHandle.h"
 #include "GameplayTagContainer.h"
-#include "MVVM/WxViewModel.h"
+#include "MVVMViewModelBase.h"
 #include "MVVM/WxViewModel_Ability.h"
 #include "MVVM/WxViewModel_Effect.h"
 #include "WxViewModel_AbilitySystem.generated.h"
@@ -17,8 +17,6 @@ struct FGameplayEffectSpec;
 struct FActiveGameplayEffect;
 class UAbilitySystemComponent;
 class UWxViewModel_Attribute;
-class UWxViewModel_Ability;
-class UWxViewModel_Effect;
 
 /**
  * ASC의 어트리뷰트/어빌리티/이펙트를 자식 ViewModel로 노출하는 Composite 뷰모델.
@@ -27,7 +25,7 @@ class UWxViewModel_Effect;
  * 어빌리티 부여가 바뀌면 만들어 둔 슬롯 VM 전부에 재매칭을 지시해, 스킬이 교체돼도 슬롯이 따라간다.
  */
 UCLASS()
-class WXUI_API UWxViewModel_AbilitySystem : public UWxViewModel
+class WXUI_API UWxViewModel_AbilitySystem : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 
@@ -38,9 +36,6 @@ public:
 	 * ASC 를 Outer 로 둬도 생존은 보장되지 않는다 — 이 VM 이나 자식 VM 이 루트에서 강한 참조로 닿는 동안만 유지된다.
 	 */
 	static UWxViewModel_AbilitySystem* GetOrCreate(UAbilitySystemComponent* InASC);
-
-	/** 공유본을 사용하는 모든 화면이 사용을 마친 뒤에만 호출한다. */
-	virtual void Deinitialize() override;
 
 	/**
 	 * 현재값과 최대치 쌍이 같아야 같은 뷰모델이다 — 최대치가 비율과 가득참 여부를 결정한다.

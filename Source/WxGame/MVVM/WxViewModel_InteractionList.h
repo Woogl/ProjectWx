@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MVVM/WxViewModel.h"
+#include "MVVMViewModelBase.h"
 #include "View/MVVMViewModelContextResolver.h"
 
 #include "WxViewModel_InteractionList.generated.h"
@@ -18,7 +18,7 @@ class UMVVMView;
  * 선택의 소유자는 어디까지나 스캐너이며, 본 VM 은 받은 값을 표시한다.
  */
 UCLASS()
-class WXGAME_API UWxViewModel_InteractionList : public UWxViewModel
+class WXGAME_API UWxViewModel_InteractionList : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 
@@ -26,7 +26,7 @@ public:
 	/** nullptr 이면 빈 목록으로 남는다. */
 	void Initialize(UWxInteractionScannerComponent* InScanner);
 
-	virtual void Deinitialize() override;
+	void Deinitialize();
 
 	/** 선택만 바뀌어도 행 전체를 다시 만든다. */
 	UFUNCTION()

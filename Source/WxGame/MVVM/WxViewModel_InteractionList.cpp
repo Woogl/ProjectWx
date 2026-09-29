@@ -27,8 +27,6 @@ void UWxViewModel_InteractionList::Deinitialize()
 		Scanner->OnRowsChanged.RemoveDynamic(this, &ThisClass::HandleRowsChanged);
 	}
 	CachedScanner.Reset();
-
-	Super::Deinitialize();
 }
 
 void UWxViewModel_InteractionList::HandleRowsChanged()

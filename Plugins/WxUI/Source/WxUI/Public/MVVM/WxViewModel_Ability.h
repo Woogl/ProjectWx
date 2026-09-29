@@ -7,17 +7,18 @@
 #include "Engine/TimerHandle.h"
 #include "GameplayTagContainer.h"
 #include "GameplayEffectTypes.h"
-#include "MVVM/WxViewModel.h"
+#include "MVVMViewModelBase.h"
 #include "WxViewModel_Ability.generated.h"
 
+struct FGameplayEventData;
+struct FGameplayEffectSpec;
+struct FStreamableHandle;
 class UAbilitySystemComponent;
 class UGameplayAbility;
 class UWxViewModel_Ability;
 
 DECLARE_DELEGATE_TwoParams(FWxOnBoundAbilityChanged, UWxViewModel_Ability&, const UGameplayAbility*);
 DECLARE_DELEGATE_RetVal_TwoParams(bool, FWxCanBindAbility, const UAbilitySystemComponent&, const UGameplayAbility&);
-struct FGameplayEventData;
-struct FGameplayEffectSpec;
 
 /**
  * 스킬 슬롯 하나의 뷰모델. 정체성은 어빌리티가 아니라 슬롯을 가리키는 어빌리티 태그다.
@@ -28,23 +29,23 @@ struct FGameplayEffectSpec;
  * 쿨다운은 어빌리티의 GetCooldownTags() 로 식별하고, 쿨다운 중에는 월드 타이머로 매 프레임 남은 시간·충전 수를 갱신한다.
  * 소모한 충전 하나가 쿨다운 GE 하나이고 충전은 차례로 돌아오므로, 남은 시간·진행률은 가장 먼저 끝나는 쿨다운(다음 충전) 기준이다.
  *
- * CanActivate·CheckCost 는 ASC 태그·발동 조건 이벤트/비용 어트리뷰트/쿨다운 적용·충전 수 변화 시점에 재평가된다.
+ * CheckCost 는 ASC 태그·발동 조건 이벤트/비용 어트리뷰트 변화 시점에 재평가된다.
  * 태그 변경과 발동 조건 이벤트는 한 프레임 분을 모아 다음 월드 타이머 틱에 한 번 판정한다.
  *
  * 소모량은 어빌리티를 물 때 비용 GE 를 한 번 평가해 정한다.
  */
 UCLASS()
-class WXUI_API UWxViewModel_Ability : public UWxViewModel
+class WXUI_API UWxViewModel_Ability : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 
 public:
 	/**
+	 * 생성 직후 한 번만 부른다.
 	 * @param InAbilityTags 슬롯을 가리키는 어빌리티 에셋 태그. 비어 있으면 아무 어빌리티나 매칭되므로 거부한다.
 	 * @param InCanBindAbility 후보가 소유자의 발동 태그 요건을 만족하는지. 재생 중인 액션의 차단까지 보면 액션 도중 바뀐 요건이 액션이 끝날 때까지 표시되지 않는다.
 	 */
 	void Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged, FWxCanBindAbility InCanBindAbility);
-	virtual void Deinitialize() override;
 
 	/** 슬롯 변경 통지에서 호출한다. 이후 충전·쿨다운 갱신이 이 값을 사용한다. */
 	void SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon, int32 InMaxRecharges, float InCooldownTime);
@@ -57,96 +58,45 @@ public:
 
 	const FGameplayTagContainer& GetAbilityTags() const;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Ability")
 	FText Title;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Ability")
 	FText Description;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Ability")
 	float CooldownRemaining = 0.f;
 
-	/** 충전 1개의 회복 시간. 진행률의 분모다. */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
-	float CooldownDuration = 0.f;
-
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Ability")
 	float CooldownPercent = 0.f;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Ability")
 	bool IsOnCooldown = false;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Ability")
 	int32 CurrentCharges = 0;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Ability")
 	int32 MaxRecharges = 0;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Ability")
 	bool HasMultipleCharges = false;
 
-	/** 비용/쿨다운/태그 요건을 엔진 CanActivateAbility로 종합 판정한다 */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
-	bool CanActivate = false;
-
 	/** 쿨다운/태그와 무관하게 엔진 CheckCost만으로 판정한다 */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Ability")
 	bool CheckCost = false;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Ability")
 	float CostAmount = 0.f;
 
 	/** 텍스처 또는 머터리얼이며, 어빌리티를 물 때마다 그것이 든 소프트 참조를 비동기 로드해 세팅한다. */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Ability")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Ability")
 	TObjectPtr<UObject> Icon = nullptr;
 
-	FText GetTitle() const;
-	void SetTitle(const FText& NewValue);
-
-	FText GetDescription() const;
-	void SetDescription(const FText& NewValue);
-
-	float GetCooldownRemaining() const;
-	void SetCooldownRemaining(float NewValue);
-
-	float GetCooldownDuration() const;
-	void SetCooldownDuration(float NewValue);
-
-	float GetCooldownPercent() const;
-	void SetCooldownPercent(float NewValue);
-
-	bool GetIsOnCooldown() const;
-	void SetIsOnCooldown(bool NewValue);
-
-	int32 GetCurrentCharges() const;
-	void SetCurrentCharges(int32 NewValue);
-
-	int32 GetMaxRecharges() const;
-
+private:
 	/** 충전이 여럿인지가 이 값에서 파생되므로 함께 갱신된다. */
 	void SetMaxRecharges(int32 NewValue);
 
-	bool GetHasMultipleCharges() const;
-	void SetHasMultipleCharges(bool NewValue);
-
-	bool GetCanActivate() const;
-	void SetCanActivate(bool NewValue);
-
-	bool GetCheckCost() const;
-	void SetCheckCost(bool NewValue);
-
-	float GetCostAmount() const;
-	void SetCostAmount(float NewValue);
-
-	UObject* GetIcon() const;
-	void SetIcon(UObject* NewValue);
-
-protected:
-	//~ Begin UWxViewModel
-	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage) override;
-	//~ End UWxViewModel
-
-private:
 	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
 	void HandleActionPhaseChanged(FGameplayTag EventTag, const FGameplayEventData* Payload);
@@ -161,13 +111,12 @@ private:
 	void StopCooldownTimer();
 
 	/**
-	 * 쿨다운 태그를 부여하는 활성 GE 수(소모된 충전 수)를 반환하고, 다음 충전까지의 잔여·회복 시간을 낸다.
+	 * 쿨다운 태그를 부여하는 활성 GE 수(소모된 충전 수)를 반환하고, 다음 충전까지의 잔여 시간을 낸다.
 	 * 순정 조회 API 는 호출마다 배열을 새로 할당하므로, 매 프레임 도는 이 경로에서는 컨테이너를 직접 한 번만 훑는다.
-	 * 뒤 쿨다운은 앞 쿨다운을 기다린 시간까지 지속시간에 품고 있어, 회복 시간은 GE 지속시간이 아니라 충전 하나의 회복 시간이다.
 	 */
-	int32 QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining, float& OutDuration) const;
+	int32 QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining) const;
 
-	void RefreshActivationState();
+	void RefreshCheckCost();
 
 	/**
 	 * 비용 GE 가 실제로 깎는 자원을 OutCostAttribute 로 내고 그 양을 반환한다. 깎는 자원이 없으면 0.
@@ -175,7 +124,7 @@ private:
 	 */
 	float QueryCost(const UAbilitySystemComponent& ASC, const UGameplayAbility& Ability, FGameplayAttribute& OutCostAttribute) const;
 
-	/** 비용 자원과 그 양을 정하고, 값이 바뀌면 발동 가능 판정을 다시 하도록 구독한다. */
+	/** 비용 자원과 그 양을 정하고, 값이 바뀌면 비용 판정을 다시 하도록 구독한다. */
 	void BindCostAttributes(UAbilitySystemComponent& ASC, const UGameplayAbility& Ability);
 
 	/** 어빌리티마다 다른 구독이라 어빌리티를 놓을 때마다 푼다. */
@@ -193,16 +142,19 @@ private:
 	/** 비어 있으면 쿨다운이 없는 어빌리티다. */
 	FGameplayTagContainer CachedCooldownTags;
 
-	/** 충전 하나의 회복 시간. 진행률의 분모다. */
+	/**
+	 * 충전 하나의 회복 시간. 진행률의 분모다.
+	 * 뒤 쿨다운 GE 는 앞 쿨다운을 기다린 시간까지 지속시간에 품고 있어 GE 지속시간으로 대신할 수 없다.
+	 */
 	float CachedCooldownTime = 0.f;
 
-	/** 비용 GE가 깎는 자원 어트리뷰트와 그 최대치. 값 변경 델리게이트 등록/해제용 */
+	/** 비용 GE가 깎는 자원 어트리뷰트. 값 변경 델리게이트 등록/해제용 */
 	FGameplayAttribute CostAttribute;
-	FGameplayAttribute CostMaxAttribute;
 
 	FTimerHandle CooldownTimerHandle;
-	FDelegateHandle ActionPhaseChangedHandle;
 
 	/** 타이머가 활성이면 재평가가 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
 	FTimerHandle ActivationRefreshHandle;
+
+	TSharedPtr<FStreamableHandle> IconHandle;
 };

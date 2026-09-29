@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MVVM/WxViewModel.h"
+#include "MVVMViewModelBase.h"
 
 #include "WxViewModel_QuestObjective.generated.h"
 
@@ -11,7 +11,7 @@
  * UWxViewModel_Quest 가 표시 중인 목표 하나당 하나씩 생성/소유한다.
  */
 UCLASS()
-class WXUI_API UWxViewModel_QuestObjective : public UWxViewModel
+class WXUI_API UWxViewModel_QuestObjective : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 

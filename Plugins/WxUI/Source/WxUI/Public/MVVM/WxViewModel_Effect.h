@@ -5,9 +5,10 @@
 #include "CoreMinimal.h"
 #include "ActiveGameplayEffectHandle.h"
 #include "Engine/TimerHandle.h"
-#include "MVVM/WxViewModel.h"
+#include "MVVMViewModelBase.h"
 #include "WxViewModel_Effect.generated.h"
 
+struct FStreamableHandle;
 class UAbilitySystemComponent;
 class UGameplayEffect;
 class UWxViewModel_Effect;
@@ -16,72 +17,50 @@ class UWxViewModel_Effect;
 DECLARE_DELEGATE_RetVal_TwoParams(bool, FWxConfigureEffectViewModel, UWxViewModel_Effect&, const UGameplayEffect&);
 
 UCLASS()
-class WXUI_API UWxViewModel_Effect : public UWxViewModel
+class WXUI_API UWxViewModel_Effect : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 
 public:
 	void Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const FWxConfigureEffectViewModel& InConfigurePresentation);
 	void SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon);
-	virtual void Deinitialize() override;
+
+	/** 효과가 걷히면 목록 VM 이 부른다 — 이 VM 을 아직 붙든 위젯에 빈 값을 통지한다. */
+	void Deinitialize();
 
 	FActiveGameplayEffectHandle GetBoundHandle() const;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Effect")
 	FText Title;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Effect")
 	FText Description;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Effect")
 	float TimeRemaining = 0.f;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Effect")
 	float Duration = 0.f;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Effect")
 	float TimeRemainingPercent = 0.f;
 
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Effect")
 	int32 StackCount = 0;
-	
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
+
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Effect")
 	bool IsStackCountAboveOne = false;
 
-	/** UIData 의 소프트 참조를 베이스가 비동기 로드해 세팅한다. */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Setter, Getter, Category = "Wx|Effect")
+	/** UIData 의 소프트 참조를 비동기 로드해 세팅한다. */
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Effect")
 	TObjectPtr<UObject> Icon = nullptr;
 
-	FText GetTitle() const;
-	void SetTitle(const FText& NewValue);
-
-	FText GetDescription() const;
-	void SetDescription(const FText& NewValue);
-
-	float GetTimeRemaining() const;
-	void SetTimeRemaining(float NewValue);
-
-	float GetDuration() const;
-	void SetDuration(float NewValue);
-
-	float GetTimeRemainingPercent() const;
-	void SetTimeRemainingPercent(float NewValue);
-
-	int32 GetStackCount() const;
-	void SetStackCount(int32 NewValue);
-	
-	bool GetIsStackCountAboveOne() const;
-	void SetIsStackCountAboveOne(bool bNewValue);
-
-	UObject* GetIcon() const;
-	void SetIcon(UObject* NewValue);
-
-protected:
-	//~ Begin UWxViewModel
-	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage) override;
-	//~ End UWxViewModel
-
 private:
+	/** 스택이 여럿인지가 이 값에서 파생되므로 함께 갱신된다. */
+	void SetStackCount(int32 NewValue);
+
+	void SetIcon(const TSoftObjectPtr<UObject>& InIcon);
+
 	void HandleStackCountChanged(FActiveGameplayEffectHandle Handle, int32 NewStackCount, int32 PreviousStackCount);
 
 	bool UpdateEffectState();
@@ -94,4 +73,5 @@ private:
 	FActiveGameplayEffectHandle BoundHandle;
 	FDelegateHandle StackChangeHandle;
 	FTimerHandle TimeRemainingTimerHandle;
+	TSharedPtr<FStreamableHandle> IconHandle;
 };

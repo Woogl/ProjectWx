@@ -125,7 +125,7 @@ void UWxNameplateManagerComponent::UpdateNameplates(const AActor* Viewer, const 
 			UUserWidget* Widget = Nameplate->GetWidget();
 			UMVVMView* View = Widget ? Widget->GetExtension<UMVVMView>() : nullptr;
 			if (!View || !View->SetViewModelByClass(UWxViewModel_Character::GetOrCreate(
-				UWxViewModelResolver_AbilitySystem::GetOrCreate(Target->GetAbilitySystemComponent()), Target->GetTitle(), Target->GetIcon())))
+				UWxViewModelResolver_AbilitySystem::GetOrCreate(Target->GetAbilitySystemComponent()), Target->GetTitle())))
 			{
 				UE_LOG(LogWxGame, Warning, TEXT("Nameplate: Character 뷰모델을 연결하지 못했다. 위젯의 MVVM View·Manual 소스를 확인한다. Widget=%s Target=%s"), *GetNameSafe(Widget), *GetNameSafe(Target));
 			}

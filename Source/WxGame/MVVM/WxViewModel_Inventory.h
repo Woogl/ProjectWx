@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Items/WxItemDefinition.h"
-#include "MVVM/WxViewModel.h"
+#include "MVVMViewModelBase.h"
 #include "View/MVVMViewModelContextResolver.h"
 
 #include "WxViewModel_Inventory.generated.h"
@@ -26,7 +26,7 @@ class UMVVMView;
  * 아이템 VM 의 SourceObject 는 슬롯 VM 이면 ItemInstance, 합계 VM 이면 ItemDefinition 이다.
  */
 UCLASS()
-class WXGAME_API UWxViewModel_Inventory : public UWxViewModel
+class WXGAME_API UWxViewModel_Inventory : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 
@@ -37,18 +37,11 @@ public:
 	 */
 	static UWxViewModel_Inventory* GetOrCreate(APlayerController* PC);
 
-	/** 공유본을 사용하는 모든 화면이 사용을 마친 뒤에만 호출한다. */
-	virtual void Deinitialize() override;
-
 	/**
 	 * ItemDef 의 총 보유량을 보여 주는 합계 VM. ItemDef 가 곧 공유 키다.
 	 * 인벤토리가 아직 없어도 정적 정보로 만들어지며, 인벤토리가 사라졌다 다시 생겨도 같은 VM 을 계속 채운다.
 	 */
 	UWxViewModel_Item* GetOrCreateItemViewModel(const UWxItemDefinition* ItemDef);
-
-	/** 슬롯 하나당 하나. 동일 ItemDef 가 복수 슬롯으로 분할되어 있어도 각자 자기 슬롯의 수량을 표시한다. */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
-	TArray<TObjectPtr<UWxViewModel_Item>> AllItems;
 
 	/** 공유본이 들고 있으므로 인벤토리 화면을 다시 열어도 마지막 선택이 유지된다. */
 	UPROPERTY(BlueprintReadWrite, FieldNotify, BlueprintSetter = SetCurrentCategory, Category = "Wx|Inventory")
@@ -95,12 +88,14 @@ private:
 	TWeakObjectPtr<APlayerController> ObservedController;
 	TWeakObjectPtr<UWxInventoryComponent> CachedInventory;
 
+	/** 슬롯 하나당 하나. 동일 ItemDef 가 복수 슬롯으로 분할되어 있어도 각자 자기 슬롯의 수량을 표시한다. */
+	UPROPERTY()
+	TArray<TObjectPtr<UWxViewModel_Item>> AllItems;
+
 	/** GetOrCreateItemViewModel 로 만든 합계 VM. 위젯이 붙들고 있으므로 인벤토리가 사라져도 유지한다. */
 	UPROPERTY()
 	TArray<TObjectPtr<UWxViewModel_Item>> ItemViewModels;
 
-	FDelegateHandle ReadyHandle;
-	FDelegateHandle EndedHandle;
 	FDelegateHandle StackChangedHandle;
 	FDelegateHandle SlotChangedHandle;
 	FDelegateHandle ChargeChangedHandle;

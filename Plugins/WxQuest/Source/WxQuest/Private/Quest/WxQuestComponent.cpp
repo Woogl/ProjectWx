@@ -80,11 +80,6 @@ void UWxQuestComponent::RemoveObjective(int32 ObjectiveHandle)
 	}
 }
 
-bool UWxQuestComponent::HasActiveQuest() const
-{
-	return bHasActiveQuest;
-}
-
 FText UWxQuestComponent::GetQuestTitle() const
 {
 	return QuestTitle;

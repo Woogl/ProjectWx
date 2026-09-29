@@ -19,9 +19,6 @@ class WXUI_API UWxMVVMConversionLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 	
 public:
-	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Visibility (Tag Requirements)", AutoCreateRefTerm = "VisibilityRequirements"))
-	static ESlateVisibility Conv_TagRequirementsToVisibility(const FGameplayTagContainer& OwnedTags, const FGameplayTagRequirements& VisibilityRequirements);
-
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Visibility (GameplayTag)"))
 	static ESlateVisibility Conv_GameplayTagToSlateVisibility(const FGameplayTagContainer& TagContainer, FGameplayTag Tag, ESlateVisibility TrueVisibility = ESlateVisibility::SelfHitTestInvisible, ESlateVisibility FalseVisibility = ESlateVisibility::Collapsed);
 

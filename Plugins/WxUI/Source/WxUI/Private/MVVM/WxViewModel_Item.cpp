@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "MVVM/WxViewModel_Item.h"
+#include "MVVM/WxViewModelUtils.h"
 
 void UWxViewModel_Item::SetSourceObject(const UObject* InSourceObject)
 {
@@ -14,7 +15,10 @@ void UWxViewModel_Item::SetDisplayName(const FText& InDisplayName)
 
 void UWxViewModel_Item::SetIcon(const TSoftObjectPtr<UObject>& InIcon)
 {
-	RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Item, Icon), InIcon);
+	WxViewModel::RequestImageAsync(*this, IconHandle, InIcon, [this](UObject* LoadedIcon)
+	{
+		UE_MVVM_SET_PROPERTY_VALUE(Icon, LoadedIcon);
+	});
 }
 
 void UWxViewModel_Item::SetTotalCount(int32 InTotalCount)
@@ -30,12 +34,4 @@ void UWxViewModel_Item::SetCurrentCharges(int32 InCurrentCharges)
 void UWxViewModel_Item::SetGradeColor(const FLinearColor& InGradeColor)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(GradeColor, InGradeColor);
-}
-
-void UWxViewModel_Item::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
-{
-	if (FieldName == GET_MEMBER_NAME_CHECKED(UWxViewModel_Item, Icon))
-	{
-		UE_MVVM_SET_PROPERTY_VALUE(Icon, LoadedImage);
-	}
 }

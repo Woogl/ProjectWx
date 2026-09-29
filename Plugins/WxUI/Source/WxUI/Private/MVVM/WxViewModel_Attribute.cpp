@@ -10,7 +10,6 @@
 
 void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGameplayAttribute InAttribute, FGameplayAttribute InMaxAttribute)
 {
-	Deinitialize();
 	if (!InASC || !InAttribute.IsValid())
 	{
 		return;
@@ -18,102 +17,17 @@ void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGamepla
 
 	InMaxAttribute = InMaxAttribute.IsValid() ? InMaxAttribute : InAttribute;
 
-	CachedASC = InASC;
 	BoundAttribute = InAttribute;
 	BoundMaxAttribute = InMaxAttribute;
 
-	const float InitialValue = InASC->GetNumericAttribute(InAttribute);
-	const float InitialMaxValue = InASC->GetNumericAttribute(InMaxAttribute);
-	SetAttributeAmount(InitialValue);
-	SetMaxAttributeAmount(InitialMaxValue);
-	SetIsAttributeEmpty(InitialValue <= 0.f);
-	SetIsAttributeFull(InitialValue >= InitialMaxValue);
-	RecalculateAttributePercent();
+	UE_MVVM_SET_PROPERTY_VALUE(AttributeAmount, InASC->GetNumericAttribute(InAttribute));
+	UE_MVVM_SET_PROPERTY_VALUE(MaxAttributeAmount, InASC->GetNumericAttribute(InMaxAttribute));
+	RefreshDerivedFields();
 
 	InASC->GetGameplayAttributeValueChangeDelegate(InAttribute)
 		.AddUObject(this, &UWxViewModel_Attribute::HandleAttributeChanged);
 	InASC->GetGameplayAttributeValueChangeDelegate(InMaxAttribute)
 		.AddUObject(this, &UWxViewModel_Attribute::HandleMaxAttributeChanged);
-}
-
-void UWxViewModel_Attribute::Deinitialize()
-{
-	if (UAbilitySystemComponent* ASC = CachedASC.Get())
-	{
-		if (BoundAttribute.IsValid())
-		{
-			ASC->GetGameplayAttributeValueChangeDelegate(BoundAttribute).RemoveAll(this);
-		}
-
-		if (BoundMaxAttribute.IsValid())
-		{
-			ASC->GetGameplayAttributeValueChangeDelegate(BoundMaxAttribute).RemoveAll(this);
-		}
-	}
-
-	CachedASC.Reset();
-	BoundAttribute = FGameplayAttribute();
-	BoundMaxAttribute = FGameplayAttribute();
-
-	Super::Deinitialize();
-	if (!HasAnyFlags(RF_BeginDestroyed))
-	{
-		SetAttributeAmount(0.f);
-		SetMaxAttributeAmount(0.f);
-		SetAttributePercent(0.f);
-		SetIsAttributeEmpty(false);
-		SetIsAttributeFull(false);
-	}
-}
-
-float UWxViewModel_Attribute::GetAttributeAmount() const
-{
-	return AttributeAmount;
-}
-
-void UWxViewModel_Attribute::SetAttributeAmount(float NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(AttributeAmount, NewValue);
-}
-
-float UWxViewModel_Attribute::GetMaxAttributeAmount() const
-{
-	return MaxAttributeAmount;
-}
-
-void UWxViewModel_Attribute::SetMaxAttributeAmount(float NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(MaxAttributeAmount, NewValue);
-}
-
-float UWxViewModel_Attribute::GetAttributePercent() const
-{
-	return AttributePercent;
-}
-
-void UWxViewModel_Attribute::SetAttributePercent(float NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(AttributePercent, NewValue);
-}
-
-bool UWxViewModel_Attribute::GetIsAttributeEmpty() const
-{
-	return IsAttributeEmpty;
-}
-
-void UWxViewModel_Attribute::SetIsAttributeEmpty(bool bNewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(IsAttributeEmpty, bNewValue);
-}
-
-bool UWxViewModel_Attribute::GetIsAttributeFull() const
-{
-	return IsAttributeFull;
-}
-
-void UWxViewModel_Attribute::SetIsAttributeFull(bool bNewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(IsAttributeFull, bNewValue);
 }
 
 FGameplayAttribute UWxViewModel_Attribute::GetBoundAttribute() const
@@ -128,23 +42,20 @@ FGameplayAttribute UWxViewModel_Attribute::GetBoundMaxAttribute() const
 
 void UWxViewModel_Attribute::HandleAttributeChanged(const FOnAttributeChangeData& Data)
 {
-	SetAttributeAmount(Data.NewValue);
-	SetIsAttributeEmpty(Data.NewValue <= 0.f);
-	SetIsAttributeFull(Data.NewValue >= MaxAttributeAmount);
-	RecalculateAttributePercent();
+	UE_MVVM_SET_PROPERTY_VALUE(AttributeAmount, Data.NewValue);
+	RefreshDerivedFields();
 }
 
 void UWxViewModel_Attribute::HandleMaxAttributeChanged(const FOnAttributeChangeData& Data)
 {
-	SetMaxAttributeAmount(Data.NewValue);
-	SetIsAttributeFull(AttributeAmount >= Data.NewValue);
-	RecalculateAttributePercent();
+	UE_MVVM_SET_PROPERTY_VALUE(MaxAttributeAmount, Data.NewValue);
+	RefreshDerivedFields();
 }
 
-void UWxViewModel_Attribute::RecalculateAttributePercent()
+void UWxViewModel_Attribute::RefreshDerivedFields()
 {
-	const float Percent = (MaxAttributeAmount > 0.f) ? (AttributeAmount / MaxAttributeAmount) : 0.f;
-	SetAttributePercent(Percent);
+	UE_MVVM_SET_PROPERTY_VALUE(IsAttributeFull, AttributeAmount >= MaxAttributeAmount);
+	UE_MVVM_SET_PROPERTY_VALUE(AttributePercent, MaxAttributeAmount > 0.f ? AttributeAmount / MaxAttributeAmount : 0.f);
 }
 
 UObject* UWxViewModelResolver_Attribute::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const

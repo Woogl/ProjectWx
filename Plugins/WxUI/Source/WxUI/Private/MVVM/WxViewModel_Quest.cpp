@@ -3,9 +3,8 @@
 #include "MVVM/WxViewModel_Quest.h"
 #include "MVVM/WxViewModel_QuestObjective.h"
 
-void UWxViewModel_Quest::SetJournal(bool bInHasActiveQuest, const FText& InQuestTitle, const TArray<FText>& InObjectiveTexts)
+void UWxViewModel_Quest::SetJournal(const FText& InQuestTitle, const TArray<FText>& InObjectiveTexts)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(bHasActiveQuest, bInHasActiveQuest);
 	UE_MVVM_SET_PROPERTY_VALUE(QuestTitle, InQuestTitle);
 	RebuildObjectives(InObjectiveTexts);
 }

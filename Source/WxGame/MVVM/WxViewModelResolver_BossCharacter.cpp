@@ -22,8 +22,7 @@ UObject* UWxViewModelResolver_BossCharacter::CreateInstance(const UClass* Expect
 	{
 		if (CurrentBoss)
 		{
-			ViewModel->Initialize(UWxViewModelResolver_AbilitySystem::GetOrCreate(CurrentBoss->GetAbilitySystemComponent()),
-				CurrentBoss->GetTitle(), CurrentBoss->GetIcon());
+			ViewModel->Initialize(UWxViewModelResolver_AbilitySystem::GetOrCreate(CurrentBoss->GetAbilitySystemComponent()), CurrentBoss->GetTitle());
 		}
 		else
 		{

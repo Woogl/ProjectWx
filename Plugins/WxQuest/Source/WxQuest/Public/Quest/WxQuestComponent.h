@@ -65,7 +65,6 @@ public:
 	/** SetQuestObjective 태스크 이탈점. 이미 없는 핸들은 무시한다. */
 	void RemoveObjective(int32 ObjectiveHandle);
 
-	bool HasActiveQuest() const;
 	FText GetQuestTitle() const;
 
 	/** 등록 순서대로 돌려준다. */

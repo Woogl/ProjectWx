@@ -9,46 +9,32 @@
 #include "Items/WxItemFragment.h"
 #include "Items/WxItemInstance.h"
 #include "MVVM/WxViewModel_Item.h"
+#include "UObject/UObjectHash.h"
 
 UWxViewModel_Inventory* UWxViewModel_Inventory::GetOrCreate(APlayerController* PC)
 {
-	if (!PC)
+	if (!IsValid(PC))
 	{
 		return nullptr;
 	}
 
-	if (UWxViewModel* Existing = FindSharedViewModel(PC, StaticClass()))
+	// 데이터 소스를 Outer 로 만들어 두므로, 소스의 자식 중에서 찾으면 공유본이다.
+	if (UWxViewModel_Inventory* Existing = static_cast<UWxViewModel_Inventory*>(FindObjectWithOuter(PC, StaticClass())))
 	{
-		return CastChecked<UWxViewModel_Inventory>(Existing);
+		return Existing;
 	}
 
 	UWxViewModel_Inventory* ViewModel = NewObject<UWxViewModel_Inventory>(PC);
 	ViewModel->Initialize(PC);
-
 	return ViewModel;
 }
 
 void UWxViewModel_Inventory::Initialize(APlayerController* PC)
 {
 	ObservedController = PC;
-	ReadyHandle = UWxInventoryComponent::OnAnyInventoryReady.AddUObject(this, &UWxViewModel_Inventory::HandleInventoryReady);
-	EndedHandle = UWxInventoryComponent::OnAnyInventoryEnded.AddUObject(this, &UWxViewModel_Inventory::HandleInventoryEnded);
+	UWxInventoryComponent::OnAnyInventoryReady.AddUObject(this, &UWxViewModel_Inventory::HandleInventoryReady);
+	UWxInventoryComponent::OnAnyInventoryEnded.AddUObject(this, &UWxViewModel_Inventory::HandleInventoryEnded);
 	BindSource(PC->FindComponentByClass<UWxInventoryComponent>());
-}
-
-void UWxViewModel_Inventory::Deinitialize()
-{
-	UWxInventoryComponent::OnAnyInventoryReady.Remove(ReadyHandle);
-	UWxInventoryComponent::OnAnyInventoryEnded.Remove(EndedHandle);
-	ReadyHandle.Reset();
-	EndedHandle.Reset();
-	ObservedController.Reset();
-	UnbindSource();
-
-	// 합계 VM 은 배열에서 떼기만 한다 — 위젯이 아직 붙들고 있는 공유본을 끊으면 그 표시가 언다.
-	ItemViewModels.Empty();
-
-	Super::Deinitialize();
 }
 
 UWxViewModel_Item* UWxViewModel_Inventory::GetOrCreateItemViewModel(const UWxItemDefinition* ItemDef)
@@ -120,12 +106,7 @@ void UWxViewModel_Inventory::UnbindSource()
 	ChargeChangedHandle.Reset();
 	ContentsChangedHandle.Reset();
 	CachedInventory.Reset();
-	if (HasAnyFlags(RF_BeginDestroyed))
-	{
-		return;
-	}
 	AllItems.Reset();
-	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(AllItems);
 	RefreshCategorizedItems();
 	UE_MVVM_SET_PROPERTY_VALUE(LastAcquiredItem, nullptr);
 	RefreshItemViewModels();
@@ -177,22 +158,16 @@ void UWxViewModel_Inventory::RefreshAllItems()
 	}
 
 	AllItems = MoveTemp(NewItems);
-	// 슬롯 구성이 그대로여도 ListView 엔트리 UMG 에서 VM 재연결이 가능하도록 항상 브로드캐스트한다.
-	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(AllItems);
-
 	RefreshCategorizedItems();
 	RefreshItemViewModels();
 }
 
 void UWxViewModel_Inventory::SetCurrentCategory(EWxItemCategory NewCategory)
 {
-	if (CurrentCategory == NewCategory)
+	if (UE_MVVM_SET_PROPERTY_VALUE(CurrentCategory, NewCategory))
 	{
-		return;
+		RefreshCategorizedItems();
 	}
-
-	UE_MVVM_SET_PROPERTY_VALUE(CurrentCategory, NewCategory);
-	RefreshCategorizedItems();
 }
 
 void UWxViewModel_Inventory::RefreshCategorizedItems()
@@ -211,6 +186,7 @@ void UWxViewModel_Inventory::RefreshCategorizedItems()
 	}
 
 	CategorizedItems = MoveTemp(NewCategorized);
+	// 구성이 그대로여도 ListView 엔트리 UMG 에서 VM 재연결이 가능하도록 항상 브로드캐스트한다.
 	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(CategorizedItems);
 }
 

@@ -10,21 +10,6 @@
 #include "MVVM/WxViewModel_AbilitySystem.h"
 #include "MVVM/WxViewModel_Effect.h"
 
-namespace
-{
-	bool ConfigureEffectPresentation(UWxViewModel_Effect& ViewModel, const UGameplayEffect& Effect)
-	{
-		const UWxEffectComponent_UIData* Data = Effect.FindComponent<UWxEffectComponent_UIData>();
-		if (!Data || Data->GetIcon().IsNull())
-		{
-			return false;
-		}
-
-		ViewModel.SetPresentation(Data->GetTitle(), Data->GetDescription(), Data->GetIcon());
-		return true;
-	}
-}
-
 UObject* UWxViewModelResolver_AbilitySystem::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
 	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
@@ -36,7 +21,17 @@ UWxViewModel_AbilitySystem* UWxViewModelResolver_AbilitySystem::GetOrCreate(UAbi
 	UWxViewModel_AbilitySystem* ViewModel = UWxViewModel_AbilitySystem::GetOrCreate(InASC);
 	if (ViewModel)
 	{
-		ViewModel->ConfigureEffectPresentation(FWxConfigureEffectViewModel::CreateStatic(&ConfigureEffectPresentation));
+		ViewModel->ConfigureEffectPresentation(FWxConfigureEffectViewModel::CreateLambda([](UWxViewModel_Effect& EffectViewModel, const UGameplayEffect& Effect)
+		{
+			const UWxEffectComponent_UIData* Data = Effect.FindComponent<UWxEffectComponent_UIData>();
+			if (!Data || Data->GetIcon().IsNull())
+			{
+				return false;
+			}
+
+			EffectViewModel.SetPresentation(Data->GetTitle(), Data->GetDescription(), Data->GetIcon());
+			return true;
+		}));
 	}
 	return ViewModel;
 }

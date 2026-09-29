@@ -7,32 +7,28 @@
 #include "Engine/World.h"
 #include "MVVM/WxViewModel_Effect.h"
 #include "TimerManager.h"
+#include "UObject/UObjectHash.h"
 
 UWxViewModel_AbilitySystem* UWxViewModel_AbilitySystem::GetOrCreate(UAbilitySystemComponent* InASC)
 {
-	if (!InASC)
+	if (!IsValid(InASC))
 	{
 		return nullptr;
 	}
 
-	if (UWxViewModel* Existing = FindSharedViewModel(InASC, StaticClass()))
+	// 데이터 소스를 Outer 로 만들어 두므로, 소스의 자식 중에서 찾으면 공유본이다.
+	if (UWxViewModel_AbilitySystem* Existing = static_cast<UWxViewModel_AbilitySystem*>(FindObjectWithOuter(InASC, StaticClass())))
 	{
-		return CastChecked<UWxViewModel_AbilitySystem>(Existing);
+		return Existing;
 	}
 
 	UWxViewModel_AbilitySystem* ViewModel = NewObject<UWxViewModel_AbilitySystem>(InASC);
 	ViewModel->Initialize(InASC);
-
 	return ViewModel;
 }
 
 void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 {
-	if (!InASC)
-	{
-		return;
-	}
-
 	CachedASC = InASC;
 
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
@@ -61,39 +57,6 @@ void UWxViewModel_AbilitySystem::InitializeActiveEffects()
 	ASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectAdded);
 	ASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
 	BuildActiveEffectViewModels();
-}
-
-void UWxViewModel_AbilitySystem::Deinitialize()
-{
-	if (UAbilitySystemComponent* ASC = CachedASC.Get())
-	{
-		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
-		ASC->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
-		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
-		ASC->AbilitySpecDirtiedCallbacks.RemoveAll(this);
-
-		if (UWorld* World = ASC->GetWorld())
-		{
-			World->GetTimerManager().ClearTimer(OwnedTagsRefreshHandle);
-			World->GetTimerManager().ClearTimer(AbilityRebindHandle);
-		}
-	}
-
-	// 자식은 배열에서 떼기만 한다 — 위젯이 아직 붙들고 있는 공유본을 끊으면 그 표시가 언다.
-	// 자식이 이 VM 을 Outer 로 삼아 살려 두므로, 파괴로 여기 닿았다면 자식을 붙든 위젯도 없고 각 자식은 자기 BeginDestroy 로 구독·타이머를 정리한다.
-	CachedASC.Reset();
-	ConfigureEffectViewModel.Unbind();
-	AttributeViewModels.Empty();
-	AbilityViewModels.Empty();
-	ActiveEffectViewModels.Empty();
-	OwnedTags.Reset();
-	if (!HasAnyFlags(RF_BeginDestroyed))
-	{
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(OwnedTags);
-	}
-
-	Super::Deinitialize();
 }
 
 UWxViewModel_Attribute* UWxViewModel_AbilitySystem::GetOrCreateAttributeViewModel(FGameplayAttribute Current, FGameplayAttribute Max)

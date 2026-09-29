@@ -3,12 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MVVM/WxViewModel.h"
+#include "MVVMViewModelBase.h"
 #include "WxViewModel_Item.generated.h"
+
+struct FStreamableHandle;
 
 /** 원본의 타입을 해석하지 않는다. 표시 데이터는 이 VM 을 소유한 도메인 VM 이 공급한다. */
 UCLASS()
-class WXUI_API UWxViewModel_Item : public UWxViewModel
+class WXUI_API UWxViewModel_Item : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 
@@ -47,6 +49,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|UI")
 	FLinearColor GradeColor = FLinearColor::White;
 
-protected:
-	virtual void ApplyLoadedImage(FName FieldName, UObject* LoadedImage) override;
+private:
+	TSharedPtr<FStreamableHandle> IconHandle;
 };

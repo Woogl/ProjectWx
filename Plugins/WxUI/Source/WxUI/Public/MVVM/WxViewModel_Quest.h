@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MVVM/WxViewModel.h"
+#include "MVVMViewModelBase.h"
 
 #include "WxViewModel_Quest.generated.h"
 
@@ -11,15 +11,12 @@ class UWxViewModel_QuestObjective;
 
 /** 퀘스트 추적 HUD의 표시 데이터. */
 UCLASS()
-class WXUI_API UWxViewModel_Quest : public UWxViewModel
+class WXUI_API UWxViewModel_Quest : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 
 public:
-	void SetJournal(bool bInHasActiveQuest, const FText& InQuestTitle, const TArray<FText>& InObjectiveTexts);
-
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Quest")
-	bool bHasActiveQuest = false;
+	void SetJournal(const FText& InQuestTitle, const TArray<FText>& InObjectiveTexts);
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Quest")
 	FText QuestTitle;

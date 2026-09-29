@@ -5,11 +5,6 @@
 #include "AttributeSet.h"
 #include "MVVM/WxViewModel_AbilitySystem.h"
 
-ESlateVisibility UWxMVVMConversionLibrary::Conv_TagRequirementsToVisibility(const FGameplayTagContainer& OwnedTags, const FGameplayTagRequirements& VisibilityRequirements)
-{
-	return VisibilityRequirements.RequirementsMet(OwnedTags) ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed;
-}
-
 ESlateVisibility UWxMVVMConversionLibrary::Conv_GameplayTagToSlateVisibility(const FGameplayTagContainer& TagContainer, FGameplayTag Tag, ESlateVisibility TrueVisibility, ESlateVisibility FalseVisibility)
 {
 	return TagContainer.HasTag(Tag) ? TrueVisibility : FalseVisibility;

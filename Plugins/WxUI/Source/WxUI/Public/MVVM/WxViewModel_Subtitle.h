@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MVVM/WxViewModel.h"
+#include "MVVMViewModelBase.h"
 #include "View/MVVMViewModelContextResolver.h"
 
 #include "WxViewModel_Subtitle.generated.h"
@@ -16,7 +16,7 @@ class UMVVMView;
  * 값은 외부 소스(퀘스트·장치의 ST 노드 등)가 push 하며, 슬롯이 하나라 나중 요청이 이긴다.
  */
 UCLASS()
-class WXUI_API UWxViewModel_Subtitle : public UWxViewModel
+class WXUI_API UWxViewModel_Subtitle : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 
@@ -28,9 +28,6 @@ public:
 
 	/** 발급 핸들이 지금 걸린 자막의 것일 때만 화면에서 걷어간다. */
 	void HideSubtitle(int32 InSubtitleHandle);
-
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Subtitle")
-	bool bHasSubtitle = false;
 
 	/** 화자 없는 나레이션이면 비어 있다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Subtitle")

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MVVM/WxViewModel.h"
+#include "MVVMViewModelBase.h"
 #include "WxViewModel_Interaction.generated.h"
 
 /**
@@ -11,7 +11,7 @@
  * 만들어진 뒤 바뀌지 않는다 — 문구나 선택이 바뀌면 목록 VM 이 행을 통째로 다시 만든다.
  */
 UCLASS()
-class WXUI_API UWxViewModel_Interaction : public UWxViewModel
+class WXUI_API UWxViewModel_Interaction : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 

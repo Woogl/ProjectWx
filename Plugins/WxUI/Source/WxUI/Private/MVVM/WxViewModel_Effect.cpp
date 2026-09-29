@@ -3,13 +3,12 @@
 #include "MVVM/WxViewModel_Effect.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
-#include "Engine/Texture2D.h"
+#include "MVVM/WxViewModelUtils.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
 
 void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const FWxConfigureEffectViewModel& InConfigurePresentation)
 {
-	Deinitialize();
 	if (!InASC || !InHandle.IsValid() || !InConfigurePresentation.IsBound())
 	{
 		return;
@@ -37,9 +36,9 @@ void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGame
 	// 무한 지속은 잔량이 줄지 않는다 — 링을 가득 채워 두고 갱신도 걸지 않는다.
 	if (EffectDuration == FGameplayEffectConstants::INFINITE_DURATION)
 	{
-		SetDuration(0.f);
-		SetTimeRemaining(0.f);
-		SetTimeRemainingPercent(1.f);
+		UE_MVVM_SET_PROPERTY_VALUE(Duration, 0.f);
+		UE_MVVM_SET_PROPERTY_VALUE(TimeRemaining, 0.f);
+		UE_MVVM_SET_PROPERTY_VALUE(TimeRemainingPercent, 1.f);
 		return;
 	}
 
@@ -66,17 +65,13 @@ void UWxViewModel_Effect::Deinitialize()
 	CachedASC.Reset();
 	BoundHandle.Invalidate();
 
-	Super::Deinitialize();
-	if (!HasAnyFlags(RF_BeginDestroyed))
-	{
-		SetTitle(FText::GetEmpty());
-		SetDescription(FText::GetEmpty());
-		SetIcon(nullptr);
-		SetDuration(0.f);
-		SetTimeRemaining(0.f);
-		SetTimeRemainingPercent(0.f);
-		SetStackCount(0);
-	}
+	UE_MVVM_SET_PROPERTY_VALUE(Title, FText::GetEmpty());
+	UE_MVVM_SET_PROPERTY_VALUE(Description, FText::GetEmpty());
+	SetIcon(nullptr);
+	UE_MVVM_SET_PROPERTY_VALUE(Duration, 0.f);
+	UE_MVVM_SET_PROPERTY_VALUE(TimeRemaining, 0.f);
+	UE_MVVM_SET_PROPERTY_VALUE(TimeRemainingPercent, 0.f);
+	SetStackCount(0);
 }
 
 FActiveGameplayEffectHandle UWxViewModel_Effect::GetBoundHandle() const
@@ -84,85 +79,10 @@ FActiveGameplayEffectHandle UWxViewModel_Effect::GetBoundHandle() const
 	return BoundHandle;
 }
 
-FText UWxViewModel_Effect::GetTitle() const
-{
-	return Title;
-}
-
-void UWxViewModel_Effect::SetTitle(const FText& NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(Title, NewValue);
-}
-
-FText UWxViewModel_Effect::GetDescription() const
-{
-	return Description;
-}
-
-void UWxViewModel_Effect::SetDescription(const FText& NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(Description, NewValue);
-}
-
-float UWxViewModel_Effect::GetTimeRemaining() const
-{
-	return TimeRemaining;
-}
-
-void UWxViewModel_Effect::SetTimeRemaining(float NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(TimeRemaining, NewValue);
-}
-
-float UWxViewModel_Effect::GetDuration() const
-{
-	return Duration;
-}
-
-void UWxViewModel_Effect::SetDuration(float NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(Duration, NewValue);
-}
-
-float UWxViewModel_Effect::GetTimeRemainingPercent() const
-{
-	return TimeRemainingPercent;
-}
-
-void UWxViewModel_Effect::SetTimeRemainingPercent(float NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(TimeRemainingPercent, NewValue);
-}
-
-int32 UWxViewModel_Effect::GetStackCount() const
-{
-	return StackCount;
-}
-
 void UWxViewModel_Effect::SetStackCount(int32 NewValue)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(StackCount, NewValue);
-	SetIsStackCountAboveOne(NewValue > 1);
-}
-
-bool UWxViewModel_Effect::GetIsStackCountAboveOne() const
-{
-	return IsStackCountAboveOne;
-}
-
-void UWxViewModel_Effect::SetIsStackCountAboveOne(bool bNewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(IsStackCountAboveOne, bNewValue);
-}
-
-UObject* UWxViewModel_Effect::GetIcon() const
-{
-	return Icon;
-}
-
-void UWxViewModel_Effect::SetIcon(UObject* NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(Icon, NewValue);
+	UE_MVVM_SET_PROPERTY_VALUE(IsStackCountAboveOne, NewValue > 1);
 }
 
 void UWxViewModel_Effect::HandleStackCountChanged(FActiveGameplayEffectHandle Handle, int32 NewStackCount, int32 PreviousStackCount)
@@ -214,8 +134,8 @@ bool UWxViewModel_Effect::UpdateEffectState()
 	const FActiveGameplayEffect* ActiveEffect = ASC->GetActiveGameplayEffect(BoundHandle);
 	if (!ActiveEffect)
 	{
-		SetTimeRemaining(0.f);
-		SetTimeRemainingPercent(0.f);
+		UE_MVVM_SET_PROPERTY_VALUE(TimeRemaining, 0.f);
+		UE_MVVM_SET_PROPERTY_VALUE(TimeRemainingPercent, 0.f);
 		SetStackCount(0);
 		return false;
 	}
@@ -230,27 +150,26 @@ bool UWxViewModel_Effect::UpdateEffectState()
 			return false;
 		}
 
-		const float CurrentTime = World->GetTimeSeconds();
-		const float Remaining = FMath::Max(ActiveEffect->StartWorldTime + EffectDuration - CurrentTime, 0.f);
-		SetDuration(EffectDuration);
-		SetTimeRemaining(Remaining);
-		SetTimeRemainingPercent(FMath::Min(Remaining / EffectDuration, 1.f));
+		const float Remaining = FMath::Max(ActiveEffect->GetTimeRemaining(World->GetTimeSeconds()), 0.f);
+		UE_MVVM_SET_PROPERTY_VALUE(Duration, EffectDuration);
+		UE_MVVM_SET_PROPERTY_VALUE(TimeRemaining, Remaining);
+		UE_MVVM_SET_PROPERTY_VALUE(TimeRemainingPercent, FMath::Min(Remaining / EffectDuration, 1.f));
 	}
 
 	return true;
 }
 
-void UWxViewModel_Effect::ApplyLoadedImage(FName FieldName, UObject* LoadedImage)
+void UWxViewModel_Effect::SetIcon(const TSoftObjectPtr<UObject>& InIcon)
 {
-	if (FieldName == GET_MEMBER_NAME_CHECKED(UWxViewModel_Effect, Icon))
+	WxViewModel::RequestImageAsync(*this, IconHandle, InIcon, [this](UObject* LoadedIcon)
 	{
-		SetIcon(LoadedImage);
-	}
+		UE_MVVM_SET_PROPERTY_VALUE(Icon, LoadedIcon);
+	});
 }
 
 void UWxViewModel_Effect::SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon)
 {
-	SetTitle(InTitle);
-	SetDescription(InDescription);
-	RequestImageAsync(GET_MEMBER_NAME_CHECKED(UWxViewModel_Effect, Icon), InIcon);
+	UE_MVVM_SET_PROPERTY_VALUE(Title, InTitle);
+	UE_MVVM_SET_PROPERTY_VALUE(Description, InDescription);
+	SetIcon(InIcon);
 }
