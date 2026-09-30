@@ -16,7 +16,7 @@
 ### 1. 🟡 InteractionList 뷰모델이 아직 WxGame에 있고 도메인 컴포넌트를 직접 호출한다
 - **위치**: `Source/WxGame/MVVM/WxViewModel_InteractionList.h:21`
 - **범주**: 설계/구조
-- **문제**: 2026-09-30 채택한 UI 설계 원칙 2번(모든 뷰모델은 WxUI에 두고 도메인 타입을 쓰지 않음)과 9번(도메인 명령은 뷰모델이 델리게이트로 내보내고 조립 층이 모델을 호출)에 어긋난다. `UWxViewModel_InteractionList`는 WxWorld의 `UWxInteractionScannerComponent`를 약참조로 들고 `OnRowsChanged`를 직접 구독하며(`Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:17`), `RequestInteract`·`RequestCycle`이 스캐너를 바로 호출한다(같은 파일 55·63행). [MVVM 원칙에 맞춘 뷰모델 재설계](viewmodel-mvvm-redesign.md)는 이를 "알려진 예외(후속 일감)"로, [뷰모델 품질 정리](viewmodel-quality-cleanup.md)는 7번 "나중"으로 남겼지만 이를 맡은 일감 문서는 아직 없다.
+- **문제**: 2026-09-30 채택한 UI 설계 원칙 2번(모든 뷰모델은 WxUI에 두고 도메인 타입을 쓰지 않음)과 9번(도메인 명령은 뷰모델이 델리게이트로 내보내고 조립 층이 모델을 호출)에 어긋난다. `UWxViewModel_InteractionList`는 WxWorld의 `UWxInteractionScannerComponent`를 약참조로 들고 `OnRowsChanged`를 직접 구독하며(`Source/WxGame/MVVM/WxViewModel_InteractionList.cpp:17`), `RequestInteract`·`RequestCycle`이 스캐너를 바로 호출한다(같은 파일 55·63행). [MVVM 원칙에 맞춘 뷰모델 재설계](viewmodel-mvvm-redesign.md)는 이를 "알려진 예외(후속 일감)"로, [뷰모델 품질 정리](viewmodel-quality-cleanup.md)는 7번 "나중"으로 남겼다. [상호작용 목록 뷰모델을 UI 설계 원칙에 맞추기](interaction-list-vm-principles.md)가 맡는다.
 - **제안**: 뷰모델은 표시 값(`Entries`)과 요청 델리게이트만 가진 WxUI 클래스로 옮기고, 스캐너 구독·값 넣기·요청 전달은 WxGame의 `UWxViewModelResolver_InteractionList`가 맡게 한다(원칙 3번: 위젯마다 만드는 뷰모델은 리졸버가 만든다). WBP 참조는 ClassRedirects로 잇고 리세이브 뒤 지운다.
 - **확신도**: 높음
 

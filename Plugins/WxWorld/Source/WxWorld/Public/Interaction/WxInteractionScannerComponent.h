@@ -11,11 +11,11 @@
 class AActor;
 class UAbilitySystemComponent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnInteractionRowsChanged);
+DECLARE_MULTICAST_DELEGATE(FWxOnInteractionRowsChanged);
 
 /**
  * AWxPlayerController 에 붙어, 소유 클라(리슨호스트 포함)에서 주변 상호작용 액터를 주기 스캔해 in-range 집합을 모은다.
- * HUD 리스트 뷰모델(UWxViewModel_InteractionList)이 이 목록과 선택 인덱스를 함께 표시한다.
+ * HUD 목록 위젯의 리졸버(UWxViewModelResolver_InteractionList)가 이 목록과 선택 인덱스를 뷰모델에 싣는다.
  *
  * 후보는 액터 단위다 — 겹친 컴포넌트를 소유 액터로 모아 중복을 없앤 뒤, 대상이 IWxInteractable 선택지로 지금 켜져 있는지 답하고 꺼지면 다음 스캔에서 탈락한다.
  * 주변 후보는 반경 구 오버랩으로 모으되 전 오브젝트 채널로 던지므로, 대상 자격은 콜리전 프리셋·응답과 무관하다(쿼리 콜리전만 켜져 있으면 된다). 응답·프롬프트도 같은 인터페이스가 제공한다.
@@ -23,7 +23,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnInteractionRowsChanged);
  * PlayerController 소유인 이유: 폰 리스폰에도 생존하고, 소유 클라 연결로 net-owned 라 ServerInteract RPC 를 직접 들 수 있으며, 타 클라에 복제되지 않아 로컬리티가 좋다.
  * 감지·선택·하이라이트는 로컬 어포던스라 소유 클라에서만 구동한다(데디 서버 PC 는 스캔하지 않는다).
  *
- * 입력 수신: 본 컴포넌트는 입력을 직접 바인딩하지 않는다. HUD 리스트 위젯이 Enhanced Input 으로 받아 리스트 뷰모델에 넘기고, 뷰모델이 TryInteractSelected/CycleSelection 을 호출한다.
+ * 입력 수신: 본 컴포넌트는 입력을 직접 바인딩하지 않는다. HUD 목록 위젯이 Enhanced Input 으로 받아 뷰모델 명령으로 넘기고, 리졸버가 그 명령을 TryInteractSelected/CycleSelection 에 잇는다.
  * 선택 전달: 입력 시 로컬 선택을 읽어 ServerInteract 로 액터 포인터와 선택지 값을 원자 전송한다(선택을 복제하지 않으므로 "사이클→즉시입력" 순서가 로컬 동기 읽기로 보장된다).
  * 서버는 Event.Interact(OptionalObject=선택, EventMagnitude=선택지 값)를 폰 ASC 로 송출해 ServerOnly WxAbility_Interact 가 권위에서 사거리·활성 검증 후 대상 인터페이스를 호출하게 한다.
  */
@@ -52,7 +52,6 @@ public:
 	void CycleSelection(int32 Delta);
 
 	/** 목록이나 선택이 바뀌면 발행한다. */
-	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnInteractionRowsChanged OnRowsChanged;
 
 protected:

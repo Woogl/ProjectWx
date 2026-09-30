@@ -48,7 +48,7 @@ void UWxInteractionScannerComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 		World->GetTimerManager().ClearTimer(ScanTimerHandle);
 	}
 
-	// 잔여 후보를 비워 하이라이트·프롬프트·선택 VM 을 정리한다.
+	// 잔여 후보를 비워 하이라이트를 끄고 구독자에게 빈 목록을 알린다.
 	UpdateInRange({});
 
 	Super::EndPlay(EndPlayReason);
