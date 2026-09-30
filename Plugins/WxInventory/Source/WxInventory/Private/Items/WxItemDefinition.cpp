@@ -4,12 +4,7 @@
 
 #include "Items/WxItemFragment.h"
 
-UWxItemDefinition::UWxItemDefinition()
-	: Category(EWxItemCategory::None)
-{
-}
-
-EWxItemCategory UWxItemDefinition::GetItemCategory() const
+FGameplayTag UWxItemDefinition::GetItemCategory() const
 {
 	return Category;
 }

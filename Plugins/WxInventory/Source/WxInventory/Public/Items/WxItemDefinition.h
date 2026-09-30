@@ -4,21 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "GameplayTagContainer.h"
 #include "Templates/SubclassOf.h"
 
 #include "WxItemDefinition.generated.h"
 
 class UTexture2D;
 class UWxItemFragment;
-
-UENUM(BlueprintType)
-enum class EWxItemCategory : uint8
-{
-	None,
-	Equipment,
-	Consumable,
-	Currency
-};
 
 /**
  * 모든 인스턴스가 공유하는 정의이며, 런타임 가변 상태는 별도 UWxItemInstance 에서 관리한다.
@@ -33,8 +25,6 @@ class WXINVENTORY_API UWxItemDefinition : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
-	UWxItemDefinition();
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Display")
 	FText DisplayName;
 
@@ -44,13 +34,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Display", meta = (AllowedClasses = "/Script/Engine.Texture2D,/Script/Engine.MaterialInterface"))
 	TSoftObjectPtr<UObject> Icon;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
-	EWxItemCategory Category;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item", meta = (Categories = "Item.Category"))
+	FGameplayTag Category;
 
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Item")
 	TArray<TObjectPtr<UWxItemFragment>> Fragments;
 
-	EWxItemCategory GetItemCategory() const;
+	FGameplayTag GetItemCategory() const;
 
 	const UWxItemFragment* FindFragmentByClass(TSubclassOf<UWxItemFragment> FragmentClass) const;
 

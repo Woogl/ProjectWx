@@ -19,25 +19,6 @@
 #include "Types/MVVMViewModelCollection.h"
 #include "WxDialogueSessionComponent.h"
 #include "WxGame.h"
-#include "WxGameplayTags.h"
-
-namespace
-{
-	FGameplayTag GetItemCategoryTag(EWxItemCategory Category)
-	{
-		switch (Category)
-		{
-		case EWxItemCategory::Equipment:
-			return WxGameplayTags::Item_Category_Equipment;
-		case EWxItemCategory::Consumable:
-			return WxGameplayTags::Item_Category_Consumable;
-		case EWxItemCategory::Currency:
-			return WxGameplayTags::Item_Category_Currency;
-		default:
-			return FGameplayTag();
-		}
-	}
-}
 
 AWxPlayerController::AWxPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -229,7 +210,7 @@ void AWxPlayerController::RefreshItemViewModel(UWxViewModel_Item& ItemViewModel)
 	}
 
 	ItemViewModel.SetDisplayName(ItemDef->DisplayName);
-	ItemViewModel.SetCategory(GetItemCategoryTag(ItemDef->GetItemCategory()));
+	ItemViewModel.SetCategory(ItemDef->GetItemCategory());
 	const UWxItemFragment_Grade* GradeFragment = ItemDef->FindFragmentByClass<UWxItemFragment_Grade>();
 	ItemViewModel.SetGradeColor(GradeFragment ? GradeFragment->Color : UWxItemFragment_Grade::GetDefaultColorForGrade(EWxItemGrade::Common));
 
