@@ -37,6 +37,19 @@ allowed-tools: Read, Grep, Glob, Bash, PowerShell, Edit, Agent, TaskStop
 
 **사전 점검** — `git status --porcelain -- <대상경로>`로 대상에 이미 미커밋 변경이 있는지 본다. 있으면 그 파일 목록을 마무리 보고에 명시한다(정리 diff와 기존 작업이 섞여 보이므로 사용자가 알아야 한다). 진행 자체는 막지 않는다.
 
+
+**작업 전 사본** — 어떤 파일도 고치기 전에 대상 파일의 현재 내용을 보관한다. Git의 HEAD·인덱스가 아니라 사용자의 미커밋 변경까지 포함한 이 시점의 파일이 검증 기준이다.
+
+1. Python 3 실행 경로를 확인한다. Windows에서 PATH에 없으면 하네스의 번들 런타임을 조회하고, Linux에서는 보통 `python3`를 쓴다. 추가 패키지는 필요 없다.
+2. 대상 파일 경로를 UTF-8 JSON 배열로 임시 파일에 저장한다(예: `["Source/WxGame/Foo.h", "Source/WxGame/Foo.cpp"]`). 삭제된 파일은 대상에서 뺀다.
+3. 새 임시 디렉터리 경로로 아래 명령을 실행한다. 기존 사본을 덮어쓰지 않는다. 실패하면 편집을 시작하지 않는다.
+
+```text
+<python> <skill-root>/scripts/verify_comments.py snapshot --root <project-root> --files-from <files.json> --snapshot <새 임시 디렉터리>
+```
+
+사본 경로와 파일 목록을 작업이 끝날 때까지 유지한다. 서브에이전트 재투입 때 사본을 다시 만들지 않는다.
+
 ---
 
 ## 2. 정리 규칙
@@ -152,26 +165,19 @@ Get-ChildItem <묶음 폴더> -Recurse -Include *.h,*.cpp |
 
 ## 4. 안전 게이트 (코드 불가침 검증)
 
-서브에이전트가 모두 끝나면 오케스트레이터가 **직접** 검증한다. 건너뛰지 않는다.
+서브에이전트가 모두 끝나면 오케스트레이터가 **작업 전 사본과 현재 파일을 직접 비교**한다.
 
-```bash
-git diff -U0 -- <대상경로> \
-  | grep -E '^[+-]' \
-  | grep -vE '^(\+\+\+|---)' \
-  | grep -vE '^[+-][[:space:]]*(//|/\*|\*)' \
-  | grep -vE '^[+-][[:space:]]*$'
+```text
+<python> <skill-root>/scripts/verify_comments.py verify --snapshot <작업 전 사본 디렉터리>
 ```
 
-- **출력이 비면 통과.** 전체 줄 주석과 빈 줄만 바뀌었다는 뜻이다.
-- **출력이 남으면** 코드 라인이 바뀌었거나, 트레일링 주석이 있는 코드 라인이 바뀐 것이다. 둘은 다르므로 자동 판정하지 말고 해당 파일의 diff를 `git diff -- <파일>`로 직접 읽어 **`//` 앞부분이 동일한지** 확인한다.
-  - 앞부분이 같으면 트레일링 주석만 바뀐 것 → 통과.
-  - 다르면 **코드 변경**이다 → `Edit`로 코드 부분만 원래대로 되돌리고, 마무리 보고에 어떤 파일에서 무엇이 바뀌었었는지 명시한다.
+- 차수별 검증은 `--files-from <이번 차수 files.json>`을 추가한다. 사본에 없는 파일은 통과시키지 않는다.
+- 종료 코드 `0`과 `COMMENT_VERIFY_RESULT=success`가 함께 있어야 통과다. 검증기는 문자열·문자 리터럴·raw string·줄 연결을 구분하고, 실제 주석과 빈 줄을 제외한 코드 및 코드 줄의 공백을 비교한다. 첫 줄 저작권도 보존한다.
+- 종료 코드 `1`은 파일 누락·코드 변경·구문 판별 실패 등 검증 실패, `2`는 사본 또는 실행 오류다. 어느 쪽도 "코드 변경 0"으로 보고하지 않는다.
+- 검증기는 소스를 고치거나 복원하지 않는다. 실패하면 사본과 현재 파일의 차이를 읽고 **이번 작업에서 직접 바꾼 부분만** 고친 뒤 재검증한다. 기존 사용자 변경이나 동시 작업인지 불분명하면 그대로 두고 보류를 보고한다.
+- `git diff`는 보조 자료로만 쓴다. HEAD·인덱스로 되돌리거나 파일 전체를 사본으로 덮어쓰지 않는다.
 
-> `git checkout --`으로 파일을 통째로 되돌리지 않는다. 워킹트리에 사용자의 다른 미커밋 작업이 섞여 있을 수 있어 파괴적이다.
-
-주석 전용 변경 여부는 위 diff 검사와 필요한 직접 비교로 검증한다.
-
-주석 전용 변경은 빌드하지 않는다. 위 diff 검사로 코드가 바뀌지 않았는지 확인한다. 커밋은 하지 않는다(`/push`가 담당).
+주석 전용 변경은 빌드하지 않는다. 커밋은 하지 않는다(`/push`가 담당하며 무인 실행은 6절을 따른다).
 
 ---
 
@@ -190,42 +196,4 @@ git diff -U0 -- <대상경로> \
 
 ## 6. 무인 실행 (일일 Routine)
 
-클라우드 Routine 「일일 주석 정리 + 푸시」가 매일 06:00(KST) 새 클론에서 사람 없이 이 절대로 실행한다. 1~5절과 다른 점만 적는다.
-
-**대상** — KST 어제 06:00 ~ 오늘 06:00에 main에 들어온 커밋이 바꾼 `.h`/`.cpp`다. 1절의 인자 처리 대신 아래로 정한다.
-
-```bash
-SINCE=$(TZ=Asia/Seoul date -d 'yesterday 06:00' --iso-8601=seconds)
-UNTIL=$(TZ=Asia/Seoul date -d 'today 06:00' --iso-8601=seconds)
-# 기간 안의 커밋이 얕은 클론의 경계가 되면 부모가 없어 저장소 전체가 바뀐 것으로 나오므로, 기간보다 7일 앞까지 받는다.
-if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
-  git fetch -q --shallow-since="$(TZ=Asia/Seoul date -d 'yesterday 06:00 7 days ago' --iso-8601=seconds)" origin main
-fi
-BASE=$(git rev-list -1 --first-parent --before="$SINCE" origin/main)
-TIP=$(git rev-list -1 --first-parent --before="$UNTIL" origin/main)
-git log --no-merges --invert-grep --grep='제출 코드의 주석을 정리' \
-  --name-only --diff-filter=d --pretty=format: "$BASE..$TIP" -- '*.h' '*.cpp' | sort -u
-```
-
-- `BASE`가 비면 기간 앞 7일에 커밋이 없다는 뜻이다. `git fetch -q --deepen=200 origin main` 뒤 다시 구한다.
-- `--invert-grep`은 전날 이 Routine이 올린 정리 커밋을 뺀다.
-- 결과에서 워킹트리에 없는 파일과 1절의 항상 제외 대상을 뺀다.
-- 대상이 0개면 "정리할 제출분 없음"으로 보고하고 커밋 없이 끝낸다.
-
-**바뀌는 규칙**
-
-- 대상이 30개를 넘어도 알리거나 되묻지 않고 진행한다. 새 클론이라 사전 점검은 생략한다.
-- 지연 대응의 PowerShell 명령은 bash로 바꾼다(예: `ls -lt --time-style=+%H:%M:%S <묶음 파일들> | head -5`).
-- 언리얼 엔진이 없으니 빌드·에디터 실행은 시도하지 않는다.
-- 2절 "줄인다"의 재사용할 결론은 파일로 남기지 않고 마무리 보고에 적는다.
-
-**커밋·푸시** — 세션이 언제 끊길지 모르므로 마지막에 몰아서 올리지 않는다. 4절과 달리 서브에이전트 한 차수(최대 6묶음)가 끝날 때마다 바로 main에 올린다.
-
-1. 그 차수 파일에 4절 안전 게이트를 돌린다.
-2. 바뀐 파일을 경로로 지정해 `git add` 한다(`-A`·`.` 금지). `git status`로 의도한 파일만 올라갔는지 본다.
-3. 커밋 메시지는 `$(TZ=Asia/Seoul date -d yesterday +%F) 제출 코드의 주석을 정리`이고, 차수가 여럿이면 뒤에 ` (2/3)`처럼 붙인다. 다음 날 대상 결정이 이 문구로 이 커밋을 거르므로 정확히 지킨다.
-4. `git push origin HEAD:main` 한다. 거절되면 `git pull --rebase origin main` 뒤 한 번 다시 시도한다.
-
-바뀐 파일이 없는 차수는 커밋하지 않는다.
-
-**보고** — 5절에 대상 기간과 커밋 해시·푸시 결과를 더한다. 실패하거나 건너뛴 단계는 숨기지 않는다.
+사용자가 승인한 일일 Routine에서 호출했을 때만 [references/unattended.md](references/unattended.md)를 읽고 실행한다. 대상 기간·커밋·푸시는 그 문서가 정하며, 1절의 작업 전 사본과 4절의 검증은 무인 실행에도 필수다.
