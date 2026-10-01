@@ -9,7 +9,7 @@
 /**
  * GE의 표시 데이터. 버프 목록은 아이콘을 채운 GE만 그린다.
  *
- * WxGame 리졸버와 WxEditor 썸네일이 이 컴포넌트를 읽는다.
+ * 이펙트 뷰모델과 WxEditor 썸네일이 이 컴포넌트를 읽는다.
  */
 UCLASS()
 class WXGAME_API UWxEffectComponent_UIData : public UGameplayEffectUIData

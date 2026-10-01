@@ -10,7 +10,6 @@
 #include "EngineUtils.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/PlayerController.h"
-#include "UI/MVVM/WxGameViewModelUtils.h"
 #include "UI/MVVM/WxViewModel_Character.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "View/MVVMView.h"
@@ -127,7 +126,7 @@ void UWxNameplateManagerComponent::UpdateNameplates(const AActor* Viewer, const 
 			UWxViewModel_Character* ViewModel = Widget ? NewObject<UWxViewModel_Character>(Widget) : nullptr;
 			if (ViewModel)
 			{
-				WxGameViewModel::InitializeCharacter(*ViewModel, *Target);
+				ViewModel->Initialize(Target->GetAbilitySystemComponent(), Target->GetTitle());
 			}
 			if (!View || !View->SetViewModelByClass(ViewModel))
 			{

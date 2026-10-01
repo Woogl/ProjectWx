@@ -10,11 +10,6 @@
 
 struct FStreamableHandle;
 class UAbilitySystemComponent;
-class UGameplayEffect;
-class UWxViewModel_Effect;
-
-/** 표시할 효과이면 필드를 채우고 true를 반환한다. */
-DECLARE_DELEGATE_RetVal_TwoParams(bool, FWxConfigureEffectViewModel, UWxViewModel_Effect&, const UGameplayEffect&);
 
 UCLASS()
 class WXGAME_API UWxViewModel_Effect : public UMVVMViewModelBase
@@ -22,8 +17,8 @@ class WXGAME_API UWxViewModel_Effect : public UMVVMViewModelBase
 	GENERATED_BODY()
 
 public:
-	void Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const FWxConfigureEffectViewModel& InConfigurePresentation);
-	void SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon);
+	/** UIData 에 아이콘이 없는 효과는 표시하지 않는다 — 핸들을 잡지 않고 돌아간다. */
+	void Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle);
 
 	/** 효과가 걷히면 목록 VM 이 부른다 — 이 VM 을 아직 붙든 위젯에 빈 값을 통지한다. */
 	void Deinitialize();

@@ -1,6 +1,12 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "UI/MVVM/WxViewModel_Dialogue.h"
+#include "Dialogue/WxDialogueSessionComponent.h"
+
+void UWxViewModel_Dialogue::SetSession(UWxDialogueSessionComponent* InSession)
+{
+	Session = InSession;
+}
 
 void UWxViewModel_Dialogue::SetLine(const FText& InSpeaker, const FText& InLine)
 {
@@ -13,7 +19,10 @@ void UWxViewModel_Dialogue::SetLine(const FText& InSpeaker, const FText& InLine)
 
 void UWxViewModel_Dialogue::RequestAdvance()
 {
-	OnAdvanceRequested.ExecuteIfBound();
+	if (UWxDialogueSessionComponent* DialogueSession = Session.Get())
+	{
+		DialogueSession->Advance();
+	}
 }
 
 bool UWxViewModel_Dialogue::HasSpeaker() const

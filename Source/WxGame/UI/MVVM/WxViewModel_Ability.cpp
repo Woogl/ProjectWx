@@ -2,14 +2,14 @@
 
 #include "UI/MVVM/WxViewModel_Ability.h"
 #include "AbilitySystemComponent.h"
-#include "Abilities/GameplayAbility.h"
+#include "AbilitySystem/Abilities/WxAbilityBase.h"
 #include "Engine/World.h"
 #include "GameplayEffect.h"
 #include "UI/MVVM/WxViewModelUtils.h"
 #include "TimerManager.h"
 #include "WxGameplayTags.h"
 
-void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged, FWxCanBindAbility InCanBindAbility)
+void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags)
 {
 	if (!InASC || InAbilityTags.IsEmpty())
 	{
@@ -18,8 +18,6 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGam
 
 	CachedASC = InASC;
 	AbilityTags = InAbilityTags;
-	OnBoundAbilityChanged = MoveTemp(InOnBoundAbilityChanged);
-	CanBindAbility = MoveTemp(InCanBindAbility);
 
 	// 어빌리티가 갈려도 쿨다운 GE 는 같은 ASC 에서 오므로 구독은 한 번뿐이다 — 지금 물고 있는 쿨다운 태그로 거르는 것은 핸들러가 한다.
 	InASC->OnActiveGameplayEffectAddedDelegateToSelf
@@ -117,17 +115,18 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 	}
 
 	// 쿨다운과 비용은 보지 않아 표시가 그것들로 흔들리지 않는다.
-	const UGameplayAbility* MatchedAbility = nullptr;
-	const UGameplayAbility* FallbackAbility = nullptr;
+	const UWxAbilityBase* MatchedAbility = nullptr;
+	const UWxAbilityBase* FallbackAbility = nullptr;
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
 	{
-		const UGameplayAbility* Ability = Spec.GetPrimaryInstance();
+		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.GetPrimaryInstance());
 		if (!Ability || !Ability->GetAssetTags().HasAll(AbilityTags))
 		{
 			continue;
 		}
 
-		if (CanBindAbility.Execute(*ASC, *Ability))
+		// 재생 중인 액션의 차단까지 보면 액션 도중 바뀐 요건이 액션이 끝날 때까지 표시되지 않으므로 소유자 태그만 본다.
+		if (Ability->DoesOwnerSatisfyActivationTags(*ASC))
 		{
 			MatchedAbility = Ability;
 			break;
@@ -164,15 +163,13 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 	if (!MatchedAbility)
 	{
 		SetPresentation(FText::GetEmpty(), FText::GetEmpty(), nullptr, 0, 0.f);
-		OnBoundAbilityChanged.ExecuteIfBound(*this, nullptr);
 		UE_MVVM_SET_PROPERTY_VALUE(CostAmount, 0.f);
 		UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, 0);
 		RefreshCheckCost();
 		return;
 	}
 
-	SetPresentation(FText::GetEmpty(), FText::GetEmpty(), nullptr, 1, 0.f);
-	OnBoundAbilityChanged.ExecuteIfBound(*this, MatchedAbility);
+	SetPresentation(MatchedAbility->GetTitle(), MatchedAbility->GetDescription(), MatchedAbility->GetIcon(), MatchedAbility->GetMaxRecharges(), MatchedAbility->GetCooldownTime());
 
 	if (const FGameplayTagContainer* CooldownTags = MatchedAbility->GetCooldownTags())
 	{

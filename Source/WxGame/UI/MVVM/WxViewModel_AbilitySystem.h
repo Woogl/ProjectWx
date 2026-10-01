@@ -6,8 +6,6 @@
 #include "Engine/TimerHandle.h"
 #include "GameplayTagContainer.h"
 #include "MVVMViewModelBase.h"
-#include "UI/MVVM/WxViewModel_Ability.h"
-#include "UI/MVVM/WxViewModel_Effect.h"
 #include "WxViewModel_AbilitySystem.generated.h"
 
 struct FGameplayAttribute;
@@ -16,7 +14,9 @@ struct FGameplayAbilitySpec;
 struct FGameplayEffectSpec;
 struct FActiveGameplayEffect;
 class UAbilitySystemComponent;
+class UWxViewModel_Ability;
 class UWxViewModel_Attribute;
+class UWxViewModel_Effect;
 
 /**
  * ASC의 어트리뷰트/어빌리티/이펙트를 자식 ViewModel로 노출하는 Composite 뷰모델.
@@ -46,10 +46,7 @@ public:
 	 * 조회는 컨테이너 정확 일치다 — 포함 관계로 찾으면 넓은 질의가 먼저 만들어진 것을 주워 생성 순서에 따라 결과가 갈린다.
 	 * 맞는 어빌리티가 아직 부여되지 않았어도 뷰모델은 만들어진다. 부여되면 그때 물고, 교체되면 갈아탄다.
 	 */
-	UWxViewModel_Ability* GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged, FWxCanBindAbility InCanBindAbility);
-
-	/** 먼저 조회된 빈 목록도 현재 활성 효과로 채운다. */
-	void ConfigureEffectPresentation(FWxConfigureEffectViewModel InConfigurePresentation);
+	UWxViewModel_Ability* GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags);
 
 	const TArray<TObjectPtr<UWxViewModel_Effect>>& GetActiveEffectViewModels() const;
 
@@ -84,8 +81,6 @@ protected:
 	FTimerHandle AbilityRebindHandle;
 
 private:
-	FWxConfigureEffectViewModel ConfigureEffectViewModel;
-
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter, Category = "Wx|AbilitySystem", meta = (AllowPrivateAccess = "true"))
 	TArray<TObjectPtr<UWxViewModel_Effect>> ActiveEffectViewModels;
 

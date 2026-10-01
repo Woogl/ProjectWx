@@ -11,11 +11,8 @@ class UWxPlayerLayoutComponent;
 class UWxInteractionScannerComponent;
 class UWxInventoryComponent;
 class UWxNameplateManagerComponent;
-class UWxItemDefinition;
-class UWxItemInstance;
 class UWxViewModel_Character;
 class UWxViewModel_Inventory;
-class UWxViewModel_Item;
 
 /**
  * 게임플레이 입력(이동/시선/어빌리티)은 AWxPlayerCharacter가, 메뉴 토글 입력은 UWxHUDLayout(CommonUI 액션)이 소유한다.
@@ -35,24 +32,11 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void SetPawn(APawn* InPawn) override;
 
-	/** 정의 단위 합계 VM. 인벤토리에 없어도 정의의 정적 정보로 만든다. 로컬 컨트롤러가 아니면 nullptr. */
-	UWxViewModel_Item* GetOrCreateItemViewModel(const UWxItemDefinition* ItemDef);
-
 protected:
 	virtual void BeginPlay() override;
 
 private:
 	void RefreshPlayerCharacterViewModel();
-
-	void HandleInventoryStackChanged(const UWxItemDefinition* ItemDef, int32 NewCount, int32 Delta);
-
-	/** 슬롯 수량·충전 변경은 목록 구성을 바꾸지 않으므로 만들어 둔 VM 의 값만 다시 채운다. */
-	void HandleInventoryInstanceChanged(UWxItemInstance* Instance, int32 NewValue, int32 Delta);
-
-	void RefreshInventoryItems();
-	void RefreshItemViewModels();
-	void RefreshItemViewModel(UWxViewModel_Item& ItemViewModel) const;
-	UWxViewModel_Item* CreateItemViewModel(const UObject* Source);
 
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	TObjectPtr<UWxInventoryComponent> InventoryComponent;

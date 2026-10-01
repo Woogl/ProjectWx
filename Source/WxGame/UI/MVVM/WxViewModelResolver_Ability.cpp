@@ -1,7 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "UI/MVVM/WxViewModelResolver_Ability.h"
-#include "AbilitySystem/Abilities/WxAbilityBase.h"
 #include "Blueprint/UserWidget.h"
 #include "UI/MVVM/WxViewModel_Ability.h"
 #include "UI/MVVM/WxViewModel_AbilitySystem.h"
@@ -17,18 +16,5 @@ UObject* UWxViewModelResolver_Ability::CreateInstance(const UClass* ExpectedType
 		return nullptr;
 	}
 
-	return AbilitySystemViewModel->GetOrCreateAbilityViewModel(AbilityTags,
-		FWxOnBoundAbilityChanged::CreateLambda([](UWxViewModel_Ability& ViewModel, const UGameplayAbility* Ability)
-		{
-			if (const UWxAbilityBase* WxAbility = Cast<UWxAbilityBase>(Ability))
-			{
-				ViewModel.SetPresentation(WxAbility->GetTitle(), WxAbility->GetDescription(), WxAbility->GetIcon(),
-					WxAbility->GetMaxRecharges(), WxAbility->GetCooldownTime());
-			}
-		}),
-		FWxCanBindAbility::CreateLambda([](const UAbilitySystemComponent& ASC, const UGameplayAbility& Ability)
-		{
-			const UWxAbilityBase* WxAbility = Cast<UWxAbilityBase>(&Ability);
-			return WxAbility ? WxAbility->DoesOwnerSatisfyActivationTags(ASC) : Ability.DoesAbilitySatisfyTagRequirements(ASC);
-		}));
+	return AbilitySystemViewModel->GetOrCreateAbilityViewModel(AbilityTags);
 }

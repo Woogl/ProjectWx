@@ -5,7 +5,6 @@
 #include "Blueprint/UserWidget.h"
 #include "Character/WxCharacterBase.h"
 #include "Engine/World.h"
-#include "UI/MVVM/WxGameViewModelUtils.h"
 #include "UI/MVVM/WxViewModel_Character.h"
 
 UObject* UWxViewModelResolver_BossCharacter::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
@@ -21,7 +20,7 @@ UObject* UWxViewModelResolver_BossCharacter::CreateInstance(const UClass* Expect
 	{
 		if (CurrentBoss)
 		{
-			WxGameViewModel::InitializeCharacter(*ViewModel, *CurrentBoss);
+			ViewModel->Initialize(CurrentBoss->GetAbilitySystemComponent(), CurrentBoss->GetTitle());
 		}
 		else
 		{

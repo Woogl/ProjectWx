@@ -8,7 +8,7 @@
 
 class UWxItemDefinition;
 
-/** 고정 아이템의 합계 VM 을 플레이어 Inventory VM 에서 얻는다. 정의로 채우는 일은 그 VM 을 채우는 PC 가 맡는다. */
+/** 고정 아이템의 합계 VM 을 플레이어 Inventory VM 에서 얻는다. */
 UCLASS(EditInlineNew, CollapseCategories)
 class WXGAME_API UWxViewModelResolver_Item : public UMVVMViewModelContextResolver
 {

@@ -2,26 +2,32 @@
 
 #include "UI/MVVM/WxViewModel_Effect.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystem/Effects/WxEffectComponent_UIData.h"
 #include "GameplayEffect.h"
 #include "UI/MVVM/WxViewModelUtils.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
 
-void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle, const FWxConfigureEffectViewModel& InConfigurePresentation)
+void UWxViewModel_Effect::Initialize(UAbilitySystemComponent* InASC, FActiveGameplayEffectHandle InHandle)
 {
-	if (!InASC || !InHandle.IsValid() || !InConfigurePresentation.IsBound())
+	if (!InASC || !InHandle.IsValid())
 	{
 		return;
 	}
 
 	const FActiveGameplayEffect* ActiveEffect = InASC->GetActiveGameplayEffect(InHandle);
-	if (!ActiveEffect || !ActiveEffect->Spec.Def || !InConfigurePresentation.Execute(*this, *ActiveEffect->Spec.Def))
+	const UWxEffectComponent_UIData* UIData = ActiveEffect && ActiveEffect->Spec.Def ? ActiveEffect->Spec.Def->FindComponent<UWxEffectComponent_UIData>() : nullptr;
+	if (!UIData || UIData->GetIcon().IsNull())
 	{
 		return;
 	}
 
 	CachedASC = InASC;
 	BoundHandle = InHandle;
+
+	UE_MVVM_SET_PROPERTY_VALUE(Title, UIData->GetTitle());
+	UE_MVVM_SET_PROPERTY_VALUE(Description, UIData->GetDescription());
+	SetIcon(UIData->GetIcon());
 
 	SetStackCount(ActiveEffect->Spec.GetStackCount());
 
@@ -165,11 +171,4 @@ void UWxViewModel_Effect::SetIcon(const TSoftObjectPtr<UObject>& InIcon)
 	{
 		UE_MVVM_SET_PROPERTY_VALUE(Icon, LoadedIcon);
 	});
-}
-
-void UWxViewModel_Effect::SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(Title, InTitle);
-	UE_MVVM_SET_PROPERTY_VALUE(Description, InDescription);
-	SetIcon(InIcon);
 }

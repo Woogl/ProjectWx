@@ -15,7 +15,7 @@ UObject* UWxViewModelResolver_Dialogue::CreateInstance(const UClass* ExpectedTyp
 		Session->OnLineChanged.AddUniqueDynamic(ViewModel, &UWxViewModel_Dialogue::SetLine);
 		// 창보다 먼저 발행된 첫 대사도 보여 준다.
 		ViewModel->SetLine(Session->GetCurrentSpeaker(), Session->GetCurrentLine());
-		ViewModel->OnAdvanceRequested.BindUObject(Session, &UWxDialogueSessionComponent::Advance);
+		ViewModel->SetSession(Session);
 	}
 	return ViewModel;
 }

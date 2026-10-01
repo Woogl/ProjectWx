@@ -71,7 +71,7 @@ UWxViewModel_Attribute* UWxViewModel_AbilitySystem::GetOrCreateAttributeViewMode
 	return AttrVM;
 }
 
-UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged, FWxCanBindAbility InCanBindAbility)
+UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags)
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 
@@ -90,7 +90,7 @@ UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(co
 	}
 
 	UWxViewModel_Ability* AbilityVM = NewObject<UWxViewModel_Ability>(this);
-	AbilityVM->Initialize(ASC, InAbilityTags, MoveTemp(InOnBoundAbilityChanged), MoveTemp(InCanBindAbility));
+	AbilityVM->Initialize(ASC, InAbilityTags);
 	AbilityViewModels.Add(AbilityVM);
 	return AbilityVM;
 }
@@ -157,13 +157,8 @@ bool UWxViewModel_AbilitySystem::AddActiveEffectViewModel(UAbilitySystemComponen
 		}
 	}
 
-	if (!ConfigureEffectViewModel.IsBound())
-	{
-		return false;
-	}
-
 	UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(this);
-	EffectVM->Initialize(InASC, Handle, ConfigureEffectViewModel);
+	EffectVM->Initialize(InASC, Handle);
 
 	// 초기화가 핸들을 잡지 못했으면 제거 통지와 영영 매칭되지 않아 목록에 유령으로 남는다.
 	if (!EffectVM->GetBoundHandle().IsValid())
@@ -235,21 +230,5 @@ void UWxViewModel_AbilitySystem::FlushAbilityRebind()
 		{
 			AbilityVM->RefreshBoundAbility();
 		}
-	}
-}
-
-void UWxViewModel_AbilitySystem::ConfigureEffectPresentation(FWxConfigureEffectViewModel InConfigurePresentation)
-{
-	if (ConfigureEffectViewModel.IsBound() || !InConfigurePresentation.IsBound())
-	{
-		return;
-	}
-
-	ConfigureEffectViewModel = MoveTemp(InConfigurePresentation);
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (ASC && ASC->OnActiveGameplayEffectAddedDelegateToSelf.IsBoundToObject(this))
-	{
-		BuildActiveEffectViewModels();
-		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
 	}
 }

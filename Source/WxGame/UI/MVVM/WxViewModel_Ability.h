@@ -15,10 +15,6 @@ struct FGameplayEffectSpec;
 struct FStreamableHandle;
 class UAbilitySystemComponent;
 class UGameplayAbility;
-class UWxViewModel_Ability;
-
-DECLARE_DELEGATE_TwoParams(FWxOnBoundAbilityChanged, UWxViewModel_Ability&, const UGameplayAbility*);
-DECLARE_DELEGATE_RetVal_TwoParams(bool, FWxCanBindAbility, const UAbilitySystemComponent&, const UGameplayAbility&);
 
 /**
  * 스킬 슬롯 하나의 뷰모델. 정체성은 어빌리티가 아니라 슬롯을 가리키는 어빌리티 태그다.
@@ -43,12 +39,8 @@ public:
 	/**
 	 * 생성 직후 한 번만 부른다.
 	 * @param InAbilityTags 슬롯을 가리키는 어빌리티 에셋 태그. 비어 있으면 아무 어빌리티나 매칭되므로 거부한다.
-	 * @param InCanBindAbility 후보가 소유자의 발동 태그 요건을 만족하는지. 재생 중인 액션의 차단까지 보면 액션 도중 바뀐 요건이 액션이 끝날 때까지 표시되지 않는다.
 	 */
-	void Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags, FWxOnBoundAbilityChanged InOnBoundAbilityChanged, FWxCanBindAbility InCanBindAbility);
-
-	/** 슬롯 변경 통지에서 호출한다. 이후 충전·쿨다운 갱신이 이 값을 사용한다. */
-	void SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon, int32 InMaxRecharges, float InCooldownTime);
+	void Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags);
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
 	bool TryActivateAbility();
@@ -130,8 +122,8 @@ private:
 	/** 어빌리티마다 다른 구독이라 어빌리티를 놓을 때마다 푼다. */
 	void UnbindCostAttributes(UAbilitySystemComponent& ASC);
 
-	FWxOnBoundAbilityChanged OnBoundAbilityChanged;
-	FWxCanBindAbility CanBindAbility;
+	/** 이후 충전·쿨다운 갱신이 이 값을 사용한다. */
+	void SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon, int32 InMaxRecharges, float InCooldownTime);
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;

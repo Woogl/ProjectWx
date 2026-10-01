@@ -20,8 +20,7 @@ UObject* UWxViewModelResolver_InteractionList::CreateInstance(const UClass* Expe
 		// 위젯보다 먼저 모인 행도 보여 준다.
 		ApplyRows.Execute();
 		Scanner->OnRowsChanged.Add(ApplyRows);
-		ViewModel->OnInteractRequested.BindUObject(Scanner, &UWxInteractionScannerComponent::TryInteractSelected);
-		ViewModel->OnCycleRequested.BindUObject(Scanner, &UWxInteractionScannerComponent::CycleSelection);
+		ViewModel->SetScanner(Scanner);
 	}
 	return ViewModel;
 }

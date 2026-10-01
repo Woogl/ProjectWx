@@ -1,7 +1,13 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "UI/MVVM/WxViewModel_InteractionList.h"
+#include "Interaction/WxInteractionScannerComponent.h"
 #include "UI/MVVM/WxViewModel_Interaction.h"
+
+void UWxViewModel_InteractionList::SetScanner(UWxInteractionScannerComponent* InScanner)
+{
+	Scanner = InScanner;
+}
 
 void UWxViewModel_InteractionList::SetRows(const TArray<FText>& Prompts, int32 SelectedIndex)
 {
@@ -19,10 +25,16 @@ void UWxViewModel_InteractionList::SetRows(const TArray<FText>& Prompts, int32 S
 
 void UWxViewModel_InteractionList::RequestInteract()
 {
-	OnInteractRequested.ExecuteIfBound();
+	if (UWxInteractionScannerComponent* InteractionScanner = Scanner.Get())
+	{
+		InteractionScanner->TryInteractSelected();
+	}
 }
 
 void UWxViewModel_InteractionList::RequestCycle(int32 Delta)
 {
-	OnCycleRequested.ExecuteIfBound(Delta);
+	if (UWxInteractionScannerComponent* InteractionScanner = Scanner.Get())
+	{
+		InteractionScanner->CycleSelection(Delta);
+	}
 }
