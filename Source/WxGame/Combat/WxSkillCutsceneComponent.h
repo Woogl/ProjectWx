@@ -87,7 +87,7 @@ struct FWxSkillCutsceneServerState
 	/** 월드 오디오 시각. 로컬 재생과 무관하게 이 시각에 세션을 끝낸다. */
 	double EndTime = 0.0;
 
-	float AppliedDilation = 0.f;
+	uint64 TimeDilationHandle = 0;
 	bool bAvatarWasAlwaysRelevant = false;
 };
 

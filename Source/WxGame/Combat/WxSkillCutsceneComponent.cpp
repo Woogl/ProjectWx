@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "Combat/WxSkillCutsceneComponent.h"
+#include "Combat/WxTimeDilationSubsystem.h"
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
@@ -13,7 +14,6 @@
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
 #include "GroomComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "LevelSequence.h"
 #include "LevelSequenceActor.h"
 #include "LevelSequencePlayer.h"
@@ -138,10 +138,10 @@ bool UWxSkillCutsceneComponent::Start(UGameplayAbility* Requester, ULevelSequenc
 	ServerState.Owner = Requester;
 	ServerState.EndTime = GetWorld()->GetAudioTimeSeconds() + Duration;
 
-	UGameplayStatics::SetGlobalTimeDilation(this, FMath::Max(Dilation, 0.001f));
-
-	// 엔진이 Min/MaxGlobalTimeDilation으로 클램프하므로, 해제 때 비교하려면 요청값이 아니라 실제로 박힌 값을 들고 있어야 한다.
-	ServerState.AppliedDilation = UGameplayStatics::GetGlobalTimeDilation(this);
+	if (UWxTimeDilationSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxTimeDilationSubsystem>())
+	{
+		ServerState.TimeDilationHandle = Subsystem->AddRequest(FMath::Max(Dilation, 0.001f));
+	}
 
 	ServerState.bAvatarWasAlwaysRelevant = Avatar->bAlwaysRelevant;
 	Avatar->bAlwaysRelevant = true;
@@ -403,10 +403,9 @@ void UWxSkillCutsceneComponent::SetGroomTimeDilation(float Dilation)
 
 void UWxSkillCutsceneComponent::Finish(bool bCancelled)
 {
-	// 시작 때 박은 값이 그대로일 때만 되돌린다. 컷신 도중 끊긴 다른 슬로우 타임의 배율을 되살리지 않는다.
-	if (ServerState.AppliedDilation > 0.f && FMath::IsNearlyEqual(UGameplayStatics::GetGlobalTimeDilation(this), ServerState.AppliedDilation))
+	if (UWxTimeDilationSubsystem* Subsystem = GetWorld()->GetSubsystem<UWxTimeDilationSubsystem>())
 	{
-		UGameplayStatics::SetGlobalTimeDilation(this, 1.f);
+		Subsystem->RemoveRequest(ServerState.TimeDilationHandle);
 	}
 	if (UAbilitySystemComponent* ASC = ServerState.InvincibleASC.Get())
 	{

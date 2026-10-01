@@ -3,8 +3,8 @@
 #include "AbilitySystem/Tasks/WxAbilityTask_SlowTime.h"
 
 #include "AbilitySystemComponent.h"
+#include "Combat/WxTimeDilationSubsystem.h"
 #include "Engine/World.h"
-#include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 
 UWxAbilityTask_SlowTime* UWxAbilityTask_SlowTime::CreateTask(UGameplayAbility* OwningAbility, float InTimeDilation, float InDuration)
@@ -17,10 +17,12 @@ UWxAbilityTask_SlowTime* UWxAbilityTask_SlowTime::CreateTask(UGameplayAbility* O
 
 void UWxAbilityTask_SlowTime::OnDestroy(bool bInOwnerFinished)
 {
-	if (AppliedDilation > 0.f && FMath::IsNearlyEqual(UGameplayStatics::GetGlobalTimeDilation(this), AppliedDilation))
+	if (UWxTimeDilationSubsystem* Subsystem = TimeDilationSubsystem.Get())
 	{
-		UGameplayStatics::SetGlobalTimeDilation(this, 1.f);
+		Subsystem->RemoveRequest(TimeDilationHandle);
 	}
+	TimeDilationHandle = 0;
+	TimeDilationSubsystem.Reset();
 
 	Super::OnDestroy(bInOwnerFinished);
 }
@@ -39,13 +41,14 @@ void UWxAbilityTask_SlowTime::Activate()
 
 	if (AbilitySystemComponent.IsValid() && AbilitySystemComponent->IsOwnerActorAuthoritative())
 	{
-		UGameplayStatics::SetGlobalTimeDilation(this, TimeDilation);
-
-		// 엔진이 Min/MaxGlobalTimeDilation으로 클램프하므로, 해제 때 비교하려면 요청값이 아니라 실제로 박힌 값을 들고 있어야 한다.
-		AppliedDilation = UGameplayStatics::GetGlobalTimeDilation(this);
+		if (UWxTimeDilationSubsystem* Subsystem = World->GetSubsystem<UWxTimeDilationSubsystem>())
+		{
+			TimeDilationSubsystem = Subsystem;
+			TimeDilationHandle = Subsystem->AddRequest(TimeDilation);
+		}
 	}
 
-	// 순정 WaitDelay처럼 핸들을 들지 않는다 — 먼저 끝난 태스크에 도착한 EndTask는 무시된다.
+	// 순정 WaitDelay처럼 타이머 핸들을 보관하지 않는다 — 먼저 끝난 태스크에 도착한 EndTask는 무시된다.
 	FTimerHandle TimerHandle;
 	if (Duration > 0.f)
 	{
