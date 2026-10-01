@@ -289,7 +289,7 @@ void UWxViewModel_Ability::FlushActivationRefresh()
 {
 	ActivationRefreshHandle.Invalidate();
 
-	// 후보를 가르는 요건이 태그라 대상부터 다시 고른다. 고른 것이 그대로면 조기 반환한다.
+	// 후보를 가르는 요건이 태그라 대상부터 다시 고른다.
 	RefreshBoundAbility();
 
 	RefreshCheckCost();

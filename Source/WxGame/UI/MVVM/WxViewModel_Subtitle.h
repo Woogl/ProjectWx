@@ -23,7 +23,7 @@ class WXGAME_API UWxViewModel_Subtitle : public UMVVMViewModelBase
 public:
 	static UWxViewModel_Subtitle* GetOrCreate(const UObject* WorldContextObject);
 
-	/** 자막을 이 화자·문구로 바꾸고, 나중에 회수할 때 쓸 핸들을 발급한다. */
+	/** 나중에 회수할 때 쓸 핸들을 발급한다. */
 	int32 ShowSubtitle(const FText& InSpeakerText, const FText& InSubtitleText);
 
 	/** 발급 핸들이 지금 걸린 자막의 것일 때만 화면에서 걷어간다. */

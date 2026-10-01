@@ -28,8 +28,7 @@ class UWxAbilityBase;
  *
  * CheckCost 는 ASC 태그·발동 조건 이벤트/비용 어트리뷰트 변화 시점에 재평가된다.
  * 태그 변경과 발동 조건 이벤트는 한 프레임 분을 모아 다음 월드 타이머 틱에 한 번 판정한다.
- *
- * 소모량은 어빌리티를 물 때 한 번 조회해 정하고, 해당 자원 변화 시 CheckCost를 다시 판정한다.
+ * 소모량은 어빌리티를 물 때 한 번만 조회한다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_Ability : public UMVVMViewModelBase
@@ -135,7 +134,6 @@ private:
 	 */
 	float CachedCooldownTime = 0.f;
 
-	/** 표시 중인 비용의 자원 속성. 값 변경 델리게이트 등록/해제용. */
 	FGameplayAttribute CostAttribute;
 
 	FTimerHandle CooldownTimerHandle;

@@ -11,7 +11,6 @@ class UUserWidget;
 class UWidgetComponent;
 
 /**
- * 플레이어 컨트롤러에 붙어, 적 중 보일 대상에만 Nameplate 위젯을 붙이고 조건을 벗어나면 뗀다.
  * 교전 중이면서 거리 안인 적과 LockOn 대상의 주인에 Nameplate를 붙이고, LockOn 대상 지점에는 Reticle을 붙인다.
  *
  * 보는 사람마다 다른 로컬 표시라 소유 클라(리슨 호스트 포함)에서만 구동한다.

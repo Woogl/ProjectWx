@@ -21,7 +21,6 @@ class WXGAME_API UWxViewModel_InteractionList : public UMVVMViewModelBase
 public:
 	void SetScanner(UWxInteractionScannerComponent* InScanner);
 
-	/** 선택만 바뀌어도 행 전체를 다시 만든다. */
 	void SetRows(const TArray<FText>& Prompts, int32 SelectedIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Interaction")
