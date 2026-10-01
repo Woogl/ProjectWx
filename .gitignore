@@ -80,6 +80,7 @@ DerivedDataCache/*
 .agents/**/*.local.json
 
 # .claude/skills 는 .agents/skills 를 가리키는 junction 이라 추적하지 않는다.
+# 클론 직후 루트에서 생성: cmd /c mklink /J .claude\skills .agents\skills
 /.claude/skills/
 
 # Python
