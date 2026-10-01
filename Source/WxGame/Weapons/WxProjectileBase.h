@@ -52,6 +52,8 @@ public:
 	//~ Begin IGenericTeamAgentInterface
 	/** 팀을 따로 들지 않고 Instigator의 것을 그대로 쓴다 — 피격 판정도 같은 출처로 적대 여부를 가린다. */
 	virtual FGenericTeamId GetGenericTeamId() const override;
+
+	virtual void PostNetReceiveVelocity(const FVector& NewVelocity) override;
 	//~ End IGenericTeamAgentInterface
 
 protected:
@@ -82,7 +84,7 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	/** 되돌림은 Instigator 교체로 복제되므로, 클라는 그 신호에 맞춰 로컬 예측 속도를 복제된 회전으로 다시 세운다. */
+	/** 되돌림은 Instigator 교체로 복제되므로, 클라는 그 신호에 맞춰 옛 유도 대상을 비운다. */
 	virtual void OnRep_Instigator() override;
 
 	UFUNCTION()

@@ -21,6 +21,7 @@ AWxProjectileBase::AWxProjectileBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+	SetReplicatingMovement(true);
 
 	HitCollision = CreateDefaultSubobject<USphereComponent>(TEXT("HitCollision"));
 	SetRootComponent(HitCollision);
@@ -81,6 +82,14 @@ FGenericTeamId AWxProjectileBase::GetGenericTeamId() const
 	return InstigatorTeamAgent ? InstigatorTeamAgent->GetGenericTeamId() : FGenericTeamId::NoTeam;
 }
 
+void AWxProjectileBase::PostNetReceiveVelocity(const FVector& NewVelocity)
+{
+	Super::PostNetReceiveVelocity(NewVelocity);
+
+	// 서버 되돌림이 바꾼 속도를 로컬 이동 시뮬레이션에 반영한다.
+	ProjectileMovement->Velocity = NewVelocity;
+}
+
 void AWxProjectileBase::Reflect(APawn& Parrier)
 {
 	const APawn* Shooter = GetInstigator();
@@ -138,8 +147,7 @@ void AWxProjectileBase::OnRep_Instigator()
 {
 	Super::OnRep_Instigator();
 
-	// 유도 대상은 되돌림 전의 Instigator라 클라가 알 수 없어 비운다 — 궤적은 복제된 위치가 끌고 간다.
-	ProjectileMovement->Velocity = GetActorRotation().Vector() * ProjectileMovement->InitialSpeed;
+	// 유도 대상은 되돌림 전의 Instigator라 클라가 알 수 없어 비운다 — 궤적은 복제된 이동이 끌고 간다.
 	ProjectileMovement->HomingTargetComponent = nullptr;
 }
 
