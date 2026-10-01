@@ -2,6 +2,7 @@
 
 #include "Inventory/WxStateTreeTask_GiveRewards.h"
 
+#include "Device/WxDeviceStateTreeComponent.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
@@ -20,8 +21,7 @@ FWxStateTreeTask_GiveRewards::FWxStateTreeTask_GiveRewards()
 
 EStateTreeRunStatus FWxStateTreeTask_GiveRewards::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
-	if (bInitialEntry)
+	if (UWxDeviceStateTreeComponent::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

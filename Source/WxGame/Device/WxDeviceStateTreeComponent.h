@@ -56,7 +56,7 @@ public:
 
 	/**
 	 * 장치 태스크는 상태 적용(위치·표시)은 복원에서도 실행하고, 일회성 효과(사운드·보상·스폰)는 실제 진입에서만 실행한다.
-	 * 트리 시작(재시작 포함)과, 이 컴포넌트가 스냅샷을 따라 요청한 복원 전이가 복원이다. 장치가 아닌 트리는 트리 시작만 복원이다.
+	 * 트리 시작(재시작 포함)과, 이 컴포넌트가 스냅샷을 따라 요청한 복원 전이가 복원이다. 장치가 아닌 트리(퀘스트 등)에는 복원이 없다.
 	 */
 	static bool IsRestoring(const FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition);
 
@@ -71,7 +71,7 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, Transient, ReplicatedUsing = OnRep_StateSnapshot, Category = "Wx")
 	FWxDeviceStateSnapshot StateSnapshot;
 
-	/** 서버는 트리를 시작한 뒤 이 상태로 전이하므로, IsRestoring 을 모르는 다른 도메인 태스크(보상 지급 등)는 실제 진입으로 본다 — 이 상태에는 그런 일회성 효과를 두지 않는다. */
+	/** 서버는 트리를 시작한 뒤 이 상태로 복원한다. 일회성 효과 태스크는 IsRestoring으로 복원 전이를 제외해야 한다. */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (GetOptions = "GetInitialStateOptions"))
 	FName InitialState;
 

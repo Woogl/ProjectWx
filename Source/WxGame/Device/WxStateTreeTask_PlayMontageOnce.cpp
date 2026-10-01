@@ -2,6 +2,7 @@
 
 #include "Device/WxStateTreeTask_PlayMontageOnce.h"
 
+#include "Device/WxDeviceStateTreeComponent.h"
 #include "AbilitySystem/Abilities/WxAbility_PlayMontageOnce.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
@@ -15,8 +16,7 @@ EStateTreeRunStatus FWxStateTreeTask_PlayMontageOnce::EnterState(FStateTreeExecu
 	Instance.AbilitySystem = nullptr;
 	Instance.AbilityHandle = FGameplayAbilitySpecHandle();
 
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
-	if (bInitialEntry)
+	if (UWxDeviceStateTreeComponent::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}

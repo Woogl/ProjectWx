@@ -19,7 +19,7 @@ struct FWxStateTreeTask_RespawnSpawnersInstanceData
 
 /**
  * 라이브 전이로 진입할 때 권위 측에서 월드의 Auto 모드 스포너를 일괄 리스폰한다(체크포인트 휴식 시 적 리스폰).
- * 초기 진입(StateTree 시작/복원/레이트조인)이면 호출하지 않는다 — 리스폰은 발동 순간의 효과다.
+ * 장치 트리의 시작·복원(레이트조인·장치 복원 전이)이면 호출하지 않는다 — 리스폰은 발동 순간의 효과다.
  */
 USTRUCT(meta = (DisplayName = "스포너 리스폰", Category = "Wx"))
 struct FWxStateTreeTask_RespawnSpawners : public FStateTreeTaskCommonBase

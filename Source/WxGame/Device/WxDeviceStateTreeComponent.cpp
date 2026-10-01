@@ -29,15 +29,12 @@ void UWxDeviceStateTreeComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 
 bool UWxDeviceStateTreeComponent::IsRestoring(const FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition)
 {
-	// 트리 시작(재시작 포함)은 엔진이 소스 상태를 비워 둔다.
-	if (!Transition.SourceStateID.IsValid())
-	{
-		return true;
-	}
-
+	// 복원은 장치 트리에만 있다 — 퀘스트처럼 장치가 아닌 러너에서는 트리 시작도 라이브 진입이다.
 	const AActor* Owner = Cast<AActor>(Context.GetOwner());
 	const UWxDeviceStateTreeComponent* Component = Owner ? Owner->FindComponentByClass<UWxDeviceStateTreeComponent>() : nullptr;
-	return Component && Component->bRestoringState;
+
+	// 트리 시작(재시작 포함)은 엔진이 소스 상태를 비워 둔다.
+	return Component && (!Transition.SourceStateID.IsValid() || Component->bRestoringState);
 }
 
 void UWxDeviceStateTreeComponent::StartLogic()

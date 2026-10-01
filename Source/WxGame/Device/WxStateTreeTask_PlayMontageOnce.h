@@ -42,7 +42,7 @@ struct FWxStateTreeTask_PlayMontageOnceInstanceData
 /**
  * 라이브 전이로 진입할 때 권위 측에서 Target 에게 UWxAbility_PlayMontageOnce 를 1회 부여·발동하고, 그 어빌리티가 끝나면(몽타주 종료·취소, Target 소멸) Succeeded 로 완료한다.
  * 끝을 아는 것은 부여한 권위뿐이라 권위가 아닌 피어에서는 Running 으로 머문다 — 장치 트리에서는 서버가 발행하는 다음 상태로 넘어가므로, 이 태스크를 둔 상태와 다음 상태는 서로 다른 태그 상태여야 한다.
- * 초기 진입(StateTree 시작/레이트조인: SourceStateID 무효)이면 재생하지 않고 곧바로 완료한다 — 발동 순간의 연출이다.
+ * 장치 트리의 초기 진입·복원·레이트조인은 IsRestoring으로 제외한다. 일반 트리의 첫 진입은 재생한다.
  */
 USTRUCT(meta = (DisplayName = "몽타주 1회 재생", Category = "Wx"))
 struct FWxStateTreeTask_PlayMontageOnce : public FStateTreeTaskCommonBase

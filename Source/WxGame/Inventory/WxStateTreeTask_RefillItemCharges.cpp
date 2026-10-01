@@ -2,6 +2,7 @@
 
 #include "Inventory/WxStateTreeTask_RefillItemCharges.h"
 
+#include "Device/WxDeviceStateTreeComponent.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/PlayerController.h"
 #include "Inventory/WxInventoryComponent.h"
@@ -20,8 +21,7 @@ FWxStateTreeTask_RefillItemCharges::FWxStateTreeTask_RefillItemCharges()
 
 EStateTreeRunStatus FWxStateTreeTask_RefillItemCharges::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	const bool bInitialEntry = !Transition.SourceStateID.IsValid();
-	if (bInitialEntry)
+	if (UWxDeviceStateTreeComponent::IsRestoring(Context, Transition))
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
