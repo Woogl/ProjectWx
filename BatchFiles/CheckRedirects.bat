@@ -435,9 +435,10 @@ function Invoke-Audit([string]$Root, $Redirects) {
         $pattern = $null
         if ($r.Kind -eq 'GameplayTag') { $pattern = '"' + $r.Old + '"' }
         elseif ($r.Kind -eq 'GameName') { $pattern = $r.Needles | Where-Object { $_.StartsWith('/Script/') } | Select-Object -First 1 }
-        elseif ($r.Old.StartsWith('/')) { $pattern = $r.Old }
-        if (-not $pattern) { continue }
-        foreach ($m in (Select-String -LiteralPath $textPaths -Pattern $pattern -SimpleMatch -CaseSensitive -ErrorAction SilentlyContinue)) {
+        else { $pattern = $r.Old }
+        if (-not $pattern) { $r.Unsupported = 'no text reference search pattern'; continue }
+        # Short Core Redirect names also match qualified paths. FName matching is case-insensitive.
+        foreach ($m in (Select-String -LiteralPath $textPaths -Pattern $pattern -SimpleMatch -ErrorAction Stop)) {
             # The redirect entries themselves and ini comments are not references.
             if ($m.Line -match $RedirectLine -or ($m.Path.EndsWith('.ini') -and $m.Line -match '^\s*;')) { continue }
             [void]$r.TextHits.Add(('{0}:{1}' -f $m.Path.Substring($Root.Length).TrimStart('\'), $m.LineNumber))
