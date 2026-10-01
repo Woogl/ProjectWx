@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Effects/WxEffectComponent_DamageReaction.h"
 #include "AbilitySystem/Attributes/WxCombatAttributeSet.h"
+#include "AbilitySystem/WxAbilityTargetData_Direction.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "GameplayCueManager.h"
@@ -87,6 +88,27 @@ void UWxEffectComponent_DamageReaction::ProcessDamageTaken(UAbilitySystemCompone
 	HitEventData.Target = TargetActor;
 	HitEventData.EventMagnitude = Damage;
 	HitEventData.ContextHandle = ContextHandle;
+	const bool bKnockReaction = ReactionTag == WxGameplayTags::HitReact_KnockBack
+		|| ReactionTag == WxGameplayTags::HitReact_KnockDown
+		|| ReactionTag == WxGameplayTags::HitReact_KnockUp;
+	if (bKnockReaction && TargetActor)
+	{
+		const AActor* Instigator = HitEventData.Instigator.Get();
+		// 투사체가 소유 클라이언트에 도착하기 전에 파괴되어도 가드 반응과 밀림은 같은 방향을 쓴다.
+		const AActor* Causer = ContextHandle.GetEffectCauser();
+		const AActor* AttackSource = (Causer && Causer->GetAttachParentActor() != Instigator) ? Causer : Instigator;
+		FVector Direction = AttackSource
+			? (TargetActor->GetActorLocation() - AttackSource->GetActorLocation()).GetSafeNormal2D()
+			: FVector::ZeroVector;
+		if (Direction.IsNearlyZero())
+		{
+			Direction = -TargetActor->GetActorForwardVector().GetSafeNormal2D();
+		}
+		// 같은 타격의 방향을 서버와 소유 클라이언트에 함께 전달한다.
+		FWxAbilityTargetData_Direction* DirectionData = new FWxAbilityTargetData_Direction();
+		DirectionData->Direction = Direction;
+		HitEventData.TargetData.Add(DirectionData);
+	}
 	ASC->HandleGameplayEvent(HitEventTag, &HitEventData);
 
 	if (SourceASC)

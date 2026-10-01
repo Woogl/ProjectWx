@@ -27,12 +27,23 @@ public:
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual bool PlayMontageInternal(UAnimMontage* Montage, FName StartSection) override;
+
+	/** KnockBack만 사용한다. 해당 몽타주 구간에는 Disable Root Motion 노티파이가 필요하다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability|Knockback", meta = (ClampMin = "0.0", Units = "cm"))
+	float KnockbackDistance = 200.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability|Knockback", meta = (ClampMin = "0.01", Units = "s"))
+	float KnockbackDuration = 0.3f;
 
 	/** 이동 튜닝(JumpZVelocity)과 분리해 전투 쪽에서 정한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability", meta = (ClampMin = "0.0"))
 	float KnockupZVelocity = 640.f;
 
 private:
+	FVector KnockbackDirection = FVector::ZeroVector;
+	bool bPendingKnockback = false;
+
 	/** 섹션을 고를 반응. 패리는 Event.Hit.Parry로 돌려준다. */
 	static FGameplayTag GetReactionTag(const FGameplayEventData& Payload);
 

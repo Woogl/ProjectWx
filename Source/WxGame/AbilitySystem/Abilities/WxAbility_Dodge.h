@@ -7,6 +7,7 @@
 #include "WxAbility_Dodge.generated.h"
 
 class UCapsuleComponent;
+class UAbilityTask_ApplyRootMotionConstantForce;
 
 /**
  * 입력 방향에 해당하는 8방향 섹션(이동 입력이 없으면 Backstep 섹션)을 재생하고, 몽타주의 Effect.Invincible 구간에 피격되면 극한 회피로 이어진다.
@@ -34,11 +35,37 @@ public:
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	virtual bool PlayMontageInternal(UAnimMontage* Montage, FName StartSection) override;
 
 	/** 입력이 없으면 Backstep, 방향 섹션의 기본값은 Back이다. 락온이 아니면 양자화 잔차만큼 몸을 돌려 이동을 입력 방향에 맞춘다. */
 	virtual FName SelectInputDirectionSection(const UAnimMontage* Montage, const FString& Prefix, const FVector& LocalDirection) override;
 
+	/** 회피 몽타주의 각 섹션에는 Disable Root Motion 구간을 둔다. 이동 시간은 후딜레이를 포함하지 않는다. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Dodge", meta = (ClampMin = "0.0", Units = "cm"))
+	float DodgeDistance = 400.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Dodge", meta = (ClampMin = "0.01", Units = "s"))
+	float DodgeDuration = 0.4f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Dodge|Backstep", meta = (ClampMin = "0.0", Units = "cm"))
+	float BackstepDistance = 200.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Dodge|Backstep", meta = (ClampMin = "0.01", Units = "s"))
+	float BackstepDuration = 0.25f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Dodge|Success", meta = (ClampMin = "0.0", Units = "cm"))
+	float SuccessDistance = 400.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Dodge|Success", meta = (ClampMin = "0.01", Units = "s"))
+	float SuccessDuration = 0.4f;
+
 private:
+	FVector DodgeDirection = FVector::ZeroVector;
+	bool bBackstep = false;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAbilityTask_ApplyRootMotionConstantForce> MovementTask;
+
 	static const FName BackstepSectionName;
 	static const FString SuccessSectionPrefix;
 

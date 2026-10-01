@@ -1,8 +1,11 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Abilities/WxAbility_GuardReact.h"
+#include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
+#include "AbilitySystem/WxAbilityTargetData_Direction.h"
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/RootMotionSource.h"
 #include "WxGameplayTags.h"
 
 const FName UWxAbility_GuardReact::GuardHitSectionName(TEXT("GuardHit"));
@@ -80,7 +83,22 @@ void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		}
 	}
 
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !PlayMontage(GetMontage(), SelectSection(TriggerTag, ReactionTag)))
+	const FName SectionName = SelectSection(TriggerTag, ReactionTag);
+	KnockbackDirection = FVector::ZeroVector;
+	if (SectionName == GuardKnockbackSectionName && TriggerEventData)
+	{
+		const FGameplayAbilityTargetData* DirectionData = TriggerEventData->TargetData.Get(0);
+		if (DirectionData && DirectionData->GetScriptStruct() == FWxAbilityTargetData_Direction::StaticStruct())
+		{
+			const FVector Direction = static_cast<const FWxAbilityTargetData_Direction*>(DirectionData)->Direction;
+			if (!Direction.ContainsNaN())
+			{
+				KnockbackDirection = Direction.GetSafeNormal2D();
+			}
+		}
+	}
+
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !PlayMontage(GetMontage(), SectionName))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -94,6 +112,11 @@ void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Han
 	const AActor* AttackSource = (Causer && Causer->GetAttachParentActor() != Attacker) ? Causer : Attacker;
 
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
+	if (AvatarActor && !KnockbackDirection.IsNearlyZero())
+	{
+		AvatarActor->SetActorRotation((-KnockbackDirection).Rotation());
+		return;
+	}
 	if (AttackSource && AvatarActor)
 	{
 		FVector Direction = AttackSource->GetActorLocation() - AvatarActor->GetActorLocation();
@@ -105,6 +128,22 @@ void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Han
 			AvatarActor->SetActorRotation(NewRotation);
 		}
 	}
+}
+
+bool UWxAbility_GuardReact::PlayMontageInternal(UAnimMontage* Montage, FName StartSection)
+{
+	if (!Super::PlayMontageInternal(Montage, StartSection))
+	{
+		return false;
+	}
+	if (StartSection == GuardKnockbackSectionName && !KnockbackDirection.IsNearlyZero() && KnockbackDistance > 0.f && KnockbackDuration > 0.f)
+	{
+		UAbilityTask_ApplyRootMotionConstantForce* KnockbackTask = UAbilityTask_ApplyRootMotionConstantForce::ApplyRootMotionConstantForce(
+			this, TEXT("WxGuardKnockback"), KnockbackDirection, KnockbackDistance / KnockbackDuration,
+			KnockbackDuration, false, nullptr, ERootMotionFinishVelocityMode::SetVelocity, FVector::ZeroVector, 0.f, true);
+		KnockbackTask->ReadyForActivation();
+	}
+	return true;
 }
 
 void UWxAbility_GuardReact::HandleMontageBlendOut()

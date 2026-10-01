@@ -1,9 +1,12 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Abilities/WxAbility_HitReact.h"
+#include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
+#include "AbilitySystem/WxAbilityTargetData_Direction.h"
 #include "AbilitySystemComponent.h"
 #include "Animation/AnimMontage.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/RootMotionSource.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_HitReact::UWxAbility_HitReact()
@@ -75,6 +78,21 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	}
 	const AActor* Instigator = TriggerEventData ? TriggerEventData->Instigator.Get() : nullptr;
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
+	bPendingKnockback = ReactionTag == WxGameplayTags::HitReact_KnockBack;
+	KnockbackDirection = FVector::ZeroVector;
+	if (bPendingKnockback && TriggerEventData)
+	{
+		// 발동 RPC에 실린 서버 확정 방향을 써서, 이동 중인 공격자 위치로 재계산하지 않는다.
+		const FGameplayAbilityTargetData* DirectionData = TriggerEventData->TargetData.Get(0);
+		if (DirectionData && DirectionData->GetScriptStruct() == FWxAbilityTargetData_Direction::StaticStruct())
+		{
+			const FVector Direction = static_cast<const FWxAbilityTargetData_Direction*>(DirectionData)->Direction;
+			if (!Direction.ContainsNaN())
+			{
+				KnockbackDirection = Direction.GetSafeNormal2D();
+			}
+		}
+	}
 
 	// 그로기 중 넉 계열은 보내는 쪽(UWxEffectComponent_DamageReaction)이 일반 피격으로 낮춰 온다.
 	if (!PlayMontage(GetMontage(), ReactionTag.GetTagLeafName()))
@@ -90,12 +108,39 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 			Character->LaunchCharacter(FVector(0.f, 0.f, KnockupZVelocity), false, true);
 		}
 	}
+	else if (ReactionTag == WxGameplayTags::HitReact_KnockBack && AvatarActor && !KnockbackDirection.IsNearlyZero())
+	{
+		AvatarActor->SetActorRotation((-KnockbackDirection).Rotation());
+	}
 	else if (ReactionTag == WxGameplayTags::HitReact_KnockBack
 		|| ReactionTag == WxGameplayTags::HitReact_KnockDown
 		|| ReactionTag == WxGameplayTags::Event_Hit_Parry)
 	{
 		FaceInstigator(AvatarActor, Instigator);
 	}
+}
+
+bool UWxAbility_HitReact::PlayMontageInternal(UAnimMontage* Montage, FName StartSection)
+{
+	if (!Super::PlayMontageInternal(Montage, StartSection))
+	{
+		return false;
+	}
+
+	// 방향 섹션 수신을 기다린 경우에도 실제 재생이 시작되는 시점에 한 번만 이동한다.
+	if (bPendingKnockback)
+	{
+		bPendingKnockback = false;
+		if (!KnockbackDirection.IsNearlyZero() && KnockbackDistance > 0.f && KnockbackDuration > 0.f)
+		{
+			UAbilityTask_ApplyRootMotionConstantForce* KnockbackTask = UAbilityTask_ApplyRootMotionConstantForce::ApplyRootMotionConstantForce(
+				this, TEXT("WxKnockback"), KnockbackDirection, KnockbackDistance / KnockbackDuration,
+				KnockbackDuration, false, nullptr, ERootMotionFinishVelocityMode::SetVelocity, FVector::ZeroVector, 0.f, true);
+			// 밀림이 끝나도 피격 몽타주는 유지한다. 취소·재피격은 소유 어빌리티 종료로 태스크를 회수한다.
+			KnockbackTask->ReadyForActivation();
+		}
+	}
+	return true;
 }
 
 FGameplayTag UWxAbility_HitReact::GetReactionTag(const FGameplayEventData& Payload)

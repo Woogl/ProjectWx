@@ -1,14 +1,18 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Abilities/WxAbility_Dodge.h"
+#include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
 #include "Abilities/Tasks/AbilityTask_NetworkSyncPoint.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
 #include "AbilitySystem/Effects/WxEffect_Damage.h"
+#include "AbilitySystem/Tasks/WxAbilityTask_LockMovementRotation.h"
 #include "AbilitySystemComponent.h"
 #include "Animation/AnimMontage.h"
 #include "WxCollisionChannels.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/RootMotionSource.h"
 #include "WxGameplayTags.h"
 
 const FName UWxAbility_Dodge::BackstepSectionName(TEXT("Backstep"));
@@ -29,12 +33,16 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	bDodgeSuccessHandled = false;
+	DodgeDirection = FVector::ZeroVector;
+	bBackstep = false;
 
 	if (!GetMontage() || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
+
+	UWxAbilityTask_LockMovementRotation::CreateTask(this)->ReadyForActivation();
 
 	// 원격 플레이어의 서버 인스턴스는 방향 데이터를 받은 뒤에야 실제로 재생한다.
 	if (!PlayMontage(GetMontage()))
@@ -58,6 +66,7 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 		ASC->OnImmunityBlockGameplayEffectDelegate.Remove(ImmunityBlockHandle);
 	}
 	ImmunityBlockHandle.Reset();
+	MovementTask = nullptr;
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -65,6 +74,12 @@ void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 FName UWxAbility_Dodge::SelectInputDirectionSection(const UAnimMontage* Montage, const FString& Prefix, const FVector& LocalDirection)
 {
 	const FVector Local = LocalDirection.GetSafeNormal2D();
+	bBackstep = Local.IsNearlyZero();
+	if (const AActor* Avatar = GetAvatarActorFromActorInfo())
+	{
+		const FVector MovementDirection = bBackstep ? -FVector::ForwardVector : Local;
+		DodgeDirection = Avatar->GetActorTransform().TransformVectorNoScale(MovementDirection).GetSafeNormal2D();
+	}
 	if (Local.IsNearlyZero() && Montage->IsValidSectionName(BackstepSectionName))
 	{
 		return BackstepSectionName;
@@ -73,7 +88,7 @@ FName UWxAbility_Dodge::SelectInputDirectionSection(const UAnimMontage* Montage,
 	const FName SectionName = SelectDirectionalSection(Montage, LocalDirection, Prefix, EWxAbilityDirection::Back);
 
 	// 락온 중에는 락온이 Ability.Action.Dodge를 보고 회전 태스크를 멈춰 회피 내내 몸 방향을 고정하므로, 회피도 몸을 돌리지 않는다.
-	// 비락온은 섹션 루트모션이 몸 기준 고정 방향이라, 양자화 잔차(±22.5°, 폴백 시 그 이상)만큼 몸을 돌려 이동을 입력 방향에 맞춘다.
+	// 비락온은 선택된 포즈와 실제 이동 방향이 맞도록 양자화 잔차만큼 몸을 돌린다. 이동 방향 자체는 위에서 확정했다.
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	const bool bLockedOn = ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_LockOn);
 	if (!Local.IsNearlyZero() && !bLockedOn)
@@ -95,6 +110,33 @@ FName UWxAbility_Dodge::SelectInputDirectionSection(const UAnimMontage* Montage,
 	}
 
 	return SectionName;
+}
+
+bool UWxAbility_Dodge::PlayMontageInternal(UAnimMontage* Montage, FName StartSection)
+{
+	if (!Super::PlayMontageInternal(Montage, StartSection))
+	{
+		return false;
+	}
+
+	// 극한 회피는 새 몽타주 구간과 함께 이동을 다시 시작하므로 앞 소스가 겹치지 않게 끝낸다.
+	if (MovementTask)
+	{
+		MovementTask->EndTask();
+		MovementTask = nullptr;
+	}
+	const float Distance = bDodgeSuccessHandled ? SuccessDistance : (bBackstep ? BackstepDistance : DodgeDistance);
+	const float Duration = bDodgeSuccessHandled ? SuccessDuration : (bBackstep ? BackstepDuration : DodgeDuration);
+	const ACharacter* Character = Cast<ACharacter>(GetAvatarActorFromActorInfo());
+	const UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr;
+	if (Movement && !DodgeDirection.IsNearlyZero() && Distance > 0.f && Duration > 0.f)
+	{
+		MovementTask = UAbilityTask_ApplyRootMotionConstantForce::ApplyRootMotionConstantForce(
+			this, TEXT("WxDodge"), DodgeDirection, Distance / Duration, Duration, false, nullptr,
+			ERootMotionFinishVelocityMode::ClampVelocity, FVector::ZeroVector, Movement->GetMaxSpeed(), true);
+		MovementTask->ReadyForActivation();
+	}
+	return true;
 }
 
 void UWxAbility_Dodge::ListenForDodgeSuccess()
@@ -136,12 +178,11 @@ void UWxAbility_Dodge::HandleDodgeSuccess()
 		return;
 	}
 
-	// 극한 회피는 현재 진행 방향의 섹션으로 이어야 이동이 꺾이지 않는다.
-	// 루트모션 중 속도가 곧 진행 방향이라, 8방향 양자화·잔차 보정·백스텝이 이 값 하나로 수렴한다.
+	// 벽에 막히거나 이동이 먼저 끝나 속도가 0이어도 처음 확정한 방향으로 이어간다.
 	FName SectionName = NAME_None;
 	if (const AActor* Avatar = GetAvatarActorFromActorInfo())
 	{
-		const FVector LocalDirection = Avatar->GetActorTransform().InverseTransformVectorNoScale(Avatar->GetVelocity());
+		const FVector LocalDirection = Avatar->GetActorTransform().InverseTransformVectorNoScale(DodgeDirection);
 		SectionName = SelectDirectionalSection(LocalDirection, SuccessSectionPrefix, EWxAbilityDirection::Back);
 	}
 
