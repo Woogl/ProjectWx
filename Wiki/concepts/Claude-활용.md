@@ -63,6 +63,7 @@ WX 개발에서 Claude(Claude Code)를 쓰는 방향과, 저장소에 갖춰 둔
 - 켜져 있는 것은 둘이다.
   - 「일일 주석 정리 + 푸시」: 매일 06:00(KST)에 `comment-cleanup` 스킬의 6절(무인 실행)대로 전날 제출된 C++ 주석을 정리해 `main`에 푸시한다. 커밋 메시지는 `YYYY-MM-DD 제출 코드의 주석을 정리`다.
   - 「Wiki 주간 적재·점검 + 푸시」: 매주 월요일 07:00(KST)에 `wiki-ingest` 스킬의 8절(무인 실행)대로 새 자료와 바뀐 자료를 적재하고, 점검 결과를 로그에 남긴 뒤 `main`에 푸시한다. 커밋 메시지는 `YYYY-MM-DD 위키 주간 적재·점검`이다. 옛 「Wiki 정기 갱신 + 푸시」 루틴을 고쳐 다시 켠 것이다.
+  - 클라우드 환경에는 `pwsh`가 없어서, 루틴이 PowerShell 7.4.6을 `/tmp`에 받아 점검 스크립트를 돌린다. 새 클론은 얕은 클론이라 먼저 전체 이력을 받는다(10-02 시험 실행으로 확인).
 - 꺼져 있는 것은 「주간 모듈 코드 리뷰 + 푸시」·「README 정기 갱신」·「스테일 BP 스냅샷 정리」다.
 
 ## 결정
@@ -72,12 +73,12 @@ WX 개발에서 Claude(Claude Code)를 쓰는 방향과, 저장소에 갖춰 둔
 - 2026-10-01 위키를 Karpathy LLM Wiki 패턴으로 다시 만들었다(요약·엔티티·개념). 위키는 사용자가 요청할 때만 고친다. (사용자 결정)
 - 2026-10-01 위키 적재·질문·점검은 `/wiki-ingest`·`/wiki-query`·`/wiki-lint` 스킬로 한다. 적재는 요약 문서를 쓴 뒤 색인·엔티티·개념 문서를 함께 고치고, 질문은 관련 문서를 찾아 출처를 달아 답하며, 점검은 모순·낡은 주장·고아 문서·빠진 연결을 찾는다. (사용자 결정)
 - 2026-10-01 위키 적재·점검을 매주 월요일 07:00(KST) 클라우드 루틴으로 돌리고, 결과는 main에 바로 올린다. 무인 점검은 보고만 하고 고치지 않는다. 자료가 주말 회의 무렵에 몰리고 코드가 주 단위로 크게 바뀌어 주 1회로 정했다. (사용자 결정)
+- 2026-10-02 위키 폴더 이름을 Karpathy 원문의 색인 분류대로 `sources/`·`entities/`·`concepts/`로 바꿨다. (사용자 결정)
 
 ## 미결
 
 - 기획서의 스킬 목록이 지금 저장소와 다르다. 기획서의 `ability-guide`·`stat-guide`는 없고, 예정이던 `code-reviewer`·`code-commenter`도 없으며, 지금 있는 `comment-cleanup`·`discord-report`·`generate-project-files`·`run-editor`는 기획서에 없다.
 - 꺼진 루틴 3개는 지우지 않고 남아 있다.
-- 클라우드 환경에 PowerShell 7(`pwsh`)이 있는지, 받아서 쓸 수 있는지 확인하지 않았다. 안 되면 주간 루틴은 점검 스크립트 대신 git·grep으로 점검한다. 첫 실행(10-05)에서 확인해야 한다.
 
 ## 관련
 
@@ -91,7 +92,7 @@ WX 개발에서 Claude(Claude Code)를 쓰는 방향과, 저장소에 갖춰 둔
 - [2026-07-19_meeting](../sources/2026-07-19_meeting.md)
 - [2026-07-31-회의-안건](../sources/2026-07-31-회의-안건.md)
 - `AGENTS.md` (9529b18ca)
-- `.agents/skills/` (dbcd7fdb9)
+- `.agents/skills/` (21b1e95bf)
 - `.agents/scripts/` (c90ccf76b)
 - `.gitignore` (c90ccf76b)
 - `.mcp.json` (06c0610d2)
@@ -99,4 +100,4 @@ WX 개발에서 Claude(Claude Code)를 쓰는 방향과, 저장소에 갖춰 둔
 - `.gemini/settings.json` (66e9f28a1)
 - `Wx.uproject` (d37e1dd32)
 - `Plugins/WxToolset/` (d37e1dd32)
-- claude.ai 루틴 목록 (2026-10-01 조회)
+- claude.ai 루틴 목록과 시험 실행 기록 (2026-10-02 조회)

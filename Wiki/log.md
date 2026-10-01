@@ -77,3 +77,8 @@
   - 빠진 결정: [Claude 활용](concepts/Claude-활용.md) 결정 절에 10-02 폴더 이름 영어화(sources·entities·concepts) 사용자 결정이 없다.
   - 제안: `wiki-ingest` 8절 점검 스크립트 항목에 `git fetch --unshallow`와 `git config core.quotepath false`를 넣거나, 스크립트가 git을 `-c core.quotepath=false`로 부르게 고친다.
 - 무인 실행이라 아무 문서도 고치지 않았다.
+
+## [2026-10-02] lint | 시험 실행 지적 반영
+- 점검 스크립트가 git을 `-c core.quotepath=false`로 부르고, 얕은 클론이면 멈추고, 찾을 수 없는 커밋을 '커밋을 찾을 수 없다'로 보고하게 고쳤다(21b1e95bf). `wiki-ingest` 8절에 `git fetch --unshallow` 단계를 넣었다.
+- [Claude 활용](concepts/Claude-활용.md): 풀린 미결(`pwsh`)을 구현 절로 옮기고, 10-02 폴더 이름 결정을 결정 절에 넣고, `.agents/skills/` 출처 커밋을 21b1e95bf로 갱신했다.
+- 연결 후보 1건은 그대로 둔다.
