@@ -47,8 +47,7 @@ public:
 	 * 로컬 예측·권위 적용·복제 도착에서 브로드캐스트된다.
 	 * 셋 다 값이 실제로 바뀔 때만 불린다 — 복제 도착도 REPNOTIFY_OnChanged라 로컬 값과 같으면 RepNotify가 생략된다.
 	 *
-	 * 대상이 세터를 거치지 않고 무효해지는 경우(예: 원격에서 대상 액터가 릴러번시를 잃어 파괴)에는 통지가 없다.
-	 * GetLockOnTarget 은 그때도 null 을 답하므로, 그 상태까지 따라가야 하는 표시는 통지가 아니라 질의로 갱신한다.
+	 * 대상이 세터 없이 무효해지면(원격에서 릴러번시를 잃어 파괴 등) 통지가 없으니, 그 상태까지 따라가는 표시는 GetLockOnTarget 질의로 갱신한다.
 	 */
 	UPROPERTY()
 	FWxOnLockOnTargetChanged OnLockOnTargetChanged;

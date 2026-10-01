@@ -60,7 +60,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	EWxSpawnerMode SpawnMode = EWxSpawnerMode::Auto;
 	
-	/** true 면 처치 후 부활 금지(보스 등): 죽은 뒤 Respawn 이 호출돼도 새 인스턴스를 생성하지 않는다. 살아있을 땐 일반 대상처럼 리셋됨. */
+	/** 처치된 뒤에는 Respawn 이 와도 새로 생성하지 않는다(보스 등). 살아 있으면 일반 대상처럼 리셋한다. */
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	bool bNeverRevive = false;
 
@@ -74,7 +74,7 @@ public:
 	virtual void PostRegisterAllComponents() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
-	/** 아웃라이너 기본 라벨. 스폰 대상 클래스를 밝힌 "Spawner_BP_Enemy" 형태로, 엔진이 중복 시 번호를 덧붙인다. */
+	/** "Spawner_BP_Enemy" 형태로 스폰 대상 클래스를 밝히고, 중복이면 엔진이 번호를 덧붙인다. */
 	virtual FString GetDefaultActorLabel() const override;
 
 	void UpdateEditorPreviewFromSpawnableClass();
