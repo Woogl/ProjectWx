@@ -564,6 +564,19 @@ bool UWxInventoryComponent::RefillItemCharges(UWxItemInstance* Instance)
 	return true;
 }
 
+void UWxInventoryComponent::RefillAllItemCharges()
+{
+	check(GetOwner() && GetOwner()->HasAuthority());
+	// 변경 알림이 인벤토리를 수정해도 순회 중인 배열은 유지한다.
+	for (UWxItemInstance* Item : GetAllItems())
+	{
+		if (GetStackCountByInstance(Item) > 0)
+		{
+			RefillItemCharges(Item);
+		}
+	}
+}
+
 void UWxInventoryComponent::NotifyStackChangedFromList(const UWxItemDefinition* ItemDef, int32 Delta)
 {
 	if (!ItemDef || Delta == 0)

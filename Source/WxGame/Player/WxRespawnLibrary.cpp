@@ -10,6 +10,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "Inventory/WxInventoryComponent.h"
 #include "Save/WxCheckpointSaveGame.h"
 #include "Spawner/WxSpawner.h"
 #include "WxGameplayTags.h"
@@ -60,6 +61,10 @@ bool UWxRespawnLibrary::RequestRespawn(UCommonActivatableWidget* DeathScreen)
 		return false;
 	}
 	DeadPawn->Destroy();
+	if (UWxInventoryComponent* Inventory = Controller->FindComponentByClass<UWxInventoryComponent>())
+	{
+		Inventory->RefillAllItemCharges();
+	}
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(NewPawn))
 	{
 		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetHPAttribute(), ASC->GetNumericAttribute(UWxCombatAttributeSet::GetMaxHPAttribute()));

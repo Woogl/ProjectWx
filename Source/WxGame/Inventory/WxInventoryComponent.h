@@ -206,6 +206,9 @@ public:
 	 */
 	bool RefillItemCharges(UWxItemInstance* Instance);
 
+	/** 권한: 체크포인트·부활에서 소유한 충전형 아이템을 모두 회복한다. */
+	void RefillAllItemCharges();
+
 	FWxOnInventoryStackChanged OnInventoryStackChanged;
 
 	FWxOnInventorySlotChanged OnInventorySlotChanged;

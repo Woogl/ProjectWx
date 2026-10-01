@@ -40,10 +40,7 @@ EStateTreeRunStatus FWxStateTreeTask_RefillItemCharges::EnterState(FStateTreeExe
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	for (UWxItemInstance* Item : Inventory->GetAllItems())
-	{
-		Inventory->RefillItemCharges(Item);
-	}
+	Inventory->RefillAllItemCharges();
 
 	return EStateTreeRunStatus::Succeeded;
 }
