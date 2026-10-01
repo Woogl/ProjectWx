@@ -12,7 +12,6 @@ struct FStateTreeTransitionResult;
 class AWxIndicator;
 class UUserWidget;
 
-// GetInstanceDataType() 의 헤더 정의는 코딩 규칙 3 의 예외다 — using FInstanceDataType 을 그대로 되돌려주는 타입 표기라 옮길 본문이 없고, 엔진 StateTree 도 전부 이 모양이다.
 
 /**
  * 레벨 액터 지정은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다(순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커·WP·PIE 해석이 엔진에 내장).
