@@ -38,7 +38,7 @@ public:
 
 	int32 GetProjectileLevel() const;
 
-	/** 퍼펙트 가드로 막힌 히트에서 쏜 쪽으로 되돌린다. bCanReflect가 false면 아무것도 하지 않는다. */
+	/** 퍼펙트 가드로 막힌 히트에서 쏜 쪽으로 되돌린다. */
 	void Reflect(APawn& Parrier);
 
 	/** 적중 시 공격자에게 걸 역경직 지속 시간 (초). 0 이하이면 미적용 */

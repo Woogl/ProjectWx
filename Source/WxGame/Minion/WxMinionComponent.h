@@ -64,7 +64,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion")
 	FGameplayTag MasterStateTag;
 
-	/** 소환하는 순간 주인이 만족해야 하는 조건. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Minion")
 	FGameplayTagRequirements SummonMasterTagRequirements;
 

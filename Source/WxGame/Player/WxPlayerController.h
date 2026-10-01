@@ -19,7 +19,6 @@ class UWxViewModel_Inventory;
  * 컴포넌트들은 폰 리스폰에도 살아남아야 하는 플레이어 단위 상태라 컨트롤러가 소유한다.
  * 프론트엔드 컨트롤러에도 같은 컴포넌트가 붙지만 인벤토리는 비어 있고 스캐너·대화는 자기 가드로 무동작이다.
  * 전투 HUD는 레이아웃 컴포넌트에서 지정하고, 프론트엔드 메뉴는 컨트롤러 BP에서 Push한다.
- * 로컬 컨트롤러는 플레이어 공유 뷰모델을 만들어 엔진 Global Collection 에 등록하고 값을 넣는다.
  */
 UCLASS()
 class WXGAME_API AWxPlayerController : public APlayerController
