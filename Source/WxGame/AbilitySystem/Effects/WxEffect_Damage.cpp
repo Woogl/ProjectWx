@@ -41,19 +41,21 @@ struct FWxDamageStatics
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingDamage);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(IncomingReflect);
 	DECLARE_ATTRIBUTE_CAPTUREDEF(GP);
-	FWxDamageStatics()
-	{
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, ATK, Source, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritRate, Source, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritDMG, Source, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DEF, Target, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, GuardReductionScale, Target, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, SP, Target, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingDamage, Target, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingReflect, Target, false);
-		DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, GP, Target, false);
-	}
+	FWxDamageStatics();
 };
+
+FWxDamageStatics::FWxDamageStatics()
+{
+	DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, ATK, Source, false);
+	DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritRate, Source, false);
+	DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, CritDMG, Source, false);
+	DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, DEF, Target, false);
+	DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, GuardReductionScale, Target, false);
+	DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, SP, Target, false);
+	DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingDamage, Target, false);
+	DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, IncomingReflect, Target, false);
+	DEFINE_ATTRIBUTE_CAPTUREDEF(UWxCombatAttributeSet, GP, Target, false);
+}
 
 static const FWxDamageStatics& GetDamageStatics()
 {
