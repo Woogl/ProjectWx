@@ -29,10 +29,7 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	/**
-	 * 외부 스포너가 SpawnActorDeferred → FinishSpawning 사이에 지급할 아이템과 수량을 주입할 때 사용.
-	 * 서버 권한에서만 호출.
-	 */
+	/** 서버 권한에서 SpawnActorDeferred → FinishSpawning 사이에 호출한다. */
 	void SetItemDef(UWxItemDefinition* InItemDef, int32 InQuantity = 1);
 
 	/** 서버 권한에서만 동작한다. */

@@ -27,7 +27,6 @@ EStateTreeRunStatus FWxStateTreeTask_PlayMontageOnce::EnterState(FStateTreeExecu
 		return EStateTreeRunStatus::Succeeded;
 	}
 
-	// 어빌리티를 부여하고 그 끝을 아는 것은 권위뿐이다. 권위가 아닌 피어는 서버가 발행하는 다음 상태를 기다린다.
 	if (!Owner->HasAuthority())
 	{
 		return EStateTreeRunStatus::Running;
@@ -62,7 +61,6 @@ EStateTreeRunStatus FWxStateTreeTask_PlayMontageOnce::Tick(FStateTreeExecutionCo
 {
 	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 부여하지 않은 피어(권위가 아닌 쪽)는 계속 기다린다.
 	if (!Instance.AbilityHandle.IsValid())
 	{
 		return EStateTreeRunStatus::Running;

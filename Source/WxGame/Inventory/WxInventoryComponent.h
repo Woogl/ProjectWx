@@ -38,10 +38,7 @@ private:
 	int32 LastObservedCount;
 };
 
-/**
- * FWxInventoryList 의 변경 메서드가 슬롯별 변경 결과를 호출자에게 돌려주는 값 객체.
- * 함수 결과 전용이라 USTRUCT 이 아니며, 담는 포인터도 GC 추적이 필요 없는 transient 다.
- */
+/** 함수 결과 전용이라 USTRUCT 이 아니며, 담는 포인터도 GC 추적이 필요 없는 transient 다. */
 struct FWxInventoryChangeResult
 {
 	UWxItemInstance* Instance = nullptr;
@@ -67,10 +64,7 @@ struct FWxInventoryList : public FFastArraySerializer
 
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms);
 
-	/**
-	 * 권한: 새 인스턴스를 생성해 신규 엔트리로 추가.
-	 * Fragment 의 OnInstanceCreated 가 호출된다.
-	 */
+	/** 권한: Fragment 의 OnInstanceCreated 가 호출된다. */
 	UWxItemInstance* AddEntry(const UWxItemDefinition* ItemDef, int32 StackCount);
 
 	/** 권한: 인스턴스에 해당하는 엔트리를 통째로 제거. */
@@ -124,11 +118,8 @@ DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventoryChargeChanged, UWxItemInsta
 DECLARE_MULTICAST_DELEGATE(FWxOnInventoryContentsChanged);
 
 /**
- * PlayerController 에 부착되어 아이템 인스턴스의 생성·소멸·레플리케이션을 관장하는 컴포넌트.
- *
+ * AWxPlayerController 의 기본 서브오브젝트로 붙어 아이템 인스턴스의 생성·소멸·레플리케이션을 관장한다.
  * 권한(서버)에서만 Add/Consume 이 호출되어야 하며, FastArray 로 클라이언트에 동기화된다.
- *
- * 부착은 AWxPlayerController 생성자의 기본 서브오브젝트다.
  */
 UCLASS()
 class WXGAME_API UWxInventoryComponent : public UActorComponent
@@ -148,15 +139,11 @@ public:
 	 * 권한: ItemDef 를 StackCount 만큼 추가한다.
 	 * Stackable Fragment 가 있으면 기존 엔트리에 MaxStack 한도까지 머지하고, 초과분은 새 엔트리들로 분할한다.
 	 * Stackable Fragment 가 없으면 StackCount 만큼의 신규 엔트리(각 1개) 가 생성된다.
-	 * 반환값은 첫 영향받은 인스턴스(머지된 기존 엔트리 또는 새로 만든 첫 엔트리).
-	 * 실패 시 nullptr.
+	 * 반환값은 첫 영향받은 인스턴스(머지된 기존 엔트리 또는 새로 만든 첫 엔트리)이고, 실패 시 nullptr.
 	 */
 	UWxItemInstance* AddItemDefinition(const UWxItemDefinition* ItemDef, int32 StackCount = 1);
 
-	/**
-	 * 권한: 보상 항목 목록을 순서대로 지급한다(기본 지급 아이템 등).
-	 * 빈(아이템 미지정) 항목은 무시되며, Item 은 지급 시점에 동기 로드된다.
-	 */
+	/** 권한: 빈(아이템 미지정) 항목은 무시되며, Item 은 지급 시점에 동기 로드된다. */
 	void GrantItems(const TArray<FWxItemRewardEntry>& Items);
 
 	/**
@@ -168,8 +155,7 @@ public:
 	/**
 	 * 권한: ItemDef 의 소유 수량을 NumToConsume 만큼 차감한다.
 	 * 부족하면 false 반환하고 아무것도 차감하지 않는다(원자적).
-	 * 0 이 된 슬롯은 제거한다.
-	 * 같은 ItemDef 가 복수 엔트리로 분산돼 있어도 합산 차감이 가능하다.
+	 * 같은 ItemDef 가 복수 엔트리로 분산돼 있어도 합산 차감하고, 0 이 된 슬롯은 제거한다.
 	 */
 	bool ConsumeItemsByDefinition(const UWxItemDefinition* ItemDef, int32 NumToConsume);
 

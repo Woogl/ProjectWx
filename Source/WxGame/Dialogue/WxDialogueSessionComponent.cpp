@@ -156,7 +156,7 @@ void UWxDialogueSessionComponent::ClientStartDialogue_Implementation(const FData
 
 	// 상호작용 어빌리티가 이 태그로 차단되고, 대화 창도 이 태그를 따른다.
 	// 대화 창을 여는 관찰자는 여기서 현재 대사를 pull 해 시드하므로, 세션이 다 채워진 뒤인 이 자리에서 올린다.
-	// 이 태그를 loose 로 쓰는 곳은 이 컴포넌트뿐이고, 소비자(UI 매니저)는 0↔비0 전이만 듣기 때문에 카운트가 1 이라도 남으면 대화 창이 영영 닫히지 않는다.
+	// 이 태그를 loose 로 쓰는 곳은 이 컴포넌트뿐이고, 소비자(UWxPlayerLayoutComponent)는 0↔비0 전이만 듣기 때문에 카운트가 1 이라도 남으면 대화 창이 영영 닫히지 않는다.
 	ASC->SetLooseGameplayTagCount(WxGameplayTags::State_Dialogue, 1);
 	TaggedAbilitySystem = ASC;
 

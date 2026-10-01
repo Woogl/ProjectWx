@@ -11,9 +11,7 @@
 
 FWxStateTreeTask_SplineMove::FWxStateTreeTask_SplineMove()
 {
-	// 재선택에도 다시 진입한다 — 목표가 바인딩(Actor.SelectedOptionValue)으로 바뀔 수 있어서다.
-	// 클라가 이동을 보지 못한 채 같은 상태의 새 진입만 받으면(컬 거리 밖에 있다 돌아온 경우) 재선택이 되는데, 그때 새 목표로 다시 맞추지 않으면 탑승칸이 옛 자리에 남는다.
-	// 대가로 주파 도중 재선택되면 남은 거리를 Duration 에 다시 주파한다.
+	// 재선택에도 다시 진입해 바인딩(Actor.SelectedOptionValue)으로 바뀐 목표에 다시 맞춘다 — 컬 거리 밖에 있다 돌아온 클라는 재선택만 받으므로 안 그러면 탑승칸이 옛 자리에 남는다.
 	bShouldStateChangeOnReselect = true;
 }
 

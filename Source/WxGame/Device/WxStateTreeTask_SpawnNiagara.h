@@ -43,7 +43,7 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
  * 진입할 때 이 노드가 띄운 Niagara 가 재생 중이 아니면 재생하고 Succeeded 로 완료한다. State 를 읽지 않아 어떤 장치든 재사용한다.
  * 진입 경로(라이브 전이/초기 시작/복원/레이트조인)를 가리지 않고 판단 기준은 그 하나다.
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
- * 상태를 떠나면 일회성·루프 FX 모두 제거한다. 여러 자식 상태에 걸쳐 유지할 FX는 공통 부모 상태에 둔다.
+ * 상태를 떠나면 일회성·루프 FX 모두 제거한다.
  */
 USTRUCT(meta = (DisplayName = "나이아가라 스폰", Category = "Wx"))
 struct FWxStateTreeTask_SpawnNiagara : public FStateTreeTaskCommonBase

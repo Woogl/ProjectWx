@@ -53,7 +53,6 @@ void FWxStateTreeTask_SpawnNiagara::ExitState(FStateTreeExecutionContext& Contex
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 	if (IsValid(Instance.SpawnedComponent))
 	{
-		// 다음 진입에는 인스턴스 데이터가 새로 생성되므로 이전 FX도 여기서 수명을 끝낸다.
 		Instance.SpawnedComponent->DestroyComponent();
 	}
 	Instance.SpawnedComponent = nullptr;

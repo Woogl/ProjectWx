@@ -27,7 +27,6 @@ struct FWxStateTreeTask_SplineMoveInstanceData
 
 	/**
 	 * 각 상태가 자기 끝점을 직접 선언한다(초기 진입 스냅·라이브 슬라이드의 목적지). 포인트 수를 넘으면 클램프, 음수면 움직이지 않는다.
-	 * 목적지가 신호로 정해지는 장치(엘리베이터)는 Actor.SelectedOptionValue 에 바인딩한다.
 	 */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	int32 TargetPointIndex = 0;

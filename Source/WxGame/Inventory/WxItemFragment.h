@@ -40,16 +40,14 @@ public:
 	virtual void OnInstanceCreated(UWxItemInstance* Instance) const;
 };
 
-/**
- * UWxInventoryComponent::UseConsumable 이 Effect 적용과 스택 1 차감(Charges Fragment 가 있으면 충전량 1 차감)을 함께 수행한다.
- */
+/** UWxInventoryComponent::UseConsumable 이 Effect 적용과 스택 1 차감(Charges Fragment 가 있으면 충전량 1 차감)을 함께 수행한다. */
 UCLASS(DisplayName = "Usable")
 class WXGAME_API UWxItemFragment_Usable : public UWxItemFragment
 {
 	GENERATED_BODY()
 
 public:
-	/** 사용 시 사용자(소유 폰)의 ASC에 적용할 GameplayEffect */
+	/** 사용자(소유 폰)의 ASC에 적용한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Usable")
 	TSubclassOf<UGameplayEffect> Effect;
 };
@@ -92,9 +90,7 @@ class WXGAME_API UWxItemFragment_Stackable : public UWxItemFragment
 	GENERATED_BODY()
 
 public:
-	/**
-	 * 상한을 둔 것은 동일 ItemDef 가 다수 슬롯에 분산되어도 합산이 int32 안에 들어오게 하기 위함이다.
-	 */
+	/** 상한을 둔 것은 동일 ItemDef 가 다수 슬롯에 분산되어도 합산이 int32 안에 들어오게 하기 위함이다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Stackable", meta = (ClampMin = "1", ClampMax = "10000000"))
 	int32 MaxStack = 99;
 };
