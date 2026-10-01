@@ -32,7 +32,7 @@ void UWxEffectComponent_PerfectGuard::OnGameplayEffectExecuted(FActiveGameplayEf
 	EventData.ContextHandle = ContextHandle;
 	ASC->HandleGameplayEvent(WxGameplayTags::Event_PerfectGuard, &EventData);
 
-	// 가드 어빌리티의 구독 수명과 무관하게 이 GE에서 성립한 퍼펙트 가드 결과를 처리한다.
+	// 가드 어빌리티의 수명과 무관하게 이 GE에서 성립한 퍼펙트 가드 결과를 처리한다.
 	if (SourceASC)
 	{
 		// 이미 그로기면 GP를 더해 남은 드레인 시간보다 회복을 늦추지 않는다.

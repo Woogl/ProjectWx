@@ -11,9 +11,8 @@ enum class EWxAbilityCostResource : uint8;
 
 /**
  * 값은 각 MMC가 계산 시점에 소스 어빌리티(UWxAbilityBase) CDO의 CostResource·CostAmount를 읽어 만든다.
- * CDO가 완전 자기완결이라 엔진 순정 CheckCost(CanApplyAttributeModifiers)/ApplyCost/GetCostGameplayEffect를 그대로 사용한다.
- *
- * 아울러 어빌리티 CostGameplayEffectClass의 기본 클래스를 겸한다.
+ * 그래서 UWxAbilityBase는 Effect.IgnoreCosts 우회만 얹고 순정 CheckCost(CanApplyAttributeModifiers)/ApplyCost를 그대로 쓴다.
+ * UWxAbilityBase의 CostGameplayEffectClass 기본값이다.
  */
 UCLASS()
 class WXGAME_API UWxEffect_Cost : public UGameplayEffect
