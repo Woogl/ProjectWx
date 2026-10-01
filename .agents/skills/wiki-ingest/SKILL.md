@@ -45,7 +45,7 @@ allowed-tools: Read, Grep, Glob, Bash, PowerShell, Edit, Write, Agent
 
 ## 3. 요약 문서 쓰기
 
-- `Wiki/요약/<자료 파일 이름>.md`에 `Wiki/AGENTS.md`의 요약 형식으로 쓴다. 파일 이름은 확장자를 빼고 공백만 `-`로 바꾼다.
+- `Wiki/sources/<자료 파일 이름>.md`에 `Wiki/AGENTS.md`의 요약 형식으로 쓴다. 파일 이름은 확장자를 빼고 공백만 `-`로 바꾼다.
 - 요지에는 규칙·수치·조건을 정확히 옮긴다. 다른 자료에 대체됐거나 어긋나면 상태 줄과 요지에 적는다.
 - 같은 자료를 다시 적재할 때는 기존 요약 문서를 고치고 커밋을 새로 적는다.
 

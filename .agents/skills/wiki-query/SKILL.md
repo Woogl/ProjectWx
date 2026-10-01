@@ -35,10 +35,10 @@ allowed-tools: Read, Grep, Glob, Bash, PowerShell, Edit, Write
 ```
 <결론 한두 문장>
 
-- <근거> ([<문서 제목>](Wiki/개념/<파일>.md))
-- <근거> ([<자료 이름>](Wiki/요약/<파일>.md))
+- <근거> ([<문서 제목>](Wiki/concepts/<파일>.md))
+- <근거> ([<자료 이름>](Wiki/sources/<파일>.md))
 
-미결: <정해지지 않은 점> ([<문서 제목>](Wiki/개념/<파일>.md))
+미결: <정해지지 않은 점> ([<문서 제목>](Wiki/concepts/<파일>.md))
 ```
 
 ## 4. 저장 (사용자가 원할 때만)

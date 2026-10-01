@@ -58,3 +58,7 @@
 ## [2026-10-02] lint | 푸시 뒤 점검
 - 위키·스킬 커밋(9529b18ca, dbcd7fdb9) 때문에 `개념/Claude-활용.md`의 코드 출처 2건(`AGENTS.md`, `.agents/skills/`)이 낡은 것으로 잡혔다. 내용은 이미 반영돼 있어 커밋만 갱신했다.
 - 연결 후보 1건(`엔티티/현광.md`의 '피격 경직 중')은 그대로 둔다.
+
+## [2026-10-02] ingest | 사용자 결정: 폴더 이름을 영어로
+- Karpathy LLM Wiki 원문의 색인 분류(entities, concepts, sources)를 따라 `요약/` → `sources/`, `엔티티/` → `entities/`, `개념/` → `concepts/`로 바꿨다. 문서 파일 이름은 그대로다.
+- 모든 링크, `AGENTS.md`의 구성·양식, `wiki-ingest`·`wiki-query`·`wiki-lint`의 경로를 함께 고쳤다. 이 항목 위의 지난 기록은 옛 폴더 이름 그대로 둔다.
