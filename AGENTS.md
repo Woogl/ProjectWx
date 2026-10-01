@@ -24,4 +24,5 @@
 ## AI 워크플로우
 
 - 공용 스킬과 스크립트는 `.agents/`에서 관리한다.
+- 프로젝트 지식(기획·구현·결정)은 `Wiki/index.md`부터 찾고, 위키를 고칠 때는 `Wiki/AGENTS.md`를 따른다.
 - 어빌리티(GA_·몽타주)·이펙트(GE)·캐릭터 구성(WxAbilitySet·AttributeSet 초기값) 조사는 `.agents/scripts/Export-AbilitySystemLists.ps1`을 실행한 뒤 `Saved/AbilitySystemLists/`의 `ability-list.md`·`effect-list.md`·`character-list.md`부터 본다.
