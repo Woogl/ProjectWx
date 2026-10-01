@@ -59,6 +59,7 @@ public:
 
 	/**
 	 * 루트 파라미터 백의 값(기본값)을 JSON 으로 기입한다.
+	 * 모든 값의 변환이 성공해야 반영하며, 실패하면 원래 값과 더티 상태를 보존한다.
 	 * @param ValuesJson {"파라미터명": 값, ...}.
 	 *   값 규약 — Text/숫자/bool 은 JSON 원시값, 오브젝트·소프트 참조는 경로 문자열(레벨 액터 예: "/Game/Maps/LV_X.LV_X:PersistentLevel.액터명"), 배열은 그 값들의 JSON 배열, DataTableRowHandle 은 {"DataTable":"/Game/...경로","RowName":"행이름"}.
 	 */
@@ -100,6 +101,7 @@ public:
 
 	/**
 	 * 링크 상태의 파라미터 값을 기입하고 해당 파라미터를 오버라이드로 마킹한다.
+	 * 실패하면 값과 오버라이드 모두 변경하지 않는다.
 	 * 먼저 LinkStateToAsset 으로 레이아웃이 동기화돼 있어야 한다.
 	 * @param ValuesJson SetRootParameterValues 와 같은 값 규약의 {"파라미터명": 값, ...}.
 	 */
@@ -121,6 +123,7 @@ public:
 
 	/**
 	 * 임의 오브젝트(컴포넌트·액터 등)의 FStateTreeReference 프로퍼티에 파라미터 값을 기입하고 오버라이드로 마킹한다.
+	 * 동기화와 변환은 복사본에서 수행하며, 실패하면 원래 참조를 보존한다.
 	 * 레퍼런스에 에셋이 먼저 지정돼 있어야 하며(SetReferenceStateTree), 레이아웃이 어긋나 있으면 기입 전에 에셋 기준으로 동기화한다.
 	 * @param PropertyName 대상 FStateTreeReference UPROPERTY 이름. 예: "Quest"
 	 * @param ValuesJson SetRootParameterValues 와 같은 값 규약의 {"파라미터명": 값, ...}.

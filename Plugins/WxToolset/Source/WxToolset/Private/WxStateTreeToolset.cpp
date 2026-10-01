@@ -370,15 +370,17 @@ bool UWxStateTreeToolset::SetRootParameterValues(UStateTree* StateTree, const FS
 		return false;
 	}
 
-	EditorData->Modify();
+	FInstancedPropertyBag UpdatedBag = *Bag;
 	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Values->Values)
 	{
-		if (!SetBagValueFromJson(*Bag, Pair.Key, Pair.Value))
+		if (!SetBagValueFromJson(UpdatedBag, Pair.Key, Pair.Value))
 		{
 			return false;
 		}
 	}
 
+	EditorData->Modify();
+	*Bag = MoveTemp(UpdatedBag);
 	UStateTreeEditingSubsystem::MarkAsModified(StateTree);
 	return true;
 }
@@ -478,17 +480,19 @@ bool UWxStateTreeToolset::SetStateParameterValues(UStateTreeState* State, const 
 		return false;
 	}
 
-	State->Modify();
+	FStateTreeStateParameters UpdatedParameters = State->Parameters;
 	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Values->Values)
 	{
-		const FPropertyBagPropertyDesc* Desc = SetBagValueFromJson(State->Parameters.Parameters, Pair.Key, Pair.Value);
+		const FPropertyBagPropertyDesc* Desc = SetBagValueFromJson(UpdatedParameters.Parameters, Pair.Key, Pair.Value);
 		if (!Desc)
 		{
 			return false;
 		}
-		State->Parameters.PropertyOverrides.AddUnique(Desc->ID);
+		UpdatedParameters.PropertyOverrides.AddUnique(Desc->ID);
 	}
 
+	State->Modify();
+	State->Parameters = MoveTemp(UpdatedParameters);
 	if (UStateTree* StateTree = State->GetTypedOuter<UStateTree>())
 	{
 		UStateTreeEditingSubsystem::MarkAsModified(StateTree);
@@ -551,9 +555,10 @@ bool UWxStateTreeToolset::SetReferenceParameterValues(UObject* Object, FName Pro
 		return false;
 	}
 
-	Object->Modify();
-	Reference->SyncParameters();
-	FInstancedPropertyBag& Bag = Reference->GetMutableParameters();
+	// SyncParameters도 값을 바꾸므로 참조 전체를 복사해야 실패한 요청의 흔적이 남지 않는다.
+	FStateTreeReference UpdatedReference = *Reference;
+	UpdatedReference.SyncParameters();
+	FInstancedPropertyBag& Bag = UpdatedReference.GetMutableParameters();
 	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Values->Values)
 	{
 		const FPropertyBagPropertyDesc* Desc = SetBagValueFromJson(Bag, Pair.Key, Pair.Value);
@@ -562,8 +567,10 @@ bool UWxStateTreeToolset::SetReferenceParameterValues(UObject* Object, FName Pro
 			return false;
 		}
 		// 오버라이드 마킹이 없으면 이후 레이아웃 동기화가 값을 에셋 기본값으로 되돌린다.
-		Reference->SetPropertyOverridden(Desc->ID, true);
+		UpdatedReference.SetPropertyOverridden(Desc->ID, true);
 	}
+	Object->Modify();
+	*Reference = MoveTemp(UpdatedReference);
 	return true;
 }
 
