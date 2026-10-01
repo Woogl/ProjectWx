@@ -24,6 +24,9 @@ public:
 	 * 현재 에디터 월드에 새 랜드스케이프를 만든다. 월드 파티션 월드면 GridSizeInComponents 단위로 스트리밍 프록시를 나눈다.
 	 * @param HeightmapPath SizeVerts×SizeVerts uint16 RAW 파일.
 	 * @param SizeVerts 한 변의 정점 수. QuadsPerSection×SectionsPerComponent 의 배수 + 1 이어야 한다. 예: 4033 = 126×32 + 1
+	 * @param QuadsPerSection 엔진 허용값: 7, 15, 31, 63, 127, 255.
+	 * @param SectionsPerComponent 한 축의 섹션 수: 1 또는 2.
+	 * @param GridSizeInComponents 스트리밍 프록시 한 축의 컴포넌트 수: 에디터와 같은 1~16.
 	 * @param Location 정점 (0,0)의 월드 위치(cm).
 	 * @param LayerNames 페인트 레이어 이름. 가중치는 WeightmapFolder/<이름>.raw 에서 읽고, 레이어 인포는 LayerInfoPath/LI_<이름> 을 쓰되 없으면 만든다.
 	 * @param LayerInfoPath 레이어 인포 에셋 폴더. 예: "/Game/LevelDesign/Landscape/LayerInfo"
