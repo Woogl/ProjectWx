@@ -24,23 +24,12 @@ void UWxTargetingSelectionTask_LockOn::Execute(const FTargetingRequestHandle& Ta
 				return Result.HitResult.GetActor() == LockOnTarget;
 			});
 
-			if (ExistingIndex != 0)
+			// 범위 밖 락온 대상은 넣지 않는다 — 스냅 이동과 범위 대미지가 결과 포함 여부를 범위 판정으로 쓴다.
+			if (ExistingIndex > 0)
 			{
-				FTargetingDefaultResultData LockOnResult;
-				if (ExistingIndex != INDEX_NONE)
-				{
-					// AOE의 충돌 정보와 나머지 후보의 상대 순서를 보존한다.
-					LockOnResult = MoveTemp(Results[ExistingIndex]);
-					Results.RemoveAt(ExistingIndex);
-				}
-				else
-				{
-					LockOnResult.HitResult.HitObjectHandle = FActorInstanceHandle(LockOnTarget);
-					LockOnResult.HitResult.Location = LockOnTarget->GetActorLocation();
-					LockOnResult.HitResult.ImpactPoint = LockOnResult.HitResult.Location;
-					LockOnResult.HitResult.TraceStart = SourceActor->GetActorLocation();
-					LockOnResult.HitResult.Distance = FVector::Distance(LockOnResult.HitResult.TraceStart, LockOnResult.HitResult.Location);
-				}
+				// AOE의 충돌 정보와 나머지 후보의 상대 순서를 보존한다.
+				FTargetingDefaultResultData LockOnResult = MoveTemp(Results[ExistingIndex]);
+				Results.RemoveAt(ExistingIndex);
 				Results.Insert(MoveTemp(LockOnResult), 0);
 			}
 		}
