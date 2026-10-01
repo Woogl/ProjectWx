@@ -5,6 +5,8 @@
 #include "AbilitySystem/Abilities/WxAbility_Combo.h"
 #include "AbilitySystem/Attributes/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effects/WxEffect_Exhaust.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "WxGame.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "WxGameplayTags.h"
@@ -44,6 +46,25 @@ void UWxAbilitySystemComponent::ClearAnimatingAbility(UGameplayAbility* Ability)
 	if (bClearingCurrentAbility && GetAnimatingAbility() == nullptr)
 	{
 		RestoreAnimatingMontageMeshTick();
+	}
+}
+
+void UWxAbilitySystemComponent::MulticastStopMontage_Implementation(UAnimMontage* Montage)
+{
+	UAnimInstance* AnimInstance = AbilityActorInfo.IsValid() ? AbilityActorInfo->GetAnimInstance() : nullptr;
+	if (!Montage || !AnimInstance)
+	{
+		return;
+	}
+
+	if (GetCurrentMontage() == Montage)
+	{
+		// 추적 중인 몽타주는 GAS의 복제 상태도 정지시켜 늦은 복제로 재생되지 않게 한다.
+		CurrentMontageStop(Montage->GetDefaultBlendOutTime());
+	}
+	else
+	{
+		AnimInstance->Montage_Stop(Montage->GetDefaultBlendOutTime(), Montage);
 	}
 }
 

@@ -4,7 +4,9 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effects/WxEffect_DrainGP.h"
+#include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "WxGameplayTags.h"
@@ -72,11 +74,15 @@ void UWxAbility_Groggy::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		{
 			UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 
-			// 몽타주가 없으면 즉시 종료될 수 있다.
-			// 가산 슬롯 피격이 ASC의 현재 몽타주 자리를 차지하면 StopMontageIfCurrent는 그 아래에서 루프 중인 그로기 몽타주를 놓친다.
+			// 가산 피격이 GAS 추적 자리를 차지해도 관전자에게 그로기 정지를 전달한다.
 			UAnimMontage* GroggyMontage = GetMontage();
 			UAnimInstance* AnimInstance = ActorInfo->GetAnimInstance();
-			if (GroggyMontage && AnimInstance)
+			UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(ASC);
+			if (GroggyMontage && WxASC && ActorInfo->IsNetAuthority())
+			{
+				WxASC->MulticastStopMontage(GroggyMontage);
+			}
+			else if (GroggyMontage && AnimInstance)
 			{
 				AnimInstance->Montage_Stop(GroggyMontage->GetDefaultBlendOutTime(), GroggyMontage);
 			}
@@ -110,6 +116,10 @@ void UWxAbility_Groggy::HandleMontagePollTick()
 	{
 		return;
 	}
+	if (const UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance(); AnimInstance && AnimInstance->Montage_IsActive(GetMontage()))
+	{
+		return;
+	}
 
 	PlayMontage(GetMontage());
 }
@@ -118,6 +128,10 @@ bool UWxAbility_Groggy::PlayMontageInternal(UAnimMontage* Montage, FName StartSe
 {
 	// 그로기는 몽타주 종료가 아니라 GP 드레인으로 끝나며, 중간 피격 뒤에는 폴링으로 자세를 복구한다.
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (const UAnimInstance* AnimInstance = CurrentActorInfo ? CurrentActorInfo->GetAnimInstance() : nullptr; AnimInstance && AnimInstance->Montage_IsActive(Montage))
+	{
+		return true;
+	}
 	if (ASC && ASC->GetCurrentMontage())
 	{
 		// 방향을 기다리는 사이 다른 반응이 시작됐으면 다음 폴링까지 기다린다.

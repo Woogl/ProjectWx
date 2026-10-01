@@ -36,6 +36,10 @@ public:
 	/** 마지막 AnimatingAbility가 해제될 때 몽타주 전의 메시 본 갱신 정책을 복원한다. */
 	virtual void ClearAnimatingAbility(UGameplayAbility* Ability) override;
 
+	/** 서버가 호출한다. 다른 슬롯 그룹의 몽타주가 ASC 추적 자리를 차지해도 지정 몽타주를 모든 피어에서 정지한다. */
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastStopMontage(UAnimMontage* Montage);
+
 	void GiveAbilitySets();
 
 	/**
