@@ -80,7 +80,8 @@ bool UWxCombatLibrary::ApplyDamage(AActor* Causer, const AActor* Target, const F
 		return false;
 	}
 
-	// 무적이면 Invincible의 Immunity가 여기서 막는다. 피해와 Cue는 서버 판정을 따르며, 과거 활성화 키를 실으면 예측본 잔류나 소유 클라의 Cue 생략이 발생한다.
+	// 무적이면 Invincible의 Immunity가 여기서 막는다.
+	// 피해와 Cue는 서버 판정을 따르며, 과거 활성화 키를 실으면 예측본 잔류나 소유 클라의 Cue 생략이 발생한다.
 	return Source->ApplyGameplayEffectSpecToTarget(*DamageSpec.Data.Get(), TargetASC, FPredictionKey()).WasSuccessfullyApplied();
 }
 

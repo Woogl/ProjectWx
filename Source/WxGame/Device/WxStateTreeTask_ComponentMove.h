@@ -17,7 +17,6 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
 {
 	GENERATED_BODY()
 
-	/** 트리가 붙은 액터가 가진 컴포넌트 중에서 고른다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FWxStateTreeComponentName TargetComponent;
 

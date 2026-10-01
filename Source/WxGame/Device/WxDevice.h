@@ -40,7 +40,7 @@ public:
 
 	/**
 	 * 작동 신호의 입구. Sender 는 신호를 보낸 장치(직접 눌렸으면 nullptr), Value 는 그 장치에서 플레이어가 고른 선택지 값이다.
-	 * 지금 기다리는 대기 태스크가 받아 줄 선택지면 그 태스크를 완료시키고 등록을 걷는다(같은 프레임의 다음 신호는 받지 않는다). 아니면 Verbose 로그만 남긴다.
+	 * 지금 기다리는 대기 태스크가 받아 줄 선택지면 그 태스크를 완료시키고 등록을 걷는다(같은 프레임의 다음 신호는 받지 않는다).
 	 */
 	void NotifyDeviceInteracted(AActor* Interactor, const AWxDevice* Sender, int32 Value);
 	ACharacter* GetInteractingCharacter() const;
@@ -63,7 +63,7 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "Wx")
 	TArray<TObjectPtr<AWxDevice>> LinkedDevices;
 
-	/** 다른 도메인의 ST 태스크(몽타주 1회 재생 등)가 Actor 바인딩으로 읽는다. 클라에는 컴포넌트의 상태 스냅샷이 실어 나른다. */
+	/** ST 태스크(몽타주 1회 재생 등)가 Actor 바인딩으로 읽는다. 클라에는 컴포넌트의 상태 스냅샷이 실어 나른다. */
 	UPROPERTY(VisibleInstanceOnly, Transient, Category = "Wx")
 	TObjectPtr<ACharacter> InteractingCharacter;
 

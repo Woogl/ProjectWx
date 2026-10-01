@@ -23,7 +23,10 @@ struct FWxDeviceStateSnapshot
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	FGameplayTag StateTag;
 
-	/** 서버의 태그 상태가 바뀔 때마다 1 오른다. 0은 미수신이다. 클라는 직전+1 이면 라이브로, 그 밖(첫 수신·건너뜀)이면 복원으로 들어간다. */
+	/**
+	 * 서버의 태그 상태가 바뀔 때마다 1 오르고, 0은 미수신이다.
+	 * 클라는 직전+1 이면 라이브로, 그 밖(첫 수신·건너뜀)이면 복원으로 들어간다.
+	 */
 	UPROPERTY(VisibleAnywhere, Category = "Wx")
 	uint32 EntrySerial = 0;
 

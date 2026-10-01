@@ -266,7 +266,8 @@ void UWxSkillCutsceneComponent::TickComponent(float DeltaSeconds, ELevelTick Tic
 	if (LocalPlayback.Phase == EWxSkillCutsceneLocalPhase::Playing && IsValid(LocalPlayback.Session.Avatar))
 	{
 		// 월드·액터 배율 모두 컷신 도중 바뀐다 — 서버가 먼저 끝내거나, 히트스톱이 액터를 멈추거나, 다른 슬로모션이 끼어든다.
-		// 매 틱 상쇄하지 않으면 남은 역배율이 시뮬을 발산시킨다. 틱 도중 바꾼 월드 배율은 다음 프레임 델타부터 들어가므로 이번 프레임에 실제로 곱해진 값을 쓴다.
+		// 매 틱 상쇄하지 않으면 남은 역배율이 시뮬을 발산시킨다.
+		// 틱 도중 바꾼 월드 배율은 다음 프레임 델타부터 들어가므로 이번 프레임에 실제로 곱해진 값을 쓴다.
 		const FGameTime Time = GetWorld()->GetTime();
 		const float WorldDilation = Time.GetDeltaRealTimeSeconds() > 0.f ? Time.GetTimeDilation() : 1.f;
 		const float Combined = WorldDilation * LocalPlayback.Session.Avatar->CustomTimeDilation;

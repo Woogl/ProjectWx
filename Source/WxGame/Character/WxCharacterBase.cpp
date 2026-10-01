@@ -200,7 +200,7 @@ void AWxCharacterBase::InitAbilitySystem()
 	// 재빙의·PlayerState 재복제로 다시 들어온다. 바뀐 컨트롤러를 다시 물리는 이 갱신은 매번 필요하다.
 	AbilitySystemComponent->RefreshAbilityActorInfo();
 
-	// GiveAbility는 서버에서만 허용. 클라이언트에는 서버로부터 복제됨
+	// GiveAbility는 서버에서만 허용되고 클라이언트에는 복제된다.
 	if (HasAuthority())
 	{
 		AbilitySystemComponent->GiveAbilitySets();

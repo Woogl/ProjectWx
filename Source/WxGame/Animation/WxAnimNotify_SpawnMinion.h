@@ -24,8 +24,8 @@ public:
 	virtual FString GetNotifyName_Implementation() const override;
 
 	/**
-	 * CDO에 MinionComponent가 네이티브로 붙어 있어야 소환된다 — 동시 유지 수와 소환 조건을 그 컴포넌트가 선언한다.
-	 * 팀을 물려받을 수 있는지는 서브시스템이 런타임에 보며, 못 물려받아도 소환은 된다.
+	 * CDO에 MinionComponent가 네이티브로 붙어 있어야 소환된다 — 종류(MasterStateTag)와 소환 조건을 그 컴포넌트가 선언한다.
+	 * 팀을 물려받을 수 있는지는 UWxMinionComponent::SpawnMinion이 런타임에 보며, 못 물려받아도 소환은 된다.
 	 */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (MustImplement = "/Script/WxGame.WxSpawnable", AllowAbstract = "false"))
 	TSubclassOf<APawn> MinionClass;
