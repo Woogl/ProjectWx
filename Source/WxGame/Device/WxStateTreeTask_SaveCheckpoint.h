@@ -25,7 +25,6 @@ struct FWxStateTreeTask_SaveCheckpoint : public FStateTreeTaskCommonBase
 	using FInstanceDataType = FWxStateTreeTask_SaveCheckpointInstanceData;
 	FWxStateTreeTask_SaveCheckpoint();
 
-	// StateTree GetInstanceDataType의 헤더 정의는 프로젝트 규칙의 예외다.
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 };
