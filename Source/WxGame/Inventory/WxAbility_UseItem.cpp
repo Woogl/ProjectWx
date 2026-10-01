@@ -20,6 +20,17 @@ UWxAbility_UseItem::UWxAbility_UseItem()
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 }
 
+bool UWxAbility_UseItem::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	const AActor* Avatar = ActorInfo ? ActorInfo->AvatarActor.Get() : nullptr;
+	const UWxItemUseComponent* ItemUseComponent = Avatar ? Avatar->FindComponentByClass<UWxItemUseComponent>() : nullptr;
+	if (!ItemUseComponent || !ItemUseComponent->CanUseItem())
+	{
+		return false;
+	}
+	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+}
+
 void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -32,7 +43,7 @@ void UWxAbility_UseItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 
 	APawn* Avatar = Cast<APawn>(ActorInfo->AvatarActor.Get());
 	UWxItemUseComponent* ItemUseComponent = Avatar ? Avatar->FindComponentByClass<UWxItemUseComponent>() : nullptr;
-	if (!ItemUseComponent || !ItemUseComponent->CanUseItem())
+	if (!ItemUseComponent)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
