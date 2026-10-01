@@ -2,7 +2,6 @@
 
 #include "WxEditor.h"
 
-#include "Components/StateTreeComponent.h"
 #include "Editor.h"
 #include "Editor/UnrealEdEngine.h"
 #include "Engine/Blueprint.h"
@@ -24,6 +23,7 @@
 #include "WxObjectDetails.h"
 #include "WxUIDataThumbnailRenderer.h"
 #include "Device/WxDeviceComponentName.h"
+#include "Device/WxDeviceStateTreeComponent.h"
 
 IMPLEMENT_MODULE(FWxEditorModule, WxEditor)
 
@@ -85,10 +85,9 @@ void FWxEditorModule::StartupModule()
 		UBlueprint::StaticClass(),
 		UWxUIDataThumbnailRenderer::StaticClass());
 
-	// 엔진은 UStateTreeComponent 자리를 비워 두었고, 에디터가 클래스 사슬을 거슬러 찾으므로 장치의 파생 컴포넌트까지 덮인다.
 	if (GUnrealEd)
 	{
-		GUnrealEd->RegisterComponentVisualizer(UStateTreeComponent::StaticClass()->GetFName(), MakeShared<FWxDeviceLinkVisualizer>());
+		GUnrealEd->RegisterComponentVisualizer(UWxDeviceStateTreeComponent::StaticClass()->GetFName(), MakeShared<FWxDeviceLinkVisualizer>());
 	}
 }
 
@@ -96,7 +95,7 @@ void FWxEditorModule::ShutdownModule()
 {
 	if (GUnrealEd)
 	{
-		GUnrealEd->UnregisterComponentVisualizer(UStateTreeComponent::StaticClass()->GetFName());
+		GUnrealEd->UnregisterComponentVisualizer(UWxDeviceStateTreeComponent::StaticClass()->GetFName());
 	}
 
 	if (FModuleManager::Get().IsModuleLoaded(WxEditorModule::PropertyEditorModuleName))

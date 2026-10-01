@@ -42,7 +42,7 @@ struct FWxDeviceStateSnapshot
  * 태그는 루트 에셋에서 유일한 상태 식별자다. 같은 태그로의 재진입과 한 틱 안에 지나간 태그 상태는 발행되지 않으므로, 클라에 보여야 할 연출은 잠깐이라도 머무는 별도 태그 상태에 둔다.
  */
 UCLASS()
-class UWxDeviceStateTreeComponent : public UStateTreeComponent
+class WXGAME_API UWxDeviceStateTreeComponent : public UStateTreeComponent
 {
 	GENERATED_BODY()
 

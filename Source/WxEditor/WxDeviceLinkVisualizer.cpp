@@ -12,7 +12,6 @@ void FWxDeviceLinkVisualizer::DrawVisualization(const UActorComponent* Component
 		return;
 	}
 
-	// 등록 키가 엔진 StateTree 컴포넌트라 장치가 아닌 액터의 것도 여기까지 온다.
 	const AWxDevice* Device = Cast<AWxDevice>(Component->GetOwner());
 	if (!Device)
 	{
