@@ -15,8 +15,7 @@ struct FWxBeyondLeashMemory
 /**
  * BT Decorator: 폰이 앵커(기본 HomeLocation)에서 LeashRadius 이상 벗어났는지(리시 이탈) 판정한다.
  *
- * 앵커-폰 거리는 Blackboard 키가 아니라 폰 위치에서 직접 계산하므로, 값 변화를 관찰해 재평가를 촉발할 키가 없다.
- * 그래서 관찰자(aux)로 등록된 동안 TickNode 에서 이탈 여부를 매 프레임 폴링하다가, 값이 바뀌는 순간 RequestExecution 으로 플로우 재평가를 요청한다.
+ * 앵커-폰 거리는 관찰할 Blackboard 키가 없어, 관찰자로 등록된 동안 TickNode 에서 폴링하다 이탈 여부가 바뀌면 RequestExecution 으로 재평가를 요청한다.
  *
  * 복귀가 이미 진행 중이면 거리와 무관하게 참을 유지한다 — 완료 판정은 홈 도착을 아는 복귀 Task 가 단독으로 소유한다.
  * 이 규칙이 없으면 폰이 반경 안으로 재진입하는 순간 조건이 뒤집혀 경계에서 왕복이 난다.

@@ -139,7 +139,6 @@ FText FWxActorLocatorCustomization::HandleGetCurrentActorText() const
 		return NSLOCTEXT("WxActorLocator", "None", "None");
 	}
 
-	// 미해석(언로드 등)이면 액터 프래그먼트의 소프트 경로 끝 이름이라도 보여준다.
 	return FWxLocatorUtils::GetDisplayName(*Locator);
 }
 

@@ -14,7 +14,6 @@ UWxBTDecorator_BeyondLeash::UWxBTDecorator_BeyondLeash()
 {
 	NodeName = TEXT("Beyond Leash");
 
-	// TickNode/OnBecomeRelevant 오버라이드를 감지해 알림 플래그(bNotifyTick 등)를 자동 설정한다(엔진 데코 관용).
 	INIT_DECORATOR_NODE_NOTIFY_FLAGS();
 
 	Anchor.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(UWxBTDecorator_BeyondLeash, Anchor), AActor::StaticClass());
