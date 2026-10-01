@@ -2,7 +2,6 @@
 
 #include "UI/WxNameplateManagerComponent.h"
 
-#include "AbilitySystemComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Character/WxEnemyCharacter.h"
 #include "Components/CapsuleComponent.h"
@@ -14,7 +13,6 @@
 #include "Targeting/WxLockOnComponent.h"
 #include "View/MVVMView.h"
 #include "WxGame.h"
-#include "WxGameplayTags.h"
 
 UWxNameplateManagerComponent::UWxNameplateManagerComponent()
 {
@@ -93,7 +91,7 @@ void UWxNameplateManagerComponent::UpdateNameplates(const AActor* Viewer, const 
 		// 교전하지 않은 적도 락온하면 보인다. 락온 가능 거리는 락온 쪽이 정하므로 거리 조건도 두지 않는다.
 		const bool bLockedOn = Target == LockOnActor;
 		const bool bInRange = Distance <= VisibleDistance;
-		const bool bEngaged = Target->GetAbilitySystemComponent()->HasMatchingGameplayTag(WxGameplayTags::State_Engaged);
+		const bool bEngaged = Target->IsEngaged();
 		const bool bVisible = Viewer && Target->IsAlive() && (bLockedOn || (bInRange && bEngaged));
 
 		if (!bVisible)

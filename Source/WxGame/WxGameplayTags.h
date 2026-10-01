@@ -10,9 +10,6 @@ namespace WxGameplayTags
 	/** 캐릭터 BP의 IdentityTags 로 지정한다. 전투 서브시스템이 교전 중인 보스를 가릴 때 읽는다. */
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Boss);
 
-	/** 적 AI가 유효한 전투 대상을 보유하고 있는 교전 상태. */
-	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Engaged);
-	
 	/**
 	 * 대화 세션 컴포넌트가 시작·종료에 맞춰 폰 ASC에 loose 태그로 발행한다.
 	 * WxAbility_Interact가 ActivationBlockedTags로 사용해 대화 중 프롬프트 표시·상호작용을 닫는다.

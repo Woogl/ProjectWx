@@ -55,13 +55,17 @@ void AWxEnemyCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	GetLockOnComponent()->OnLockOnTargetChanged.RemoveDynamic(this, &ThisClass::HandleAITargetChanged);
 	OnDeath.RemoveDynamic(this, &ThisClass::HandleOwnerDeath);
 
-	GetAbilitySystemComponent()->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, 0);
 	if (UWxBattleSubsystem* Battle = UWorld::GetSubsystem<UWxBattleSubsystem>(GetWorld()))
 	{
 		Battle->NotifyEngagementChanged(this, false);
 	}
 
 	Super::EndPlay(EndPlayReason);
+}
+
+bool AWxEnemyCharacter::IsEngaged() const
+{
+	return IsAlive() && GetLockOnComponent()->GetLockOnTarget() != nullptr;
 }
 
 FWxOnSpawnableKilled& AWxEnemyCharacter::GetOnKilledDelegate()
@@ -82,7 +86,7 @@ void AWxEnemyCharacter::GetInteractionOptions(const AActor* Interactor, TArray<F
 		return;
 	}
 
-	const bool bFinishable = ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy) || (!ASC->HasMatchingGameplayTag(WxGameplayTags::State_Engaged) && IsInRearCone(Interactor));
+	const bool bFinishable = ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy) || (!IsEngaged() && IsInRearCone(Interactor));
 	if (!bFinishable)
 	{
 		return;
@@ -167,11 +171,8 @@ bool AWxEnemyCharacter::IsInRearCone(const AActor* Interactor) const
 
 void AWxEnemyCharacter::RefreshEngagement()
 {
-	// 죽어도 겨누던 대상은 그대로 남는다 — 그것만 보면 시체가 계속 교전 중으로 남는다.
-	const bool bEngaged = IsAlive() && GetLockOnComponent()->GetLockOnTarget() != nullptr;
-	GetAbilitySystemComponent()->SetLooseGameplayTagCount(WxGameplayTags::State_Engaged, bEngaged ? 1 : 0);
 	if (UWxBattleSubsystem* Battle = UWorld::GetSubsystem<UWxBattleSubsystem>(GetWorld()))
 	{
-		Battle->NotifyEngagementChanged(this, bEngaged);
+		Battle->NotifyEngagementChanged(this, IsEngaged());
 	}
 }

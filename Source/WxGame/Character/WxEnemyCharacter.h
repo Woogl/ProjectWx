@@ -37,6 +37,9 @@ public:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	/** AI 가 전투 대상을 겨누는 동안. 죽으면 겨누던 대상이 남아 있어도 풀린다. */
+	bool IsEngaged() const;
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Wx|AI")
 	TObjectPtr<UWxAIBehaviorComponent> AIBehaviorComponent;
