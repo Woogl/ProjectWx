@@ -23,8 +23,8 @@ public:
 
 	static AWxWeaponBase* FindWeapon(const AActor* Owner);
 
-	void BeginAttack(const FDataTableRowHandle& InDamageInfo);
-	void EndAttack();
+	void BeginAttack(const FDataTableRowHandle& InDamageInfo, const FGuid& AttackId);
+	void EndAttack(const FGuid& AttackId);
 	void CancelAttack();
 
 	USkeletalMeshComponent* GetMesh() const;
@@ -58,8 +58,11 @@ private:
 	UPROPERTY()
 	TArray<TObjectPtr<UShapeComponent>> HitShapes;
 
-	/** 0이면 콜리전 비활성 상태 */
-	int32 ActiveAttackCount = 0;
+	/** 몽타주 구간별 ID. 늦게 끝난 이전 구간이 다음 공격을 끄지 못하게 한다. */
+	TSet<FGuid> ActiveAttacks;
+
+	/** 타격 콜백에서 공격이 종료·교체되면 이전 Sweep 결과를 버린다. */
+	uint64 AttackGeneration = 0;
 
 	UPROPERTY()
 	FDataTableRowHandle DamageInfo;

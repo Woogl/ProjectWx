@@ -36,6 +36,7 @@ private:
 		float StartTime = 0.f;
 		FActiveGameplayEffectHandle Effect;
 		TWeakObjectPtr<class AWxWeaponBase> Weapon;
+		FGuid WeaponAttackId;
 		TWeakObjectPtr<class UWxAbilityTask_SlowTime> SlowTime;
 	};
 	bool OwnsMontageSignal(const FBranchingPointNotifyPayload& Payload) const;

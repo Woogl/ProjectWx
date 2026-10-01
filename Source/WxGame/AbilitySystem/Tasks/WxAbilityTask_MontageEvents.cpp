@@ -161,7 +161,7 @@ void UWxAbilityTask_MontageEvents::ReleaseMontageWindow(const FWxMontageWindow& 
 	}
 	if (AWxWeaponBase* Weapon = Window.Weapon.Get())
 	{
-		Weapon->EndAttack();
+		Weapon->EndAttack(Window.WeaponAttackId);
 	}
 	if (UWxAbilityTask_SlowTime* SlowTime = Window.SlowTime.Get())
 	{
@@ -244,10 +244,14 @@ void UWxAbilityTask_MontageEvents::HandleGameplayWindow(const UAnimNotifyState* 
 	else if (Attack)
 	{
 		Window.Weapon = AWxWeaponBase::FindWeapon(Ability->GetAvatarActorFromActorInfo());
+		Window.WeaponAttackId = FGuid::NewGuid();
+		// BeginAttack이 즉시 Overlap을 발생시켜도 종료 경로가 이 공격 구간을 회수할 수 있어야 한다.
+		MontageWindows.Last() = Window;
 		if (AWxWeaponBase* Weapon = Window.Weapon.Get())
 		{
-			Weapon->BeginAttack(Attack->DamageDataRow);
+			Weapon->BeginAttack(Attack->DamageDataRow, Window.WeaponAttackId);
 		}
+		return;
 	}
 	else if (Slow)
 	{

@@ -45,12 +45,12 @@ AWxWeaponBase* AWxWeaponBase::FindWeapon(const AActor* Owner)
 	return nullptr;
 }
 
-void AWxWeaponBase::BeginAttack(const FDataTableRowHandle& InDamageInfo)
+void AWxWeaponBase::BeginAttack(const FDataTableRowHandle& InDamageInfo, const FGuid& AttackId)
 {
 	// 피해는 권위 머신에서만 적용되므로 판정도 거기서만 켠다.
 	// 복제하지 않는 차일드 액터 무기는 클라이언트에서도 자신이 권위라 소유자로 가른다.
 	AActor* OwnerActor = GetOwner();
-	if (!OwnerActor || !OwnerActor->HasAuthority())
+	if (!OwnerActor || !OwnerActor->HasAuthority() || !AttackId.IsValid() || ActiveAttacks.Contains(AttackId))
 	{
 		return;
 	}
@@ -60,8 +60,11 @@ void AWxWeaponBase::BeginAttack(const FDataTableRowHandle& InDamageInfo)
 
 	// SetCollisionEnabled는 이미 겹쳐 있는 액터에 Overlap을 즉시 발생시키므로, DamageInfo가 그보다 먼저 준비돼야 한다.
 	DamageInfo = InDamageInfo;
+	const uint64 Generation = ++AttackGeneration;
+	const bool bFirstAttack = ActiveAttacks.IsEmpty();
+	ActiveAttacks.Add(AttackId);
 
-	if (ActiveAttackCount == 0)
+	if (bFirstAttack)
 	{
 		// 첫 프레임 Sweep이 0 거리가 되도록 현재 위치로 초기화해 임의 위치 Sweep을 막는다.
 		PrevShapeLocations.SetNum(HitShapes.Num());
@@ -69,25 +72,27 @@ void AWxWeaponBase::BeginAttack(const FDataTableRowHandle& InDamageInfo)
 		{
 			PrevShapeLocations[Index] = HitShapes[Index]->GetComponentLocation();
 			HitShapes[Index]->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			// 충돌을 켜는 호출 안에서 패리·그로기로 공격이 끝나거나 다음 공격이 시작될 수 있다.
+			if (ActiveAttacks.IsEmpty() || AttackGeneration != Generation)
+			{
+				return;
+			}
 		}
 
 		SetActorTickEnabled(true);
 	}
-
-	++ActiveAttackCount;
 }
 
-void AWxWeaponBase::EndAttack()
+void AWxWeaponBase::EndAttack(const FGuid& AttackId)
 {
-	if (ActiveAttackCount <= 0)
+	if (ActiveAttacks.Remove(AttackId) == 0)
 	{
 		return;
 	}
 
-	--ActiveAttackCount;
-
-	if (ActiveAttackCount == 0)
+	if (ActiveAttacks.IsEmpty())
 	{
+		++AttackGeneration;
 		for (UShapeComponent* Shape : HitShapes)
 		{
 			Shape->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -101,12 +106,13 @@ void AWxWeaponBase::EndAttack()
 
 void AWxWeaponBase::CancelAttack()
 {
-	if (ActiveAttackCount <= 0)
+	if (ActiveAttacks.IsEmpty())
 	{
 		return;
 	}
 
-	ActiveAttackCount = 0;
+	ActiveAttacks.Reset();
+	++AttackGeneration;
 
 	for (UShapeComponent* Shape : HitShapes)
 	{
@@ -142,7 +148,7 @@ void AWxWeaponBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (ActiveAttackCount <= 0)
+	if (ActiveAttacks.IsEmpty())
 	{
 		return;
 	}
@@ -168,6 +174,7 @@ void AWxWeaponBase::Tick(float DeltaSeconds)
 	}
 
 	// Overlap 이벤트가 한 틱에 형상을 지나친 액터를 놓치는 터널링을 보완한다.
+	const uint64 Generation = AttackGeneration;
 	for (int32 Index = 0; Index < HitShapes.Num(); ++Index)
 	{
 		UShapeComponent* Shape = HitShapes[Index];
@@ -183,6 +190,10 @@ void AWxWeaponBase::Tick(float DeltaSeconds)
 		for (const FHitResult& Hit : Hits)
 		{
 			ProcessHit(Hit.GetActor(), Hit);
+			if (ActiveAttacks.IsEmpty() || AttackGeneration != Generation)
+			{
+				return;
+			}
 		}
 
 		PrevShapeLocations[Index] = CurrLocation;
@@ -226,7 +237,7 @@ void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 	// 판정은 권위 머신에서만 켜지고(BeginAttack), 큐·히트스톱도 서버 판정을 따른다.
 
 	AActor* WeaponOwner = GetOwner();
-	if (!OtherActor || OtherActor == WeaponOwner || HitActorsThisSwing.Contains(OtherActor))
+	if (ActiveAttacks.IsEmpty() || !IsValid(OtherActor) || OtherActor == WeaponOwner || HitActorsThisSwing.Contains(OtherActor))
 	{
 		return;
 	}
@@ -238,5 +249,6 @@ void AWxWeaponBase::ProcessHit(AActor* OtherActor, const FHitResult& HitResult)
 
 	HitActorsThisSwing.Add(OtherActor);
 	// 히트스톱은 피해 GE가 이 무기의 설정으로 건다.
-	UWxCombatLibrary::ApplyDamage(this, OtherActor, DamageInfo, HitResult);
+	const FDataTableRowHandle CurrentDamageInfo = DamageInfo;
+	UWxCombatLibrary::ApplyDamage(this, OtherActor, CurrentDamageInfo, HitResult);
 }
