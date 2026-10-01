@@ -53,9 +53,40 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	// 대상에 가하는 변경은 전부 대상 ASC 를 거치고 액터 자체는 위치만 읽으므로 const 로 다룬다.
 	const AActor* Target = TriggerEventData ? TriggerEventData->Target.Get() : nullptr;
 
-	if (!GetMontage() || !AvatarActor || !Target || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!GetMontage() || !AvatarActor || !Target)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	if (ActorInfo->IsNetAuthority())
+	{
+		UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
+		if (!TargetASC
+			|| TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_FinisherReserved)
+			|| TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_PlayMontageOnce)
+			|| TargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
+		{
+			EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+			return;
+		}
+
+		// 태그 변경 콜백에서 취소되더라도 EndAbility가 자신의 점유를 해제할 수 있도록 먼저 기록한다.
+		ReservedTargetASC = TargetASC;
+		TargetASC->AddLooseGameplayTag(WxGameplayTags::State_FinisherReserved, 1, EGameplayTagReplicationState::TagOnly);
+		if (!IsActive())
+		{
+			return;
+		}
+	}
+
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+	if (!IsActive())
+	{
 		return;
 	}
 
@@ -77,15 +108,21 @@ void UWxAbility_Finisher::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	if (!PlayMontage(GetMontage()))
 	{
+		TargetActor.Reset();
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
 }
 
 void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	const AActor* PreviousTarget = TargetActor.Get();
+	TargetActor.Reset();
+	UAbilitySystemComponent* ReservationASC = ReservedTargetASC.Get();
+	ReservedTargetASC.Reset();
+
 	if (ActorInfo && ActorInfo->IsNetAuthority())
 	{
-		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetActor.Get()))
+		if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(PreviousTarget))
 		{
 			if (UAbilitySystemComponent* SourceASC = ActorInfo->AbilitySystemComponent.Get())
 			{
@@ -97,8 +134,11 @@ void UWxAbility_Finisher::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 				}
 			}
 		}
+		if (ReservationASC)
+		{
+			ReservationASC->RemoveLooseGameplayTag(WxGameplayTags::State_FinisherReserved, 1, EGameplayTagReplicationState::TagOnly);
+		}
 	}
-	TargetActor.Reset();
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

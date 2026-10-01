@@ -22,6 +22,9 @@ namespace WxGameplayTags
 	 */
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Ragdoll);
 
+	/** 처형 어빌리티가 서버에서 대상에게 부여하고 종료 시 해제한다(TagOnly 복제). */
+	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_FinisherReserved);
+
 	/**
 	 * 소환물을 보유한 주인에게 붙는다. 소환물 컴포넌트가 종류마다 하나를 선언하고, 살아 있는 소환물이 서버에서 주인 ASC 에 하나씩 쌓는다(복제).
 	 * 같은 입력을 쓰는 소환·명령 스킬의 발동 조건이며, 부모 Master 로 물으면 종류를 가리지 않는다.

@@ -81,7 +81,8 @@ void AWxEnemyCharacter::GetInteractionOptions(const AActor* Interactor, TArray<F
 	}
 
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_PlayMontageOnce))
+	if (ASC->HasMatchingGameplayTag(WxGameplayTags::State_FinisherReserved)
+		|| ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_PlayMontageOnce))
 	{
 		return;
 	}

@@ -15,7 +15,7 @@ struct FGameplayEventData;
  * 피해자 쪽은 공격자 몽타주의 UWxAnimNotify_FinisherVictim 시점에 UWxAbility_PlayMontageOnce를 일회성으로 부여해 재생시키므로 피해자에게 상시 부여된 수신 어빌리티가 필요 없다.
  *
  * 대미지는 UWxAnimNotify_FinisherDamage가 담은 행을 쓰며, 그 노티파이가 실행 타이밍을 정한다.
- * GP 초기화는 종료 시 대상에 UWxEffect_ResetGP를 적용해 처리한다 — 몽타주가 어떻게 끝나든 한 번 적용된다.
+ * 서버가 대상을 먼저 점유한 뒤 커밋한다. 종료 때 자신의 점유만 해제하고, 처형이 시작된 대상의 GP를 초기화한다.
  */
 UCLASS(Abstract)
 class WXGAME_API UWxAbility_Finisher : public UWxAbilityBase
@@ -43,4 +43,5 @@ private:
 	void HandleFinisherDamageEvent(FGameplayEventData Payload);
 
 	TWeakObjectPtr<const AActor> TargetActor;
+	TWeakObjectPtr<UAbilitySystemComponent> ReservedTargetASC;
 };

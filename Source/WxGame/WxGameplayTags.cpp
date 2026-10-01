@@ -8,6 +8,7 @@ namespace WxGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(State_Dialogue, "State.Dialogue");
 	UE_DEFINE_GAMEPLAY_TAG(State_Ragdoll, "State.Ragdoll");
+	UE_DEFINE_GAMEPLAY_TAG(State_FinisherReserved, "State.FinisherReserved");
 
 	UE_DEFINE_GAMEPLAY_TAG(Master_Minion, "Master.Minion");
 	UE_DEFINE_GAMEPLAY_TAG(Master_Doppelganger, "Master.Doppelganger");
