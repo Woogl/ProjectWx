@@ -7,9 +7,9 @@
 #include "WxAnimNotify_DespawnMinion.generated.h"
 
 /**
- * 소유 폰을 주인으로 보고 월드의 MinionSubsystem에 소환물 거두기를 맡긴다.
+ * 소유 폰을 주인으로 보고 UWxMinionComponent::DespawnMinions 에 소환물 거두기를 맡긴다.
  * 소환물은 Event.Death 이벤트로 사망 어빌리티를 태워 죽고, 그 어빌리티가 없을 때만 파괴된다.
- * 권위 판정은 서브시스템이 한다.
+ * 권위 판정도 그 함수가 한다.
  */
 UCLASS()
 class WXGAME_API UWxAnimNotify_DespawnMinion : public UWxAnimNotify_AbilityEvent

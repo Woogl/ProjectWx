@@ -25,7 +25,6 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameplayEffect.h"
-#include "Minion/WxMinionSubsystem.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Types/TargetingSystemTypes.h"
 #include "Weapons/WxProjectileBase.h"
@@ -113,20 +112,16 @@ void UWxAbilityTask_MontageEvents::HandleMontageNotify(const UAnimNotify* Notify
 	}
 	else if (const UWxAnimNotify_SpawnMinion* Spawn = Cast<UWxAnimNotify_SpawnMinion>(Notify))
 	{
-		APawn* Pawn = Cast<APawn>(Avatar);
-		UWxMinionSubsystem* Subsystem = Avatar->GetWorld()->GetSubsystem<UWxMinionSubsystem>();
-		if (Pawn && Subsystem)
+		if (APawn* Pawn = Cast<APawn>(Avatar))
 		{
-			Subsystem->SpawnMinion(*Pawn, Spawn->MinionClass, Spawn->LocalSpawnOffset * Pawn->GetActorTransform());
+			UWxMinionComponent::SpawnMinion(*Pawn, Spawn->MinionClass, Spawn->LocalSpawnOffset * Pawn->GetActorTransform());
 		}
 	}
 	else if (const UWxAnimNotify_DespawnMinion* Despawn = Cast<UWxAnimNotify_DespawnMinion>(Notify))
 	{
-		const APawn* Pawn = Cast<APawn>(Avatar);
-		UWxMinionSubsystem* Subsystem = Avatar->GetWorld()->GetSubsystem<UWxMinionSubsystem>();
-		if (Pawn && Subsystem)
+		if (const APawn* Pawn = Cast<APawn>(Avatar))
 		{
-			Subsystem->DespawnMinions(*Pawn, Despawn->MinionClass);
+			UWxMinionComponent::DespawnMinions(*Pawn, Despawn->MinionClass);
 		}
 	}
 	else if (const UWxAnimNotify_AreaDamage* Area = Cast<UWxAnimNotify_AreaDamage>(Notify))
@@ -333,10 +328,7 @@ void UWxAbilityTask_MontageEvents::HandleMontageNotifyState(const UAnimNotifySta
 		Target = UWxMinionComponent::GetMaster(*Avatar);
 		break;
 	case EWxRushTarget::Minion:
-		if (const UWxMinionSubsystem* Subsystem = Avatar->GetWorld()->GetSubsystem<UWxMinionSubsystem>())
-		{
-			Target = Subsystem->FindActiveMinion(*Avatar);
-		}
+		Target = UWxMinionComponent::FindActiveMinion(*Avatar);
 		break;
 	}
 	ClearRushTask();

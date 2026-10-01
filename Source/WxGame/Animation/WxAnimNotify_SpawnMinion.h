@@ -7,7 +7,7 @@
 #include "WxAnimNotify_SpawnMinion.generated.h"
 
 /**
- * 권위 판정과 상한 처리는 이 노티파이가 아니라 MinionSubsystem이 한다.
+ * 권위 판정과 같은 종류 교체는 이 노티파이가 아니라 UWxMinionComponent::SpawnMinion 이 한다.
  */
 UCLASS()
 class WXGAME_API UWxAnimNotify_SpawnMinion : public UWxAnimNotify_AbilityEvent
