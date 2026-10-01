@@ -7,6 +7,7 @@
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
 #include "AI/WxBlackboardKeys.h"
+#include "AbilitySystem/Effects/WxEffect_MoveSpeedScale.h"
 #include "WxGameplayTags.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -54,9 +55,9 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 	// MaxWalkSpeed 를 직접 쓰면 MOV 어트리뷰트 콜백과 주인이 겹쳐, 정찰 중 버프가 걸리거나 정찰이 끝날 때 서로의 값을 덮어쓴다.
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
-	if (ASC && MoveSpeedEffect)
+	if (ASC)
 	{
-		const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(MoveSpeedEffect, 1.f, ASC->MakeEffectContext());
+		const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(UWxEffect_MoveSpeedScale::StaticClass(), 1.f, ASC->MakeEffectContext());
 		if (SpecHandle.IsValid())
 		{
 			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_MoveSpeedScale, MoveSpeedMultiplier);
@@ -69,9 +70,7 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 FString UWxBTTask_Patrol::GetStaticDescription() const
 {
-	const FString SpeedLine = MoveSpeedEffect ? FString::Printf(TEXT("Speed: x%.2f"), MoveSpeedMultiplier) : FString(TEXT("Speed: 감속 GE 미지정"));
-
-	return FString::Printf(TEXT("%s\n%s\n"), *Super::GetStaticDescription(), *SpeedLine);
+	return FString::Printf(TEXT("%s\nSpeed: x%.2f\n"), *Super::GetStaticDescription(), MoveSpeedMultiplier);
 }
 
 void UWxBTTask_Patrol::DescribeRuntimeValues(const UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTDescriptionVerbosity::Type Verbosity, TArray<FString>& Values) const

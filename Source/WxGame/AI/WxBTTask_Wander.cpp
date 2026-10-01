@@ -4,6 +4,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
+#include "AbilitySystem/Effects/WxEffect_MoveSpeedScale.h"
 #include "NavigationSystem.h"
 #include "WxGameplayTags.h"
 #include "GameFramework/Pawn.h"
@@ -42,7 +43,7 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	}
 
 	// 감속 GE 는 방향을 고른 뒤 부여되므로 지금 최대 속도는 아직 평상시 값이다.
-	const float TravelDistance = Movement->GetMaxSpeed() * (MoveSpeedEffect ? MoveSpeedMultiplier : 1.f) * Duration;
+	const float TravelDistance = Movement->GetMaxSpeed() * MoveSpeedMultiplier * Duration;
 
 	// 걸어갈 거리가 0이면 길이 0 레이가 막힘으로 오지 않아 후보가 전부 무검증 통과한다.
 	// 지금 못 움직인다고 무해한 것이 아니다 — 배회가 끝나기 전에 속박이 풀리면 검증되지 않은 방향으로 걸어 나간다.
@@ -84,9 +85,9 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	ElapsedTime = 0.f;
 
 	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
-	if (ASC && MoveSpeedEffect)
+	if (ASC)
 	{
-		const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(MoveSpeedEffect, 1.f, ASC->MakeEffectContext());
+		const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(UWxEffect_MoveSpeedScale::StaticClass(), 1.f, ASC->MakeEffectContext());
 		if (SpecHandle.IsValid())
 		{
 			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_MoveSpeedScale, MoveSpeedMultiplier);
@@ -99,11 +100,6 @@ EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 FString UWxBTTask_Wander::GetStaticDescription() const
 {
-	if (!MoveSpeedEffect)
-	{
-		return FString::Printf(TEXT("Duration: %.1f s\nAngle: %.0f ~ %.0f\nSpeed: 감속 GE 미지정"), Duration, MinAngle, MaxAngle);
-	}
-
 	return FString::Printf(TEXT("Duration: %.1f s\nAngle: %.0f ~ %.0f\nSpeed: x %.1f"), Duration, MinAngle, MaxAngle, MoveSpeedMultiplier);
 }
 

@@ -6,6 +6,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
+#include "AbilitySystem/Effects/WxEffect_MoveSpeedOverride.h"
 #include "Animation/AnimInstance.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -33,9 +34,8 @@ void UWxBTService_MirrorMovement::InitializeFromAsset(UBehaviorTree& Asset)
 
 FString UWxBTService_MirrorMovement::GetStaticServiceDescription() const
 {
-	return FString::Printf(TEXT("%s offset %s, arrival %.0f cm, teleport after %.2f s%s"),
-		*MirrorTarget.SelectedKeyName.ToString(), *LocalOffset.ToString(), ArrivalRadius, TeleportDelay,
-		MoveSpeedEffect ? TEXT("") : TEXT("\nMove speed GE unset: moves at own speed"));
+	return FString::Printf(TEXT("%s offset %s, arrival %.0f cm, teleport after %.2f s"),
+		*MirrorTarget.SelectedKeyName.ToString(), *LocalOffset.ToString(), ArrivalRadius, TeleportDelay);
 }
 
 void UWxBTService_MirrorMovement::Release(UBehaviorTreeComponent& OwnerComp)
@@ -159,9 +159,9 @@ void UWxBTService_MirrorMovement::TickNode(UBehaviorTreeComponent& OwnerComp, ui
 			FollowerAbilitySystem->UpdateActiveGameplayEffectSetByCallerMagnitude(MoveSpeedEffectHandle, WxGameplayTags::SetByCaller_Magnitude, FollowSpeed);
 		}
 	}
-	else if (FollowerAbilitySystem.IsValid() && MoveSpeedEffect)
+	else if (FollowerAbilitySystem.IsValid())
 	{
-		const FGameplayEffectSpecHandle SpecHandle = FollowerAbilitySystem->MakeOutgoingSpec(MoveSpeedEffect, 1.f, FollowerAbilitySystem->MakeEffectContext());
+		const FGameplayEffectSpecHandle SpecHandle = FollowerAbilitySystem->MakeOutgoingSpec(UWxEffect_MoveSpeedOverride::StaticClass(), 1.f, FollowerAbilitySystem->MakeEffectContext());
 		if (SpecHandle.IsValid())
 		{
 			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Magnitude, FollowSpeed);

@@ -7,8 +7,6 @@
 #include "BehaviorTree/Tasks/BTTask_MoveTo.h"
 #include "WxBTTask_Patrol.generated.h"
 
-class UGameplayEffect;
-
 /**
  * UBTTask_MoveTo 를 상속해 이동/도착 판정/경로 실패·중단 처리는 엔진에 맡기고, 도착(성공)했을 때만 정찰 커서를 한 칸 진행한다.
  * 이동 목표는 Blackboard 의 PatrolTargetLocation 에서 읽고, 도착 시 UWxPatrolComponent 에 커서 진행을 위임한다.
@@ -40,15 +38,6 @@ private:
 	/** 최대 이동 속도가 이 비율로 제한된다. (1.0 = 평상시 속도) */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 	float MoveSpeedMultiplier = 0.5f;
-
-	/**
-	 * MoveSpeedMultiplier 를 SetByCaller 로 실어 부여하고 종료 시 제거한다.
-	 *
-	 * WxAI 는 WxCombat 에 의존하지 않으므로, 디자이너가 BT 에디터에서 직접 지정한다 (WxEffect_MoveSpeedScale).
-	 * 지정하지 않으면 감속 없이 평상시 속도로 정찰한다.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Wx|AI")
-	TSubclassOf<UGameplayEffect> MoveSpeedEffect;
 
 	// 아래 상태들은 노드 인스턴스(폰)별로 보관된다(bCreateNodeInstance). 폰마다 독립된 커서를 가지므로 같은 경로 공유·리스폰에 안전하다.
 	int32 PatrolCursor = 0;

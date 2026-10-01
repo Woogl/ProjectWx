@@ -7,8 +7,6 @@
 #include "BehaviorTree/BTTaskNode.h"
 #include "WxBTTask_Wander.generated.h"
 
-class UGameplayEffect;
-
 /**
  * 타겟을 바라본 채 이동(strafe)할지는 이 태스크가 아니라 UWxBTService_LockOn 이 회전 모드를 발행해 결정한다 — 그 서비스가 붙은 브랜치 안에서 배회하면 타겟을 보며 움직인다.
  *
@@ -52,15 +50,6 @@ protected:
 	/** 최대 이동 속도가 이 비율로 제한된다. (1.0 = 평상시 속도) */
 	UPROPERTY(EditAnywhere, Category = "Wx|AI", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 	float MoveSpeedMultiplier = 0.3f;
-
-	/**
-	 * MoveSpeedMultiplier 를 SetByCaller 로 실어 부여하고 종료 시 제거한다.
-	 *
-	 * WxAI 는 WxCombat 에 의존하지 않으므로, 디자이너가 BT 에디터에서 직접 지정한다 (WxEffect_MoveSpeedScale).
-	 * 지정하지 않으면 감속 없이 평상시 속도로 배회한다.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Wx|AI")
-	TSubclassOf<UGameplayEffect> MoveSpeedEffect;
 
 private:
 	FVector MoveDirection = FVector::ForwardVector;
