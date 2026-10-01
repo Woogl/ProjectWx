@@ -489,14 +489,6 @@ function Write-Report([string]$Root, $Redirects, $Stats, $Resaved) {
 
 # ---------- Resave ----------
 
-function Get-EngineDir {
-    $launcherData = Join-Path $env:ProgramData 'Epic\UnrealEngineLauncher\LauncherInstalled.dat'
-    if (-not (Test-Path -LiteralPath $launcherData)) { throw "Epic Games Launcher installation data not found: $launcherData" }
-    foreach ($entry in (ConvertFrom-Json ([IO.File]::ReadAllText($launcherData))).InstallationList) {
-        if ($entry.AppName -eq 'UE_5.8') { return $entry.InstallLocation }
-    }
-    throw "UE 5.8 installation not found in: $launcherData"
-}
 
 function Invoke-Commandlet([string]$Exe, [string[]]$Arguments, [string]$LogPath) {
     # Under 'Stop', Windows PowerShell turns the first redirected stderr line of a native program into a terminating error.
@@ -513,7 +505,7 @@ function Invoke-Resave([string]$Root, $Redirects) {
         # A running editor keeps loaded packages open, so the commandlet cannot replace them.
         throw ('Close every editor or commandlet that has Wx.uproject open before resaving (PID: {0}).' -f (($running | ForEach-Object { $_.ProcessId }) -join ', '))
     }
-    $exe = Join-Path (Get-EngineDir) 'Engine\Binaries\Win64\UnrealEditor-Cmd.exe'
+    $exe = Join-Path (& (Join-Path $Root 'BatchFiles\Get-WxEngineRoot.ps1') -ProjectFile $uproject) 'Engine\Binaries\Win64\UnrealEditor-Cmd.exe'
     $logDir = Join-Path $Root 'Saved\Logs\CheckRedirects'
     [void](New-Item -ItemType Directory -Force -Path $logDir)
 

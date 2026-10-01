@@ -1,11 +1,11 @@
 ---
 name: build-doctor
-description: UE 5.8 C++ 프로젝트의 Editor Development 빌드를 실행하고, 빌드 시작 전 환경 오류와 최초의 인과성 높은 컴파일 오류를 구분해 진단한다.
+description: 프로젝트 지정 엔진 C++ 프로젝트의 Editor Development 빌드를 실행하고, 빌드 시작 전 환경 오류와 최초의 인과성 높은 컴파일 오류를 구분해 진단한다.
 ---
 
 # Build Doctor
 
-UE 5.8 프로젝트의 `<프로젝트명>Editor` / Win64 / Development 빌드를 실행하고 실패 원인을 진단한다.
+프로젝트 지정 엔진 프로젝트의 `<프로젝트명>Editor` / Win64 / Development 빌드를 실행하고 실패 원인을 진단한다.
 
 ## 실행
 
@@ -22,11 +22,13 @@ Windows PowerShell 5.1과 PowerShell 7을 지원한다. 실행기 소스는 5.1�
 스크립트는 다음을 보장한다.
 
 - 프로젝트 루트에서 단 하나의 `.uproject`를 찾는다.
-- `%ProgramData%\Epic\UnrealEngineLauncher\LauncherInstalled.dat`에서 `UE_5.8` 설치 경로를 조회한다.
+- `BatchFiles/Get-WxEngineRoot.ps1`로 `.uproject`의 `EngineAssociation`에 맞는 엔진을 찾는다.
 - 프로젝트 로그와 `%LOCALAPPDATA%\UnrealBuildTool`의 쓰기 가능 여부를 UBT 실행 전에 검사한다.
 - 전체 출력과 종료 코드를 `<project-root>\Saved\Logs\BuildDoctor\`에 저장한다.
 - `BUILD_DOCTOR_RESULT`로 성공, 빌드 실패, 사전 검사 실패를 구분하고 실제 종료 코드를 보존한다.
 - 재실행 가능한 실제 `Build.bat` 명령을 출력한다.
+
+엔진 탐색과 쓰기 사전 검사는 `scripts/Get-WxEditorBuildContext.ps1`에서 공유한다. `run-editor`도 이 사전 검사와 빌드 실행기를 사용한다.
 
 스크립트를 우회해 Markdown 안에서 빌드 명령을 다시 작성하지 않는다. 실행기가 실패했다면 먼저 실행기 오류를 진단한다.
 

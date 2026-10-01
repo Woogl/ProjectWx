@@ -14,7 +14,7 @@ High-signal signatures:
 
 Likely cause:
 - The project root is wrong or contains zero/multiple `.uproject` files.
-- `LauncherInstalled.dat` has no `UE_5.8` installation entry.
+- `LauncherInstalled.dat` has no installation entry matching the project `EngineAssociation`.
 - `Build.bat` or the build log directory cannot be accessed.
 - UnrealBuildTool cannot create `%LOCALAPPDATA%/UnrealBuildTool/Log.txt`, `Trace.uba`, or its mutex. The CLR exception exit code `-532462766` (`0xE0434352`) can be the only visible symptom.
 

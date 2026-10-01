@@ -20,33 +20,7 @@ function Write-BuildDoctorError
 	[Console]::Error.WriteLine("BUILD_DOCTOR_ERROR=$Message")
 }
 
-function Assert-DirectoryWritable
-{
-	param(
-		[Parameter(Mandatory = $true)]
-		[string]$DirectoryPath
-	)
-
-	$ProbePath = $null
-	try
-	{
-		New-Item -ItemType Directory -Path $DirectoryPath -Force | Out-Null
-		$ProbeName = '.build-doctor-write-probe-{0}-{1}.tmp' -f $PID, [Guid]::NewGuid().ToString('N')
-		$ProbePath = Join-Path $DirectoryPath $ProbeName
-		[System.IO.File]::WriteAllText($ProbePath, 'probe')
-	}
-	catch
-	{
-		throw "디렉터리에 쓸 수 없습니다: $DirectoryPath ($($_.Exception.Message))"
-	}
-	finally
-	{
-		if ($ProbePath -and (Test-Path -LiteralPath $ProbePath -PathType Leaf -ErrorAction SilentlyContinue))
-		{
-			Remove-Item -LiteralPath $ProbePath -Force -ErrorAction SilentlyContinue
-		}
-	}
-}
+. (Join-Path $PSScriptRoot 'Get-WxEditorBuildContext.ps1')
 
 $LogEncoding = New-Object System.Text.UTF8Encoding($false)
 $LogPath = $null
@@ -54,48 +28,16 @@ $BuildInvoked = $false
 
 try
 {
-	$ResolvedProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot -ErrorAction Stop).Path
-	$ProjectFiles = @(Get-ChildItem -LiteralPath $ResolvedProjectRoot -Filter '*.uproject' -File)
-	if ($ProjectFiles.Count -ne 1)
-	{
-		throw "프로젝트 루트에는 .uproject가 정확히 하나 있어야 합니다: $ResolvedProjectRoot (발견: $($ProjectFiles.Count))"
-	}
-
-	$ProjectFile = $ProjectFiles[0]
-	$EditorTarget = "$($ProjectFile.BaseName)Editor"
-
-	$LauncherDataPath = Join-Path $env:ProgramData 'Epic\UnrealEngineLauncher\LauncherInstalled.dat'
-	if (-not (Test-Path -LiteralPath $LauncherDataPath -PathType Leaf))
-	{
-		throw "Epic Games Launcher 설치 정보를 찾을 수 없습니다: $LauncherDataPath"
-	}
-
-	$LauncherData = Get-Content -LiteralPath $LauncherDataPath -Raw | ConvertFrom-Json
-	$EngineEntry = $LauncherData.InstallationList |
-		Where-Object { $_.AppName -eq 'UE_5.8' } |
-		Select-Object -First 1
-	if (-not $EngineEntry)
-	{
-		throw "LauncherInstalled.dat에 UE_5.8 설치 정보가 없습니다: $LauncherDataPath"
-	}
-
-	$EngineRoot = $EngineEntry.InstallLocation
-	$BuildBatchFile = Join-Path $EngineRoot 'Engine\Build\BatchFiles\Build.bat'
-	if (-not (Test-Path -LiteralPath $BuildBatchFile -PathType Leaf))
-	{
-		throw "UE 5.8 Build.bat을 찾을 수 없습니다: $BuildBatchFile"
-	}
-
-	$LogDirectory = Join-Path $ResolvedProjectRoot 'Saved\Logs\BuildDoctor'
-	Assert-DirectoryWritable -DirectoryPath $LogDirectory
+	$Context = Get-WxEditorBuildContext -ProjectRoot $ProjectRoot
+	$ProjectFile = $Context.ProjectFile
+	$EditorTarget = $Context.EditorTarget
+	$EngineRoot = $Context.EngineRoot
+	$BuildBatchFile = $Context.BuildBatchFile
+	$LogDirectory = $Context.LogDirectory
+	$UnrealBuildToolDataDirectory = $Context.UnrealBuildToolDataDirectory
+	Assert-WxDirectoryWritable -DirectoryPath $LogDirectory
 	$LogName = 'build_{0}_{1}.log' -f (Get-Date -Format 'yyyy-MM-dd_HHmmss_fff'), $PID
 	$LogPath = Join-Path $LogDirectory $LogName
-
-	if (-not $env:LOCALAPPDATA)
-	{
-		throw 'LOCALAPPDATA 환경 변수가 없어 UnrealBuildTool 데이터 경로를 확인할 수 없습니다.'
-	}
-	$UnrealBuildToolDataDirectory = Join-Path $env:LOCALAPPDATA 'UnrealBuildTool'
 
 	$EditorProcesses = @(Get-Process -Name 'UnrealEditor' -ErrorAction SilentlyContinue)
 	$EditorProcessSummary = if ($EditorProcesses.Count -gt 0)
@@ -122,7 +64,7 @@ try
 
 	$HeaderLines | ForEach-Object { Write-Output $_ }
 	Write-Output "BUILD_DOCTOR_LOG=$LogPath"
-	Assert-DirectoryWritable -DirectoryPath $UnrealBuildToolDataDirectory
+	Assert-WxDirectoryWritable -DirectoryPath $UnrealBuildToolDataDirectory
 
 	# Windows PowerShell 5.1 emits redirected native stderr as ErrorRecord objects.
 	# Capture those as text; the native exit code determines build success.

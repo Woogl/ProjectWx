@@ -7,7 +7,7 @@ for %%I in ("%ProjectRoot%") do set "ProjectRoot=%%~fI"
 
 set "ProjectFile=%ProjectRoot%\Wx.uproject"
 set "SolutionFile=%ProjectRoot%\Wx.sln"
-set "LauncherData=%ProgramData%\Epic\UnrealEngineLauncher\LauncherInstalled.dat"
+set "EngineResolver=%ProjectRoot%\BatchFiles\Get-WxEngineRoot.ps1"
 
 if not exist "%ProjectFile%" (
     echo Project file not found: %ProjectFile%
@@ -15,16 +15,10 @@ if not exist "%ProjectFile%" (
     exit /b 1
 )
 
-if not exist "%LauncherData%" (
-    echo Epic Games Launcher installation data not found: %LauncherData%
-    pause
-    exit /b 1
-)
-
-for /f "usebackq delims=" %%I in (`powershell.exe -NoProfile -Command "$entries = (ConvertFrom-Json ([System.IO.File]::ReadAllText($env:LauncherData))).InstallationList; foreach ($entry in $entries) { if ($entry.AppName -eq 'UE_5.8') { $entry.InstallLocation; break } }"`) do set "EngineDir=%%I"
-
+set "EngineDir="
+for /f "usebackq delims=" %%I in (`powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%EngineResolver%" -ProjectFile "%ProjectFile%"`) do set "EngineDir=%%I"
 if not defined EngineDir (
-    echo UE 5.8 installation not found in: %LauncherData%
+    echo Engine resolution failed for: %ProjectFile%
     pause
     exit /b 1
 )
