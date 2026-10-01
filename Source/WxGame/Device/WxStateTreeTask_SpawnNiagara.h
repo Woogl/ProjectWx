@@ -35,7 +35,7 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TObjectPtr<UNiagaraSystem> Niagara;
 
-	/** 루프 FX 는 계속 미완료라 유지되고, 일회성 FX 는 재생이 끝나면 완료 상태가 되거나 bAutoDestroy 로 사라져 다음 진입에 다시 스폰된다. */
+	/** 이 상태가 소유한 FX. 상태 이탈·트리 종료 때 제거하고 다음 진입에서 새로 생성한다. */
 	UPROPERTY()
 	TObjectPtr<UNiagaraComponent> SpawnedComponent;
 };
@@ -44,6 +44,7 @@ struct FWxStateTreeTask_SpawnNiagaraInstanceData
  * 진입할 때 이 노드가 띄운 Niagara 가 재생 중이 아니면 재생하고 Succeeded 로 완료한다. State 를 읽지 않아 어떤 장치든 재사용한다.
  * 진입 경로(라이브 전이/초기 시작/복원/레이트조인)를 가리지 않고 판단 기준은 그 하나다.
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
+ * 상태를 떠나면 일회성·루프 FX 모두 제거한다. 여러 자식 상태에 걸쳐 유지할 FX는 공통 부모 상태에 둔다.
  */
 USTRUCT(meta = (DisplayName = "나이아가라 스폰", Category = "Wx"))
 struct FWxStateTreeTask_SpawnNiagara : public FStateTreeTaskCommonBase
@@ -56,6 +57,7 @@ struct FWxStateTreeTask_SpawnNiagara : public FStateTreeTaskCommonBase
 
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
