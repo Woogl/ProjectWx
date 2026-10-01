@@ -8,10 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWxOnMovingChanged, bool, bIsMoving);
 
-/**
- * 아바타의 수평 이동 여부를 폴링해 상태가 바뀐 프레임에만 통지한다.
- * 이동 시작·정지에는 엔진 이벤트가 없어 폴링이 유일한 감지 수단이다.
- */
+/** 이동 시작·정지에는 엔진 이벤트가 없어 폴링이 유일한 감지 수단이다. */
 UCLASS()
 class WXGAME_API UWxAbilityTask_WaitMoving : public UAbilityTask
 {

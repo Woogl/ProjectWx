@@ -147,8 +147,7 @@ void UWxAnimNotifyState_CameraMove::NotifyEnd(USkeletalMeshComponent* MeshComp, 
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
 #if WITH_EDITOR
-	// 구간 안에서 일시정지해도 이 프리뷰 경로는 NotifyEnd를 호출한다.
-	// 그래서 무조건 숨기지 않고, 플레이헤드가 실제로 구간 밖일 때만 숨겨 멈춘 상태에서도 계속 보이게 한다.
+	// 프리뷰 경로는 구간 안에서 일시정지해도 NotifyEnd를 호출하므로, 플레이헤드가 실제로 구간 밖일 때만 숨긴다.
 	const FAnimNotifyEvent* NotifyEvent = EventReference.GetNotify();
 	const UAnimSingleNodeInstance* PreviewInstance = MeshComp ? Cast<UAnimSingleNodeInstance>(MeshComp->GetAnimInstance()) : nullptr;
 	const bool bStillInsideRegion = NotifyEvent && PreviewInstance

@@ -163,8 +163,7 @@ bool UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 		return false;
 	}
 
-	// 순회 중 활성화가 어빌리티 목록을 바꿀 수 있다(GE의 GrantedAbilities, RemoveAfterActivation 등).
-	// 락이 없으면 Give/Clear가 즉시 Add/RemoveAtSwap 해 참조와 이터레이터가 무효화된다.
+	// 순회 중 활성화가 목록을 바꾸면(GE의 GrantedAbilities, RemoveAfterActivation 등) 락 없이는 Give/Clear가 즉시 Add/RemoveAtSwap 해 참조와 이터레이터가 무효화된다.
 	ABILITYLIST_SCOPE_LOCK();
 
 	// 순정 AbilityLocalInputPressed처럼 활성 여부와 무관하게 키 상태를 스펙에 남긴다.
