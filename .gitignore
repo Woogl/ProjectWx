@@ -90,5 +90,8 @@ __pycache__/
 *.DotSettings.user
 .idea/
 
+# Obsidian
+.obsidian/
+
 # Temporary files
 ~*
