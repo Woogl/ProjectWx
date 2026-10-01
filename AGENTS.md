@@ -23,7 +23,5 @@
 
 ## AI 워크플로우
 
-- 작업 절차·작업 기록·상태 규칙은 [작업 절차](.agents/workflow/process/index.md)를 따른다.
 - 공용 스킬과 스크립트는 `.agents/`에서 관리한다.
-- 프로젝트 지식은 claude-obsidian vault `Wiki/`의 `Wiki/wiki/index.md`에서 탐색한다. Wiki를 누가 어떻게 쓰는지는 작업 절차와 `Wiki/README.md`를 따른다.
 - 어빌리티(GA_·몽타주)·이펙트(GE)·캐릭터 구성(WxAbilitySet·속성 초기값) 조사는 `.agents/scripts/Export-AbilitySystemLists.ps1`을 실행한 뒤 `Saved/AbilitySystemLists/`의 `ability-list.md`·`effect-list.md`·`character-list.md`부터 본다.

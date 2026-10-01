@@ -18,7 +18,7 @@ allowed-tools: Bash, Read, Edit
 
 ### 2단계: Pull 실행
 
-`git -c merge.autoStash=false pull --no-rebase --no-edit`로 원격 저장소의 최신 내용을 가져오라. 현재 작업 트리에서 병합하고, 작업 절차의 자동 백업 금지에 따라 사용자 Git 설정의 자동 stash도 이 명령에서 끈다.
+`git -c merge.autoStash=false pull --no-rebase --no-edit`로 원격 저장소의 최신 내용을 가져오라. 현재 작업 트리에서 병합하고, 사용자 Git 설정의 자동 stash는 이 명령에서 끈다.
 - 추적 대상(upstream)이 없어 실패하면 `git -c merge.autoStash=false pull --no-rebase --no-edit origin <브랜치명>`으로 원격·브랜치를 명시해 가져오라.
 - 로컬 변경을 덮어쓸 수 있어 Git이 병합을 거부하면 해당 파일과 원인을 보고하고 종료한다. 로컬 변경을 버려 진행하지 않는다.
 - git이 자동 병합에 성공하면 그대로 진행한다.

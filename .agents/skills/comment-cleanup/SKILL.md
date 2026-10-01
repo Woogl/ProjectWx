@@ -70,7 +70,7 @@ if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
 
 ### 줄인다
 
-내용이 비자명해도 문단이 됐으면 결론 한 줄로 줄인다. 작업 기록과 재사용할 결론은 [작업 절차의 기록 규칙](../../workflow/process/index.md#기록)을 따른다.
+내용이 비자명해도 문단이 됐으면 결론 한 줄로 줄인다.
 
 ### 고친다 — 가장 중요한 작업
 

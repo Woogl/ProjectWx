@@ -1,5 +1,0 @@
-{
-  "tools": { "core": ["read_file", "read_many_files", "list_directory", "glob", "grep_search", "replace", "write_file", "run_shell_command"] },
-  "hooksConfig": { "enabled": false },
-  "skills": { "enabled": false }
-}
