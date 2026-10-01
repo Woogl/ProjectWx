@@ -62,3 +62,18 @@
 ## [2026-10-02] ingest | 사용자 결정: 폴더 이름을 영어로
 - Karpathy LLM Wiki 원문의 색인 분류(entities, concepts, sources)를 따라 `요약/` → `sources/`, `엔티티/` → `entities/`, `개념/` → `concepts/`로 바꿨다. 문서 파일 이름은 그대로다.
 - 모든 링크, `AGENTS.md`의 구성·양식, `wiki-ingest`·`wiki-query`·`wiki-lint`의 경로를 함께 고쳤다. 이 항목 위의 지난 기록은 옛 폴더 이름 그대로 둔다.
+
+## [2026-10-02] lint | 주간 루틴 적재·점검 (무인)
+- 적재: 미적재 자료 0건, 낡은 자료 0건이라 건너뛰었다(HEAD 237056575).
+- 점검 환경: 클라우드에 `pwsh`가 없어 PowerShell 7.4.6 linux-x64 tar.gz를 `/tmp`에 받아 돌렸다.
+  - 새 클론이 얕은 클론(shallow)이라 처음 실행에서 요약 커밋 대부분이 `bad revision`으로 나고 낡은 자료가 0건으로 잘못 나왔다. `git fetch --unshallow origin main` 뒤 다시 돌렸다.
+  - git 기본값 `core.quotepath=true` 때문에 한글 경로가 8진수로 이스케이프돼 미적재 자료가 57건으로 잘못 나왔다. 로컬 설정 `core.quotepath false` 뒤 다시 돌렸다.
+- 기계 점검(위 두 조치 뒤): 낡은 자료 0, 사라진 자료 0, 낡은 코드 출처 1, 없는 코드 이름 0, 깨진 링크 0, 고아 문서 0, 출처·반영 짝 0, 연결 후보 1, 색인 누락 0, 미적재 자료 0.
+  - 낡은 코드 출처: [Claude 활용](concepts/Claude-활용.md)의 `.agents/skills/` (dbcd7fdb9 뒤 237056575). 폴더 이름 영어화로 경로 문자열만 바뀌었고, 문서 본문은 폴더 이름을 인용하지 않아 내용은 맞다. 커밋만 갱신하면 된다.
+  - 연결 후보: [현광](entities/현광.md)의 '피격 경직 중'은 지난 점검대로 그대로 둔다.
+- 의미 점검([Claude 활용](concepts/Claude-활용.md)과 링크로 이어진 [개발 진행과 작업 규칙](concepts/개발-진행과-작업-규칙.md)·[기획 작업 도구](concepts/기획-작업-도구.md)):
+  - 모순 없음. 기획자 AI 활용 규칙(07-31)은 두 문서가 같다.
+  - 풀린 미결: [Claude 활용](concepts/Claude-활용.md)의 '`pwsh`가 있는지 확인하지 않았다' 항목은 이번 실행에서 풀렸다(없지만 받아서 쓸 수 있다).
+  - 빠진 결정: [Claude 활용](concepts/Claude-활용.md) 결정 절에 10-02 폴더 이름 영어화(sources·entities·concepts) 사용자 결정이 없다.
+  - 제안: `wiki-ingest` 8절 점검 스크립트 항목에 `git fetch --unshallow`와 `git config core.quotepath false`를 넣거나, 스크립트가 git을 `-c core.quotepath=false`로 부르게 고친다.
+- 무인 실행이라 아무 문서도 고치지 않았다.
