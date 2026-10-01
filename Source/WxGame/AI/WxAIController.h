@@ -42,6 +42,6 @@ private:
 	/** 그로기는 트리를 멈추지 않고 Reaction 우선순위로 잠가, 풀리면 멈춘 자리에서 잇는다. 엔진 AI 태스크가 Logic 잠금을 풀어도 그로기 중에는 재개되지 않는다. */
 	void HandleGroggyTagChanged(const FGameplayTag Tag, int32 NewCount);
 
-	/** BT 서비스가 고른 타겟을 락온 대상으로 옮긴다. WxCombat 을 아는 쪽이 컨트롤러뿐이라 이 통로는 여기 남는다. */
+	/** 타겟 키는 여러 BT 노드가 쓰므로, 키 변경 하나를 지켜 락온 대상으로 옮긴다. */
 	EBlackboardNotificationResult HandleTargetActorChanged(const UBlackboardComponent& InBlackboard, FBlackboard::FKey KeyID);
 };

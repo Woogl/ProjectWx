@@ -29,7 +29,7 @@ struct FWxStateTreeTask_PlayDialogueInstanceData
  * 대화 대상을 두지 않으므로 카메라는 플레이어에 머문다.
  * 세션 부재·StartRow 미지정·세션 열기 실패(행 없음·대사 빔·폰 ASC 없음)는 완주할 수 없는 잘못된 조립이므로 경고를 남기고 Failed.
  * 상태를 먼저 떠나도 대화를 끊지 않는다 — 읽던 대사가 사라지는 편이 더 나쁘고, 세션은 자기 데이터를 끝까지 진행한다.
- * 0번 컨트롤러 사용은 다른 크로스모듈 노드와 같은 전제(v1 싱글/리슨 호스트)다.
+ * 0번 컨트롤러 사용은 다른 노드와 같은 전제(v1 싱글/리슨 호스트)다.
  */
 USTRUCT(meta = (DisplayName = "대화 재생", Category = "Wx"))
 struct FWxStateTreeTask_PlayDialogue : public FStateTreeTaskCommonBase

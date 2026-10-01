@@ -120,7 +120,6 @@ void UWxPlayerLayoutComponent::WatchPawnTags(APawn* Pawn)
 	// 사망 화면은 닫지 않는다 — 부활이 폰을 교체하며, 부활 요청이 완료 시 사망 화면을 비활성화한다.
 	CloseDialogueScreen();
 
-	// 태그는 WxCore 라 WxUI 가 다른 플러그인 타입을 알지 않아도 되므로, 사망·대화를 도메인 델리게이트가 아니라 태그로 듣는다.
 	UAbilitySystemComponent* AbilitySystem = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
 	if (!AbilitySystem)
 	{

@@ -26,7 +26,7 @@ struct FWxStateTreeTask_WaitMoveToTargetInstanceData
 };
 
 /**
- * 0번 컨트롤러 사용은 GiveRewards 등 기존 크로스모듈 노드와 같은 전제(v1 싱글/리슨 호스트)다.
+ * 0번 컨트롤러 사용은 GiveRewards 등 다른 노드와 같은 전제(v1 싱글/리슨 호스트)다.
  * 빈 로케이터는 완료될 수 없는 잘못된 조립이므로 진입 시 경고를 남긴다.
  *
  * 대상은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커·WP·PIE 해석이 엔진에 내장돼 있다.

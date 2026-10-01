@@ -8,9 +8,7 @@
 #include "BehaviorTree/Blackboard/BlackboardKeyEnums.h"
 #include "WxBTDecorator_AttributeRatio.generated.h"
 
-/**
- * WxAI 는 WxCombat 에 의존하지 않으므로, Attribute / MaxAttribute 는 디자이너가 BT 에디터에서 직접 지정한다 (예: WxCombatAttributeSet::HP, WxCombatAttributeSet::MaxHP).
- */
+/** Attribute / MaxAttribute 비율(예: HP / MaxHP)을 Ratio 와 비교한다. */
 UCLASS()
 class WXGAME_API UWxBTDecorator_AttributeRatio : public UBTDecorator
 {
