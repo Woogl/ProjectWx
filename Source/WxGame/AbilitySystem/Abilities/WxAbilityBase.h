@@ -14,6 +14,7 @@ class UAnimMontage;
 class UGameplayEffect;
 class UInputAction;
 struct FGameplayAbilityTargetDataHandle;
+struct FGameplayAttribute;
 
 /** 로컬 +X(정면)에서 +Y(오른쪽)으로 45도씩 나눈 8방향. 항목명이 몽타주 섹션 이름이다. */
 UENUM(BlueprintType)
@@ -99,6 +100,13 @@ public:
 	/** 질주처럼 지속 소모하는 어빌리티에서는 진입 비용이다 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Cost", meta = (ClampMin = "0.0"))
 	float CostAmount = 0.f;
+
+	/**
+	 * 비용 GE의 정의 순서에서 속성이 유효하고 계산값이 거의 0이 아닌 첫 항목의 속성을 OutCostAttribute에 쓰고 양의 크기를 반환한다.
+	 * 해당 항목이 없으면 OutCostAttribute를 무효로 설정하고 0을 반환한다. 복수 비용을 합산하지 않으며, 비용 충족 여부는 CheckCost로 판정한다.
+	 * 조회는 자원을 소모하지 않는다. Effect.IgnoreCosts에 따른 면제와 무관하게 정의된 비용을 반환한다.
+	 */
+	float QueryCost(const UAbilitySystemComponent& ASC, FGameplayAttribute& OutCostAttribute) const;
 
 	FText GetTitle() const;
 	FText GetDescription() const;

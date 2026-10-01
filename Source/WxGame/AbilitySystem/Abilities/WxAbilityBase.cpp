@@ -31,6 +31,39 @@ UWxAbilityBase::UWxAbilityBase()
 	CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
 }
 
+float UWxAbilityBase::QueryCost(const UAbilitySystemComponent& ASC, FGameplayAttribute& OutCostAttribute) const
+{
+	OutCostAttribute = FGameplayAttribute();
+
+	const UGameplayEffect* CostGE = GetCostGameplayEffect();
+	if (!CostGE)
+	{
+		return 0.f;
+	}
+
+	// 비용 계산은 소스 어빌리티에서 수치를 읽으므로 컨텍스트에 어빌리티를 실어야 한다.
+	FGameplayEffectContextHandle CostContext = ASC.MakeEffectContext();
+	CostContext.SetAbility(this);
+
+	FGameplayEffectSpec CostSpec(CostGE, CostContext, GetAbilityLevel());
+	CostSpec.CalculateModifierMagnitudes();
+
+	for (int32 ModifierIndex = 0; ModifierIndex < CostGE->Modifiers.Num(); ++ModifierIndex)
+	{
+		const FGameplayAttribute& ModifierAttribute = CostGE->Modifiers[ModifierIndex].Attribute;
+		const float Magnitude = CostSpec.GetModifierMagnitude(ModifierIndex);
+		if (!ModifierAttribute.IsValid() || FMath::IsNearlyZero(Magnitude))
+		{
+			continue;
+		}
+
+		OutCostAttribute = ModifierAttribute;
+		return FMath::Abs(Magnitude);
+	}
+
+	return 0.f;
+}
+
 FText UWxAbilityBase::GetTitle() const
 {
 	return Title;

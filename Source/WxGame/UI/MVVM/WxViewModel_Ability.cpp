@@ -309,45 +309,10 @@ void UWxViewModel_Ability::RefreshCheckCost()
 	UE_MVVM_SET_PROPERTY_VALUE(CheckCost, Ability->CheckCost(Handle, ASC->AbilityActorInfo.Get()));
 }
 
-float UWxViewModel_Ability::QueryCost(const UAbilitySystemComponent& ASC, const UGameplayAbility& Ability, FGameplayAttribute& OutCostAttribute) const
-{
-	OutCostAttribute = FGameplayAttribute();
-
-	const UGameplayEffect* CostGE = Ability.GetCostGameplayEffect();
-	if (!CostGE)
-	{
-		return 0.f;
-	}
-
-	// 비용 계산은 소스 어빌리티에서 수치를 읽으므로 컨텍스트에 어빌리티를 실어야 한다.
-	FGameplayEffectContextHandle CostContext = ASC.MakeEffectContext();
-	CostContext.SetAbility(&Ability);
-
-	FGameplayEffectSpec CostSpec(CostGE, CostContext, Ability.GetAbilityLevel());
-	CostSpec.CalculateModifierMagnitudes();
-
-	for (int32 ModifierIndex = 0; ModifierIndex < CostGE->Modifiers.Num(); ++ModifierIndex)
-	{
-		const FGameplayAttribute& ModifierAttribute = CostGE->Modifiers[ModifierIndex].Attribute;
-		const float Magnitude = CostSpec.GetModifierMagnitude(ModifierIndex);
-		if (!ModifierAttribute.IsValid() || FMath::IsNearlyZero(Magnitude))
-		{
-			continue;
-		}
-
-		OutCostAttribute = ModifierAttribute;
-
-		// 자원 감산이라 음수로 나온다.
-		return FMath::Abs(Magnitude);
-	}
-
-	return 0.f;
-}
-
-void UWxViewModel_Ability::BindCostAttributes(UAbilitySystemComponent& ASC, const UGameplayAbility& Ability)
+void UWxViewModel_Ability::BindCostAttributes(UAbilitySystemComponent& ASC, const UWxAbilityBase& Ability)
 {
 	FGameplayAttribute FoundCostAttribute;
-	const float FoundCost = QueryCost(ASC, Ability, FoundCostAttribute);
+	const float FoundCost = Ability.QueryCost(ASC, FoundCostAttribute);
 
 	// 코스트가 없는 어빌리티로 갈아탔을 때 옛 수치가 남지 않도록 구독 여부와 무관하게 먼저 반영한다.
 	UE_MVVM_SET_PROPERTY_VALUE(CostAmount, FoundCost);

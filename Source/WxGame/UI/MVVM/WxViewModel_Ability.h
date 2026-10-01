@@ -15,6 +15,7 @@ struct FGameplayEffectSpec;
 struct FStreamableHandle;
 class UAbilitySystemComponent;
 class UGameplayAbility;
+class UWxAbilityBase;
 
 /**
  * 스킬 슬롯 하나의 뷰모델. 정체성은 어빌리티가 아니라 슬롯을 가리키는 어빌리티 태그다.
@@ -28,7 +29,7 @@ class UGameplayAbility;
  * CheckCost 는 ASC 태그·발동 조건 이벤트/비용 어트리뷰트 변화 시점에 재평가된다.
  * 태그 변경과 발동 조건 이벤트는 한 프레임 분을 모아 다음 월드 타이머 틱에 한 번 판정한다.
  *
- * 소모량은 어빌리티를 물 때 비용 GE 를 한 번 평가해 정한다.
+ * 소모량은 어빌리티를 물 때 한 번 조회해 정하고, 해당 자원 변화 시 CheckCost를 다시 판정한다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_Ability : public UMVVMViewModelBase
@@ -110,14 +111,8 @@ private:
 
 	void RefreshCheckCost();
 
-	/**
-	 * 비용 GE 가 실제로 깎는 자원을 OutCostAttribute 로 내고 그 양을 반환한다. 깎는 자원이 없으면 0.
-	 * 비용 GE 는 자원별 모디파이어를 모두 선언해 두고 값은 적용 시점에 계산하므로, 정의만 읽어서는 알 수 없어 스펙을 한 번 평가한다.
-	 */
-	float QueryCost(const UAbilitySystemComponent& ASC, const UGameplayAbility& Ability, FGameplayAttribute& OutCostAttribute) const;
-
-	/** 비용 자원과 그 양을 정하고, 값이 바뀌면 비용 판정을 다시 하도록 구독한다. */
-	void BindCostAttributes(UAbilitySystemComponent& ASC, const UGameplayAbility& Ability);
+	/** 어빌리티에서 조회한 비용을 표시하고, 해당 자원이 바뀌면 비용 판정을 다시 하도록 구독한다. */
+	void BindCostAttributes(UAbilitySystemComponent& ASC, const UWxAbilityBase& Ability);
 
 	/** 어빌리티마다 다른 구독이라 어빌리티를 놓을 때마다 푼다. */
 	void UnbindCostAttributes(UAbilitySystemComponent& ASC);
@@ -140,7 +135,7 @@ private:
 	 */
 	float CachedCooldownTime = 0.f;
 
-	/** 비용 GE가 깎는 자원 어트리뷰트. 값 변경 델리게이트 등록/해제용 */
+	/** 표시 중인 비용의 자원 속성. 값 변경 델리게이트 등록/해제용. */
 	FGameplayAttribute CostAttribute;
 
 	FTimerHandle CooldownTimerHandle;
