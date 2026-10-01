@@ -145,7 +145,7 @@ bool UWxAbility_HitReact::PlayMontageInternal(UAnimMontage* Montage, FName Start
 
 FGameplayTag UWxAbility_HitReact::GetReactionTag(const FGameplayEventData& Payload)
 {
-	// 패리는 반응 태그와 무관하게 받는다 — 성립 여부는 대미지 행의 bCanParry가 이미 갈랐다.
+	// 패리 성립 여부는 대미지 행의 bCanParry가 이미 갈랐다.
 	if (Payload.EventTag == WxGameplayTags::Event_Hit_Parry)
 	{
 		return WxGameplayTags::Event_Hit_Parry;

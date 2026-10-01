@@ -13,8 +13,7 @@
  * 연출이 끝나도 종료하지 않는다 — Ability.Death는 사망 상태를 알리고, 발동 차단은 BlockAbilitiesWithTag의 Ability 태그가 맡는다.
  * 시체는 액터가 파괴될 때 ASC가 정리한다.
  *
- * 래그돌은 어빌리티 인스턴스가 없는 시뮬 프록시·late joiner도 커버해야 한다.
- * 그래서 서버가 State.Ragdoll 루스 태그만 발행(TagOnly 복제)하고, 전 머신의 캐릭터가 그 태그를 보고 스스로 전환한다.
+ * 래그돌은 인스턴스가 없는 시뮬 프록시·late joiner도 커버해야 해서, 서버가 State.Ragdoll 루스 태그만 TagOnly로 발행하고 전 머신의 캐릭터가 그 태그로 스스로 전환한다.
  */
 UCLASS()
 class WXGAME_API UWxAbility_Death : public UWxAbilityBase

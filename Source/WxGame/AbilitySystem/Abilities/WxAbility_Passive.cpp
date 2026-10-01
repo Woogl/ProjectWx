@@ -30,7 +30,6 @@ EDataValidationResult UWxAbility_Passive::IsDataValid(FDataValidationContext& Co
 			Context.AddError(FText::FromString(FString::Printf(TEXT("트리거 %s가 GameplayEvent가 아니다. 공격 1회당 한 번 지급하는 판정은 이벤트 페이로드의 발동 정보로 한다."), *Trigger.TriggerTag.ToString())));
 		}
 
-		// 엔진은 이벤트 태그와 그 조상마다 트리거를 찾는다.
 		for (const FAbilityTriggerData& OtherTrigger : AbilityTriggers)
 		{
 			if (Trigger.TriggerTag != OtherTrigger.TriggerTag && Trigger.TriggerTag.MatchesTag(OtherTrigger.TriggerTag))

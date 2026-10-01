@@ -102,9 +102,8 @@ public:
 	float CostAmount = 0.f;
 
 	/**
-	 * 비용 GE의 정의 순서에서 속성이 유효하고 계산값이 거의 0이 아닌 첫 항목의 속성을 OutCostAttribute에 쓰고 양의 크기를 반환한다.
-	 * 해당 항목이 없으면 OutCostAttribute를 무효로 설정하고 0을 반환한다. 복수 비용을 합산하지 않으며, 비용 충족 여부는 CheckCost로 판정한다.
-	 * 조회는 자원을 소모하지 않는다. Effect.IgnoreCosts에 따른 면제와 무관하게 정의된 비용을 반환한다.
+	 * 비용 GE에서 속성이 유효하고 계산값이 0이 아닌 첫 항목의 속성과 양의 크기를 돌려주고, 없으면 무효 속성과 0을 돌려준다.
+	 * 복수 비용을 합산하지 않고, Effect.IgnoreCosts 면제와 무관하게 정의된 비용을 돌려준다.
 	 */
 	float QueryCost(const UAbilitySystemComponent& ASC, FGameplayAttribute& OutCostAttribute) const;
 
@@ -120,11 +119,7 @@ public:
 	/** 로컬 XY 방향을 8방향으로 나눈다. 수평 입력이 없으면 DefaultDirection을 쓴다. */
 	static EWxAbilityDirection ResolveDirection(const FVector& LocalDirection, EWxAbilityDirection DefaultDirection = EWxAbilityDirection::Forward);
 
-	/**
-	 * GetMontage() 또는 전달받은 몽타주에서 Prefix + EWxAbilityDirection 항목명을 찾는다.
-	 * 해당 섹션이 없으면 같은 Prefix의 Forward, 그것도 없거나 몽타주가 없으면 NAME_None을 반환한다.
-	 * 섹션 이름만 고르며 입력 수집·방향 동기화·재생·섹션 연결은 하지 않는다.
-	 */
+	/** Prefix + EWxAbilityDirection 항목명 섹션이 없으면 Prefix + Forward, 그것도 없으면 NAME_None을 반환한다. */
 	FName SelectDirectionalSection(const FVector& LocalDirection, const FString& Prefix = TEXT(""), EWxAbilityDirection DefaultDirection = EWxAbilityDirection::Forward) const;
 	static FName SelectDirectionalSection(const UAnimMontage* Montage, const FVector& LocalDirection, const FString& Prefix = TEXT(""), EWxAbilityDirection DefaultDirection = EWxAbilityDirection::Forward);
 
@@ -173,10 +168,9 @@ protected:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	/**
-	 * StartSection이 비었거나 존재하지 않고 [StartSection]Forward가 있으면 이동 입력의 방향 섹션을 자동 선택한다.
-	 * 자동 선택에 쓰는 입력은 활성화마다 처음 한 번 로컬 XY 방향으로 확정해 재사용한다.
+	 * StartSection이 비었거나 존재하지 않고 [StartSection]Forward가 있으면 활성화마다 한 번 확정한 이동 입력 방향으로 섹션을 자동 선택한다.
 	 * LocalPredicted·ServerInitiated에서는 로컬 클라이언트가 방향을 보내고 원격 플레이어의 서버 실행은 수신을 기다린다.
-	 * 원격 플레이어의 방향 수신을 기다리는 동안에도 true(요청 접수)를 반환한다. 나중에 재생이 실패하면 어빌리티를 취소한다.
+	 * 수신을 기다리는 동안에도 true(요청 접수)를 반환하고, 나중에 재생이 실패하면 어빌리티를 취소한다.
 	 */
 	bool PlayMontage(UAnimMontage* Montage, FName StartSection = NAME_None);
 

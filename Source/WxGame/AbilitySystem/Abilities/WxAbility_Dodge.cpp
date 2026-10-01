@@ -58,7 +58,7 @@ void UWxAbility_Dodge::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 void UWxAbility_Dodge::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	// 어빌리티가 무적 구간 도중 취소되면 태그 해제 콜백을 받지 못하므로 여기서 비활성화한다.
-	// 무적 태그 자체는 구간을 소유한 ANS가 걷어낸다.
+	// 무적 태그 자체는 구간을 연 UWxAbilityTask_MontageEvents가 걷어낸다.
 	DeactivateJudgementCapsule();
 
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
@@ -87,7 +87,7 @@ FName UWxAbility_Dodge::SelectInputDirectionSection(const UAnimMontage* Montage,
 
 	const FName SectionName = SelectDirectionalSection(Montage, LocalDirection, Prefix, EWxAbilityDirection::Back);
 
-	// 락온 중에는 락온이 Ability.Action.Dodge를 보고 회전 태스크를 멈춰 회피 내내 몸 방향을 고정하므로, 회피도 몸을 돌리지 않는다.
+	// 락온 중에는 UWxAbilityTask_LockMovementRotation이 회피 내내 CMC 회전을 막아 몸 방향을 고정하므로, 회피도 몸을 돌리지 않는다.
 	// 비락온은 선택된 포즈와 실제 이동 방향이 맞도록 양자화 잔차만큼 몸을 돌린다. 이동 방향 자체는 위에서 확정했다.
 	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	const bool bLockedOn = ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_LockOn);
@@ -207,7 +207,7 @@ void UWxAbility_Dodge::HandleDodgeSuccess()
 
 void UWxAbility_Dodge::ListenForInvincibleWindow()
 {
-	// 무적 태그는 WxAnimNotifyState_ApplyGameplayEffect가 발행하고, 여기서는 관찰만 해 판정 캡슐의 수명을 태그에 맞춘다.
+	// 무적 태그는 WxAnimNotifyState_ApplyGameplayEffect 구간에 UWxAbilityTask_MontageEvents가 부여하고, 여기서는 관찰만 해 판정 캡슐의 수명을 태그에 맞춘다.
 	// 두 태스크 모두 재무장하므로 극한 회피 섹션에 무적 구간이 또 있어도 그대로 처리된다.
 	UAbilityTask_WaitGameplayTagAdded* AddedTask = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, WxGameplayTags::Effect_Invincible, nullptr, false);
 	AddedTask->Added.AddDynamic(this, &UWxAbility_Dodge::HandleInvincibleTagAdded);

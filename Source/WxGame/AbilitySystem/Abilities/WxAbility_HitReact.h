@@ -44,7 +44,7 @@ private:
 	FVector KnockbackDirection = FVector::ZeroVector;
 	bool bPendingKnockback = false;
 
-	/** 섹션을 고를 반응. 패리는 Event.Hit.Parry로 돌려준다. */
+	/** 패리는 Event.Hit.Parry로 돌려준다. */
 	static FGameplayTag GetReactionTag(const FGameplayEventData& Payload);
 
 	void FaceInstigator(AActor* AvatarActor, const AActor* Instigator);
