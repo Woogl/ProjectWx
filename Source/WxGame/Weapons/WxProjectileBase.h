@@ -33,6 +33,9 @@ class WXGAME_API AWxProjectileBase : public AActor, public IGenericTeamAgentInte
 public:
 	AWxProjectileBase();
 
+	/** 서버에서만 생성한다. Owner를 소유자이자 Instigator로 심어 투사체가 팀과 적중 판정의 출처로 쓴다. 생성하지 않으면 null. */
+	static AWxProjectileBase* SpawnProjectile(AActor& Owner, TSubclassOf<AWxProjectileBase> ProjectileClass, const FTransform& SpawnTransform, int32 InProjectileLevel);
+
 	int32 GetProjectileLevel() const;
 
 	/** 퍼펙트 가드로 막힌 히트에서 쏜 쪽으로 되돌린다. bCanReflect가 false면 아무것도 하지 않는다. */
@@ -89,8 +92,6 @@ protected:
 	virtual void HandleHitCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 private:
-	friend class UWxProjectileSubsystem;
-
 	/** 발사 시 확정한다. 반사는 소유자만 바꾸고 레벨은 유지한다. */
 	UPROPERTY(VisibleInstanceOnly, Category = "Wx|Projectile|Damage")
 	int32 ProjectileLevel = 1;

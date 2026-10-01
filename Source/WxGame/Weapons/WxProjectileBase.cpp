@@ -5,6 +5,7 @@
 #include "Components/ArrowComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -44,6 +45,29 @@ AWxProjectileBase::AWxProjectileBase()
 	TrailFX->bAutoActivate = true;
 
 	InitialLifeSpan = 10.f;
+}
+
+AWxProjectileBase* AWxProjectileBase::SpawnProjectile(AActor& Owner, TSubclassOf<AWxProjectileBase> ProjectileClass, const FTransform& SpawnTransform, int32 InProjectileLevel)
+{
+	if (!Owner.HasAuthority() || !ProjectileClass)
+	{
+		return nullptr;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	// BeginPlay와 초기 오버랩 전에 발사 레벨을 확정한다.
+	SpawnParams.bDeferConstruction = true;
+	SpawnParams.Owner = &Owner;
+	SpawnParams.Instigator = Cast<APawn>(&Owner);
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	AWxProjectileBase* Projectile = Owner.GetWorld()->SpawnActor<AWxProjectileBase>(ProjectileClass, SpawnTransform, SpawnParams);
+	if (Projectile)
+	{
+		Projectile->ProjectileLevel = InProjectileLevel;
+		Projectile->FinishSpawning(SpawnTransform);
+	}
+	return Projectile;
 }
 
 int32 AWxProjectileBase::GetProjectileLevel() const

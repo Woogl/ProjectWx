@@ -9,7 +9,7 @@
 class AWxProjectileBase;
 
 /**
- * 생성과 권위 판정은 ProjectileSubsystem이 맡는다.
+ * 생성과 권위 판정은 AWxProjectileBase::SpawnProjectile이 맡는다.
  */
 UCLASS()
 class WXGAME_API UWxAnimNotify_SpawnProjectile : public UWxAnimNotify_AbilityEvent

@@ -29,7 +29,6 @@
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Types/TargetingSystemTypes.h"
 #include "Weapons/WxProjectileBase.h"
-#include "Weapons/WxProjectileSubsystem.h"
 #include "Weapons/WxWeaponBase.h"
 
 UWxAbilityTask_MontageEvents* UWxAbilityTask_MontageEvents::CreateTask(UGameplayAbility* OwningAbility)
@@ -109,11 +108,8 @@ void UWxAbilityTask_MontageEvents::HandleMontageNotify(const UAnimNotify* Notify
 	}
 	if (const UWxAnimNotify_SpawnProjectile* Projectile = Cast<UWxAnimNotify_SpawnProjectile>(Notify))
 	{
-		if (UWxProjectileSubsystem* Subsystem = Avatar->GetWorld()->GetSubsystem<UWxProjectileSubsystem>())
-		{
-			const FTransform Transform(Avatar->GetActorRotation(), Payload.SkelMeshComponent->GetSocketLocation(Projectile->SpawnSocketName));
-			Subsystem->SpawnProjectile(*Avatar, Projectile->ProjectileClass, Transform, Ability->GetAbilityLevel());
-		}
+		const FTransform Transform(Avatar->GetActorRotation(), Payload.SkelMeshComponent->GetSocketLocation(Projectile->SpawnSocketName));
+		AWxProjectileBase::SpawnProjectile(*Avatar, Projectile->ProjectileClass, Transform, Ability->GetAbilityLevel());
 	}
 	else if (const UWxAnimNotify_SpawnMinion* Spawn = Cast<UWxAnimNotify_SpawnMinion>(Notify))
 	{
