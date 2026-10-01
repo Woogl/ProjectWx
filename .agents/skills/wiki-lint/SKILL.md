@@ -32,6 +32,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .agents/skills/wiki-lint/scr
 | 색인 누락 | `index.md`에 없다 | 색인에 넣음 |
 | 미적재 자료 | 위키 어디에도 없는 `Docs/` 문서 | `/wiki-ingest`로 적재하거나 로그 제외 목록에 남김 |
 
+자료·코드의 존재, 변경 이력, 미적재 후보는 실행 시작 시점의 HEAD를 기준으로 검사한다. 스테이징된 추가·삭제는 이 판정을 바꾸지 않는다. 위키 문서와 링크는 방금 편집한 내용을 점검할 수 있도록 현재 작업 파일을 읽는다.
+
 연결 후보는 단순 문자열 일치라 오탐이 있다. 문맥을 보고 실제로 그 대상을 가리키는 것만 보고한다.
 
 ## 2. 의미 점검
@@ -67,10 +69,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .agents/skills/wiki-lint/scr
 
 ## 6. 무인 실행 (주간 Routine)
 
-클라우드 Routine 「Wiki 주간 적재·점검 + 푸시」가 적재 뒤에 이 스킬을 사람 없이 돌린다(`.agents/skills/wiki-ingest/SKILL.md` 8절). 1~5절과 다른 점만 적는다.
-
-- 스크립트는 `pwsh`로 돌린다. 돌릴 수 없을 때의 대처는 `wiki-ingest` 8절을 따른다.
-- 고를 사람이 없으니 아무것도 고치지 않고 보고만 한다(3절의 질문과 4절을 건너뛴다).
-- 의미 점검은 비용을 줄이려고 이번 실행에서 고친 문서, 낡은 코드 출처가 걸린 문서, 그 문서들과 링크로 이어진 문서만 읽는다.
-- 5절 로그 항목에 항목별 건수와, 의미 점검에서 찾은 것 중 중요한 것을 문서 링크와 함께 적는다. 연결 후보는 문맥상 맞는 것만 적는다.
-- 커밋·푸시는 `wiki-ingest` 8절이 적재 결과와 함께 한다.
+사용자가 승인한 주간 Routine에서 호출했을 때만 [references/unattended.md](references/unattended.md)를 읽고 실행한다. 일반 실행의 확인·변경 범위·커밋 규칙을 무인 실행에 임의로 적용하거나 그 반대로 확대하지 않는다.

@@ -21,13 +21,20 @@ function Write-Section([string]$Title, $Items) {
     $list
     ''
 }
-# 에셋은 확장자 없이 적으므로(DT_Reward → DT_Reward.uasset) 확장자가 붙은 파일도 찾는다.
-# core.quotepath가 켜진 환경(클라우드 새 클론)에서는 한글 경로가 8진수로 이스케이프돼 문서 속 경로와 맞지 않는다.
-function Test-Tracked([string]$Path) { [bool](git -c core.quotepath=false ls-files -- $Path "$Path.*") }
+# 파일·폴더·확장자 없는 에셋 경로를 모두 실행 시작 시점의 HEAD에서 찾는다.
+function Test-InHead([string]$Path) {
+    $pathInTree = $Path.Replace('\', '/').TrimEnd('/')
+    foreach ($file in $headPaths) {
+        if ([string]::Equals($file, $pathInTree, [StringComparison]::Ordinal) -or
+            $file.StartsWith($pathInTree + '/', [StringComparison]::Ordinal) -or
+            $file.StartsWith($pathInTree + '.', [StringComparison]::Ordinal)) { return $true }
+    }
+    return $false
+}
 # 커밋을 찾지 못하면 -1을 돌려준다. 0으로 넘기면 낡은 자료가 없는 것처럼 보인다.
 function Get-CommitsSince([string]$Hash, [string]$Path) {
     $ErrorActionPreference = 'Continue'
-    $lines = @(git log --oneline "$Hash..HEAD" -- $Path 2>$null)
+    $lines = @(git log --oneline "$Hash..$headCommit" -- $Path 2>$null)
     if ($LASTEXITCODE -ne 0) { return -1 }
     $lines.Count
 }
@@ -35,6 +42,11 @@ function Get-CommitsSince([string]$Hash, [string]$Path) {
 Push-Location $RepoRoot
 try {
     if ((git rev-parse --is-shallow-repository) -eq 'true') { throw '얕은 클론이라 커밋을 비교할 수 없다. git fetch --unshallow 뒤 다시 돌려라.' }
+
+    $headCommit = git rev-parse --verify HEAD
+    if ($LASTEXITCODE -ne 0) { throw 'HEAD를 읽을 수 없다.' }
+    $headPaths = @(git -c core.quotepath=false ls-tree -r --name-only $headCommit)
+    if ($LASTEXITCODE -ne 0) { throw 'HEAD의 파일 목록을 읽을 수 없다.' }
 
     $docs = @(foreach ($kind in 'sources', 'entities', 'concepts') { Get-ChildItem (Join-Path $wiki $kind) -Filter *.md -ErrorAction SilentlyContinue })
     $summaries = @($docs | Where-Object { $_.Directory.Name -eq 'sources' })
@@ -47,7 +59,7 @@ try {
         $m = [regex]::Match($text[$s.FullName], '(?m)^- 자료: `([^`]+)` \(([0-9a-f]+)\)')
         if (-not $m.Success) { $staleSources += "$(Get-Rel $s) — 자료 줄이 없다"; continue }
         $path = $m.Groups[1].Value
-        if (-not (Test-Tracked $path)) { $goneSources += "$(Get-Rel $s) — $path"; continue }
+        if (-not (Test-InHead $path)) { $goneSources += "$(Get-Rel $s) — $path"; continue }
         $n = Get-CommitsSince $m.Groups[2].Value $path
         if ($n -lt 0) { $staleSources += "$(Get-Rel $s) — $path ($($m.Groups[2].Value) 커밋을 찾을 수 없다)" }
         elseif ($n -gt 0) { $staleSources += "$(Get-Rel $s) — $path ($($m.Groups[2].Value) 뒤 커밋 $($n)개)" }
@@ -57,7 +69,7 @@ try {
     foreach ($t in $topics) {
         foreach ($m in [regex]::Matches($text[$t.FullName], '(?m)^- `([^`]+)` \(([0-9a-f]{7,})\)')) {
             $path = $m.Groups[1].Value.TrimEnd('/')
-            if (-not (Test-Tracked $path)) { $missingNames += "$(Get-Rel $t) — 출처 $path"; continue }
+            if (-not (Test-InHead $path)) { $missingNames += "$(Get-Rel $t) — 출처 $path"; continue }
             $n = Get-CommitsSince $m.Groups[2].Value $path
             if ($n -lt 0) { $staleCode += "$(Get-Rel $t) — $path ($($m.Groups[2].Value) 커밋을 찾을 수 없다)" }
             elseif ($n -gt 0) { $staleCode += "$(Get-Rel $t) — $path ($($m.Groups[2].Value) 뒤 커밋 $($n)개)" }
@@ -66,8 +78,8 @@ try {
         $impl = [regex]::Match($text[$t.FullName], '(?ms)^## 구현\s*$(.*?)(?=^## |\z)').Groups[1].Value
         $names = [regex]::Matches($impl, '`([UAFE]?Wx[A-Za-z0-9_]+|(?:Source|Content|Plugins|Config)/[^`]+)`') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
         foreach ($name in $names) {
-            if ($name -match '/') { if (-not (Test-Tracked $name.TrimEnd('/'))) { $missingNames += "$(Get-Rel $t) — $name" } }
-            else { git grep -q -F $name HEAD -- Source Plugins; if ($LASTEXITCODE -ne 0) { $missingNames += "$(Get-Rel $t) — $name" } }
+            if ($name -match '/') { if (-not (Test-InHead $name.TrimEnd('/'))) { $missingNames += "$(Get-Rel $t) — $name" } }
+            else { git grep -q -F $name $headCommit -- Source Plugins; if ($LASTEXITCODE -ne 0) { $missingNames += "$(Get-Rel $t) — $name" } }
         }
     }
 
@@ -116,7 +128,7 @@ try {
     $notIndexed = $docs | Where-Object { -not $index.Contains("($(Get-Rel $_))") } | ForEach-Object { Get-Rel $_ }
 
     $everything = (@($text.Values) + [IO.File]::ReadAllText((Join-Path $wiki 'log.md'), $utf8)) -join "`n"
-    $notIngested = git -c core.quotepath=false ls-files Docs | Where-Object { $_ -notmatch '\.(png|jpe?g)$' -and -not $everything.Contains($_) }
+    $notIngested = $headPaths | Where-Object { $_.StartsWith('Docs/', [StringComparison]::Ordinal) } | Where-Object { $_ -notmatch '\.(png|jpe?g)$' -and -not $everything.Contains($_) }
 
     Write-Section '낡은 자료' $staleSources
     Write-Section '사라진 자료' $goneSources
