@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Animation/AnimNotifies/AnimNotify.h"
+#include "Animation/WxAnimNotify_AbilityEvent.h"
 #include "WxAnimNotify_SpawnProjectile.generated.h"
 
 class AWxProjectileBase;
@@ -12,7 +12,7 @@ class AWxProjectileBase;
  * 생성과 권위 판정은 ProjectileSubsystem이 맡는다.
  */
 UCLASS()
-class WXGAME_API UWxAnimNotify_SpawnProjectile : public UAnimNotify
+class WXGAME_API UWxAnimNotify_SpawnProjectile : public UWxAnimNotify_AbilityEvent
 {
 	GENERATED_BODY()
 
@@ -20,10 +20,9 @@ public:
 #if WITH_EDITOR
 	virtual FLinearColor GetEditorColor() override;
 #endif
-	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
+
 	virtual FString GetNotifyName_Implementation() const override;
 
-protected:
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	TSubclassOf<AWxProjectileBase> ProjectileClass;
 

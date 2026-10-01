@@ -51,7 +51,7 @@ void UWxAbilityTask_SlowTime::Activate()
 	{
 		World->GetTimerManager().SetTimer(TimerHandle, this, &UWxAbilityTask_SlowTime::EndTask, Duration, false);
 	}
-	else
+	else if (Duration == 0.f)
 	{
 		World->GetTimerManager().SetTimerForNextTick(this, &UWxAbilityTask_SlowTime::EndTask);
 	}

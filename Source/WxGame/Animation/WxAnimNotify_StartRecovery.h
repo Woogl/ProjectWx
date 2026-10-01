@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Animation/AnimNotifies/AnimNotify.h"
+#include "Animation/WxAnimNotify_AbilityEvent.h"
 #include "WxAnimNotify_StartRecovery.generated.h"
 
 /**
@@ -11,7 +11,7 @@
  * 닫는 지점이 따로 필요 없어 State가 아닌 단발 Notify로 둔다.
  */
 UCLASS()
-class WXGAME_API UWxAnimNotify_StartRecovery : public UAnimNotify
+class WXGAME_API UWxAnimNotify_StartRecovery : public UWxAnimNotify_AbilityEvent
 {
 	GENERATED_BODY()
 
@@ -20,11 +20,5 @@ public:
 #if WITH_EDITOR
 	virtual FLinearColor GetEditorColor() override;
 #endif
-	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
-	/** 엔진 기본 구현은 빈 이벤트 참조를 넘겨 몽타주 인스턴스를 잃는다. */
-	virtual void BranchingPointNotify(FBranchingPointNotifyPayload& BranchingPointPayload) override;
-
-private:
-	void Recover(USkeletalMeshComponent* MeshComp, int32 MontageInstanceID);
 };

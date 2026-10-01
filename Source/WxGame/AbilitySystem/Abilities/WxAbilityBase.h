@@ -9,6 +9,7 @@
 
 class UAbilitySystemComponent;
 class UAbilityTask_PlayMontageAndWait;
+class UWxAbilityTask_MontageEvents;
 class UAnimMontage;
 class UGameplayEffect;
 class UInputAction;
@@ -217,6 +218,9 @@ protected:
 	TSoftObjectPtr<UObject> Icon;
 
 private:
+	UPROPERTY(Transient)
+	TObjectPtr<UWxAbilityTask_MontageEvents> MontageEventsTask;
+
 	void SetActionPhase(EWxAbilityActionPhase NewPhase);
 	EWxAbilityActionPhase ActionPhase = EWxAbilityActionPhase::Blocking;
 

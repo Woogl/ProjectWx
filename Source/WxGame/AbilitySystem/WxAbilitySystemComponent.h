@@ -10,6 +10,13 @@
 class UInputAction;
 class USkeletalMeshComponent;
 struct FOnAttributeChangeData;
+class UAnimNotifyState;
+class UAnimNotify;
+struct FBranchingPointNotifyPayload;
+
+/** 로컬 몽타주 구간 신호. 수신자가 재생 인스턴스와 권한을 검증하며 RPC로 전달하지 않는다. */
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxMontageNotifyStateSignal, const UAnimNotifyState*, const FBranchingPointNotifyPayload&, bool);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FWxMontageNotifySignal, const UAnimNotify*, const FBranchingPointNotifyPayload&);
 
 UCLASS()
 class WXGAME_API UWxAbilitySystemComponent : public UAbilitySystemComponent
@@ -18,6 +25,8 @@ class WXGAME_API UWxAbilitySystemComponent : public UAbilitySystemComponent
 
 public:
 	UWxAbilitySystemComponent();
+	FWxMontageNotifyStateSignal OnMontageNotifyState;
+	FWxMontageNotifySignal OnMontageNotify;
 
 	virtual void BeginPlay() override;
 

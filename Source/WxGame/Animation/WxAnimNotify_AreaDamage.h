@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
-#include "Animation/AnimNotifies/AnimNotify.h"
+#include "Animation/WxAnimNotify_AbilityEvent.h"
 #include "WxAnimNotify_AreaDamage.generated.h"
 
 class UTargetingPreset;
@@ -14,7 +14,7 @@ class UTargetingPreset;
  * 쿼리는 동기 진입점으로 돌려 그 자리에서 결과를 읽는다. 비동기 요청으로 바꾸면 결과가 다음 프레임에 도착해 대미지가 사라진다.
  */
 UCLASS()
-class WXGAME_API UWxAnimNotify_AreaDamage : public UAnimNotify
+class WXGAME_API UWxAnimNotify_AreaDamage : public UWxAnimNotify_AbilityEvent
 {
 	GENERATED_BODY()
 
@@ -22,7 +22,6 @@ public:
 #if WITH_EDITOR
 	virtual FLinearColor GetEditorColor() override;
 #endif
-	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
 	virtual FString GetNotifyName_Implementation() const override;
 
@@ -31,7 +30,6 @@ public:
 	virtual void DrawInEditor(FPrimitiveDrawInterface* PDI, USkeletalMeshComponent* MeshComp, const UAnimSequenceBase* Animation, const FAnimNotifyEvent& NotifyEvent) const override;
 #endif
 
-protected:
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	TObjectPtr<UTargetingPreset> TargetingPreset;
 

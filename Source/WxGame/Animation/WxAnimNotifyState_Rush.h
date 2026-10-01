@@ -6,8 +6,6 @@
 #include "Engine/EngineTypes.h"
 #include "WxAnimNotifyState_Rush.generated.h"
 
-class APawn;
-
 UENUM(BlueprintType)
 enum class EWxRushTarget : uint8
 {
@@ -16,7 +14,7 @@ enum class EWxRushTarget : uint8
 	Minion,
 };
 
-/** 구간 시작에 목적지를 고정하고 루트 모션을 보정한다. 피해는 WeaponAttack 구간으로 별도 설정한다. */
+/** 돌진 구간의 시작·끝과 설정을 알린다. 대상 결정과 이동 실행은 몽타주 소유 어빌리티가 맡는다. */
 UCLASS()
 class WXGAME_API UWxAnimNotifyState_Rush : public UAnimNotifyState
 {
@@ -30,10 +28,6 @@ public:
 #endif
 	virtual void BranchingPointNotifyBegin(FBranchingPointNotifyPayload& Payload) override;
 	virtual void BranchingPointNotifyEnd(FBranchingPointNotifyPayload& Payload) override;
-	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
-	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
-
-protected:
 	UPROPERTY(EditAnywhere, Category = "Wx")
 	EWxRushTarget TargetSource = EWxRushTarget::LockOnTarget;
 
@@ -46,5 +40,5 @@ protected:
 	TArray<TEnumAsByte<EObjectTypeQuery>> IgnoreCollisions;
 
 private:
-	AActor* FindTarget(APawn& Avatar) const;
+	void SendSignal(const FBranchingPointNotifyPayload& Payload, bool bBegin) const;
 };

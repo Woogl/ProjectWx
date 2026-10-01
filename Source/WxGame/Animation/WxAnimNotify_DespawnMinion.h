@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Animation/AnimNotifies/AnimNotify.h"
+#include "Animation/WxAnimNotify_AbilityEvent.h"
 #include "WxAnimNotify_DespawnMinion.generated.h"
 
 /**
@@ -12,7 +12,7 @@
  * 권위 판정은 서브시스템이 한다.
  */
 UCLASS()
-class WXGAME_API UWxAnimNotify_DespawnMinion : public UAnimNotify
+class WXGAME_API UWxAnimNotify_DespawnMinion : public UWxAnimNotify_AbilityEvent
 {
 	GENERATED_BODY()
 
@@ -20,10 +20,9 @@ public:
 #if WITH_EDITOR
 	virtual FLinearColor GetEditorColor() override;
 #endif
-	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
+
 	virtual FString GetNotifyName_Implementation() const override;
 
-protected:
 	/** 주인의 소환물 중 이 클래스(하위 포함)인 것만 거둔다. 비우면 아무것도 거두지 않는다. */
 	UPROPERTY(EditAnywhere, Category = "Wx", meta = (MustImplement = "/Script/WxGame.WxSpawnable", AllowAbstract = "false"))
 	TSubclassOf<APawn> MinionClass;

@@ -21,6 +21,7 @@ class WXGAME_API UWxAbilityTask_SlowTime : public UAbilityTask
 	GENERATED_BODY()
 
 public:
+	/** InDuration < 0이면 소유자가 몽타주 구간 종료 시 EndTask로 정리한다. */
 	static UWxAbilityTask_SlowTime* CreateTask(UGameplayAbility* OwningAbility, float InTimeDilation = 0.2f, float InDuration = 1.f);
 
 	virtual void OnDestroy(bool bInOwnerFinished) override;

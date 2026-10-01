@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Animation/AnimNotifies/AnimNotifyState.h"
+#include "Animation/WxAnimNotify_AbilityEvent.h"
 #include "WxAnimNotifyState_ComboWindow.generated.h"
 
 /**
@@ -12,7 +12,7 @@
  * 회피·가드 같은 남의 캔슬은 열지 않는다 — 그쪽은 더 늦게 WxAnimNotify_StartRecovery가 연다.
  */
 UCLASS()
-class WXGAME_API UWxAnimNotifyState_ComboWindow : public UAnimNotifyState
+class WXGAME_API UWxAnimNotifyState_ComboWindow : public UWxAnimNotifyState_AbilityEvent
 {
 	GENERATED_BODY()
 
@@ -21,14 +21,5 @@ public:
 #if WITH_EDITOR
 	virtual FLinearColor GetEditorColor() override;
 #endif
-	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
-	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 
-	/** 엔진 기본 구현은 빈 이벤트 참조를 넘겨 몽타주 인스턴스를 잃는다. */
-	virtual void BranchingPointNotifyBegin(FBranchingPointNotifyPayload& BranchingPointPayload) override;
-	virtual void BranchingPointNotifyEnd(FBranchingPointNotifyPayload& BranchingPointPayload) override;
-
-private:
-	void OpenWindow(USkeletalMeshComponent* MeshComp, int32 MontageInstanceID);
-	void CloseWindow(USkeletalMeshComponent* MeshComp, int32 MontageInstanceID);
 };

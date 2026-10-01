@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Abilities/WxAbilityBase.h"
+#include "AbilitySystem/Tasks/WxAbilityTask_MontageEvents.h"
 #include "AbilitySystem/Effects/WxEffect_Cooldown.h"
 #include "AbilitySystem/Effects/WxEffect_Cost.h"
 #include "AbilitySystem/WxAbilityTargetData_Direction.h"
@@ -295,8 +296,14 @@ void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 
 void UWxAbilityBase::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	if (MontageEventsTask)
+	{
+		UWxAbilityTask_MontageEvents* PreviousEvents = MontageEventsTask;
+		MontageEventsTask = nullptr;
+		PreviousEvents->EndTask();
+	}
 	ClearPendingDirectionalMontage();
-	// 태스크를 여기서 끝내면 안 된다 — 엔진 EndAbility가 소유자 종료로 끝내는 경로만 재생 중인 몽타주를 멈추므로, 미리 끊으면 루핑 가드 몽타주처럼 스스로 끝나지 않는 것이 종료 후에도 계속 돈다.
+	// 재생 태스크는 엔진 EndAbility가 소유자 종료로 정리해야 루핑 몽타주까지 멈춘다.
 	MontageTask = nullptr;
 
 	// 캔슬·중단도 이 경로를 지나므로 효과가 새지 않는다. 활성 중에 이미 걷힌 것은 조회에 걸리지 않아 무해하다.
@@ -374,12 +381,22 @@ bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
 
 bool UWxAbilityBase::PlayMontageInternal(UAnimMontage* Montage, FName StartSection)
 {
+	if (MontageEventsTask)
+	{
+		UWxAbilityTask_MontageEvents* PreviousEvents = MontageEventsTask;
+		MontageEventsTask = nullptr;
+		PreviousEvents->EndTask();
+	}
 	// EndTask가 구 태스크를 가비지로 표시하므로, 바인딩은 남아도 약참조가 끊겨 후속 이벤트는 발송되지 않는다.
 	if (MontageTask)
 	{
 		MontageTask->EndTask();
 		MontageTask = nullptr;
 	}
+
+	UWxAbilityTask_MontageEvents* NewEvents = UWxAbilityTask_MontageEvents::CreateTask(this);
+	MontageEventsTask = NewEvents;
+	NewEvents->ReadyForActivation();
 
 	UAbilityTask_PlayMontageAndWait* NewMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
 		this, NAME_None, Montage, GetMontagePlayRate(), StartSection, true, 1.f, 0.f, true);
@@ -390,6 +407,10 @@ bool UWxAbilityBase::PlayMontageInternal(UAnimMontage* Montage, FName StartSecti
 	NewMontageTask->OnInterrupted.AddDynamic(this, &UWxAbilityBase::HandleMontageInterrupted);
 	NewMontageTask->OnCancelled.AddDynamic(this, &UWxAbilityBase::HandleMontageCancelled);
 	NewMontageTask->ReadyForActivation();
+	if (IsActive() && MontageEventsTask == NewEvents)
+	{
+		NewEvents->BindToMontage(Montage);
+	}
 	// 재생이 동기로 실패하면 태스크가 같은 호출 안에서 취소를 방송해 어빌리티가 이미 끝나 있다.
 	return IsActive();
 }
