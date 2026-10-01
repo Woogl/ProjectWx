@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "FrontEnd/WxFrontEndLibrary.h"
+#include "UI/Frontend/WxFrontEndLibrary.h"
 
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"

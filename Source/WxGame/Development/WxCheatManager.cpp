@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "Player/WxCheatManager.h"
+#include "Development/WxCheatManager.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystem/Attributes/WxCombatAttributeSet.h"

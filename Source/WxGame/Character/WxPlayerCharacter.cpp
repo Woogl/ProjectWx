@@ -9,7 +9,7 @@
 #include "InputActionValue.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxHitStopComponent.h"
-#include "AbilitySystem/WxInputBufferComponent.h"
+#include "Input/WxInputBufferComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"

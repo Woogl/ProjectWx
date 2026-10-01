@@ -8,7 +8,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "StateTreeExecutionContext.h"
-#include "GameModes/WxCheckpointSaveGame.h"
+#include "Save/WxCheckpointSaveGame.h"
 #include "WxGame.h"
 
 FWxStateTreeTask_SaveCheckpoint::FWxStateTreeTask_SaveCheckpoint()

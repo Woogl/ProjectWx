@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "GameModes/WxCheckpointSaveGame.h"
+#include "Save/WxCheckpointSaveGame.h"
 
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"

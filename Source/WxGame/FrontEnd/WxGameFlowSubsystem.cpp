@@ -11,7 +11,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/PackageName.h"
-#include "GameModes/WxCheckpointSaveGame.h"
+#include "Save/WxCheckpointSaveGame.h"
 
 #define LOCTEXT_NAMESPACE "WxGameFlow"
 

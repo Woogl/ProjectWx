@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "GameModes/WxRespawnLibrary.h"
+#include "Player/WxRespawnLibrary.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/WxCombatAttributeSet.h"
@@ -10,7 +10,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
-#include "GameModes/WxCheckpointSaveGame.h"
+#include "Save/WxCheckpointSaveGame.h"
 #include "Spawner/WxSpawner.h"
 #include "WxGameplayTags.h"
 #include "WxGame.h"

@@ -1,6 +1,6 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AbilitySystem/WxInputBufferComponent.h"
+#include "Input/WxInputBufferComponent.h"
 #include "AbilitySystem/Abilities/WxAbilityBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"

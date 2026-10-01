@@ -3,7 +3,7 @@
 #include "Player/WxPlayerController.h"
 
 #include "Character/WxCharacterBase.h"
-#include "Player/WxCheatManager.h"
+#include "Development/WxCheatManager.h"
 #include "UI/WxPlayerLayoutComponent.h"
 #include "UI/WxNameplateManagerComponent.h"
 #include "Interaction/WxInteractionScannerComponent.h"

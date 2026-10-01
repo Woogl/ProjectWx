@@ -5,7 +5,7 @@
 #include "AbilitySystem/Effects/WxEffect_Cost.h"
 #include "AbilitySystem/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "AbilitySystem/WxInputBufferComponent.h"
+#include "Input/WxInputBufferComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
