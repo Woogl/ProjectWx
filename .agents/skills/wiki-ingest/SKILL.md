@@ -91,6 +91,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .agents/skills/wiki-lint/scr
 클라우드 Routine 「Wiki 주간 적재·점검 + 푸시」가 매주 월요일 07:00(KST) 새 클론에서 사람 없이 이 절대로 실행한다. 1~7절과 다른 점만 적는다.
 
 **점검 스크립트** — Linux라 `powershell` 대신 `pwsh -NoProfile -File .agents/skills/wiki-lint/scripts/Invoke-WikiLint.ps1`로 돌린다.
+- 새 클론은 얕은 클론이라 먼저 `git fetch --unshallow origin main`으로 전체 이력을 받는다. 얕은 클론이면 스크립트가 멈춘다.
 - `pwsh`가 없으면 PowerShell 공식 linux-x64 tar.gz(예: v7.4.6)를 `/tmp`에 받아 풀어 쓴다.
 - 그래도 돌릴 수 없으면 `/wiki-lint` 1절 표의 항목을 git·grep으로 직접 점검하고, 그렇게 했다고 로그에 적는다.
 

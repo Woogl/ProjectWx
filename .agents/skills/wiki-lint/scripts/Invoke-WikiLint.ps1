@@ -22,11 +22,20 @@ function Write-Section([string]$Title, $Items) {
     ''
 }
 # 에셋은 확장자 없이 적으므로(DT_Reward → DT_Reward.uasset) 확장자가 붙은 파일도 찾는다.
-function Test-Tracked([string]$Path) { [bool](git ls-files -- $Path "$Path.*") }
-function Get-CommitsSince([string]$Hash, [string]$Path) { @(git log --oneline "$Hash..HEAD" -- $Path).Count }
+# core.quotepath가 켜진 환경(클라우드 새 클론)에서는 한글 경로가 8진수로 이스케이프돼 문서 속 경로와 맞지 않는다.
+function Test-Tracked([string]$Path) { [bool](git -c core.quotepath=false ls-files -- $Path "$Path.*") }
+# 커밋을 찾지 못하면 -1을 돌려준다. 0으로 넘기면 낡은 자료가 없는 것처럼 보인다.
+function Get-CommitsSince([string]$Hash, [string]$Path) {
+    $ErrorActionPreference = 'Continue'
+    $lines = @(git log --oneline "$Hash..HEAD" -- $Path 2>$null)
+    if ($LASTEXITCODE -ne 0) { return -1 }
+    $lines.Count
+}
 
 Push-Location $RepoRoot
 try {
+    if ((git rev-parse --is-shallow-repository) -eq 'true') { throw '얕은 클론이라 커밋을 비교할 수 없다. git fetch --unshallow 뒤 다시 돌려라.' }
+
     $docs = @(foreach ($kind in 'sources', 'entities', 'concepts') { Get-ChildItem (Join-Path $wiki $kind) -Filter *.md -ErrorAction SilentlyContinue })
     $summaries = @($docs | Where-Object { $_.Directory.Name -eq 'sources' })
     $topics = @($docs | Where-Object { $_.Directory.Name -ne 'sources' })
@@ -40,7 +49,8 @@ try {
         $path = $m.Groups[1].Value
         if (-not (Test-Tracked $path)) { $goneSources += "$(Get-Rel $s) — $path"; continue }
         $n = Get-CommitsSince $m.Groups[2].Value $path
-        if ($n -gt 0) { $staleSources += "$(Get-Rel $s) — $path ($($m.Groups[2].Value) 뒤 커밋 $($n)개)" }
+        if ($n -lt 0) { $staleSources += "$(Get-Rel $s) — $path ($($m.Groups[2].Value) 커밋을 찾을 수 없다)" }
+        elseif ($n -gt 0) { $staleSources += "$(Get-Rel $s) — $path ($($m.Groups[2].Value) 뒤 커밋 $($n)개)" }
     }
 
     $staleCode = @(); $missingNames = @()
@@ -49,7 +59,8 @@ try {
             $path = $m.Groups[1].Value.TrimEnd('/')
             if (-not (Test-Tracked $path)) { $missingNames += "$(Get-Rel $t) — 출처 $path"; continue }
             $n = Get-CommitsSince $m.Groups[2].Value $path
-            if ($n -gt 0) { $staleCode += "$(Get-Rel $t) — $path ($($m.Groups[2].Value) 뒤 커밋 $($n)개)" }
+            if ($n -lt 0) { $staleCode += "$(Get-Rel $t) — $path ($($m.Groups[2].Value) 커밋을 찾을 수 없다)" }
+            elseif ($n -gt 0) { $staleCode += "$(Get-Rel $t) — $path ($($m.Groups[2].Value) 뒤 커밋 $($n)개)" }
         }
         # 구현 절이 인용한 클래스·파일 경로가 HEAD에 아직 있는지 본다.
         $impl = [regex]::Match($text[$t.FullName], '(?ms)^## 구현\s*$(.*?)(?=^## |\z)').Groups[1].Value
@@ -105,7 +116,7 @@ try {
     $notIndexed = $docs | Where-Object { -not $index.Contains("($(Get-Rel $_))") } | ForEach-Object { Get-Rel $_ }
 
     $everything = (@($text.Values) + [IO.File]::ReadAllText((Join-Path $wiki 'log.md'), $utf8)) -join "`n"
-    $notIngested = git ls-files Docs | Where-Object { $_ -notmatch '\.(png|jpe?g)$' -and -not $everything.Contains($_) }
+    $notIngested = git -c core.quotepath=false ls-files Docs | Where-Object { $_ -notmatch '\.(png|jpe?g)$' -and -not $everything.Contains($_) }
 
     Write-Section '낡은 자료' $staleSources
     Write-Section '사라진 자료' $goneSources
