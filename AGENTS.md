@@ -24,4 +24,4 @@
 ## AI 워크플로우
 
 - 공용 스킬과 스크립트는 `.agents/`에서 관리한다.
-- 어빌리티(GA_·몽타주)·이펙트(GE)·캐릭터 구성(WxAbilitySet·속성 초기값) 조사는 `.agents/scripts/Export-AbilitySystemLists.ps1`을 실행한 뒤 `Saved/AbilitySystemLists/`의 `ability-list.md`·`effect-list.md`·`character-list.md`부터 본다.
+- 어빌리티(GA_·몽타주)·이펙트(GE)·캐릭터 구성(WxAbilitySet·AttributeSet 초기값) 조사는 `.agents/scripts/Export-AbilitySystemLists.ps1`을 실행한 뒤 `Saved/AbilitySystemLists/`의 `ability-list.md`·`effect-list.md`·`character-list.md`부터 본다.
