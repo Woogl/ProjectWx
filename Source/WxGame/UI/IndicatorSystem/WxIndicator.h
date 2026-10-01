@@ -47,7 +47,7 @@ private:
 	/** 메뉴가 떠 있거나 뷰를 얻지 못하면(월드 전환 등) 위젯을 숨긴다. */
 	void UpdateProjection();
 
-	/** 당겼으면 true — 위젯이 화면 밖임을 알 수 있다. */
+	/** 당겼으면 true 다. */
 	bool ClampToScreenEdge(const FVector2D& ClampRectMin, const FVector2D& ClampRectMax, FVector2D& InOutPixelPosition) const;
 
 	/** 루트가 곧 표시 위치라 매 틱 덮어써진다. 대상 위치는 여기가 아니라 AnchorLocation 이 쥔다. */

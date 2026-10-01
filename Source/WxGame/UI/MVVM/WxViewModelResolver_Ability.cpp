@@ -8,7 +8,7 @@
 
 UObject* UWxViewModelResolver_Ability::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
 {
-	// 슬롯 뷰모델의 소유는 플레이어 Character VM 의 어빌리티시스템 VM 이 맡는다 — 같은 슬롯을 보는 위젯끼리 하나를 나눠 쓴다.
+	// 슬롯 뷰모델을 어빌리티시스템 VM 이 소유해 같은 슬롯을 보는 위젯끼리 하나를 나눠 쓴다.
 	const UWxViewModel_Character* PlayerViewModel = UWxViewModel_Character::FindPlayer(UserWidget);
 	UWxViewModel_AbilitySystem* AbilitySystemViewModel = PlayerViewModel ? PlayerViewModel->AbilitySystem.Get() : nullptr;
 	if (!AbilitySystemViewModel)
