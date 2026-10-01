@@ -28,14 +28,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "WxCore",
-			"Enabled": true
-		},
-		{
-			"Name": "WxCombat",
-			"Enabled": true
-		},
-		{
 			"Name": "TargetingSystem",
 			"Enabled": true
 		},
@@ -48,31 +40,7 @@
 			"Enabled": true
 		},
 		{
-			"Name": "WxUI",
-			"Enabled": true
-		},
-		{
 			"Name": "MotionWarping",
-			"Enabled": true
-		},
-		{
-			"Name": "WxWorld",
-			"Enabled": true
-		},
-		{
-			"Name": "WxInventory",
-			"Enabled": true
-		},
-		{
-			"Name": "WxAI",
-			"Enabled": true
-		},
-		{
-			"Name": "WxDialogue",
-			"Enabled": true
-		},
-		{
-			"Name": "WxQuest",
 			"Enabled": true
 		},
 		{

@@ -1,0 +1,72 @@
+// Copyright Woogle. All Rights Reserved.
+
+#include "Spawner/WxStateTreeTask_TriggerSpawners.h"
+
+#include "Device/WxDeviceStateTreeComponent.h"
+#include "GameFramework/Actor.h"
+#include "Spawner/WxSpawner.h"
+#include "StateTreeExecutionContext.h"
+#include "System/WxLocatorUtils.h"
+#include "Spawner/WxSpawnerLocatorUtils.h"
+#include "WxGame.h"
+
+FWxStateTreeTask_TriggerSpawners::FWxStateTreeTask_TriggerSpawners()
+{
+	bShouldCallTick = false;
+
+#if WITH_EDITORONLY_DATA
+	bConsideredForCompletion = false;
+	bCanEditConsideredForCompletion = false;
+#endif
+}
+
+EStateTreeRunStatus FWxStateTreeTask_TriggerSpawners::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+{
+	if (UWxDeviceStateTreeComponent::IsRestoring(Context, Transition))
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	AActor* Owner = Cast<AActor>(Context.GetOwner());
+	if (!Owner || !Owner->HasAuthority())
+	{
+		return EStateTreeRunStatus::Succeeded;
+	}
+
+	const FInstanceDataType& Instance = Context.GetInstanceData(*this);
+
+	int32 TriggeredCount = 0;
+	for (const FUniversalObjectLocator& Locator : Instance.Spawners)
+	{
+		if (AWxSpawner* Spawner = FWxSpawnerLocatorUtils::ResolveSpawner(Locator, Owner))
+		{
+			Spawner->Respawn();
+			++TriggeredCount;
+		}
+	}
+
+	if (TriggeredCount == 0)
+	{
+		UE_LOG(LogWxWorld, Warning, TEXT("Trigger Spawners: 해석된 스포너가 없음(지정 %d개)."), Instance.Spawners.Num());
+	}
+
+	return EStateTreeRunStatus::Succeeded;
+}
+
+#if WITH_EDITOR
+EDataValidationResult FWxStateTreeTask_TriggerSpawners::Compile(UE::StateTree::ICompileNodeContext& CompileContext)
+{
+	const FInstanceDataType* InstanceData = CompileContext.GetInstanceDataView().GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	return FWxSpawnerLocatorUtils::ValidateSpawners(CompileContext, InstanceData->Spawners);
+}
+
+FText FWxStateTreeTask_TriggerSpawners::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+{
+	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
+	check(InstanceData);
+
+	return FText::Format(INVTEXT("스포너 발동 ({0})"), FWxLocatorUtils::GetDisplayNames(InstanceData->Spawners));
+}
+#endif

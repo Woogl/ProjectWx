@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WxDialogueActor.h"
+#include "Dialogue/WxDialogueActor.h"
 #include "WxNpc.generated.h"
 
 class UCapsuleComponent;

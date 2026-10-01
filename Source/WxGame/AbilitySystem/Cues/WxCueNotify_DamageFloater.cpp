@@ -1,0 +1,68 @@
+// Copyright Woogle. All Rights Reserved.
+
+#include "AbilitySystem/Cues/WxCueNotify_DamageFloater.h"
+#include "WxGameplayTags.h"
+#include "Components/WidgetComponent.h"
+
+UWxCueNotify_DamageFloater::UWxCueNotify_DamageFloater()
+{
+	GameplayCueTag = WxGameplayTags::GameplayCue_DamageFloater;
+}
+
+void UWxCueNotify_DamageFloater::HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)
+{
+	Super::HandleGameplayCue(MyTarget, EventType, Parameters);
+
+	if (EventType != EGameplayCueEvent::Executed)
+	{
+		return;
+	}
+
+	if (!MyTarget || !FloaterWidgetClass)
+	{
+		return;
+	}
+
+	UWorld* World = MyTarget->GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	if (AWxDamageFloaterActor* FloaterActor = World->SpawnActor<AWxDamageFloaterActor>(MyTarget->GetActorLocation(), FRotator::ZeroRotator, SpawnParams))
+	{
+		const float Damage = Parameters.RawMagnitude;
+		const bool bIsCritical = Parameters.AggregatedSourceTags.HasTag(WxGameplayTags::Damage_Critical);
+		FloaterActor->InitDamageInfo(FloaterWidgetClass, Damage, bIsCritical);
+	}
+}
+
+AWxDamageFloaterActor::AWxDamageFloaterActor()
+{
+	PrimaryActorTick.bCanEverTick = false;
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComponent"));
+	WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	WidgetComponent->SetDrawAtDesiredSize(true);
+	WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	RootComponent = WidgetComponent;
+
+	InitialLifeSpan = 5.f;
+}
+
+void AWxDamageFloaterActor::InitDamageInfo(TSubclassOf<UUserWidget> InWidgetClass, float InDamageAmount, bool bInIsCritical)
+{
+	if (InWidgetClass)
+	{
+		WidgetComponent->SetWidgetClass(InWidgetClass);
+		WidgetComponent->InitWidget();
+	}
+
+	UUserWidget* Widget = WidgetComponent->GetUserWidgetObject();
+	if (Widget && Widget->GetClass()->ImplementsInterface(UWxDamageFloaterInterface::StaticClass()))
+	{
+		IWxDamageFloaterInterface::Execute_InitDamageInfo(Widget, InDamageAmount, bInIsCritical);
+	}
+}

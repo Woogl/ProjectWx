@@ -29,12 +29,7 @@ public class WxEditor : ModuleRules
 			"StateTreeEditorModule",
 			"UniversalObjectLocator",
 			"UnrealEd",
-			"WxCombat",
-			"WxCore",
 			"WxGame",
-			"WxInventory",
-			"WxUI",
-			"WxWorld",
 		});
 	}
 }

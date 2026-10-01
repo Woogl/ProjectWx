@@ -10,7 +10,7 @@
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "Misc/PackageName.h"
-#include "Widget/WxButtonBase.h"
+#include "UI/Foundation/WxButtonBase.h"
 
 TArray<FWxFrontEndOption> UWxFrontEndLibrary::GetCharacterOptions()
 {

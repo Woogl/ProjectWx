@@ -3,7 +3,7 @@
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/WxHitStopComponent.h"
-#include "AbilitySystem/Attribute/WxCombatAttributeSet.h"
+#include "AbilitySystem/Attributes/WxCombatAttributeSet.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/ChildActorComponent.h"
@@ -12,11 +12,11 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MotionWarpingComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "Weapon/WxWeaponBase.h"
+#include "Weapons/WxWeaponBase.h"
 #include "WxCollisionChannels.h"
 #include "WxGameplayTags.h"
-#include "Component/WxCharacterMovementComponent.h"
-#include "Component/WxMetaHumanComponent.h"
+#include "Character/WxCharacterMovementComponent.h"
+#include "Character/WxMetaHumanComponent.h"
 
 AWxCharacterBase::AWxCharacterBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UWxCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))

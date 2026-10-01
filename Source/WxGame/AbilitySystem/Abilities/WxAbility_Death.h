@@ -1,0 +1,45 @@
+// Copyright Woogle. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "AbilitySystem/Abilities/WxAbilityBase.h"
+#include "WxAbility_Death.generated.h"
+
+/**
+ * HP가 0에 닿을 때 AttributeSet이 송출하는 Event.Death로 발동한다.
+ * 몽타주가 있으면 그 포즈로 두고, 없거나 외부에 끊기면 래그돌로 폴백한다.
+ *
+ * 연출이 끝나도 종료하지 않는다 — Ability.Death는 사망 상태를 알리고, 발동 차단은 BlockAbilitiesWithTag의 Ability 태그가 맡는다.
+ * 시체는 액터가 파괴될 때 ASC가 정리한다.
+ *
+ * 래그돌은 어빌리티 인스턴스가 없는 시뮬 프록시·late joiner도 커버해야 한다.
+ * 그래서 서버가 State.Ragdoll 루스 태그만 발행(TagOnly 복제)하고, 전 머신의 캐릭터가 그 태그를 보고 스스로 전환한다.
+ */
+UCLASS()
+class WXGAME_API UWxAbility_Death : public UWxAbilityBase
+{
+	GENERATED_BODY()
+
+public:
+	UWxAbility_Death();
+
+protected:
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+	/** 의도한 사망 포즈로 끝났으므로 래그돌로도, 종료로도 넘기지 않는다. */
+	virtual void HandleMontageCompleted() override;
+
+	/** 외부가 사망 몽타주를 끊은 비정상 경로 — 래그돌로 폴백한다. */
+	virtual void HandleMontageInterrupted() override;
+	virtual void HandleMontageCancelled() override;
+
+private:
+	void PlayDeathMontageOrRagdoll();
+
+	/** 어빌리티가 끝나지 않아 엔진 해제 경로가 없으므로, 몽타주는 두고 소유만 놓아 ASC가 강제한 메시 본 갱신을 되돌린다. */
+	UFUNCTION()
+	void HandleDeathMontageElapsed();
+
+	void EnableRagdoll();
+};

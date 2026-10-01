@@ -8,8 +8,8 @@
 #include "Engine/Texture2D.h"
 #include "GameplayEffect.h"
 #include "Materials/MaterialInterface.h"
-#include "AbilitySystem/Ability/WxAbilityBase.h"
-#include "AbilitySystem/Effect/WxEffectComponent_UIData.h"
+#include "AbilitySystem/Abilities/WxAbilityBase.h"
+#include "AbilitySystem/Effects/WxEffectComponent_UIData.h"
 #include "Character/WxCharacterBase.h"
 
 TSoftObjectPtr<UObject> UWxUIDataThumbnailRenderer::GetIcon(UObject* Object)

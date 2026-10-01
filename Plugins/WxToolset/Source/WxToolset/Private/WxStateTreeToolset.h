@@ -46,7 +46,7 @@ public:
 	/**
 	 * 기존 루트 파라미터의 메타를 갈아 끼운다. 파라미터를 지웠다 다시 만들지 않으므로 ID·값·바인딩이 유지된다.
 	 * @param MetaJson 기입할 메타 {"키":"값", ...}. 기존 메타는 이것으로 교체되며, 빈 문자열이면 메타를 모두 지운다.
-	 *   예: {"RowType":"/Script/WxDialogue.WxDialogueTableRow"} 는 DataTableRowHandle 파라미터의 테이블 픽커를 그 행 구조체를 쓰는 테이블로 제한한다.
+	 *   예: {"RowType":"/Script/WxGame.WxDialogueTableRow"} 는 DataTableRowHandle 파라미터의 테이블 픽커를 그 행 구조체를 쓰는 테이블로 제한한다.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool SetRootParameterMeta(UStateTree* StateTree, FName Name, const FString& MetaJson);

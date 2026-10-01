@@ -11,7 +11,7 @@
 #include "Selection.h"
 #include "UniversalObjectLocator.h"
 #include "UObject/SoftObjectPath.h"
-#include "WxLocatorUtils.h"
+#include "System/WxLocatorUtils.h"
 #include "Widgets/Input/SComboButton.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Text/STextBlock.h"

@@ -1,0 +1,328 @@
+// Copyright Woogle. All Rights Reserved.
+
+#include "Interaction/WxInteractionScannerComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "CollisionQueryParams.h"
+#include "CollisionShape.h"
+#include "Components/PrimitiveComponent.h"
+#include "Engine/OverlapResult.h"
+#include "Engine/World.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
+#include "TimerManager.h"
+#include "WxGameplayTags.h"
+#include "Interaction/WxInteractable.h"
+
+UWxInteractionScannerComponent::UWxInteractionScannerComponent(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	PrimaryComponentTick.bCanEverTick = false;
+
+	// Server RPC(ServerInteract) 라우팅을 위해 복제 활성화. 복제 프로퍼티는 없다(스캐너 상태는 클라 로컬).
+	SetIsReplicatedByDefault(true);
+}
+
+void UWxInteractionScannerComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	const AController* OwningController = Cast<AController>(GetOwner());
+	if (!OwningController || !OwningController->IsLocalController())
+	{
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(ScanTimerHandle, this, &UWxInteractionScannerComponent::HandleScanTimer, FMath::Max(ScanInterval, 0.01f), true);
+	}
+
+	HandleScanTimer();
+}
+
+void UWxInteractionScannerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(ScanTimerHandle);
+	}
+
+	// 잔여 후보를 비워 하이라이트를 끄고 구독자에게 빈 목록을 알린다.
+	UpdateInRange({});
+
+	Super::EndPlay(EndPlayReason);
+}
+
+void UWxInteractionScannerComponent::TryInteractSelected()
+{
+	AActor* Selected = GetSelectedActor();
+	if (!Selected)
+	{
+		return;
+	}
+
+	ServerInteract(Selected, Rows[SelectedIndex].Option.Value);
+}
+
+TArray<FText> UWxInteractionScannerComponent::GetPrompts() const
+{
+	TArray<FText> Prompts;
+	Prompts.Reserve(Rows.Num());
+	for (const FWxInteractionRow& Row : Rows)
+	{
+		Prompts.Add(Row.Option.Prompt);
+	}
+	return Prompts;
+}
+
+int32 UWxInteractionScannerComponent::GetSelectedIndex() const
+{
+	return SelectedIndex;
+}
+
+AActor* UWxInteractionScannerComponent::GetSelectedActor() const
+{
+	if (!Rows.IsValidIndex(SelectedIndex))
+	{
+		return nullptr;
+	}
+	return Rows[SelectedIndex].Actor.Get();
+}
+
+void UWxInteractionScannerComponent::CycleSelection(int32 Delta)
+{
+	const int32 Count = Rows.Num();
+	if (Count == 0 || Delta == 0)
+	{
+		return;
+	}
+
+	const int32 Base = (SelectedIndex == INDEX_NONE) ? 0 : SelectedIndex;
+	const int32 NewIndex = ((Base + Delta) % Count + Count) % Count;
+	UpdateSelection(NewIndex);
+}
+
+void UWxInteractionScannerComponent::ServerInteract_Implementation(AActor* Selected, int32 OptionValue)
+{
+	APawn* Pawn = GetOwnerPawn();
+	if (!Pawn)
+	{
+		return;
+	}
+
+	FGameplayEventData EventData;
+	EventData.Instigator = Pawn;
+	EventData.EventTag = WxGameplayTags::Event_Interact;
+	EventData.OptionalObject = Selected;
+	EventData.EventMagnitude = OptionValue;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Pawn, WxGameplayTags::Event_Interact, EventData);
+}
+
+void UWxInteractionScannerComponent::HandleScanTimer()
+{
+	APawn* Pawn = GetOwnerPawn();
+	UWorld* World = Pawn ? Pawn->GetWorld() : nullptr;
+	if (!World)
+	{
+		// 폰이 사라지는 경로(폰 교체·언포제스·레벨 전환 대기)에서도 외곽선·목록을 남기지 않는다.
+		UpdateInRange({});
+		return;
+	}
+
+	if (const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
+	{
+		if (!CanActivateInteract(ASC))
+		{
+			UpdateInRange({});
+			return;
+		}
+	}
+
+	const FVector ScanOrigin = Pawn->GetActorLocation();
+
+	TArray<FOverlapResult> Overlaps;
+	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(WxInteractionScan), /*bTraceComplex*/ false);
+	QueryParams.AddIgnoredActor(Pawn);
+	World->OverlapMultiByObjectType(Overlaps, ScanOrigin, FQuat::Identity, FCollisionObjectQueryParams(FCollisionObjectQueryParams::AllObjects), FCollisionShape::MakeSphere(ScanRadius), QueryParams);
+
+	// 한 액터의 컴포넌트·스켈레탈 바디마다 결과가 따로 오므로 액터 단위로 모은다. 지금 켜져 있는지는 선택지를 모을 때 대상이 답한다.
+	TArray<AActor*> Candidates;
+	for (const FOverlapResult& Overlap : Overlaps)
+	{
+		AActor* Actor = Overlap.GetActor();
+		if (Cast<IWxInteractable>(Actor))
+		{
+			Candidates.AddUnique(Actor);
+		}
+	}
+
+	// 신규 후보는 이 순서 그대로 목록 뒤에 붙는다.
+	Candidates.Sort([ScanOrigin](const AActor& A, const AActor& B)
+	{
+		return FVector::DistSquared(ScanOrigin, A.GetActorLocation()) < FVector::DistSquared(ScanOrigin, B.GetActorLocation());
+	});
+
+	UpdateInRange(Candidates);
+}
+
+void UWxInteractionScannerComponent::UpdateInRange(const TArray<AActor*>& InCandidates)
+{
+	// 아무것도 없는 대부분의 스캔이 선택지 수집 없이 여기서 끝난다.
+	if (InCandidates.IsEmpty() && Rows.IsEmpty())
+	{
+		return;
+	}
+
+	TArray<AActor*> Ordered;
+	for (const FWxInteractionRow& Row : Rows)
+	{
+		AActor* Existing = Row.Actor.Get();
+		if (Existing && InCandidates.Contains(Existing))
+		{
+			Ordered.AddUnique(Existing);
+		}
+	}
+	for (AActor* Candidate : InCandidates)
+	{
+		if (Candidate)
+		{
+			Ordered.AddUnique(Candidate);
+		}
+	}
+
+	// 선택지는 대상에서 pull 하는 값이라 대상이 그대로여도 행이 바뀔 수 있다(상태에 따라 문구·선택지 수가 달라지는 장치).
+	TArray<FWxInteractionRow> NewRows;
+	TArray<FWxInteractionOption> Options;
+	for (AActor* Actor : Ordered)
+	{
+		const IWxInteractable* Target = Cast<IWxInteractable>(Actor);
+		if (!Target)
+		{
+			continue;
+		}
+
+		Options.Reset();
+		Target->GetInteractionOptions(GetOwnerPawn(), Options);
+		for (const FWxInteractionOption& Option : Options)
+		{
+			NewRows.Add({Actor, Option});
+		}
+	}
+
+	bool bChanged = NewRows.Num() != Rows.Num();
+	for (int32 Index = 0; !bChanged && Index < NewRows.Num(); ++Index)
+	{
+		bChanged = NewRows[Index].Actor != Rows[Index].Actor || NewRows[Index].Option.Value != Rows[Index].Option.Value || !NewRows[Index].Option.Prompt.EqualTo(Rows[Index].Option.Prompt);
+	}
+
+	if (!bChanged)
+	{
+		return;
+	}
+
+	// 후보로는 남았어도 선택지가 없어진 대상이 여기에 든다.
+	for (const FWxInteractionRow& Row : Rows)
+	{
+		AActor* Old = Row.Actor.Get();
+		if (Old && !NewRows.ContainsByPredicate([Old](const FWxInteractionRow& NewRow) { return NewRow.Actor == Old; }))
+		{
+			SetActorHighlighted(Old, false);
+		}
+	}
+
+	// 같은 선택지가 남아 있으면 그것을, 선택지만 바뀌었으면 같은 대상의 첫 행을 잇는다.
+	const FWxInteractionRow PreviousSelected = Rows.IsValidIndex(SelectedIndex) ? Rows[SelectedIndex] : FWxInteractionRow();
+	Rows = MoveTemp(NewRows);
+
+	int32 RestoredIndex = Rows.IndexOfByPredicate([&PreviousSelected](const FWxInteractionRow& Row) { return Row.Actor == PreviousSelected.Actor && Row.Option.Value == PreviousSelected.Option.Value; });
+	if (RestoredIndex == INDEX_NONE)
+	{
+		RestoredIndex = Rows.IndexOfByPredicate([&PreviousSelected](const FWxInteractionRow& Row) { return Row.Actor == PreviousSelected.Actor; });
+	}
+	SelectedIndex = Rows.IsEmpty() ? INDEX_NONE : (RestoredIndex != INDEX_NONE ? RestoredIndex : 0);
+
+	ApplyHighlight();
+	OnRowsChanged.Broadcast();
+}
+
+void UWxInteractionScannerComponent::UpdateSelection(int32 NewIndex)
+{
+	const int32 Clamped = Rows.IsEmpty() ? INDEX_NONE : FMath::Clamp(NewIndex, 0, Rows.Num() - 1);
+	if (Clamped == SelectedIndex)
+	{
+		return;
+	}
+
+	SelectedIndex = Clamped;
+	ApplyHighlight();
+	OnRowsChanged.Broadcast();
+}
+
+void UWxInteractionScannerComponent::ApplyHighlight()
+{
+	// 선택지가 여럿인 대상은 행마다 다시 걸리지만 같은 값이라 결과는 같다.
+	const AActor* Selected = GetSelectedActor();
+	for (const FWxInteractionRow& Row : Rows)
+	{
+		SetActorHighlighted(Row.Actor.Get(), Row.Actor.Get() == Selected);
+	}
+}
+
+void UWxInteractionScannerComponent::SetActorHighlighted(AActor* Actor, bool bHighlighted) const
+{
+	if (!Actor)
+	{
+		return;
+	}
+
+	for (UActorComponent* Component : Actor->GetComponents())
+	{
+		UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(Component);
+		if (!Primitive)
+		{
+			continue;
+		}
+
+		// 캡슐·트리거처럼 렌더링되지 않는 형상은 켜 봐야 외곽선에 기여하지 않는다.
+		// 끌 때는 거르지 않는다 — 숨은 사이 해제를 건너뛰면 다시 보일 때 외곽선이 남는다.
+		if (bHighlighted && !Primitive->IsVisible())
+		{
+			continue;
+		}
+
+		Primitive->SetRenderCustomDepth(bHighlighted);
+		if (bHighlighted)
+		{
+			Primitive->SetCustomDepthStencilValue(HighlightStencilValue);
+		}
+	}
+}
+
+bool UWxInteractionScannerComponent::CanActivateInteract(const UAbilitySystemComponent* ASC) const
+{
+	// 애셋 태그로 어빌리티를 지목하는 것은 UWxBTTask_ActivateAbility 와 동일한 관례다.
+	const FGameplayAbilityActorInfo* ActorInfo = ASC->AbilityActorInfo.Get();
+	if (!ActorInfo)
+	{
+		return false;
+	}
+
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		if (Spec.Ability && Spec.Ability->GetAssetTags().HasTag(WxGameplayTags::Ability_Action_Interact))
+		{
+			// 발동 경로(InternalTryActivateAbility)처럼 인스턴스가 있으면 인스턴스로 판정한다.
+			const UGameplayAbility* Ability = Spec.GetPrimaryInstance() ? Spec.GetPrimaryInstance() : Spec.Ability.Get();
+			return Ability->CanActivateAbility(Spec.Handle, ActorInfo);
+		}
+	}
+
+	return false;
+}
+
+APawn* UWxInteractionScannerComponent::GetOwnerPawn() const
+{
+	const APlayerController* PC = Cast<APlayerController>(GetOwner());
+	return PC ? PC->GetPawn() : nullptr;
+}

@@ -1,0 +1,48 @@
+// Copyright Woogle. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Animation/AnimNotifies/AnimNotifyState.h"
+#include "WxAnimNotifyState_SnapToTarget.generated.h"
+
+class UTargetingPreset;
+
+/**
+ * UWxRootMotionModifier_SnapToTarget을 이동·회전 두 역할로 구성해 MotionWarpingComponent에 등록한다.
+ * 대상 선택(락온 우선)·범위 판정·실제 루트 모션 보정은 전부 modifier가 수행한다.
+ *
+ * bSnapLocation은 LocationOffset 앞까지 접근하며, 락온 대상이 없거나 타겟팅 범위 밖이면 이동을 생략한다.
+ * bSnapRotation은 거리·LocationOffset과 무관하게 항상 대상 중심을 응시한다.
+ */
+UCLASS()
+class WXGAME_API UWxAnimNotifyState_SnapToTarget : public UAnimNotifyState
+{
+	GENERATED_BODY()
+
+public:
+	virtual FString GetNotifyName_Implementation() const override;
+#if WITH_EDITOR
+	virtual FLinearColor GetEditorColor() override;
+#endif
+	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
+
+#if WITH_EDITOR
+	/** 스냅 가능 범위를 노티파이 색으로 그린다. 표시 구간과 프레임 규칙은 WxTargetingPreview가 갖는다. */
+	virtual void DrawInEditor(FPrimitiveDrawInterface* PDI, USkeletalMeshComponent* MeshComp, const UAnimSequenceBase* Animation, const FAnimNotifyEvent& NotifyEvent) const override;
+#endif
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	TObjectPtr<UTargetingPreset> TargetingPreset;
+
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	bool bSnapLocation = false;
+
+	UPROPERTY(EditAnywhere, Category = "Wx")
+	bool bSnapRotation = true;
+
+	UPROPERTY(EditAnywhere, Category = "Wx", meta = (EditCondition = "bSnapLocation"))
+	FVector LocationOffset = FVector(100.0f, 0.0f, 0.0f);
+
+};

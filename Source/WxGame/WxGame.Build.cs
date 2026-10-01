@@ -13,10 +13,12 @@ public class WxGame : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
 			"AIModule",
+			"CommonInput",
 			"CommonUI",
 			"Core",
 			"CoreUObject",
 			"DeveloperSettings",
+			"EnhancedInput",
 			"Engine",
 			"GameplayAbilities",
 			"GameplayTags",
@@ -24,21 +26,29 @@ public class WxGame : ModuleRules
 			"MetaHumanSDKRuntime",
 			"ModelViewViewModel",
 			"MotionWarping",
+			"NetCore",
+			"StateTreeModule",
+			"TargetingSystem",
 			"UMG",
-			"WxAI",
-			"WxCombat",
-			"WxCore",
-			"WxDialogue",
-			"WxInventory",
-			"WxQuest",
-			"WxUI",
-			"WxWorld",
+			"UniversalObjectLocator",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
-			"EnhancedInput",
+			"GameplayStateTreeModule",
 			"HairStrandsCore",
+			"LevelSequence",
+			"MovieScene",
+			"NavigationSystem",
+			"Niagara",
+			"Slate",
+			"SlateCore",
 		});
+
+		if (Target.bBuildEditor)
+		{
+			PrivateDependencyModuleNames.Add("UnrealEd");
+			PrivateDependencyModuleNames.Add("PropertyBindingUtils");
+		}
 	}
 }

@@ -1,0 +1,69 @@
+// Copyright Woogle. All Rights Reserved.
+
+#pragma once
+
+#include "UI/WxActivatableWidget.h"
+#include "WxGamePopup.generated.h"
+
+UENUM(BlueprintType)
+enum class EWxPopupResult : uint8
+{
+	Confirmed,
+	Declined,
+	Cancelled,
+	/**
+	 * 팝업을 띄우지 못해 사용자 선택 없이 끝났다.
+	 * 표시된 팝업을 밖에서 닫으면 결과가 오지 않는다.
+	 */
+	Killed,
+	Unknown UMETA(Hidden)
+};
+
+DECLARE_DELEGATE_OneParam(FWxPopupResultDelegate, EWxPopupResult /*Result*/);
+
+USTRUCT(BlueprintType)
+struct FWxConfirmationPopupAction
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EWxPopupResult Result = EWxPopupResult::Unknown;
+
+	/** 결과 기본 라벨 대신 표시할 텍스트(선택). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText OptionalDisplayText;
+};
+
+UCLASS(BlueprintType)
+class WXGAME_API UWxGamePopupDescriptor : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	static UWxGamePopupDescriptor* CreateConfirmationOk(const FText& Header, const FText& Body);
+	static UWxGamePopupDescriptor* CreateConfirmationOkCancel(const FText& Header, const FText& Body);
+	static UWxGamePopupDescriptor* CreateConfirmationYesNo(const FText& Header, const FText& Body);
+	static UWxGamePopupDescriptor* CreateConfirmationYesNoCancel(const FText& Header, const FText& Body);
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText Header;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText Body;
+
+	UPROPERTY(BlueprintReadWrite)
+	TArray<FWxConfirmationPopupAction> ButtonActions;
+};
+
+UCLASS(Abstract, meta = (DisableNativeTick))
+class WXGAME_API UWxGamePopup : public UWxActivatableWidget
+{
+	GENERATED_BODY()
+
+public:
+	UWxGamePopup();
+	
+	virtual void SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback);
+};

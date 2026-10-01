@@ -7,7 +7,7 @@
 #include "Editor/UnrealEdEngine.h"
 #include "Engine/Blueprint.h"
 #include "Engine/DataTable.h"
-#include "Items/WxItemDefinition.h"
+#include "Inventory/WxItemDefinition.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
 #include "ThumbnailRendering/BlueprintThumbnailRenderer.h"

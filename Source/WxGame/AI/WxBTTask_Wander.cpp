@@ -1,0 +1,143 @@
+// Copyright Woogle. All Rights Reserved.
+
+#include "AI/WxBTTask_Wander.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "AIController.h"
+#include "NavigationSystem.h"
+#include "WxGameplayTags.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PawnMovementComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
+
+UWxBTTask_Wander::UWxBTTask_Wander()
+{
+	bCreateNodeInstance = true;
+	bNotifyTick = true;
+
+	bNotifyTaskFinished = true;
+}
+
+EBTNodeResult::Type UWxBTTask_Wander::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+{
+	AAIController* AIController = OwnerComp.GetAIOwner();
+	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	// 등분한 구간마다 한 번씩 시도해야 좁은 범위에서도 같은 방향만 반복해 재보지 않는다.
+	constexpr int32 SectorCount = 8;
+	TArray<int32, TInlineAllocator<SectorCount>> RemainingSectors;
+	for (int32 Index = 0; Index < SectorCount; ++Index)
+	{
+		RemainingSectors.Add(Index);
+	}
+
+	const UPawnMovementComponent* Movement = Pawn->GetMovementComponent();
+	if (!Movement)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	// 감속 GE 는 방향을 고른 뒤 부여되므로 지금 최대 속도는 아직 평상시 값이다.
+	const float TravelDistance = Movement->GetMaxSpeed() * (MoveSpeedEffect ? MoveSpeedMultiplier : 1.f) * Duration;
+
+	// 걸어갈 거리가 0이면 길이 0 레이가 막힘으로 오지 않아 후보가 전부 무검증 통과한다.
+	// 지금 못 움직인다고 무해한 것이 아니다 — 배회가 끝나기 전에 속박이 풀리면 검증되지 않은 방향으로 걸어 나간다.
+	if (FMath::IsNearlyZero(TravelDistance))
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	const FVector NavStart = Pawn->GetNavAgentLocation();
+
+	// 범위를 뒤집어 넣으면 폭이 음수가 되어 같은 부채꼴을 반대로 훑을 뿐이라 따로 바로잡지 않는다.
+	const float SectorSize = (MaxAngle - MinAngle) / SectorCount;
+
+	bool bFoundDirection = false;
+	while (RemainingSectors.Num() > 0)
+	{
+		const int32 PickedSlot = FMath::RandRange(0, RemainingSectors.Num() - 1);
+		const float Angle = MinAngle + (RemainingSectors[PickedSlot] + FMath::FRand()) * SectorSize;
+		const FVector Candidate = FRotator(0.f, AIController->GetControlRotation().Yaw + Angle, 0.f).Vector();
+		RemainingSectors.RemoveAtSwap(PickedSlot);
+
+		// 내비 데이터가 아예 없어도 막힘으로 온다.
+		FVector HitLocation;
+		if (UNavigationSystemV1::NavigationRaycast(Pawn, NavStart, NavStart + Candidate * TravelDistance, HitLocation, nullptr, AIController))
+		{
+			continue;
+		}
+
+		MoveDirection = Candidate;
+		bFoundDirection = true;
+		break;
+	}
+
+	if (!bFoundDirection)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	ElapsedTime = 0.f;
+
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
+	if (ASC && MoveSpeedEffect)
+	{
+		const FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(MoveSpeedEffect, 1.f, ASC->MakeEffectContext());
+		if (SpecHandle.IsValid())
+		{
+			SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_MoveSpeedScale, MoveSpeedMultiplier);
+			MoveSpeedEffectHandle = ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+		}
+	}
+
+	return EBTNodeResult::InProgress;
+}
+
+FString UWxBTTask_Wander::GetStaticDescription() const
+{
+	if (!MoveSpeedEffect)
+	{
+		return FString::Printf(TEXT("Duration: %.1f s\nAngle: %.0f ~ %.0f\nSpeed: 감속 GE 미지정"), Duration, MinAngle, MaxAngle);
+	}
+
+	return FString::Printf(TEXT("Duration: %.1f s\nAngle: %.0f ~ %.0f\nSpeed: x %.1f"), Duration, MinAngle, MaxAngle, MoveSpeedMultiplier);
+}
+
+void UWxBTTask_Wander::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+{
+	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
+
+	ElapsedTime += DeltaSeconds;
+	if (ElapsedTime >= Duration)
+	{
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		return;
+	}
+
+	const AAIController* AIController = OwnerComp.GetAIOwner();
+	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
+	}
+
+	// 속도는 감속 GE 가 낮춘 MOV → MaxWalkSpeed 가 제어하므로 입력 스케일은 1.0 으로 넣는다.
+	Pawn->AddMovementInput(MoveDirection, 1.f);
+}
+
+void UWxBTTask_Wander::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)
+{
+	Super::OnTaskFinished(OwnerComp, NodeMemory, TaskResult);
+
+	// 완료·중단·실패 등 어떤 종료 경로에서도 호출되므로, 감속 GE 제거는 여기서 한다.
+	if (UAbilitySystemComponent* ASC = MoveSpeedEffectHandle.GetOwningAbilitySystemComponent())
+	{
+		ASC->RemoveActiveGameplayEffect(MoveSpeedEffectHandle);
+	}
+	MoveSpeedEffectHandle = FActiveGameplayEffectHandle();
+}

@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WxSpawnable.h"
-#include "WxInteractable.h"
+#include "Spawner/WxSpawnable.h"
+#include "Interaction/WxInteractable.h"
 #include "Character/WxCharacterBase.h"
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
@@ -63,7 +63,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Interaction", meta = (ClampMin = "0", ClampMax = "180"))
 	float BackstabRearHalfAngle = 90.f;
 
-	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxInventory.WxRewardTableRow", WxPreviewRow = "true"))
+	UPROPERTY(EditAnywhere, Category = "Wx|Reward", meta = (RowType = "/Script/WxGame.WxRewardTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle RewardRow;
 
 	FWxOnSpawnableKilled OnSpawnableKilled;

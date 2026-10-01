@@ -1,0 +1,52 @@
+// Copyright Woogle. All Rights Reserved.
+
+#pragma once
+
+#include "UI/Foundation/WxGamePopup.h"
+#include "WxConfirmationPopup.generated.h"
+
+class UCommonTextBlock;
+class UCommonRichTextBlock;
+class UCommonButtonBase;
+
+/** 결과 3종(Confirmed/Declined/Cancelled)에 1:1 대응하는 고정 버튼을 사용하며, 서술자의 버튼 구성에 따라 필요한 버튼만 표시한다. */
+UCLASS(Abstract, Blueprintable, meta = (DisableNativeTick))
+class WXGAME_API UWxConfirmationPopup : public UWxGamePopup
+{
+	GENERATED_BODY()
+
+public:
+	UWxConfirmationPopup();
+
+	virtual void SetupPopup(UWxGamePopupDescriptor* Descriptor, FWxPopupResultDelegate ResultCallback) override;
+
+protected:
+	virtual void NativeOnInitialized() override;
+	virtual bool NativeOnHandleBackAction() override;
+
+	/** 텍스트/버튼 표시가 끝난 뒤, WBP가 버튼 라벨(OptionalDisplayText)이나 부가 비주얼을 구성하도록 호출된다. */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Wx|Popup")
+	void OnSetupPopup(UWxGamePopupDescriptor* Descriptor);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
+	TObjectPtr<UCommonButtonBase> Button_Confirm;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
+	TObjectPtr<UCommonButtonBase> Button_Decline;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
+	TObjectPtr<UCommonButtonBase> Button_Cancel;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
+	TObjectPtr<UCommonTextBlock> Text_Title;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Popup", meta = (BindWidgetOptional))
+	TObjectPtr<UCommonRichTextBlock> RichText_Description;
+
+private:
+	/** 버튼 클릭/뒤로 가기 공통 진입점. 위젯을 닫은 뒤 결과 콜백을 최초 1회만 실행한다. */
+	void HandleResultChosen(EWxPopupResult Result);
+
+	FWxPopupResultDelegate OnResultCallback;
+	EWxPopupResult BackResult = EWxPopupResult::Unknown;
+};

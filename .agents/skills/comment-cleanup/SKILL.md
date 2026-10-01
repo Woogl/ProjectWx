@@ -27,8 +27,8 @@ allowed-tools: Read, Grep, Glob, Bash, PowerShell, Edit, Agent, TaskStop
 | 인자 | 대상 |
 | --- | --- |
 | 없음 | 워킹트리 + `HEAD` 대비 변경된 `.h`/`.cpp` (`git status --porcelain`, `git diff --name-only HEAD`) |
-| 모듈명 (`WxInventory`) | 플러그인이면 `Plugins/<Name>`, 소스 모듈이면 `Source/<Name>` 아래 전부 |
-| 경로 (`Plugins/WxAI/Source/WxAI/Private`) | 그 경로 아래 전부 |
+| 모듈명 (`WxGame`) | 플러그인이면 `Plugins/<Name>`, 소스 모듈이면 `Source/<Name>` 아래 전부 |
+| 경로 (`Source/WxGame/AI`) | 그 경로 아래 전부 |
 
 - **인자 없음**이고 변경분이 0이면 진행하지 말고, 모듈명을 지정해 달라고 되묻는다.
 - 발견된 모듈 목록에 없는 이름이면 정리하지 말고 유효한 모듈 목록을 안내한다.

@@ -1,0 +1,118 @@
+// Copyright Woogle. All Rights Reserved.
+
+#include "AbilitySystem/Abilities/WxAbility_Guard.h"
+#include "AbilitySystemComponent.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
+#include "WxGameplayTags.h"
+
+UWxAbility_Guard::UWxAbility_Guard()
+{
+	FGameplayTagContainer AssetTags;
+	AssetTags.AddTag(WxGameplayTags::Ability_Action_Guard);
+	SetAssetTags(AssetTags);
+	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Action_Guard);
+
+	// 본동작 중에는 자기 차단(Ability.Action)이 재발동을 막는다.
+	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
+}
+
+bool UWxAbility_Guard::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	// 뗀 뒤 버퍼 재생으로 뒤늦게 올라가면 다음 누름까지 가드가 고정된다.
+	// 서버 스펙의 키 상태는 발동 RPC가 무조건 true로 세우므로 소유 클라에서만 본다.
+	// AI 폰은 서버에서 로컬 조종으로 읽혀 누른 적 없는 키 상태에 영영 막히므로 플레이어로 한정한다.
+	if (ActorInfo && ActorInfo->IsLocallyControlledPlayer())
+	{
+		const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+		const FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr;
+		if (Spec && !Spec->InputPressed)
+		{
+			return false;
+		}
+	}
+
+	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+}
+
+void UWxAbility_Guard::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
+
+	// 여기서도 대기를 걸어 둬야 리액션이 자세를 밀어내지 않은 경우에도 가드가 고착되지 않는다.
+	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_GuardReact))
+	{
+		ListenForGuardReactEnded();
+		return;
+	}
+
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+}
+
+void UWxAbility_Guard::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+{
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	if (!GetMontage() || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	if (!PlayMontage(GetMontage()))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+}
+
+void UWxAbility_Guard::HandleMontageCompleted()
+{
+}
+
+void UWxAbility_Guard::HandleMontageInterrupted()
+{
+	// 그로기·사망은 Ability.Action 취소로 이 어빌리티를 먼저 끊으므로 여기 걸리지 않는다.
+	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_GuardReact))
+	{
+		ListenForGuardReactEnded();
+		return;
+	}
+
+	Super::HandleMontageInterrupted();
+}
+
+void UWxAbility_Guard::ListenForGuardReactEnded()
+{
+	// 연속 피격은 리액션이 스스로 재발동하며 자세 밀어내기를 되풀이하므로, 한 번 쓰고 그 지점에서 다시 건다.
+	// 두 진입점에서 겹쳐 걸릴 수 있으나 핸들러가 같은 프레임에 두 번 도는 것뿐이라 무해하다.
+	UAbilityTask_WaitGameplayTagRemoved* RemovedTask = UAbilityTask_WaitGameplayTagRemoved::WaitGameplayTagRemove(this, WxGameplayTags::Ability_GuardReact, nullptr, true);
+	RemovedTask->Removed.AddDynamic(this, &UWxAbility_Guard::HandleGuardReactEnded);
+	RemovedTask->ReadyForActivation();
+}
+
+void UWxAbility_Guard::HandleGuardReactEnded()
+{
+	if (!IsInputHeld())
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		return;
+	}
+
+	PlayMontage(GetMontage());
+}
+
+bool UWxAbility_Guard::IsInputHeld() const
+{
+	// AI 에게는 뗀다는 개념이 없어 놓는 판단은 발동시킨 쪽이 한다.
+	const FGameplayAbilityActorInfo* ActorInfo = GetCurrentActorInfo();
+	if (!ActorInfo || !ActorInfo->IsLocallyControlledPlayer())
+	{
+		return true;
+	}
+
+	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	const FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(CurrentSpecHandle) : nullptr;
+	return !Spec || Spec->InputPressed;
+}

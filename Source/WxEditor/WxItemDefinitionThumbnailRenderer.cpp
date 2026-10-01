@@ -5,7 +5,7 @@
 #include "CanvasItem.h"
 #include "CanvasTypes.h"
 #include "Engine/Texture2D.h"
-#include "Items/WxItemDefinition.h"
+#include "Inventory/WxItemDefinition.h"
 #include "Materials/MaterialInterface.h"
 
 bool UWxItemDefinitionThumbnailRenderer::CanVisualizeAsset(UObject* Object)

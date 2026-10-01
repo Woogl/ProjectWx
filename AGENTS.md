@@ -17,6 +17,8 @@
 3. 인라인 함수 정의를 금지한다. (`FORCEINLINE` 등) 단, cpp 로 내릴 수 없는 템플릿 함수와 StateTree 노드의 `GetInstanceDataType()` 은 예외이며, 해당 지점에 예외 사유를 주석으로 남긴다.
    엔진 순정 제공 매크로가 생성하는 인라인 함수(예: GAS AttributeSet 접근자)는 이 금지 대상에 포함하지 않으며, 별도 예외 주석을 요구하지 않는다.
 
+4. 게임 컨텐츠는 `WxGame` 모듈에 Lyra `LyraGame`처럼 기능 폴더로 나눠 둔다. 플러그인은 게임 타입을 모르는 범용 도구와, `WxGame`을 의존하는 GameFeature 컨텐츠에만 쓴다.
+
 ---
 
 ## AI 워크플로우

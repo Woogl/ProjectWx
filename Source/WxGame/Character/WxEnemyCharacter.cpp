@@ -2,20 +2,20 @@
 
 #include "Character/WxEnemyCharacter.h"
 
-#include "AbilitySystem/Ability/WxAbility_Finisher.h"
+#include "AbilitySystem/Abilities/WxAbility_Finisher.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
-#include "Battle/WxBattleSubsystem.h"
-#include "Controller/WxAIController.h"
+#include "Combat/WxBattleSubsystem.h"
+#include "AI/WxAIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Minion/WxMinionComponent.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "Targeting/WxLockOnPointComponent.h"
-#include "WxAIBehaviorComponent.h"
-#include "WxCombatLibrary.h"
+#include "AI/WxAIBehaviorComponent.h"
+#include "Combat/WxCombatLibrary.h"
 #include "WxGameplayTags.h"
-#include "WxRewardLibrary.h"
+#include "Inventory/WxRewardLibrary.h"
 
 AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
