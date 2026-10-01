@@ -7,13 +7,12 @@
 #include "WxAbility_LockOn.generated.h"
 
 class UTargetingPreset;
-class UWxAbilityTask_RotateToTarget;
 class UWxLockOnComponent;
 
 /**
  * 입력으로 켜고 재입력으로 끄며, 대상을 잃으면 재탐색하거나 해제한다.
  *
- * 대상은 UWxLockOnComponent만 들고, 카메라·캐릭터 회전 태스크는 그 값을 매 틱 읽어 추적한다. 락온 중에는 OrientToMovement를 끈다.
+ * 대상은 UWxLockOnComponent만 들고, 카메라 태스크가 그 값을 매 틱 읽어 ControlRotation을 대상으로 돌린다. 락온 중 몸은 CMC의 bUseControllerDesiredRotation으로 ControlRotation을 따른다.
  */
 UCLASS()
 class WXGAME_API UWxAbility_LockOn : public UWxAbilityBase
@@ -34,9 +33,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float CameraInterpSpeed = 5.f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
-	float CharacterInterpSpeed = 8.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability")
 	float CameraPitchOffset = -15.f;
@@ -60,25 +56,12 @@ private:
 	UFUNCTION()
 	void HandleTargetLost();
 
-	UFUNCTION()
-	void HandleDodgeTagAdded();
-
-	UFUNCTION()
-	void HandleDodgeTagRemoved();
-
 	/** 화면상 위치가 시선 방향에 가장 정렬된 지점으로 타겟을 교체한다. */
 	UFUNCTION()
 	void HandleRetargetRequested(FVector2D ScreenDirection);
 
 	/** 거리순 정렬은 프리셋이 담당한다. */
 	void GatherCandidates(TArray<AActor*>& OutCandidates) const;
-	void ListenForDodgeRotation();
-	void StartRotateToTargetTask();
-	void StopRotateToTargetTask();
-	bool IsDodgeActive() const;
-
-	UPROPERTY()
-	TObjectPtr<UWxAbilityTask_RotateToTarget> RotateToTargetTask;
 
 	TWeakObjectPtr<UWxLockOnComponent> LockOnComponent;
 };

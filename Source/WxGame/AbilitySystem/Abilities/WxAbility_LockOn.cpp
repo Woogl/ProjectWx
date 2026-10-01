@@ -1,9 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Abilities/WxAbility_LockOn.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
 #include "AbilitySystem/Tasks/WxAbilityTask_LockOnCamera.h"
-#include "AbilitySystem/Tasks/WxAbilityTask_RotateToTarget.h"
 #include "AbilitySystemComponent.h"
 #include "Components/SceneComponent.h"
 #include "GameFramework/Character.h"
@@ -42,11 +40,12 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	// autonomous proxy의 회전 정합을 위해 서버에서도 꺼야 하므로 IsLocallyControlled 게이트 앞에서 처리한다.
+	// 몸 회전은 CMC가 ServerMove로 복제되는 ControlRotation을 따라가게 해 서버와 클라가 같은 회전을 계산하므로, IsLocallyControlled 게이트 앞에서 모든 머신에 건다.
 	const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
 	if (UCharacterMovementComponent* Movement = Character ? Character->GetCharacterMovement() : nullptr)
 	{
 		Movement->bOrientRotationToMovement = false;
+		Movement->bUseControllerDesiredRotation = true;
 	}
 
 	// 타겟 결정과 추적 태스크는 소유 클라(또는 리슨 서버 호스트)에서만 처리한다 — 태스크는 카메라·몸체 추적과 재탐색 입력 폴링의 로컬 어포던스다.
@@ -82,12 +81,6 @@ void UWxAbility_LockOn::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	LockOnComponent = LockOnComp;
 	LockOnComp->SetLockOnTarget(TargetComponent);
 
-	ListenForDodgeRotation();
-	if (!IsDodgeActive())
-	{
-		StartRotateToTargetTask();
-	}
-
 	UWxAbilityTask_LockOnCamera* LockOnTask = UWxAbilityTask_LockOnCamera::CreateTask(this, CameraInterpSpeed, CameraPitchOffset, MaxDistance, RetargetLookThreshold);
 	LockOnTask->OnTargetLost.AddDynamic(this, &UWxAbility_LockOn::HandleTargetLost);
 	LockOnTask->OnRetargetRequested.AddDynamic(this, &UWxAbility_LockOn::HandleRetargetRequested);
@@ -104,7 +97,6 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 			LockOnComp->SetLockOnTarget(nullptr);
 		}
 		LockOnComponent = nullptr;
-		StopRotateToTargetTask();
 
 		// 평상시 회전 모드는 폰마다 다를 수 있으므로 무브먼트 아키타입(폰 BP·C++ 생성자 기본값)에서 읽어 되돌린다.
 		const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
@@ -112,57 +104,11 @@ void UWxAbility_LockOn::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		if (const UCharacterMovementComponent* MovementDefaults = Movement ? Cast<UCharacterMovementComponent>(Movement->GetArchetype()) : nullptr)
 		{
 			Movement->bOrientRotationToMovement = MovementDefaults->bOrientRotationToMovement;
+			Movement->bUseControllerDesiredRotation = MovementDefaults->bUseControllerDesiredRotation;
 		}
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UWxAbility_LockOn::HandleDodgeTagAdded()
-{
-	StopRotateToTargetTask();
-}
-
-void UWxAbility_LockOn::HandleDodgeTagRemoved()
-{
-	StartRotateToTargetTask();
-}
-
-void UWxAbility_LockOn::ListenForDodgeRotation()
-{
-	UAbilityTask_WaitGameplayTagAdded* AddedTask = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, WxGameplayTags::Ability_Action_Dodge, nullptr, false);
-	AddedTask->Added.AddDynamic(this, &UWxAbility_LockOn::HandleDodgeTagAdded);
-	AddedTask->ReadyForActivation();
-
-	UAbilityTask_WaitGameplayTagRemoved* RemovedTask = UAbilityTask_WaitGameplayTagRemoved::WaitGameplayTagRemove(this, WxGameplayTags::Ability_Action_Dodge, nullptr, false);
-	RemovedTask->Removed.AddDynamic(this, &UWxAbility_LockOn::HandleDodgeTagRemoved);
-	RemovedTask->ReadyForActivation();
-}
-
-void UWxAbility_LockOn::StartRotateToTargetTask()
-{
-	if (RotateToTargetTask)
-	{
-		return;
-	}
-
-	RotateToTargetTask = UWxAbilityTask_RotateToTarget::CreateTask(this, CharacterInterpSpeed);
-	RotateToTargetTask->ReadyForActivation();
-}
-
-void UWxAbility_LockOn::StopRotateToTargetTask()
-{
-	if (RotateToTargetTask)
-	{
-		RotateToTargetTask->EndTask();
-		RotateToTargetTask = nullptr;
-	}
-}
-
-bool UWxAbility_LockOn::IsDodgeActive() const
-{
-	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	return ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Action_Dodge);
 }
 
 void UWxAbility_LockOn::HandleTargetLost()

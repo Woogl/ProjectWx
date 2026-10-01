@@ -7,6 +7,7 @@
 #include "WxAbilityTask_Rush.generated.h"
 
 class UAnimInstance;
+class UWxAbilityTask_LockMovementRotation;
 struct FAbilityEndedData;
 
 /** 교차 돌진의 출발점과 충돌 원복을 이동 태스크 수명에 묶는다. */
@@ -39,6 +40,7 @@ private:
 
 	TWeakObjectPtr<AActor> Target;
 	TWeakObjectPtr<UAnimInstance> SourceAnimInstance;
+	TWeakObjectPtr<UWxAbilityTask_LockMovementRotation> RotationLock;
 	int32 SourceMontageInstanceID = INDEX_NONE;
 	FGameplayAbilitySpecHandle AbilityHandle;
 	FGameplayAbilitySpecHandle PartnerAbilityHandle;
@@ -46,6 +48,4 @@ private:
 	bool bOwnsState = false;
 	bool bChangedCollisionResponses = false;
 	bool bSavedControllerYaw = false;
-	bool bSavedOrientRotation = false;
-	bool bSavedControllerDesiredRotation = false;
 };

@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Tasks/WxAbilityTask_Rush.h"
 #include "Abilities/GameplayAbility.h"
+#include "AbilitySystem/Tasks/WxAbilityTask_LockMovementRotation.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Animation/AnimInstance.h"
@@ -101,11 +102,14 @@ void UWxAbilityTask_Rush::SharedInitAndApply()
 		SourceMontageInstanceID = Instance->GetInstanceID();
 	}
 	bSavedControllerYaw = Avatar->bUseControllerRotationYaw;
-	bSavedOrientRotation = Movement->bOrientRotationToMovement;
-	bSavedControllerDesiredRotation = Movement->bUseControllerDesiredRotation;
 	Avatar->bUseControllerRotationYaw = false;
-	Movement->bOrientRotationToMovement = false;
-	Movement->bUseControllerDesiredRotation = false;
+	// 회전 모드 플래그는 락온이 소유하므로 건드리지 않고, 중첩을 처리하는 회전 속도 잠금으로 CMC 회전을 막는다.
+	if (Ability)
+	{
+		UWxAbilityTask_LockMovementRotation* Lock = UWxAbilityTask_LockMovementRotation::CreateTask(Ability);
+		Lock->ReadyForActivation();
+		RotationLock = Lock;
+	}
 	const FVector Direction = TargetLocation - StartLocation;
 	if (!Direction.IsNearlyZero())
 	{
@@ -203,6 +207,11 @@ void UWxAbilityTask_Rush::ReleaseState()
 	}
 	SourceAnimInstance.Reset();
 	SourceMontageInstanceID = INDEX_NONE;
+	if (UWxAbilityTask_LockMovementRotation* Lock = RotationLock.Get())
+	{
+		Lock->EndTask();
+	}
+	RotationLock.Reset();
 	if (AActor* Other = Target.Get())
 	{
 		Other->OnEndPlay.RemoveDynamic(this, &ThisClass::HandleTargetEndPlay);
@@ -214,11 +223,6 @@ void UWxAbilityTask_Rush::ReleaseState()
 	if (ACharacter* Avatar = Cast<ACharacter>(GetAvatarActor()))
 	{
 		Avatar->bUseControllerRotationYaw = bSavedControllerYaw;
-		if (UCharacterMovementComponent* Movement = MovementComponent.Get())
-		{
-			Movement->bOrientRotationToMovement = bSavedOrientRotation;
-			Movement->bUseControllerDesiredRotation = bSavedControllerDesiredRotation;
-		}
 		if (bChangedCollisionResponses)
 		{
 			Avatar->GetCapsuleComponent()->SetCollisionResponseToChannels(SavedCollisionResponses);
