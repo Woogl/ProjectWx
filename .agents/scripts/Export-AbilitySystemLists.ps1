@@ -277,7 +277,7 @@ function Read-Value($Package, $Type, [int]$Pos, [int]$Size, [bool]$Native, $Only
         'UInt64Property' { return [BitConverter]::ToUInt64($b, $Pos) }
         'Int16Property' { return [BitConverter]::ToInt16($b, $Pos) }
         'UInt16Property' { return [BitConverter]::ToUInt16($b, $Pos) }
-        'Int8Property' { return [sbyte]$b[$Pos] }
+        'Int8Property' { $value = [int]$b[$Pos]; if ($value -ge 128) { $value -= 256 }; return $value }
         # An enum-backed byte stores the enumerator name.
         'ByteProperty' { if ($Size -eq 8) { return Read-Name $Package $Pos } else { return $b[$Pos] } }
         'BoolProperty' { return $b[$Pos] -ne 0 }
@@ -315,14 +315,14 @@ function Read-TagContainer($Package, [int]$Pos) {
 # FText: flags, history type, then Base = namespace, key, source string; None = optional culture invariant string.
 function Read-Text([byte[]]$Bytes, [int]$Pos) {
     $p = $Pos + 4
-    $history = [sbyte]$Bytes[$p]
+    $history = [int]$Bytes[$p]
     $p += 1
     if ($history -eq 0) {
         [void](Read-FString $Bytes ([ref]$p))
         [void](Read-FString $Bytes ([ref]$p))
         return Read-FString $Bytes ([ref]$p)
     }
-    if ($history -eq -1) {
+    if ($history -eq 255) {
         if ([BitConverter]::ToInt32($Bytes, $p) -eq 0) { return '' }
         $p += 4
         return Read-FString $Bytes ([ref]$p)
