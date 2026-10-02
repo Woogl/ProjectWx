@@ -40,4 +40,8 @@ void UWxViewModelResolver_BossCharacter::DestroyInstance(UObject* ViewModel, con
 	{
 		Battle->OnCurrentBossChanged.RemoveAll(ViewModel);
 	}
+	if (UWxViewModel_Character* CharacterViewModel = Cast<UWxViewModel_Character>(ViewModel))
+	{
+		CharacterViewModel->Deinitialize();
+	}
 }

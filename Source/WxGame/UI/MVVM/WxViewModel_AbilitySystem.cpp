@@ -10,12 +10,72 @@
 
 void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 {
+	Deinitialize();
+	if (!InASC)
+	{
+		return;
+	}
+
 	CachedASC = InASC;
 
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
 	InASC->AbilitySpecDirtiedCallbacks.AddUObject(this, &UWxViewModel_AbilitySystem::HandleAbilitySpecDirtied);
 
 	RefreshOwnedTags();
+}
+
+void UWxViewModel_AbilitySystem::Deinitialize()
+{
+	if (UAbilitySystemComponent* ASC = CachedASC.Get())
+	{
+		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
+		ASC->AbilitySpecDirtiedCallbacks.RemoveAll(this);
+		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
+		ASC->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
+		if (UWorld* World = ASC->GetWorld())
+		{
+			World->GetTimerManager().ClearTimer(OwnedTagsRefreshHandle);
+			World->GetTimerManager().ClearTimer(AbilityRebindHandle);
+		}
+	}
+	OwnedTagsRefreshHandle.Invalidate();
+	AbilityRebindHandle.Invalidate();
+	// 아래 변경 알림에서 Getter 가 재진입해도 자식 VM 을 다시 만들거나 ASC 를 재구독하지 않는다.
+	CachedASC.Reset();
+
+	for (UWxViewModel_Attribute* AttributeVM : AttributeViewModels)
+	{
+		if (AttributeVM)
+		{
+			AttributeVM->Deinitialize();
+		}
+	}
+	for (UWxViewModel_Ability* AbilityVM : AbilityViewModels)
+	{
+		if (AbilityVM)
+		{
+			AbilityVM->Deinitialize();
+		}
+	}
+	for (UWxViewModel_Effect* EffectVM : ActiveEffectViewModels)
+	{
+		if (EffectVM)
+		{
+			EffectVM->Deinitialize();
+		}
+	}
+	AttributeViewModels.Reset();
+	AbilityViewModels.Reset();
+	if (!ActiveEffectViewModels.IsEmpty())
+	{
+		ActiveEffectViewModels.Reset();
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(ActiveEffectViewModels);
+	}
+	if (!OwnedTags.IsEmpty())
+	{
+		OwnedTags.Reset();
+		UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(OwnedTags);
+	}
 }
 
 UAbilitySystemComponent* UWxViewModel_AbilitySystem::GetBoundASC() const

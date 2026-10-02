@@ -8,6 +8,8 @@
 
 void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGameplayAttribute InAttribute, FGameplayAttribute InMaxAttribute)
 {
+	Deinitialize();
+
 	if (!InASC || !InAttribute.IsValid())
 	{
 		return;
@@ -16,6 +18,7 @@ void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGamepla
 	InMaxAttribute = InMaxAttribute.IsValid() ? InMaxAttribute : InAttribute;
 
 	BoundAttribute = InAttribute;
+	CachedASC = InASC;
 	BoundMaxAttribute = InMaxAttribute;
 
 	UE_MVVM_SET_PROPERTY_VALUE(AttributeAmount, InASC->GetNumericAttribute(InAttribute));
@@ -26,6 +29,29 @@ void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGamepla
 		.AddUObject(this, &UWxViewModel_Attribute::HandleAttributeChanged);
 	InASC->GetGameplayAttributeValueChangeDelegate(InMaxAttribute)
 		.AddUObject(this, &UWxViewModel_Attribute::HandleMaxAttributeChanged);
+}
+
+void UWxViewModel_Attribute::Deinitialize()
+{
+	if (UAbilitySystemComponent* ASC = CachedASC.Get())
+	{
+		if (BoundAttribute.IsValid())
+		{
+			ASC->GetGameplayAttributeValueChangeDelegate(BoundAttribute).RemoveAll(this);
+		}
+		if (BoundMaxAttribute.IsValid())
+		{
+			ASC->GetGameplayAttributeValueChangeDelegate(BoundMaxAttribute).RemoveAll(this);
+		}
+	}
+	CachedASC.Reset();
+	BoundAttribute = FGameplayAttribute();
+	BoundMaxAttribute = FGameplayAttribute();
+
+	UE_MVVM_SET_PROPERTY_VALUE(AttributeAmount, 0.f);
+	UE_MVVM_SET_PROPERTY_VALUE(MaxAttributeAmount, 0.f);
+	UE_MVVM_SET_PROPERTY_VALUE(AttributePercent, 0.f);
+	UE_MVVM_SET_PROPERTY_VALUE(IsAttributeFull, false);
 }
 
 FGameplayAttribute UWxViewModel_Attribute::GetBoundAttribute() const

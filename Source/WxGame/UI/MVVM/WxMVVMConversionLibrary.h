@@ -12,6 +12,7 @@
 struct FGameplayAttribute;
 class UWxViewModel_AbilitySystem;
 class UWxViewModel_Attribute;
+class UWxViewModel_Ability;
 
 UCLASS()
 class WXGAME_API UWxMVVMConversionLibrary : public UBlueprintFunctionLibrary
@@ -19,6 +20,9 @@ class WXGAME_API UWxMVVMConversionLibrary : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 	
 public:
+	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Visibility (Float > 0)"))
+	static ESlateVisibility Conv_PositiveFloatToSlateVisibility(float Value, ESlateVisibility TrueVisibility = ESlateVisibility::SelfHitTestInvisible, ESlateVisibility FalseVisibility = ESlateVisibility::Collapsed);
+
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "To Visibility (GameplayTag)"))
 	static ESlateVisibility Conv_GameplayTagToSlateVisibility(const FGameplayTagContainer& TagContainer, FGameplayTag Tag, ESlateVisibility TrueVisibility = ESlateVisibility::SelfHitTestInvisible, ESlateVisibility FalseVisibility = ESlateVisibility::Collapsed);
 
@@ -31,4 +35,7 @@ public:
 	 */
 	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Get Attribute ViewModel"))
 	static UWxViewModel_Attribute* GetAttributeViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayAttribute Attribute, FGameplayAttribute MaxAttribute);
+
+	UFUNCTION(BlueprintPure, Category = "Wx", meta = (DisplayName = "Get Ability ViewModel"))
+	static UWxViewModel_Ability* GetAbilityViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayTagContainer AbilityTags);
 };

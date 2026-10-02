@@ -33,6 +33,9 @@ public:
 	/** Character VM 이 자기 것을 만들 때 한 번 부른다. ASC 가 바뀌면 Character VM 이 새 인스턴스를 만든다. */
 	void Initialize(UAbilitySystemComponent* InASC);
 
+	/** 소유 Character 가 ASC 를 놓을 때, 외부 위젯이 보유한 자식 VM 도 함께 비활성화한다. */
+	void Deinitialize();
+
 	UAbilitySystemComponent* GetBoundASC() const;
 
 	/**

@@ -41,6 +41,7 @@ public:
 	 * @param InAbilityTags 슬롯을 가리키는 어빌리티 에셋 태그. 비어 있으면 아무 어빌리티나 매칭되므로 거부한다.
 	 */
 	void Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags);
+	void Deinitialize();
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
 	bool TryActivateAbility();
@@ -140,6 +141,7 @@ private:
 
 	/** 타이머가 활성이면 재평가가 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
 	FTimerHandle ActivationRefreshHandle;
+	FDelegateHandle ActionPhaseChangedHandle;
 
 	TSharedPtr<FStreamableHandle> IconHandle;
 };

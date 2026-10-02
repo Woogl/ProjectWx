@@ -11,6 +11,8 @@
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags)
 {
+	Deinitialize();
+
 	if (!InASC || InAbilityTags.IsEmpty())
 	{
 		return;
@@ -25,11 +27,43 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGam
 
 	// 다른 어빌리티의 발동·종료도 배타 점유를 바꾸므로 특정 슬롯의 블록/필요 태그로 구독을 좁히지 않는다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
-	InASC->AddGameplayEventTagContainerDelegate(
+	ActionPhaseChangedHandle = InASC->AddGameplayEventTagContainerDelegate(
 		FGameplayTagContainer(WxGameplayTags::Event_Ability_ActionPhaseChanged),
 		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxViewModel_Ability::HandleActionPhaseChanged));
 
 	RefreshBoundAbility();
+}
+
+void UWxViewModel_Ability::Deinitialize()
+{
+	StopCooldownTimer();
+	if (UAbilitySystemComponent* ASC = CachedASC.Get())
+	{
+		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
+		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
+		ASC->RemoveGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Ability_ActionPhaseChanged), ActionPhaseChangedHandle);
+		UnbindCostAttributes(*ASC);
+		if (UWorld* World = ASC->GetWorld())
+		{
+			World->GetTimerManager().ClearTimer(ActivationRefreshHandle);
+		}
+	}
+	ActionPhaseChangedHandle.Reset();
+	ActivationRefreshHandle.Invalidate();
+	CachedASC.Reset();
+	CachedAbility.Reset();
+	AbilityTags.Reset();
+	CachedCooldownTags.Reset();
+	CostAttribute = FGameplayAttribute();
+
+	// 풀에 남은 위젯이 이전 슬롯을 보유해도 발동하거나 늦은 아이콘 로드로 되살아나지 않게 한다.
+	SetPresentation(FText::GetEmpty(), FText::GetEmpty(), nullptr, 0, 0.f);
+	UE_MVVM_SET_PROPERTY_VALUE(CooldownRemaining, 0.f);
+	UE_MVVM_SET_PROPERTY_VALUE(CooldownPercent, 0.f);
+	UE_MVVM_SET_PROPERTY_VALUE(IsOnCooldown, false);
+	UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, 0);
+	UE_MVVM_SET_PROPERTY_VALUE(CheckCost, false);
+	UE_MVVM_SET_PROPERTY_VALUE(CostAmount, 0.f);
 }
 
 void UWxViewModel_Ability::StartCooldownTimer()

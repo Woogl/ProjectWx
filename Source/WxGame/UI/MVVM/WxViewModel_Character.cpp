@@ -44,6 +44,11 @@ void UWxViewModel_Character::Initialize(UAbilitySystemComponent* InASC, FText In
 
 void UWxViewModel_Character::Deinitialize()
 {
+	UWxViewModel_AbilitySystem* PreviousAbilitySystem = AbilitySystem;
 	UE_MVVM_SET_PROPERTY_VALUE(AbilitySystem, nullptr);
+	if (PreviousAbilitySystem)
+	{
+		PreviousAbilitySystem->Deinitialize();
+	}
 	UE_MVVM_SET_PROPERTY_VALUE(CharacterName, FText::GetEmpty());
 }

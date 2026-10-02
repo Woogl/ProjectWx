@@ -21,6 +21,7 @@ class WXGAME_API UWxViewModel_Attribute : public UMVVMViewModelBase
 public:
 	/** Max 생략 시 Current를 최대값으로 사용한다. 생성 직후 한 번만 부른다. */
 	void Initialize(UAbilitySystemComponent* InASC, FGameplayAttribute InAttribute, FGameplayAttribute InMaxAttribute);
+	void Deinitialize();
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Attribute")
 	float AttributeAmount = 0.f;
@@ -43,6 +44,7 @@ private:
 	void RefreshDerivedFields();
 
 	FGameplayAttribute BoundAttribute;
+	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	FGameplayAttribute BoundMaxAttribute;
 };
 
