@@ -4,38 +4,49 @@
 
 텍스트 코드·설정 **538개 파일, 41,559줄을 모두 읽었다**. 결함 후보 117건은 독립 검증자가 반증을 시도했고, 99건이 확정됐다. 크래시·세이브 손상·일반 진행 불가(P0)는 없었다. 기준 커밋은 `af83fcefc`다.
 
-수정을 권고하는 결함은 **P1 1건, P2 10건**이다. 아래 표는 중요도 순서이고, 같은 중요도 안에서는 확신도 순서다.
+| 신호 | 의미 | 개수 |
+| --- | --- | ---: |
+| 🔴 수정 권고 | P1·P2. 주요 흐름이 깨지거나, 구체적 조건에서 기능 오류가 난다 | 11 |
+| 🟡 개선 | P3 결함 34 + 도구 결함 12. 드물거나 경미하거나, 현재 에셋에서는 드러나지 않는다 | 46 |
+| 🟢 사소 | 품질 개선. 규칙 위반, 죽은 코드, 규칙 중복, 코드와 어긋난 주석, 데이터 정리 | 40 |
+
+영역별로 보면 다음과 같다. 🔴가 많은 영역부터 정렬했다.
+
+| 영역 | 🔴 | 🟡 | 🟢 |
+| --- | ---: | ---: | ---: |
+| 전투(AbilitySystem·Combat·Animation·Weapons·Character) | 7 | 17 | 19 |
+| 월드·퀘스트(Spawner·Quest·Device·Interaction·Dialogue·Player·FrontEnd) | 2 | 5 | 8 |
+| AI(AI·Minion) | 1 | 6 | 4 |
+| 인벤토리 | 1 | 3 | 2 |
+| 에디터·도구·설정 | 0 | 12 | 1 |
+| UI·타기팅 | 0 | 3 | 5 |
+| 여러 영역(코드 규칙) | 0 | 0 | 1 |
+
+### 🔴 수정 권고
+
+중요도 순서이고, 같은 중요도 안에서는 확신도 순서다.
 
 | ID | 중요도 | 확신도 | 문제 | 확인 방법 |
-|---|---|---|---|---|
-| R1 | P1 | 상 | 일반 피격이 진행 중인 다른 어빌리티의 노티파이 구간을 버림 | 코드·엔진 소스·몽타주 슬롯 대조, 검증자 2인 확정 |
-| R2 | P2 | 상 | 퍼펙트 가드 직후 GuardReact 내내 퍼펙트 가드 판정이 유지됨 | R1과 같은 원인, 가드 몽타주 노티파이 시각 파싱 |
-| R3 | P2 | 상 | 회피 반격 1단 후딜이 시작되면 2단 대신 약공격 1단이 나감 | 몽타주 노티파이 시각 파싱, AbilitySet 순서 대조 |
-| R4 | P2 | 상 | HGTest 회피 반격 2단이 피해를 주지 않음 | DT_Damage 행 이름과 몽타주 참조 대조, git 이력 |
-| R5 | P2 | 상 | 일반 피격으로 아이템 사용이 끊기지 않음 | 취소 목록·몽타주 슬롯 그룹·위키 규칙 대조 |
-| R6 | P2 | 상 | 회복 전에 끊긴 포션이 소비되지 않음 | 차감 시점 추적, 기획서·git 이력 대조 |
-| R7 | P2 | 상 | 분신이 가드를 따라 하면 가드 자세로 굳음 | BT 에셋 파싱, 가드 종료 경로 추적 |
-| R8 | P2 | 상 | 스포너 셀이 다시 로드되면 처치 퀘스트가 끝나지 않음 | WP 설정·스포너 배치·태스크 판정 추적 |
-| R9 | P2 | 중 | 셀이 다시 로드되면 퀘스트 볼륨이 다시 발동해 퀘스트가 재시작됨 | BP 그래프는 uasset 문자열로만 확인, WP 설정 대조 |
-| R10 | P2 | 중 | 원격 클라에서 선입력한 후딜 캔슬이 서버에서 거부됨 | 엔진 CMC·GAS 실행 순서 추적(실행 미확인) |
-| R11 | P2 | 중 | 원격 클라의 회피 반격 2단이 항상 서버에서 거부됨 | 엔진 재발동 RPC 순서 추적(실행 미확인) |
+| --- | --- | --- | --- | --- |
+| 🔴 R1 | P1 | 높음 | 일반 피격이 진행 중인 다른 어빌리티의 노티파이 구간을 버림 | 코드·엔진 소스·몽타주 슬롯 대조, 검증자 2인 확정 |
+| 🔴 R2 | P2 | 높음 | 퍼펙트 가드 직후 GuardReact 내내 퍼펙트 가드 판정이 유지됨 | R1과 같은 원인, 가드 몽타주 노티파이 시각 파싱 |
+| 🔴 R3 | P2 | 높음 | 회피 반격 1단 후딜이 시작되면 2단 대신 약공격 1단이 나감 | 몽타주 노티파이 시각 파싱, AbilitySet 순서 대조 |
+| 🔴 R4 | P2 | 높음 | HGTest 회피 반격 2단이 피해를 주지 않음 | DT_Damage 행 이름과 몽타주 참조 대조, git 이력 |
+| 🔴 R5 | P2 | 높음 | 일반 피격으로 아이템 사용이 끊기지 않음 | 취소 목록·몽타주 슬롯 그룹·위키 규칙 대조 |
+| 🔴 R6 | P2 | 높음 | 회복 전에 끊긴 포션이 소비되지 않음 | 차감 시점 추적, 기획서·git 이력 대조 |
+| 🔴 R7 | P2 | 높음 | 분신이 가드를 따라 하면 가드 자세로 굳음 | BT 에셋 파싱, 가드 종료 경로 추적 |
+| 🔴 R8 | P2 | 높음 | 스포너 셀이 다시 로드되면 처치 퀘스트가 끝나지 않음 | WP 설정·스포너 배치·태스크 판정 추적 |
+| 🔴 R9 | P2 | 중간 | 셀이 다시 로드되면 퀘스트 볼륨이 다시 발동해 퀘스트가 재시작됨 | BP 그래프는 uasset 문자열로만 확인, WP 설정 대조 |
+| 🔴 R10 | P2 | 중간 | 원격 클라에서 선입력한 후딜 캔슬이 서버에서 거부됨 | 엔진 CMC·GAS 실행 순서 추적(실행 미확인) |
+| 🔴 R11 | P2 | 중간 | 원격 클라의 회피 반격 2단이 항상 서버에서 거부됨 | 엔진 재발동 RPC 순서 추적(실행 미확인) |
 
 **중요도** — P1: 일반 전투 흐름에서 자주 깨진다. P2: 구체적인 조건에서 기능 오류가 난다. P3: 드물거나 경미하거나, 현재 에셋에서는 드러나지 않는다.
 
-**확신도** — 상: 코드 경로와 현재 에셋 값만으로 결과가 정해진다. 중: 결론이 실행 순서·타이밍 같은 엔진 동작 추론이나, 에디터에서 직접 열어 보지 않은 에셋 내용에 기댄다. 중인 항목은 실행 재현으로 확정하는 것이 좋다.
-
-그 밖의 결과는 다음과 같다.
-
-| 구분 | 건수 | 비고 |
-|---|---:|---|
-| P3 — 지금 플레이에서 드러남 | 16 | R12~R27 |
-| P3 — 기획 확인이 필요한 차이 | 8 | R28~R35, 수치·규칙이 기획과 다르고 의도 기록이 없음 |
-| P3 — 현재 에셋에서는 드러나지 않음 | 10 | R36~R45, 코드상 결함은 확실함 |
-| 도구 결함 | 12 | T1~T12, 게임 런타임 영향 없음 |
-| 품질 개선 | 40 | Q1~Q40 |
-| 기각 / 판정 보류 | 16 / 2 | X1~X16, 같은 지적이 반복되지 않도록 사유를 남김 |
+**확신도** — 높음: 코드 경로와 현재 에셋 값만으로 결과가 정해진다. 중간: 결론이 실행 순서·타이밍 같은 엔진 동작 추론이나, 에디터에서 직접 열어 보지 않은 에셋 내용에 기댄다. 중간인 항목은 실행 재현으로 확정하는 것이 좋다.
 
 **함께 고쳐야 하는 항목이 있다.** R1과 R2는 같은 조건 하나가 원인이다. R5만 고치면 일반 피격이 아이템 사용을 끊게 되어, 포션이 줄지 않는 R6이 더 자주 드러난다. R9만 고치면(볼륨 상시 로드) 지금 R8을 우연히 풀어 주는 경로가 사라진다.
+
+🟡 P3는 성격별로 나눴다. 지금 플레이에서 드러나는 것 16건(R12~R27), 기획 확인이 필요한 차이 8건(R28~R35), 현재 에셋에서는 드러나지 않는 것 10건(R36~R45)이다. 기각 16건과 판정 보류 2건은 같은 지적이 반복되지 않도록 사유를 남겼다(X1~X16).
 
 AGENTS.md 코딩 규칙 1~3(Wx 접두사, 저작권 첫 줄, 인라인 함수 정의 금지)은 전수 검사에서 모두 통과했다. 사용자 규칙인 익명 namespace·static 자유 함수 금지는 13개 파일에서 어긴다(Q1).
 
@@ -49,7 +60,7 @@ AGENTS.md 코딩 규칙 1~3(Wx 접두사, 저작권 첫 줄, 인라인 함수 �
 - 놓친 흐름을 다시 찾는 2차 점검은 사용량 한도 때문에 생략했다. 기획서 대비 점검도 따로 돌리지 않았고, 단위 리뷰어가 담당 범위에서 함께 봤다.
 - 링크의 줄 번호는 리뷰 시점 기준이다. ID(R·T·Q·X)는 이 문서에서만 쓰는 번호다.
 
-## R1. [P1 · 확신도 상] 일반 피격이 진행 중인 다른 어빌리티의 노티파이 구간을 버림
+## R1. 🔴 [P1 · 확신도 높음] 일반 피격이 진행 중인 다른 어빌리티의 노티파이 구간을 버림
 
 **발생 조건:** 적이 패턴 단계 몽타주(예: AM_Soldier_Pattern_1_2)를 재생하는 중에 플레이어 평타에 맞는다. 플레이어 평타 행은 모두 `HitReact.Normal`이라 일반 전투에서 자주 일어난다. 회피·아이템 사용 중의 일반 피격도 같다.
 
@@ -65,7 +76,7 @@ AGENTS.md 코딩 규칙 1~3(Wx 접두사, 저작권 첫 줄, 인라인 함수 �
 
 **수정 후 확인:** 패턴 예비 동작 중에 평타로 맞힌 뒤에도 그 단계의 공격이 피해를 주고, 판정이 구간 끝에서 닫히는지 확인한다. 피격이 없을 때의 패턴·콤보·후딜 캔슬은 그대로여야 한다. R2도 함께 확인한다.
 
-## R2. [P2 · 확신도 상] 퍼펙트 가드 직후 GuardReact 내내 퍼펙트 가드 판정이 유지됨
+## R2. 🔴 [P2 · 확신도 높음] 퍼펙트 가드 직후 GuardReact 내내 퍼펙트 가드 판정이 유지됨
 
 **발생 조건:** 퍼펙트 가드가 날 때마다 생긴다. GuardReact(PerfectGuard 섹션) 중에 막을 수 있는 공격이 한 번 더 들어오면 드러난다. SlowTime 때문에 실제 시간은 더 길다.
 
@@ -77,7 +88,7 @@ AGENTS.md 코딩 규칙 1~3(Wx 접두사, 저작권 첫 줄, 인라인 함수 �
 
 **수정 후 확인:** 퍼펙트 가드 직후 GuardReact 중에 들어온 타격이 일반 가드로 판정되고, `Effect.PerfectGuard`가 0.25초 뒤 사라지는지 확인한다.
 
-## R3. [P2 · 확신도 상] 회피 반격 1단 후딜이 시작되면 2단 대신 약공격 1단이 나감
+## R3. 🔴 [P2 · 확신도 높음] 회피 반격 1단 후딜이 시작되면 2단 대신 약공격 1단이 나감
 
 **발생 조건:** 모든 머신에서 생긴다. 회피 반격 1단을 발동한 뒤 StartRecovery(0.421초)부터 콤보 창 끝(0.967초) 사이에 약공격을 누른다. 시각은 ASPD 1 기준이며, AM_HGTest_Attack_DodgeCounter1과 AM_Template_DodgeCounter_1 모두 해당한다.
 
@@ -94,7 +105,7 @@ AGENTS.md 코딩 규칙 1~3(Wx 접두사, 저작권 첫 줄, 인라인 함수 �
 
 **수정 후 확인:** 콤보 창 전 구간에서 약공격을 누르면 2단이 나가고, 창이 닫힌 뒤에는 약공격 1단이 나가는지 확인한다. 일반 약공격 콤보도 그대로인지 확인한다.
 
-## R4. [P2 · 확신도 상] HGTest 회피 반격 2단이 피해를 주지 않음
+## R4. 🔴 [P2 · 확신도 높음] HGTest 회피 반격 2단이 피해를 주지 않음
 
 **발생 조건:** 프론트엔드에서 BP_HGTest를 고르고 회피 반격 2단(AM_HGTest_Attack_DodgeCounter2)을 적에게 맞힌다.
 
@@ -106,7 +117,7 @@ AGENTS.md 코딩 규칙 1~3(Wx 접두사, 저작권 첫 줄, 인라인 함수 �
 
 **수정 후 확인:** 2단 적중 시 피해·피격 반응·히트스톱이 나고 FindRow 경고가 없는지 확인한다. 목록을 다시 생성해 "표에 없는 행" 항목이 사라졌는지도 본다.
 
-## R5. [P2 · 확신도 상] 일반 피격으로 아이템 사용이 끊기지 않음
+## R5. 🔴 [P2 · 확신도 높음] 일반 피격으로 아이템 사용이 끊기지 않음
 
 **발생 조건:** 포션을 마시는 도중(회복 노티파이 0.276초 전)에 적 공격을 받는다. 현재 적 피해 행은 모두 `HitReact.Normal`이다. 무적이 끝난 회피 후딜(0.5~0.9초)에 맞아도 같다.
 
@@ -118,7 +129,7 @@ HitReact의 `CancelAbilitiesWithTag`에는 `Ability.Action.Attack`과 `Ability.A
 
 **수정 후 확인:** 포션 사용 중 일반 피격으로 사용이 끊기는지, 무적 프레임 회피는 끊기지 않는지 확인한다.
 
-## R6. [P2 · 확신도 상] 회복 전에 끊긴 포션이 소비되지 않음
+## R6. 🔴 [P2 · 확신도 높음] 회복 전에 끊긴 포션이 소비되지 않음
 
 **발생 조건:** 포션 사용 입력 뒤, 회복 노티파이 전에 어빌리티가 끊긴다. 지금은 넉 계열 피격(같은 슬롯 그룹의 UseItem 몽타주를 멈춤), 사망, 그로기가 해당한다. R5를 고치면 일반 피격도 해당한다.
 
@@ -132,7 +143,7 @@ HitReact의 `CancelAbilitiesWithTag`에는 `Ability.Action.Attack`과 `Ability.A
 
 **수정 후 확인:** 회복 전에 끊으면 충전이 1 줄고 회복은 없는지, 정상 사용 시 1회만 차감되는지 확인한다. 충전이 1개 남은 상태에서 끊긴 경우도 본다.
 
-## R7. [P2 · 확신도 상] 분신이 가드를 따라 하면 가드 자세로 굳음
+## R7. 🔴 [P2 · 확신도 높음] 분신이 가드를 따라 하면 가드 자세로 굳음
 
 **발생 조건:** BP_HGTest가 궁극기 1로 분신(BP_Doppelganger)을 소환한 뒤 가드 키를 눌렀다 뗀다.
 
@@ -144,7 +155,7 @@ BT_Doppelganger의 MirrorAbility `ExcludedAbilities`에는 `Ability.Finisher`와
 
 **수정 후 확인:** 분신 소환 뒤 가드를 눌렀다 떼도 분신이 공격·회피를 계속 따라 하고, 가드 피격 연출을 재생하지 않는지 확인한다.
 
-## R8. [P2 · 확신도 상] 스포너 셀이 다시 로드되면 처치 퀘스트가 끝나지 않음
+## R8. 🔴 [P2 · 확신도 높음] 스포너 셀이 다시 로드되면 처치 퀘스트가 끝나지 않음
 
 **발생 조건:** Standalone에서 LV_OpenWorld Main2의 처치 단계 중, 적을 남긴 채 스포너 셀에서 약 768 m(LoadingRange) 이상 떨어졌다가 돌아온다. 적이 KillZ 아래로 떨어진 경우도 같다(R15). 리슨 서버는 서버가 셀을 언로드하지 않아 해당하지 않는다. 체크포인트 부활 거리로는 셀이 내려가지 않는다.
 
@@ -158,7 +169,7 @@ BT_Doppelganger의 MirrorAbility `ExcludedAbilities`에는 `Ability.Finisher`와
 
 **수정 후 확인:** 처치 단계 중 768 m 밖으로 갔다 돌아와도 남은 적이 다시 나오고, 모두 처치하면 단계가 끝나는지 확인한다. 이미 잡은 적은 다시 나오지 않아야 한다.
 
-## R9. [P2 · 확신도 중] 셀이 다시 로드되면 퀘스트 볼륨이 다시 발동해 퀘스트가 재시작됨
+## R9. 🔴 [P2 · 확신도 중간] 셀이 다시 로드되면 퀘스트 볼륨이 다시 발동해 퀘스트가 재시작됨
 
 **발생 조건:** Standalone에서 LV_OpenWorld의 퀘스트 볼륨((732,-268) m)을 밟아 Main2를 받는다. 진행 중이든 완료했든 상관없다. 그 뒤 약 768 m 이상 떨어진 곳까지 갔다가 돌아와 볼륨에 다시 들어간다. 리슨 서버는 해당하지 않고, 체크포인트 부활 거리(약 570 m)로도 일어나지 않는다.
 
@@ -172,7 +183,7 @@ BP_QuestVolume은 겹침 시 `StartQuest`를 부른 뒤 `SetActorEnableCollision
 
 **수정 후 확인:** 에디터에서 BP_QuestVolume 그래프에 다른 가드가 없는지 먼저 본다. 수정 뒤 Main2를 받거나 완료한 다음, 멀리 갔다 돌아와 볼륨에 들어가도 재시작·보상 재지급이 없는지 확인한다.
 
-## R10. [P2 · 확신도 중] 원격 클라에서 선입력한 후딜 캔슬이 서버에서 거부됨
+## R10. 🔴 [P2 · 확신도 중간] 원격 클라에서 선입력한 후딜 캔슬이 서버에서 거부됨
 
 **발생 조건:** 리슨 서버에 접속한 원격 클라가 루트모션 공격 몽타주의 본동작 중에 회피·스킬·가드·아이템·궁극기를 미리 입력해 둔다. 그 입력이 StartRecovery 시점에 버퍼에서 재생될 때 생긴다. 리슨 호스트, Standalone, 같은 어빌리티의 콤보 재발동, StartRecovery 이후 직접 누른 입력은 해당하지 않는다.
 
@@ -192,7 +203,7 @@ BP_QuestVolume은 겹침 시 `StartQuest`를 부른 뒤 `SetActorEnableCollision
 
 **수정 후 확인:** 네트워크 PIE(리슨 서버 + 클라 1)에서 원격 클라가 공격 본동작 중 회피를 선입력하면, StartRecovery에서 회피가 나가고 `ClientActivateAbilityFailed` 로그가 없는지 확인한다. 수정 전에 같은 절차로 먼저 재현해 확신도를 올린다.
 
-## R11. [P2 · 확신도 중] 원격 클라의 회피 반격 2단이 항상 서버에서 거부됨
+## R11. 🔴 [P2 · 확신도 중간] 원격 클라의 회피 반격 2단이 항상 서버에서 거부됨
 
 **발생 조건:** 원격 클라가 회피 반격 1단의 콤보 창(0.348~0.421초) 안에서, 또는 그 전에 미리 약공격을 입력해 2단을 발동한다.
 
@@ -204,7 +215,7 @@ BP_QuestVolume은 겹침 시 `StartQuest`를 부른 뒤 `SetActorEnableCollision
 
 **수정 후 확인:** 네트워크 PIE에서 원격 클라의 2단이 나가고 서버에서 분신 소환·피해가 실행되는지, 호스트 동작은 그대로인지 확인한다. R3 수정과 함께 확인한다.
 
-## P3 결함
+## 🟡 P3 결함
 
 P3는 드물거나 경미하거나, 현재 에셋에서는 드러나지 않는 결함이다. 표 안에서는 확신도 순서다.
 
@@ -212,22 +223,22 @@ P3는 드물거나 경미하거나, 현재 에셋에서는 드러나지 않는 �
 
 | ID | 확신도 | 문제 | 수정 방향 |
 |---|---|---|---|
-| R12 | 상 | 넉백 경직 중 약 1초 동안 이동 입력·AI 경로가 캐릭터를 움직인다. DisableRootMotion은 KnockBack 섹션 전체(0~1.316초)를 덮는데, 상수 힘은 0.3초만 민다([WxAbility_HitReact.cpp:136](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_HitReact.cpp#L136)). 지금은 플레이어 궁극기에 맞은 적에게서 드러난다. | 애니 루트모션을 끈 구간 동안 루트모션 소스를 유지한다(예: ConstantForce Duration을 섹션 길이로, 커브로 앞 0.3초만 밀기). DisableRootMotion만 줄이면 애니 변위가 이중으로 적용될 수 있어 에셋 확인이 필요하다. |
-| R13 | 상 | 퍼펙트 가드의 반사 GP로 그로기에 든 공격자에게 패리 리액션도 보낸다. 그로기 시작 자세 대신 패리 넉이 먼저 나오고, 그로기 몽타주 꼬리가 잘린다([WxEffectComponent_PerfectGuard.cpp:46](../../Source/WxGame/AbilitySystem/Effects/WxEffectComponent_PerfectGuard.cpp#L46)). | 패리 이벤트 조건에 AddGP 뒤 시점의 `!SourceASC->HasMatchingGameplayTag(Ability_Groggy)` 한 줄 추가 |
-| R14 | 상 | 회피 후딜에서 다음 회피로 후딜 캔슬이 되지 않아, 연속 회피의 두 번째가 약 0.4초 늦다. Dodge가 `bRetriggerInstancedAbility`를 켜지 않았다([WxAbility_Dodge.cpp:21](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Dodge.cpp#L21)). 위키 규칙은 "StartRecovery 이후 모든 액션으로 캔슬 가능"이다. | 생성자에서 `bRetriggerInstancedAbility = true`(엔진 순정). 연속 회피 금지가 의도라면 주석으로 남긴다. |
-| R15 | 상 | KillZ 아래로 떨어진 캐릭터가 사망 경로 없이 파괴된다. 플레이어는 사망 화면이 뜨지 않아 강제 종료해야 하고([WxRespawnLibrary.cpp:34](../../Source/WxGame/Player/WxRespawnLibrary.cpp#L34)), 적은 처치 통지가 없어 처치 퀘스트가 멈춘다([WxSpawner.cpp:191](../../Source/WxGame/Spawner/WxSpawner.cpp#L191)). 기본 KillZ(약 -10.5 km)까지 떨어져야 해서 드물다. | Lyra처럼 AWxCharacterBase에서 `FellOutOfWorld`를 재정의해, Destroy 대신 아직 `Ability.Death`가 없을 때만 정상 사망 경로를 태운다. 맵 KillZ를 지형에 맞게 올리는 것도 검토한다. |
-| R16 | 상 | 리슨 서버에서 한 사람이 체크포인트에서 휴식하면 월드의 모든 Auto 스포너가 리젠된다. 다른 플레이어가 싸우던 적이 만피로 다시 나온다. 저장·부활은 Standalone 전용인데 리젠만 그대로 돈다([WxStateTreeTask_RespawnSpawners.cpp:31](../../Source/WxGame/Spawner/WxStateTreeTask_RespawnSpawners.cpp#L31)). | 호출부 `EnterState`에 SaveCheckpoint와 같은 Standalone 조건 한 줄. 멀티플레이 휴식 규칙은 기획 결정으로 받는다. |
-| R17 | 상 | 체크포인트 휴식의 포션 리필이 휴식한 플레이어가 아니라 0번 PC(리슨 호스트)에게 간다. 같은 휴식의 HP 회복은 상호작용자에게 간다([WxStateTreeTask_RefillItemCharges.cpp:36](../../Source/WxGame/Inventory/WxStateTreeTask_RefillItemCharges.cpp#L36)). | Owner를 AWxDevice로 캐스트해 `GetInteractingCharacter()`의 인벤토리를 쓴다. 0번 전제 주석도 고친다. |
-| R18 | 상 | MaxSP가 0인 아바타의 질주가 움직이는 즉시 끝난다(지금은 마스터 질주를 따라 하는 분신). 주석은 "제한 없이 달린다"인데, 엔진은 값이 그대로여도 변경 델리게이트를 보낸다([WxAbility_Sprint.cpp:130](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Sprint.cpp#L130)). | "제한 없이"가 의도라면 실제 감소 때만 종료하고, 분신의 `ExcludedAbilities`에 `Ability.Sprint`를 넣는다. 아니면 주석을 실제 동작에 맞춘다. |
-| R19 | 상 | BP_HGTest의 회피 잔상이 숨긴 구동 메시(SKM_Quinn_Simple) 모습으로 나온다. 잔상이 MetaHuman 리더인 `GetMesh()`를 복사한다([WxCueNotify_GhostTrail.cpp:42](../../Source/WxGame/AbilitySystem/Cues/WxCueNotify_GhostTrail.cpp#L42)). | `UWxMetaHumanComponent`에 표시 바디 에셋 조회 함수를 두고, 있으면 그 에셋으로 바꾼 뒤 포즈를 복사한다. Face·그룸·Outfit은 여전히 빠진다. |
-| R20 | 상 | WxTeleport 치트가 스트리밍 완료를 기다리지 않아, 미로딩 셀의 지면 근처로 가면 지형 아래로 떨어질 수 있다([WxCheatManager.cpp:24](../../Source/WxGame/Development/WxCheatManager.cpp#L24)). 개발 기능 한정이다. | 부활 경로처럼 `UpdateCamera` 뒤 `BlockTillLevelStreamingCompleted`로 기다린다. |
-| R21 | 중 | 그로기 적을 처형하는 중 제3자(미니언·다른 플레이어)의 일반 피격이 들어오면, 그로기 폴링이 처형 짝 몽타주를 그로기 자세로 덮는다. 폴링이 "재생 중 몽타주 없음"을 `ASC->GetCurrentMontage()`로 판정한다([WxAbility_Groggy.cpp:115](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Groggy.cpp#L115), :135). R1과 같은 계열이다. | 두 곳의 판정을 "그로기 몽타주와 같은 그룹에 활성 인스턴스가 있는가"로 바꾼다([WxCharacterMovementComponent.cpp:110](../../Source/WxGame/Character/WxCharacterMovementComponent.cpp#L110)처럼 순회). 폴링 구조는 유지한다. |
-| R22 | 중 | 같은 몽타주를 연속 재발동하면 섹션 시작의 Queued 구간 노티파이가 엔진에서 병합돼 두 번째 재생에서 빠진다. 예: GuardReact SlowTime 구간 안에서 퍼펙트 가드가 다시 나면 두 번째 슬로모션이 없다([WxAnimNotify_AbilityEvent.h:24](../../Source/WxGame/Animation/WxAnimNotify_AbilityEvent.h#L24)). | 생성자에서 `NotifyStateBehaviorFlags`에 `NoMergeOnConcurrentPlay`를 켠다(엔진 순정 플래그). |
-| R23 | 중 | 원격 클라에서 극한 회피 성공 신호가 클라 후딜 뒤에 도착하면, 클라에서만 성공 섹션이 Recovery로 시작한다. 클라는 다른 액션으로 캔슬할 수 있지만 서버는 막아 롤백이 생긴다([WxAbility_Dodge.cpp:202](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Dodge.cpp#L202)). | `SetActionPhase`를 protected로 옮기고, `HandleDodgeSuccess`에서 PlayMontage 전에 Blocking으로 설정한다. |
-| R24 | 중 | 원격 클라가 RTT 안에 락온 대상을 연달아 바꾸면 서버의 지난 값 복제가 로컬 값을 덮어, 카메라가 이전 대상으로 잠깐 꺾인다. 그 사이 공격하면 스냅 워프가 클라·서버에서 달라질 수 있다([WxLockOnComponent.cpp:17](../../Source/WxGame/Targeting/WxLockOnComponent.cpp#L17)). | `DOREPLIFETIME_CONDITION(..., COND_SkipOwner)` 한 줄. 관련 주석(cpp 39행, 헤더 18~22·47~48행)도 고친다. |
-| R25 | 중 | 클라 위치 보정으로 저장 무브를 재실행할 때 OnJumped가 다시 불려, 진행 중인 후딜 액션이 이유 없이 취소된다([WxCharacterBase.cpp:115](../../Source/WxGame/Character/WxCharacterBase.cpp#L115)). | `bClientUpdating`이면 후딜 취소를 건너뛴다(조건 한 줄). |
-| R26 | 중 | 죽은 적의 AI 퍼셉션이 계속 돌아 시체마다 시야 쿼리 비용이 남는다. 시체의 15 m·120° 안에 플레이어 쪽 폰이 있을 때 트레이스가 생긴다. 비용 규모는 측정하지 않았다([WxAIController.cpp:179](../../Source/WxGame/AI/WxAIController.cpp#L179)). | `HandlePawnDeath`에서 퍼셉션 컴포넌트를 `UnregisterComponent()`한다. |
-| R27 | 중 | 스포너 에디터 프리뷰의 자식 BP_Soldier가 레벨 패키지 2곳(Spawner_BP_Soldier9, Spawner_BP_Soldier11)에 저장돼 있다. 프리뷰를 `RF_Transient`만으로 만들어 T3D 복사로 살아남았다([WxSpawner.cpp:211](../../Source/WxGame/Spawner/WxSpawner.cpp#L211)). PIE에서 추적되지 않는 적이 하나 더 생기는지는 확인하지 못했다. | 생성 플래그를 `RF_Transient \| RF_TextExportTransient \| RF_DuplicateTransient`로 바꾸고, 두 패키지에서 프리뷰 객체를 걷어내 다시 저장한다. |
+| R12 | 높음 | 넉백 경직 중 약 1초 동안 이동 입력·AI 경로가 캐릭터를 움직인다. DisableRootMotion은 KnockBack 섹션 전체(0~1.316초)를 덮는데, 상수 힘은 0.3초만 민다([WxAbility_HitReact.cpp:136](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_HitReact.cpp#L136)). 지금은 플레이어 궁극기에 맞은 적에게서 드러난다. | 애니 루트모션을 끈 구간 동안 루트모션 소스를 유지한다(예: ConstantForce Duration을 섹션 길이로, 커브로 앞 0.3초만 밀기). DisableRootMotion만 줄이면 애니 변위가 이중으로 적용될 수 있어 에셋 확인이 필요하다. |
+| R13 | 높음 | 퍼펙트 가드의 반사 GP로 그로기에 든 공격자에게 패리 리액션도 보낸다. 그로기 시작 자세 대신 패리 넉이 먼저 나오고, 그로기 몽타주 꼬리가 잘린다([WxEffectComponent_PerfectGuard.cpp:46](../../Source/WxGame/AbilitySystem/Effects/WxEffectComponent_PerfectGuard.cpp#L46)). | 패리 이벤트 조건에 AddGP 뒤 시점의 `!SourceASC->HasMatchingGameplayTag(Ability_Groggy)` 한 줄 추가 |
+| R14 | 높음 | 회피 후딜에서 다음 회피로 후딜 캔슬이 되지 않아, 연속 회피의 두 번째가 약 0.4초 늦다. Dodge가 `bRetriggerInstancedAbility`를 켜지 않았다([WxAbility_Dodge.cpp:21](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Dodge.cpp#L21)). 위키 규칙은 "StartRecovery 이후 모든 액션으로 캔슬 가능"이다. | 생성자에서 `bRetriggerInstancedAbility = true`(엔진 순정). 연속 회피 금지가 의도라면 주석으로 남긴다. |
+| R15 | 높음 | KillZ 아래로 떨어진 캐릭터가 사망 경로 없이 파괴된다. 플레이어는 사망 화면이 뜨지 않아 강제 종료해야 하고([WxRespawnLibrary.cpp:34](../../Source/WxGame/Player/WxRespawnLibrary.cpp#L34)), 적은 처치 통지가 없어 처치 퀘스트가 멈춘다([WxSpawner.cpp:191](../../Source/WxGame/Spawner/WxSpawner.cpp#L191)). 기본 KillZ(약 -10.5 km)까지 떨어져야 해서 드물다. | Lyra처럼 AWxCharacterBase에서 `FellOutOfWorld`를 재정의해, Destroy 대신 아직 `Ability.Death`가 없을 때만 정상 사망 경로를 태운다. 맵 KillZ를 지형에 맞게 올리는 것도 검토한다. |
+| R16 | 높음 | 리슨 서버에서 한 사람이 체크포인트에서 휴식하면 월드의 모든 Auto 스포너가 리젠된다. 다른 플레이어가 싸우던 적이 만피로 다시 나온다. 저장·부활은 Standalone 전용인데 리젠만 그대로 돈다([WxStateTreeTask_RespawnSpawners.cpp:31](../../Source/WxGame/Spawner/WxStateTreeTask_RespawnSpawners.cpp#L31)). | 호출부 `EnterState`에 SaveCheckpoint와 같은 Standalone 조건 한 줄. 멀티플레이 휴식 규칙은 기획 결정으로 받는다. |
+| R17 | 높음 | 체크포인트 휴식의 포션 리필이 휴식한 플레이어가 아니라 0번 PC(리슨 호스트)에게 간다. 같은 휴식의 HP 회복은 상호작용자에게 간다([WxStateTreeTask_RefillItemCharges.cpp:36](../../Source/WxGame/Inventory/WxStateTreeTask_RefillItemCharges.cpp#L36)). | Owner를 AWxDevice로 캐스트해 `GetInteractingCharacter()`의 인벤토리를 쓴다. 0번 전제 주석도 고친다. |
+| R18 | 높음 | MaxSP가 0인 아바타의 질주가 움직이는 즉시 끝난다(지금은 마스터 질주를 따라 하는 분신). 주석은 "제한 없이 달린다"인데, 엔진은 값이 그대로여도 변경 델리게이트를 보낸다([WxAbility_Sprint.cpp:130](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Sprint.cpp#L130)). | "제한 없이"가 의도라면 실제 감소 때만 종료하고, 분신의 `ExcludedAbilities`에 `Ability.Sprint`를 넣는다. 아니면 주석을 실제 동작에 맞춘다. |
+| R19 | 높음 | BP_HGTest의 회피 잔상이 숨긴 구동 메시(SKM_Quinn_Simple) 모습으로 나온다. 잔상이 MetaHuman 리더인 `GetMesh()`를 복사한다([WxCueNotify_GhostTrail.cpp:42](../../Source/WxGame/AbilitySystem/Cues/WxCueNotify_GhostTrail.cpp#L42)). | `UWxMetaHumanComponent`에 표시 바디 에셋 조회 함수를 두고, 있으면 그 에셋으로 바꾼 뒤 포즈를 복사한다. Face·그룸·Outfit은 여전히 빠진다. |
+| R20 | 높음 | WxTeleport 치트가 스트리밍 완료를 기다리지 않아, 미로딩 셀의 지면 근처로 가면 지형 아래로 떨어질 수 있다([WxCheatManager.cpp:24](../../Source/WxGame/Development/WxCheatManager.cpp#L24)). 개발 기능 한정이다. | 부활 경로처럼 `UpdateCamera` 뒤 `BlockTillLevelStreamingCompleted`로 기다린다. |
+| R21 | 중간 | 그로기 적을 처형하는 중 제3자(미니언·다른 플레이어)의 일반 피격이 들어오면, 그로기 폴링이 처형 짝 몽타주를 그로기 자세로 덮는다. 폴링이 "재생 중 몽타주 없음"을 `ASC->GetCurrentMontage()`로 판정한다([WxAbility_Groggy.cpp:115](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Groggy.cpp#L115), :135). R1과 같은 계열이다. | 두 곳의 판정을 "그로기 몽타주와 같은 그룹에 활성 인스턴스가 있는가"로 바꾼다([WxCharacterMovementComponent.cpp:110](../../Source/WxGame/Character/WxCharacterMovementComponent.cpp#L110)처럼 순회). 폴링 구조는 유지한다. |
+| R22 | 중간 | 같은 몽타주를 연속 재발동하면 섹션 시작의 Queued 구간 노티파이가 엔진에서 병합돼 두 번째 재생에서 빠진다. 예: GuardReact SlowTime 구간 안에서 퍼펙트 가드가 다시 나면 두 번째 슬로모션이 없다([WxAnimNotify_AbilityEvent.h:24](../../Source/WxGame/Animation/WxAnimNotify_AbilityEvent.h#L24)). | 생성자에서 `NotifyStateBehaviorFlags`에 `NoMergeOnConcurrentPlay`를 켠다(엔진 순정 플래그). |
+| R23 | 중간 | 원격 클라에서 극한 회피 성공 신호가 클라 후딜 뒤에 도착하면, 클라에서만 성공 섹션이 Recovery로 시작한다. 클라는 다른 액션으로 캔슬할 수 있지만 서버는 막아 롤백이 생긴다([WxAbility_Dodge.cpp:202](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Dodge.cpp#L202)). | `SetActionPhase`를 protected로 옮기고, `HandleDodgeSuccess`에서 PlayMontage 전에 Blocking으로 설정한다. |
+| R24 | 중간 | 원격 클라가 RTT 안에 락온 대상을 연달아 바꾸면 서버의 지난 값 복제가 로컬 값을 덮어, 카메라가 이전 대상으로 잠깐 꺾인다. 그 사이 공격하면 스냅 워프가 클라·서버에서 달라질 수 있다([WxLockOnComponent.cpp:17](../../Source/WxGame/Targeting/WxLockOnComponent.cpp#L17)). | `DOREPLIFETIME_CONDITION(..., COND_SkipOwner)` 한 줄. 관련 주석(cpp 39행, 헤더 18~22·47~48행)도 고친다. |
+| R25 | 중간 | 클라 위치 보정으로 저장 무브를 재실행할 때 OnJumped가 다시 불려, 진행 중인 후딜 액션이 이유 없이 취소된다([WxCharacterBase.cpp:115](../../Source/WxGame/Character/WxCharacterBase.cpp#L115)). | `bClientUpdating`이면 후딜 취소를 건너뛴다(조건 한 줄). |
+| R26 | 중간 | 죽은 적의 AI 퍼셉션이 계속 돌아 시체마다 시야 쿼리 비용이 남는다. 시체의 15 m·120° 안에 플레이어 쪽 폰이 있을 때 트레이스가 생긴다. 비용 규모는 측정하지 않았다([WxAIController.cpp:179](../../Source/WxGame/AI/WxAIController.cpp#L179)). | `HandlePawnDeath`에서 퍼셉션 컴포넌트를 `UnregisterComponent()`한다. |
+| R27 | 중간 | 스포너 에디터 프리뷰의 자식 BP_Soldier가 레벨 패키지 2곳(Spawner_BP_Soldier9, Spawner_BP_Soldier11)에 저장돼 있다. 프리뷰를 `RF_Transient`만으로 만들어 T3D 복사로 살아남았다([WxSpawner.cpp:211](../../Source/WxGame/Spawner/WxSpawner.cpp#L211)). PIE에서 추적되지 않는 적이 하나 더 생기는지는 확인하지 못했다. | 생성 플래그를 `RF_Transient \| RF_TextExportTransient \| RF_DuplicateTransient`로 바꾸고, 두 패키지에서 프리뷰 객체를 걷어내 다시 저장한다. |
 
 ### 기획 확인이 필요한 차이
 
@@ -235,14 +246,14 @@ P3는 드물거나 경미하거나, 현재 에셋에서는 드러나지 않는 �
 
 | ID | 확신도 | 문제 | 수정 방향 |
 |---|---|---|---|
-| R28 | 상 | 강공격·스킬도 반응이 Normal이면 적 패턴을 끊지 못한다. HitReact가 피해 출처를 보지 않고 Pattern을 늘 취소 대상에서 뺀다([WxAbility_HitReact.cpp:22](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_HitReact.cpp#L22)). 어빌리티 규칙 브리핑은 "플레이어 평타만 패턴 캔슬 불가"다. | 원인 어빌리티가 `Ability.Action.Attack.Light`가 아니면 `Ability.Action.Pattern`을 취소한다. Pattern 주석(Q26)도 함께 고친다. |
-| R29 | 상 | 그로기 중 받는 피해 +30% 규칙이 피해 계산에 없다. `bIsGroggy`를 GP 누적 판정에만 쓴다([WxEffect_Damage.cpp:124](../../Source/WxGame/AbilitySystem/Effects/WxEffect_Damage.cpp#L124)). | `UWxCombatDeveloperSettings`에 배율(1.3)을 두고 `CalculateFinalDamage`에서 곱한다. 앞잡 피해가 86→112로 올라 TemplateEnemy가 한 번에 죽으므로, 앞잡 적용 여부를 확인한다. |
-| R30 | 상 | 그로기를 일으킨 타격이 일반 피격 반응을 함께 재생한다. 그로기가 먼저 발동되고 DamageReaction이 진입 타격도 "그로기 중"으로 본다([WxEffectComponent_DamageReaction.cpp:59](../../Source/WxGame/AbilitySystem/Effects/WxEffectComponent_DamageReaction.cpp#L59)). 기획은 반응 없음 또는 그로기 시작 리액션이다. | "이번 실행에 GP 기록 + `Ability.Groggy`"면 ReactionTag를 비운다. `Event.Hit`과 DamageDealt는 그대로 보낸다. |
-| R31 | 상 | 가드 키를 누른 채 연속 공격을 막으면, GuardReact 뒤 가드를 다시 올릴 때마다 0.25초 퍼펙트 가드 구간이 입력 없이 다시 열린다. 몽타주를 0초부터 재생하기 때문이다([WxAbility_Guard.cpp:103](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Guard.cpp#L103)). 예전 방식도 0초부터 재생했다. | 의도가 아니면 다시 올릴 때 유지 구간 섹션부터 재생한다. 의도라면 주석으로 남긴다. |
-| R32 | 상 | DA_Potion 최대 충전이 C++ 기본값 3회로 기획(기본·최대 4회)과 다르다([WxItemFragment.h:69](../../Source/WxGame/Inventory/WxItemFragment.h#L69)). 충전 아이콘도 3회 기준이다. | 4회가 맞으면 DA_Potion MaxCharges=4, ChargeIcons 5장. 3회가 의도라면 기획서 수정을 기획자에게 제안한다. |
-| R33 | 상 | 순찰 속도 배율 기본값 0.5가 기획(기본 걷기의 0.75배)과 다르고, BT_Soldier·BT_Template 모두 덮어쓰지 않는다([WxBTTask_Patrol.h:39](../../Source/WxGame/AI/WxBTTask_Patrol.h#L39)). | 기본값 0.75 또는 두 BT에서 지정 |
-| R34 | 상 | 실제 청각 거리가 3 m로 기획(1 m)과 다르다. 리스너 반경 1000 cm와 Jog 노티파이 300 cm 중 짧은 쪽이 적용된다([WxAIBehaviorComponent.h:71](../../Source/WxGame/AI/WxAIBehaviorComponent.h#L71)). | 적 BP에서 HearingRadius를 100으로 지정한다. C++ 기본값을 바꾸면 BP_Minion 청각도 1 m가 된다. |
-| R35 | 중 | 처형 중에도 대상의 GP 드레인·누적이 계속돼, 그로기가 도중에 풀리거나 처형 피해로 다시 걸린다([WxAbility_Finisher.cpp:62](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Finisher.cpp#L62)). | GP 누적 조건([WxEffect_Damage.cpp:204](../../Source/WxGame/AbilitySystem/Effects/WxEffect_Damage.cpp#L204))에 "대상에 `State.FinisherReserved` 없음"을 건다. 드레인 정지는 그로기 종료 판정과 함께 설계가 필요하다. |
+| R28 | 높음 | 강공격·스킬도 반응이 Normal이면 적 패턴을 끊지 못한다. HitReact가 피해 출처를 보지 않고 Pattern을 늘 취소 대상에서 뺀다([WxAbility_HitReact.cpp:22](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_HitReact.cpp#L22)). 어빌리티 규칙 브리핑은 "플레이어 평타만 패턴 캔슬 불가"다. | 원인 어빌리티가 `Ability.Action.Attack.Light`가 아니면 `Ability.Action.Pattern`을 취소한다. Pattern 주석(Q26)도 함께 고친다. |
+| R29 | 높음 | 그로기 중 받는 피해 +30% 규칙이 피해 계산에 없다. `bIsGroggy`를 GP 누적 판정에만 쓴다([WxEffect_Damage.cpp:124](../../Source/WxGame/AbilitySystem/Effects/WxEffect_Damage.cpp#L124)). | `UWxCombatDeveloperSettings`에 배율(1.3)을 두고 `CalculateFinalDamage`에서 곱한다. 앞잡 피해가 86→112로 올라 TemplateEnemy가 한 번에 죽으므로, 앞잡 적용 여부를 확인한다. |
+| R30 | 높음 | 그로기를 일으킨 타격이 일반 피격 반응을 함께 재생한다. 그로기가 먼저 발동되고 DamageReaction이 진입 타격도 "그로기 중"으로 본다([WxEffectComponent_DamageReaction.cpp:59](../../Source/WxGame/AbilitySystem/Effects/WxEffectComponent_DamageReaction.cpp#L59)). 기획은 반응 없음 또는 그로기 시작 리액션이다. | "이번 실행에 GP 기록 + `Ability.Groggy`"면 ReactionTag를 비운다. `Event.Hit`과 DamageDealt는 그대로 보낸다. |
+| R31 | 높음 | 가드 키를 누른 채 연속 공격을 막으면, GuardReact 뒤 가드를 다시 올릴 때마다 0.25초 퍼펙트 가드 구간이 입력 없이 다시 열린다. 몽타주를 0초부터 재생하기 때문이다([WxAbility_Guard.cpp:103](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Guard.cpp#L103)). 예전 방식도 0초부터 재생했다. | 의도가 아니면 다시 올릴 때 유지 구간 섹션부터 재생한다. 의도라면 주석으로 남긴다. |
+| R32 | 높음 | DA_Potion 최대 충전이 C++ 기본값 3회로 기획(기본·최대 4회)과 다르다([WxItemFragment.h:69](../../Source/WxGame/Inventory/WxItemFragment.h#L69)). 충전 아이콘도 3회 기준이다. | 4회가 맞으면 DA_Potion MaxCharges=4, ChargeIcons 5장. 3회가 의도라면 기획서 수정을 기획자에게 제안한다. |
+| R33 | 높음 | 순찰 속도 배율 기본값 0.5가 기획(기본 걷기의 0.75배)과 다르고, BT_Soldier·BT_Template 모두 덮어쓰지 않는다([WxBTTask_Patrol.h:39](../../Source/WxGame/AI/WxBTTask_Patrol.h#L39)). | 기본값 0.75 또는 두 BT에서 지정 |
+| R34 | 높음 | 실제 청각 거리가 3 m로 기획(1 m)과 다르다. 리스너 반경 1000 cm와 Jog 노티파이 300 cm 중 짧은 쪽이 적용된다([WxAIBehaviorComponent.h:71](../../Source/WxGame/AI/WxAIBehaviorComponent.h#L71)). | 적 BP에서 HearingRadius를 100으로 지정한다. C++ 기본값을 바꾸면 BP_Minion 청각도 1 m가 된다. |
+| R35 | 중간 | 처형 중에도 대상의 GP 드레인·누적이 계속돼, 그로기가 도중에 풀리거나 처형 피해로 다시 걸린다([WxAbility_Finisher.cpp:62](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Finisher.cpp#L62)). | GP 누적 조건([WxEffect_Damage.cpp:204](../../Source/WxGame/AbilitySystem/Effects/WxEffect_Damage.cpp#L204))에 "대상에 `State.FinisherReserved` 없음"을 건다. 드레인 정지는 그로기 종료 판정과 함께 설계가 필요하다. |
 
 ### 현재 에셋에서는 드러나지 않음
 
@@ -250,20 +261,20 @@ P3는 드물거나 경미하거나, 현재 에셋에서는 드러나지 않는 �
 
 | ID | 확신도 | 문제 | 수정 방향 |
 |---|---|---|---|
-| R36 | 상 | 정찰 지점이 스폰 지점에서 30 m(LeashRadius) 밖이면 정찰과 복귀를 끝없이 반복한다. 리시 브랜치에 TargetActor 조건이 없다([WxBTDecorator_BeyondLeash.cpp:72](../../Source/WxGame/AI/WxBTDecorator_BeyondLeash.cpp#L72)). 지금 정찰 경로의 가장 먼 지점은 11.7 m다. | 최소안은 `UWxPatrolComponent` 주석에 "정찰 지점은 리시 반경 안"을 적는 것이다. BT로 막으려면 리시 브랜치에 TargetActor Is Set을 Observer aborts **Lower Priority**로 둔다(None이면 빈틈이 생긴다). |
-| R37 | 상 | 청각만 엔진 기본 피아 판정을 써서 Neutral(255) 팀 소음을 적대로 듣는다. 시야·피해 감지는 폰 규칙(255면 Neutral)을 쓴다([WxAIController.cpp:31](../../Source/WxGame/AI/WxAIController.cpp#L31)). 지금은 Neutral 캐릭터가 없다. | 모듈 시작 시 `FGenericTeamId::SetAttitudeSolver`로 같은 규칙을 등록하고, `GetTeamAttitudeTowards`의 규칙 복제를 걷어낸다. 지금은 모듈 클래스가 없어 하나 필요하다. |
-| R38 | 상 | 마지막 타격으로 죽은 대상에도 피해 행의 추가 효과 GE를 적용한다([WxEffectComponent_AdditionalEffects.cpp:26](../../Source/WxGame/AbilitySystem/Effects/WxEffectComponent_AdditionalEffects.cpp#L26)). 지금은 추가 효과를 쓰는 행이 없다. | 루프 앞에 대상이 `Ability.Death`면 return |
-| R39 | 상 | Rush 돌진 시간 계산이 몽타주 RateScale을 빠뜨려, RateScale이 1이 아니면 이동과 노티파이 구간이 어긋난다([WxAbilityTask_MontageEvents.cpp:341](../../Source/WxGame/AbilitySystem/Tasks/WxAbilityTask_MontageEvents.cpp#L341)). 지금 두 에셋은 1이다. | `GetPlayRate() * Montage->RateScale`로 나눈다. |
-| R40 | 상 | 퀘스트 트리의 GiveRewards가 픽업 보상을 월드 원점 근처에 스폰한다. 퀘스트 트리의 Owner가 AWxGameState(AInfo)다([WxStateTreeTask_GiveRewards.cpp:37](../../Source/WxGame/Inventory/WxStateTreeTask_GiveRewards.cpp#L37)). 지금 DT_Reward에는 픽업 아이템이 없다. | 오너가 AWxDevice면 오너 위치를, 아니면 지급 대상 PC의 폰 위치를 쓴다. 루트 컴포넌트 유무로 판정하면 PIE와 쿠킹 빌드가 갈린다. |
-| R41 | 상 | "목적지 이동" 퀘스트 목표가 볼륨 진입을 판정하지 못하고, 대상 원점과의 3D 거리만 본다([WxStateTreeTask_WaitMoveToTarget.cpp:49](../../Source/WxGame/Quest/WxStateTreeTask_WaitMoveToTarget.cpp#L49)). 기획서의 "지역 볼륨 진입" 단계를 저작할 방법이 없다. | 대상이 AVolume이면 `EncompassesPoint`로 판정한다. |
-| R42 | 상 | 원격 클라에서는 어빌리티 부여·제거 뒤 HUD 슬롯이 즉시 다시 매칭되지 않는다. 엔진이 `AbilitySpecDirtiedCallbacks`를 권위에서만 보낸다([WxViewModel_AbilitySystem.cpp:16](../../Source/WxGame/UI/MVVM/WxViewModel_AbilitySystem.cpp#L16)). 지금은 빙의할 때 한 번만 부여한다. | 지금은 주석만 사실대로 고친다. 런타임 스킬 교체를 도입할 때 재정의안을 검토하되, 엔진 의미론 이탈 지점으로 명시한다. |
-| R43 | 중 | RandomChoice가 뒤쪽 자식의 Lower Priority·Both 데코레이터를 관찰자로 남긴다. 조건이 바뀌면 엔진 ensure가 뜨고, 실행 중인 패턴이 가중치를 무시하고 바뀐다([WxBTComposite_RandomChoice.cpp:67](../../Source/WxGame/AI/WxBTComposite_RandomChoice.cpp#L67)). | `UBTComposite_Sequence`처럼 `CanAbortLowerPriority()`를 false로 재정의한다. 헤더 27~28행도 고친다. |
-| R44 | 중 | HUD 슬롯 버튼으로 콤보를 이으면 원격 클라와 서버의 콤보 단계가 어긋날 수 있다. 버튼 발동은 단계를 싣지 않는다([WxAbility_Combo.cpp:46](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Combo.cpp#L46)). 지금은 Game 입력 모드라 버튼을 누를 일이 드물다. | VM 발동도 ASC의 단계 동반 경로를 쓰게 하고, [WxAbility_Skill.h:13](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Skill.h#L13) 주석을 고친다. |
-| R45 | 중 | MarkIndicator의 TargetLocation 자동 기록은 태스크를 직접 편집할 때만 동작하고, 실제 사용처(퀘스트 스텝의 파라미터 바인딩)에서는 동작하지 않는다. 값을 비우면 원거리에서 인디케이터가 월드 원점을 가리킨다([WxStateTreeTask_MarkIndicator.h:38](../../Source/WxGame/UI/IndicatorSystem/WxStateTreeTask_MarkIndicator.h#L38)). | 주석을 실제 동작에 맞춘다. 자동 기록이 필요하면 `FWxActorLocatorCustomization`에서 형제 값을 채우는 쪽을 검토한다. |
+| R36 | 높음 | 정찰 지점이 스폰 지점에서 30 m(LeashRadius) 밖이면 정찰과 복귀를 끝없이 반복한다. 리시 브랜치에 TargetActor 조건이 없다([WxBTDecorator_BeyondLeash.cpp:72](../../Source/WxGame/AI/WxBTDecorator_BeyondLeash.cpp#L72)). 지금 정찰 경로의 가장 먼 지점은 11.7 m다. | 최소안은 `UWxPatrolComponent` 주석에 "정찰 지점은 리시 반경 안"을 적는 것이다. BT로 막으려면 리시 브랜치에 TargetActor Is Set을 Observer aborts **Lower Priority**로 둔다(None이면 빈틈이 생긴다). |
+| R37 | 높음 | 청각만 엔진 기본 피아 판정을 써서 Neutral(255) 팀 소음을 적대로 듣는다. 시야·피해 감지는 폰 규칙(255면 Neutral)을 쓴다([WxAIController.cpp:31](../../Source/WxGame/AI/WxAIController.cpp#L31)). 지금은 Neutral 캐릭터가 없다. | 모듈 시작 시 `FGenericTeamId::SetAttitudeSolver`로 같은 규칙을 등록하고, `GetTeamAttitudeTowards`의 규칙 복제를 걷어낸다. 지금은 모듈 클래스가 없어 하나 필요하다. |
+| R38 | 높음 | 마지막 타격으로 죽은 대상에도 피해 행의 추가 효과 GE를 적용한다([WxEffectComponent_AdditionalEffects.cpp:26](../../Source/WxGame/AbilitySystem/Effects/WxEffectComponent_AdditionalEffects.cpp#L26)). 지금은 추가 효과를 쓰는 행이 없다. | 루프 앞에 대상이 `Ability.Death`면 return |
+| R39 | 높음 | Rush 돌진 시간 계산이 몽타주 RateScale을 빠뜨려, RateScale이 1이 아니면 이동과 노티파이 구간이 어긋난다([WxAbilityTask_MontageEvents.cpp:341](../../Source/WxGame/AbilitySystem/Tasks/WxAbilityTask_MontageEvents.cpp#L341)). 지금 두 에셋은 1이다. | `GetPlayRate() * Montage->RateScale`로 나눈다. |
+| R40 | 높음 | 퀘스트 트리의 GiveRewards가 픽업 보상을 월드 원점 근처에 스폰한다. 퀘스트 트리의 Owner가 AWxGameState(AInfo)다([WxStateTreeTask_GiveRewards.cpp:37](../../Source/WxGame/Inventory/WxStateTreeTask_GiveRewards.cpp#L37)). 지금 DT_Reward에는 픽업 아이템이 없다. | 오너가 AWxDevice면 오너 위치를, 아니면 지급 대상 PC의 폰 위치를 쓴다. 루트 컴포넌트 유무로 판정하면 PIE와 쿠킹 빌드가 갈린다. |
+| R41 | 높음 | "목적지 이동" 퀘스트 목표가 볼륨 진입을 판정하지 못하고, 대상 원점과의 3D 거리만 본다([WxStateTreeTask_WaitMoveToTarget.cpp:49](../../Source/WxGame/Quest/WxStateTreeTask_WaitMoveToTarget.cpp#L49)). 기획서의 "지역 볼륨 진입" 단계를 저작할 방법이 없다. | 대상이 AVolume이면 `EncompassesPoint`로 판정한다. |
+| R42 | 높음 | 원격 클라에서는 어빌리티 부여·제거 뒤 HUD 슬롯이 즉시 다시 매칭되지 않는다. 엔진이 `AbilitySpecDirtiedCallbacks`를 권위에서만 보낸다([WxViewModel_AbilitySystem.cpp:16](../../Source/WxGame/UI/MVVM/WxViewModel_AbilitySystem.cpp#L16)). 지금은 빙의할 때 한 번만 부여한다. | 지금은 주석만 사실대로 고친다. 런타임 스킬 교체를 도입할 때 재정의안을 검토하되, 엔진 의미론 이탈 지점으로 명시한다. |
+| R43 | 중간 | RandomChoice가 뒤쪽 자식의 Lower Priority·Both 데코레이터를 관찰자로 남긴다. 조건이 바뀌면 엔진 ensure가 뜨고, 실행 중인 패턴이 가중치를 무시하고 바뀐다([WxBTComposite_RandomChoice.cpp:67](../../Source/WxGame/AI/WxBTComposite_RandomChoice.cpp#L67)). | `UBTComposite_Sequence`처럼 `CanAbortLowerPriority()`를 false로 재정의한다. 헤더 27~28행도 고친다. |
+| R44 | 중간 | HUD 슬롯 버튼으로 콤보를 이으면 원격 클라와 서버의 콤보 단계가 어긋날 수 있다. 버튼 발동은 단계를 싣지 않는다([WxAbility_Combo.cpp:46](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Combo.cpp#L46)). 지금은 Game 입력 모드라 버튼을 누를 일이 드물다. | VM 발동도 ASC의 단계 동반 경로를 쓰게 하고, [WxAbility_Skill.h:13](../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Skill.h#L13) 주석을 고친다. |
+| R45 | 중간 | MarkIndicator의 TargetLocation 자동 기록은 태스크를 직접 편집할 때만 동작하고, 실제 사용처(퀘스트 스텝의 파라미터 바인딩)에서는 동작하지 않는다. 값을 비우면 원거리에서 인디케이터가 월드 원점을 가리킨다([WxStateTreeTask_MarkIndicator.h:38](../../Source/WxGame/UI/IndicatorSystem/WxStateTreeTask_MarkIndicator.h#L38)). | 주석을 실제 동작에 맞춘다. 자동 기록이 필요하면 `FWxActorLocatorCustomization`에서 형제 값을 채우는 쪽을 검토한다. |
 
-## 도구 결함
+## 🟡 도구 결함
 
-게임 런타임에는 영향이 없다. 확신도는 모두 상이다(코드와 엔진 API 동작으로 결과가 정해진다).
+게임 런타임에는 영향이 없다. 확신도는 모두 높음이다(코드와 엔진 API 동작으로 결과가 정해진다).
 
 | ID | 위치 | 문제 | 수정 방향 |
 |---|---|---|---|
@@ -280,7 +291,7 @@ P3는 드물거나 경미하거나, 현재 에셋에서는 드러나지 않는 �
 | T11 | [WxAnimMontageToolset.cpp:658](../../Plugins/WxToolset/Source/WxToolset/Private/WxAnimMontageToolset.cpp#L658) | 추상 노티파이 클래스를 받아 저장 시 사라질 노티파이를 만들고 true를 반환한다. | `CLASS_Abstract`면 오류 |
 | T12 | [WxEditor.cpp:83](../../Source/WxEditor/WxEditor.cpp#L83) | Blueprint 썸네일 렌더러를 교체하면서 AnimBlueprint·WidgetBlueprint 전용 썸네일이 가려진다. | 교체 직후 두 항목을 다시 등록해 순서 복원 |
 
-## 품질 개선
+## 🟢 품질 개선
 
 결함은 아니지만 근거가 확인된 정리 항목이다. 대부분 몇 줄 수정이다. ※는 검증자가 전제 일부를 직접 확인하지 못한 항목이다.
 
