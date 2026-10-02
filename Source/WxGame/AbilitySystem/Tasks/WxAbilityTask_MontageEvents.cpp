@@ -320,7 +320,9 @@ void UWxAbilityTask_MontageEvents::HandleMontageNotifyState(const UAnimNotifySta
 	APawn* Avatar = Cast<APawn>(Ability->GetAvatarActorFromActorInfo());
 	UAnimInstance* AnimInstance = Ability->GetCurrentActorInfo()->GetAnimInstance();
 	const FAnimMontageInstance* Instance = AnimInstance ? AnimInstance->GetMontageInstanceForID(OwnedMontageInstanceID) : nullptr;
-	if (!Avatar || !Instance || Instance->GetPlayRate() <= 0.f)
+	// 인스턴스의 GetPlayRate에는 에셋의 RateScale이 빠져 있다.
+	const float PlayRate = Instance && Instance->Montage ? Instance->GetPlayRate() * Instance->Montage->RateScale : 0.f;
+	if (!Avatar || PlayRate <= 0.f)
 	{
 		return;
 	}
@@ -340,7 +342,7 @@ void UWxAbilityTask_MontageEvents::HandleMontageNotifyState(const UAnimNotifySta
 	ClearRushTask();
 	if (Target)
 	{
-		const float Duration = Payload.NotifyEvent->GetDuration() / Instance->GetPlayRate();
+		const float Duration = Payload.NotifyEvent->GetDuration() / PlayRate;
 		RushTask = UWxAbilityTask_Rush::CreateTask(Ability, OwnedMontageInstanceID, *Target, Duration, Rush->StopDistance, Rush->IgnoreCollisions);
 		if (RushTask)
 		{
