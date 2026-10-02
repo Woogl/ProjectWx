@@ -123,7 +123,6 @@ public:
 	/** 정확한 SectionName 또는 접두사 SectionName에 Forward를 붙인 섹션이 있는지 검사한다. NAME_None은 빈 접두사다. */
 	static bool HasMontageSection(const UAnimMontage* Montage, FName SectionName);
 
-	/** 몽타주 재생 속도. */
 	virtual float GetMontagePlayRate() const;
 
 	/**
