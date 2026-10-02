@@ -14,8 +14,6 @@ class WXGAME_API UWxAnimNotifyState_WeaponAttack : public UWxAnimNotifyState_Abi
 	GENERATED_BODY()
 
 public:
-	UWxAnimNotifyState_WeaponAttack();
-
 #if WITH_EDITOR
 	virtual FLinearColor GetEditorColor() override;
 #endif

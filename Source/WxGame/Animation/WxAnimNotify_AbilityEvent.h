@@ -19,15 +19,15 @@ public:
 	virtual void BranchingPointNotify(FBranchingPointNotifyPayload& Payload) override;
 };
 
-/** Queued와 BranchingPoint 모두 원본 몽타주 인스턴스와 구간 식별자를 보존한다. */
+/** 몽타주에서는 항상 분기점으로 실행되어 원본 몽타주 인스턴스와 구간 식별자를 보존한다. */
 UCLASS(Abstract)
 class WXGAME_API UWxAnimNotifyState_AbilityEvent : public UAnimNotifyState
 {
 	GENERATED_BODY()
 
 public:
-	virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference) override;
-	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
+	UWxAnimNotifyState_AbilityEvent();
+
 	virtual void BranchingPointNotifyBegin(FBranchingPointNotifyPayload& Payload) override;
 	virtual void BranchingPointNotifyEnd(FBranchingPointNotifyPayload& Payload) override;
 };

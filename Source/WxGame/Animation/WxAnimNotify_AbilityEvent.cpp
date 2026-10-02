@@ -35,16 +35,10 @@ void UWxAnimNotify_AbilityEvent::BranchingPointNotify(FBranchingPointNotifyPaylo
 	}
 }
 
-void UWxAnimNotifyState_AbilityEvent::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
+UWxAnimNotifyState_AbilityEvent::UWxAnimNotifyState_AbilityEvent()
 {
-	FBranchingPointNotifyPayload Payload = MakePayload(MeshComp, Animation, EventReference);
-	BranchingPointNotifyBegin(Payload);
-}
-
-void UWxAnimNotifyState_AbilityEvent::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
-{
-	FBranchingPointNotifyPayload Payload = MakePayload(MeshComp, Animation, EventReference);
-	BranchingPointNotifyEnd(Payload);
+	// Queued 구간은 같은 몽타주를 다시 재생하면 앞 인스턴스와 합쳐져 시작·끝이 빠지고 저프레임에 스킵될 수 있어, 인스턴스별로 동기 실행되는 분기점으로 고정한다.
+	bIsNativeBranchingPoint = true;
 }
 
 void UWxAnimNotifyState_AbilityEvent::BranchingPointNotifyBegin(FBranchingPointNotifyPayload& Payload)
