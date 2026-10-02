@@ -30,11 +30,8 @@ public:
 
 	virtual void BeginPlay() override;
 
-	/** 몽타주를 시작한 엔진의 AnimatingAbility 전이에 맞춰 메시 본 갱신 정책을 승격한다. */
+	/** 어빌리티 몽타주가 시작되면 메시 본 갱신 정책을 승격하고, 그 메시의 몽타주가 모두 끝나면 되돌린다. */
 	virtual float PlayMontage(UGameplayAbility* AnimatingAbility, FGameplayAbilityActivationInfo ActivationInfo, UAnimMontage* Montage, float InPlayRate, FName StartSectionName = NAME_None, float StartTimeSeconds = 0.0f) override;
-
-	/** 마지막 AnimatingAbility가 해제될 때 몽타주 전의 메시 본 갱신 정책을 복원한다. */
-	virtual void ClearAnimatingAbility(UGameplayAbility* Ability) override;
 
 	/** 서버가 호출한다. 다른 슬롯 그룹의 몽타주가 ASC 추적 자리를 차지해도 지정 몽타주를 모든 피어에서 정지한다. */
 	UFUNCTION(NetMulticast, Reliable)
@@ -78,9 +75,11 @@ private:
 	void HandleSPChanged(const FOnAttributeChangeData& ChangeData);
 
 	void EnableAnimatingMontageMeshTick();
+
+	UFUNCTION()
 	void RestoreAnimatingMontageMeshTick();
 
-	/** AnimatingAbility가 존재하는 동안에만 강제한 메시와 원래 옵션. 단일 소유자라 별도 참조 수가 필요 없다. */
+	/** 몽타주가 남아 있는 동안 강제한 메시와 원래 옵션. 단일 소유자라 별도 참조 수가 필요 없다. */
 	TWeakObjectPtr<USkeletalMeshComponent> MontageTickMesh;
 	EVisibilityBasedAnimTickOption PreviousMontageTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 

@@ -37,17 +37,6 @@ float UWxAbilitySystemComponent::PlayMontage(UGameplayAbility* AnimatingAbility,
 	return Duration;
 }
 
-void UWxAbilitySystemComponent::ClearAnimatingAbility(UGameplayAbility* Ability)
-{
-	const bool bClearingCurrentAbility = IsAnimatingAbility(Ability);
-	Super::ClearAnimatingAbility(Ability);
-
-	if (bClearingCurrentAbility && GetAnimatingAbility() == nullptr)
-	{
-		RestoreAnimatingMontageMeshTick();
-	}
-}
-
 void UWxAbilitySystemComponent::MulticastStopMontage_Implementation(UAnimMontage* Montage)
 {
 	UAnimInstance* AnimInstance = AbilityActorInfo.IsValid() ? AbilityActorInfo->GetAnimInstance() : nullptr;
@@ -116,7 +105,8 @@ void UWxAbilitySystemComponent::EnableAnimatingMontageMeshTick()
 	}
 
 	USkeletalMeshComponent* Mesh = AbilityActorInfo.IsValid() ? AbilityActorInfo->SkeletalMeshComponent.Get() : nullptr;
-	if (Mesh == nullptr)
+	UAnimInstance* AnimInstance = Mesh ? AbilityActorInfo->GetAnimInstance() : nullptr;
+	if (AnimInstance == nullptr)
 	{
 		return;
 	}
@@ -124,6 +114,8 @@ void UWxAbilitySystemComponent::EnableAnimatingMontageMeshTick()
 	PreviousMontageTickOption = Mesh->VisibilityBasedAnimTickOption;
 	MontageTickMesh = Mesh;
 	Mesh->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+	// AnimatingAbility는 슬롯과 무관하게 마지막 어빌리티 하나만 가리켜, 가산 슬롯 피격이 끝나면 아직 재생 중인 몽타주를 두고 비워진다.
+	AnimInstance->OnAllMontageInstancesEnded.AddUniqueDynamic(this, &ThisClass::RestoreAnimatingMontageMeshTick);
 
 	UE_LOG(LogWxCombat, Verbose, TEXT("Montage mesh tick enabled: Mesh=%s, Ability=%s"), *GetNameSafe(Mesh), *GetNameSafe(GetAnimatingAbility()));
 }
