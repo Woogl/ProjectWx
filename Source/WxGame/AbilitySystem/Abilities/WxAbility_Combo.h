@@ -5,7 +5,9 @@
 #include "AbilitySystem/Abilities/WxAbilityBase.h"
 #include "WxAbility_Combo.generated.h"
 
-/** 단계는 몽타주 배열로, 각 단계의 방향은 몽타주 섹션으로 구성한다. */
+class UAbilityTask_WaitInputPress;
+
+/** 한 활성화 안에서 입력으로 몽타주 단계를 이어간다. 각 단계마다 비용·쿨다운을 커밋한다. */
 UCLASS(Abstract, HideCategories = ("Wx|Montage"))
 class WXGAME_API UWxAbility_Combo : public UWxAbilityBase
 {
@@ -13,27 +15,39 @@ class WXGAME_API UWxAbility_Combo : public UWxAbilityBase
 
 public:
 	virtual UAnimMontage* GetMontage() const override;
-
-	/** 콤보 동작만 공격 속도(ASPD)를 탄다. */
 	virtual float GetMontagePlayRate() const override;
 
-	/** 활성 중인 인스턴스를 재발동할 때만 다음 단으로 잇고, 그 밖의 발동은 첫 단이다. */
-	int32 GetNextComboIndex() const;
+	/**
+	 * 몽타주 이벤트 태스크가 인스턴스 소유권을 검증한 뒤 호출한다.
+	 * 창이 열린 동안만 다음 타 입력을 기다리므로, 창 밖 입력은 받는 태스크가 없어 ASC가 일반 발동으로 넘긴다.
+	 */
+	void OpenComboWindow();
+	void CloseComboWindow();
+
+	int32 GetComboIndex() const;
+
+	/** 서버의 분신 실행. 진행 중이면 지정 단계로 넘기고, 비활성이면 정상 발동 조건부터 검사한다. */
+	bool TryMirrorComboStep(int32 Index);
 
 protected:
-	/** 커밋한 뒤 다음 단(마지막 단 뒤에는 첫 단)의 몽타주를 재생한다. 이벤트 데이터가 있으면 EventMagnitude가 그 단계다. */
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
-	/** 취소되면 다음 발동은 첫 단부터 시작한다. */
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
-	/** 끝까지 재생하면 다음 발동은 첫 단부터 시작한다. */
-	virtual void HandleMontageCompleted() override;
 
 	/** 배열 순서가 콤보 순서다. 한 단계도 배열에 하나를 지정한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Combo")
 	TArray<TObjectPtr<UAnimMontage>> ComboMontages;
 
-	/** 재발동 사이에 보존되며, INDEX_NONE이면 진행 중인 콤보가 없다. */
+	/** INDEX_NONE이면 진행 중인 콤보가 없다. */
 	int32 ComboIndex = INDEX_NONE;
+
+private:
+	bool PlayComboStep(int32 Index);
+
+	UFUNCTION()
+	void HandleComboInput(float TimeWaited);
+
+	UPROPERTY(Transient)
+	TObjectPtr<UAbilityTask_WaitInputPress> InputTask;
+
+	int32 StartingComboIndex = 0;
 };

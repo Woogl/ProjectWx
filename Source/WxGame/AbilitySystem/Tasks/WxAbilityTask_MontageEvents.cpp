@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Tasks/WxAbilityTask_MontageEvents.h"
 #include "AbilitySystem/Abilities/WxAbilityBase.h"
+#include "AbilitySystem/Abilities/WxAbility_Combo.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Tasks/WxAbilityTask_Rush.h"
 #include "Animation/WxAnimNotifyState_Rush.h"
@@ -79,8 +80,9 @@ void UWxAbilityTask_MontageEvents::OnDestroy(bool bInOwnerFinished)
 bool UWxAbilityTask_MontageEvents::OwnsMontageSignal(const FBranchingPointNotifyPayload& Payload) const
 {
 	const FGameplayAbilityActorInfo* CurrentActorInfo = Ability ? Ability->GetCurrentActorInfo() : nullptr;
-	const UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
-	return !IsFinished() && Ability && Ability->IsActive() && CurrentActorInfo && ASC && ASC->GetAnimatingAbility() == Ability
+	// 다른 슬롯의 피격 몽타주가 ASC의 대표값을 덮어써도 이 인스턴스의 신호는 계속 처리한다.
+	// 중단된 몽타주의 늦은 구간 종료도 받아야 하므로 재생 활성 여부는 검사하지 않는다.
+	return !IsFinished() && Ability && Ability->IsActive() && CurrentActorInfo
 		&& Payload.SkelMeshComponent == CurrentActorInfo->SkeletalMeshComponent.Get()
 		&& OwnedMontageInstanceID != INDEX_NONE && Payload.MontageInstanceID == OwnedMontageInstanceID;
 }
@@ -199,9 +201,9 @@ void UWxAbilityTask_MontageEvents::HandleGameplayWindow(const UAnimNotifyState* 
 			ReleaseMontageWindow(Window);
 			if (Notify->IsA<UWxAnimNotifyState_ComboWindow>())
 			{
-				if (UWxAbilityBase* FlowAbility = Cast<UWxAbilityBase>(Ability))
+				if (UWxAbility_Combo* Combo = Cast<UWxAbility_Combo>(Ability))
 				{
-					FlowAbility->CloseComboWindow(Payload.MontageInstanceID);
+					Combo->CloseComboWindow();
 				}
 			}
 		}
@@ -226,10 +228,10 @@ void UWxAbilityTask_MontageEvents::HandleGameplayWindow(const UAnimNotifyState* 
 	MontageWindows.Add(Window);
 	if (bCombo)
 	{
-		// 버퍼 입력으로 즉시 어빌리티가 재발동할 수 있으므로 창 등록 이후 호출한다.
-		if (UWxAbilityBase* FlowAbility = Cast<UWxAbilityBase>(Ability))
+		// 서버는 먼저 도착한 클라 입력으로 이 호출 안에서 다음 단을 재생해 이 태스크를 끝낼 수 있으므로 창 등록 뒤에 부른다.
+		if (UWxAbility_Combo* Combo = Cast<UWxAbility_Combo>(Ability))
 		{
-			FlowAbility->OpenComboWindow(Payload.MontageInstanceID);
+			Combo->OpenComboWindow();
 		}
 		return;
 	}
@@ -339,7 +341,7 @@ void UWxAbilityTask_MontageEvents::HandleMontageNotifyState(const UAnimNotifySta
 	if (Target)
 	{
 		const float Duration = Payload.NotifyEvent->GetDuration() / Instance->GetPlayRate();
-		RushTask = UWxAbilityTask_Rush::CreateTask(Ability, *Target, Duration, Rush->StopDistance, Rush->IgnoreCollisions);
+		RushTask = UWxAbilityTask_Rush::CreateTask(Ability, OwnedMontageInstanceID, *Target, Duration, Rush->StopDistance, Rush->IgnoreCollisions);
 		if (RushTask)
 		{
 			ActiveRushNotify = Notify;

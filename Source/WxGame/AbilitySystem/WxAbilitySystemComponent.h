@@ -45,13 +45,16 @@ public:
 	/**
 	 * 홀드형 트리거는 눌려 있는 동안 매 프레임 들어온다.
 	 *
-	 * 라이브 입력 라우팅의 유일한 진입점이다. 발동이 성립했는지를 돌려주고, 실패한 입력을 기억할지는 UWxInputBufferComponent가 정한다.
+	 * 라이브 입력 라우팅의 유일한 진입점이다. 입력이 소비됐는지(콤보 창이 받았거나 발동이 성립)를 돌려주고, 실패한 입력을 기억할지는 UWxInputBufferComponent가 정한다.
 	 */
 	bool AbilityInputActionTriggered(const UInputAction* Action);
 
 	void AbilityInputActionReleased(const UInputAction* Action);
 
-	/** 버퍼 재생 경로다. 뗀 뒤의 재생이라 스펙의 키 상태는 세우지 않는다. */
+	/**
+	 * 버퍼 재생 경로이자 라이브 입력의 소비 판정이다. 뗀 뒤의 재생이라 스펙의 키 상태는 세우지 않는다.
+	 * 순정 AbilityLocalInputPressed처럼 활성 스펙에는 InputPressed 이벤트를 보내고, 받은 태스크가 없을 때만 발동을 시도한다.
+	 */
 	bool TryActivateByInputAction(const UInputAction* Action);
 
 	TArray<const UInputAction*> GetAbilityInputActions() const;
@@ -73,12 +76,6 @@ private:
 	 * 회복으로 늘어난 변화와 스태미나를 쓰지 않는 아바타는 제외한다.
 	 */
 	void HandleSPChanged(const FOnAttributeChangeData& ChangeData);
-
-	/**
-	 * 입력 발동의 공통 경로다. 콤보는 클라이언트가 정한 단계를 이벤트 데이터로 실어 서버가 그 단계를 따르게 한다.
-	 * 서버에는 재발동 종료와 완료 종료가 똑같은 원격 종료로 보여 단계를 스스로 가릴 수 없기 때문이다.
-	 */
-	bool TryActivateInputAbility(const FGameplayAbilitySpec& Spec);
 
 	void EnableAnimatingMontageMeshTick();
 	void RestoreAnimatingMontageMeshTick();

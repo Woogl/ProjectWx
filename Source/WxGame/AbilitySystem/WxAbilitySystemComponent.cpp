@@ -2,7 +2,6 @@
 
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/WxAbilityBase.h"
-#include "AbilitySystem/Abilities/WxAbility_Combo.h"
 #include "AbilitySystem/Attributes/WxCombatAttributeSet.h"
 #include "AbilitySystem/Effects/WxEffect_Exhaust.h"
 #include "Animation/AnimInstance.h"
@@ -109,20 +108,6 @@ void UWxAbilitySystemComponent::HandleSPChanged(const FOnAttributeChangeData& Ch
 	}
 }
 
-bool UWxAbilitySystemComponent::TryActivateInputAbility(const FGameplayAbilitySpec& Spec)
-{
-	const UWxAbility_Combo* ComboAbility = Cast<UWxAbility_Combo>(Spec.GetPrimaryInstance());
-	if (!ComboAbility)
-	{
-		return TryActivateAbility(Spec.Handle);
-	}
-
-	// 엔진은 이벤트 데이터가 있으면 ServerTryActivateAbilityWithEventData로 서버 발동에 그대로 넘긴다.
-	FGameplayEventData EventData;
-	EventData.EventMagnitude = ComboAbility->GetNextComboIndex();
-	return InternalTryActivateAbility(Spec.Handle, FPredictionKey(), nullptr, nullptr, &EventData);
-}
-
 void UWxAbilitySystemComponent::EnableAnimatingMontageMeshTick()
 {
 	if (MontageTickMesh.IsValid())
@@ -178,34 +163,18 @@ bool UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 		}
 	}
 
+	if (TryActivateByInputAction(Action))
+	{
+		return true;
+	}
+
+	// 발동 시도 뒤에 알린다. 먼저 알리면 InputPressed로 꺼지는 토글(락온)이 같은 입력에 다시 켜진다.
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
 		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.Ability);
-		if (!Ability || Ability->ActivationInputAction.Get() != Action)
-		{
-			continue;
-		}
-
-		// 신규 발동과 콤보 재발동은 엔진이 bRetriggerInstancedAbility로 가르므로 호출이 같다.
-		if (TryActivateInputAbility(Spec))
-		{
-			return true;
-		}
-
-		if (Spec.IsActive())
+		if (Ability && Ability->ActivationInputAction.Get() == Action && Spec.IsActive())
 		{
 			AbilitySpecInputPressed(Spec);
-
-			// 홀드 입력은 매 프레임 여기까지 오므로 사본을 만드는 GetAbilityInstances 대신 두 배열을 직접 훑는다.
-			for (const UGameplayAbility* Instance : Spec.ReplicatedInstances)
-			{
-				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
-			}
-
-			for (const UGameplayAbility* Instance : Spec.NonReplicatedInstances)
-			{
-				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey());
-			}
 		}
 	}
 
@@ -260,15 +229,37 @@ bool UWxAbilitySystemComponent::TryActivateByInputAction(const UInputAction* Act
 	// AbilityInputActionTriggered와 같은 이유로 락을 건다.
 	ABILITYLIST_SCOPE_LOCK();
 
+	// 입력을 기다리는 활성 어빌리티(콤보 창)가 같은 IA의 신규 발동보다 먼저 받는다.
+	// 홀드 입력은 매 프레임 여기까지 오므로 사본을 만드는 GetAbilityInstances 대신 두 배열을 직접 훑는다.
 	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
 		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.Ability);
-		if (!Ability || Ability->ActivationInputAction.Get() != Action)
+		if (!Ability || Ability->ActivationInputAction.Get() != Action || !Spec.IsActive())
 		{
 			continue;
 		}
 
-		if (TryActivateInputAbility(Spec))
+		for (const UGameplayAbility* Instance : Spec.ReplicatedInstances)
+		{
+			if (InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey()))
+			{
+				return true;
+			}
+		}
+
+		for (const UGameplayAbility* Instance : Spec.NonReplicatedInstances)
+		{
+			if (InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Instance->GetCurrentActivationInfo().GetActivationPredictionKey()))
+			{
+				return true;
+			}
+		}
+	}
+
+	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.Ability);
+		if (Ability && Ability->ActivationInputAction.Get() == Action && TryActivateAbility(Spec.Handle))
 		{
 			return true;
 		}

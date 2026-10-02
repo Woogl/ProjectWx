@@ -16,7 +16,6 @@ UWxInputBufferComponent::UWxInputBufferComponent()
 void UWxInputBufferComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
 	AbilitySystemComponent = Cast<UWxAbilitySystemComponent>(UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()));
 	if (AbilitySystemComponent)
 	{
@@ -26,12 +25,24 @@ void UWxInputBufferComponent::BeginPlay()
 
 void UWxInputBufferComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	ClearBufferedInputs();
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->OnAbilityEnded.RemoveAll(this);
 	}
+	AbilitySystemComponent = nullptr;
 
 	Super::EndPlay(EndPlayReason);
+}
+
+void UWxInputBufferComponent::RequestBufferedInputFlush()
+{
+	if (!AbilitySystemComponent || BufferedInputs.IsEmpty() || FlushTimerHandle.IsValid())
+	{
+		return;
+	}
+	// 타이머는 월드의 PostPhysics 이후 실행되며, 노티파이·종료 콜스택에 재진입하지 않는다.
+	FlushTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::FlushBufferedInputs);
 }
 
 void UWxInputBufferComponent::InputActionTriggered(const UInputAction* Action)
@@ -62,7 +73,7 @@ void UWxInputBufferComponent::InputActionTriggered(const UInputAction* Action)
 		// 액션이 성립했으면 쌓아 둔 입력은 전부 낡은 것이다 — 남겨 두면 같은 입력이 라이브와 재생으로 두 번 나간다.
 		if (bAction)
 		{
-			BufferedInputs.Reset();
+			ClearBufferedInputs();
 		}
 		return;
 	}
@@ -109,6 +120,7 @@ void UWxInputBufferComponent::FlushBufferedInputs()
 {
 	if (!AbilitySystemComponent)
 	{
+		FlushTimerHandle.Invalidate();
 		return;
 	}
 
@@ -121,25 +133,27 @@ void UWxInputBufferComponent::FlushBufferedInputs()
 			continue;
 		}
 
-		// 실패한 항목은 다음 재시도 지점까지 남긴다. 콤보 창은 자기 재발동만 열리므로, 거기서 버리면 같이 쌓인 회피가 후딜에 못 나간다.
+		// 실패한 항목은 다음 재시도 지점까지 남긴다. 콤보 창은 다음 타만 허용하므로, 거기서 버리면 같이 쌓인 회피가 후딜에 못 나간다.
 		if (AbilitySystemComponent->TryActivateByInputAction(BufferedInputs[Index].Action))
 		{
-			BufferedInputs.Reset();
+			ClearBufferedInputs();
 			return;
 		}
 
 		++Index;
 	}
+	FlushTimerHandle.Invalidate();
 }
 
 void UWxInputBufferComponent::HandleAbilityEnded(const FAbilityEndedData& AbilityEndedData)
 {
-	if (BufferedInputs.IsEmpty())
-	{
-		return;
-	}
-
 	// 종료 통지는 재발동(이전 인스턴스 종료 → 새 활성화)과 취소 경로 안에서 동기로 온다.
-	// 그 자리에서 재생하면 새 인스턴스가 서기 전에 다른 입력이 끼어들거나 같은 인스턴스가 이중 활성화되므로 다음 틱으로 미룬다.
-	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &UWxInputBufferComponent::FlushBufferedInputs);
+	// 새 인스턴스가 서기 전에 다른 입력이 끼어들지 않도록 공통 재생 시점에 맡긴다.
+	RequestBufferedInputFlush();
+}
+
+void UWxInputBufferComponent::ClearBufferedInputs()
+{
+	BufferedInputs.Reset();
+	GetWorld()->GetTimerManager().ClearTimer(FlushTimerHandle);
 }

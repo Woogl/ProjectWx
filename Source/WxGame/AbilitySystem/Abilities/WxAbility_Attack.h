@@ -7,8 +7,8 @@
 #include "WxAbility_Attack.generated.h"
 
 /**
- * ComboMontages의 첫 몽타주를 재생하고, 콤보 창 구간의 재발동이 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
- * 콤보 진행은 엔진 순정 재발동(bRetriggerInstancedAbility)이라 단계마다 CommitAbility가 새로 걸린다.
+ * ComboMontages의 첫 몽타주를 재생하고, 콤보 창 구간의 입력이 다음 단으로 넘긴다(터미널 단에서는 첫 단으로 되돌아간다).
+ * 입력 동기화는 WaitInputPress가 맡고 단계마다 CommitAbility가 새로 걸린다.
  *
  * 공격 종류마다 캐릭터 공통 발동 조건이 달라 아래 파생 타입으로 나눈다.
  */
@@ -19,9 +19,6 @@ class WXGAME_API UWxAbility_Attack : public UWxAbility_Combo
 
 public:
 	UWxAbility_Attack();
-
-protected:
-	virtual void OnComboWindowClosed() override;
 };
 
 /** 공중·회피 중에는 나가지 않는다. */

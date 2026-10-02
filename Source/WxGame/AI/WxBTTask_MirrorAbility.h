@@ -10,8 +10,9 @@
 
 class UAbilitySystemComponent;
 class UGameplayAbility;
+struct FAbilityEndedData;
 
-/** Master의 커밋을 따라 동일 클래스·레벨의 어빌리티를 독립 실행한다. */
+/** Master의 커밋과 종료를 따라 동일 클래스·레벨의 어빌리티를 실행한다. */
 UCLASS()
 class WXGAME_API UWxBTTask_MirrorAbility : public UBTTaskNode
 {
@@ -35,14 +36,17 @@ protected:
 	float RetryDuration = 0.4f;
 private:
 	void ReplayAutomatic(UGameplayAbility* Ability);
+	bool TryReplayAbility(FGameplayAbilitySpecHandle Handle, int32 ComboIndex);
 	void ClearAutomaticAbilities();
 	void BindMaster(UAbilitySystemComponent* ASC);
 	void HandleCommitted(UGameplayAbility* Ability);
+	void HandleMasterAbilityEnded(const FAbilityEndedData& Data);
 	void CleanUp();
 	TWeakObjectPtr<UAbilitySystemComponent> MasterASC;
 	TWeakObjectPtr<UAbilitySystemComponent> MirrorASC;
 	TMap<FGameplayAbilitySpecHandle, FGameplayAbilitySpecHandle> AutomaticHandles;
 	FGameplayAbilitySpecHandle RetryHandle;
+	int32 RetryComboIndex = INDEX_NONE;
 	float RetryElapsed = 0.f;
 	uint32 MasterGeneration = 0;
 	bool bReplayingAutomatic = false;

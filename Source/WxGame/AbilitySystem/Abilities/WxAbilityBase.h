@@ -40,15 +40,12 @@ enum class EWxAbilityCostResource : uint8
 };
 
 /**
- * 액션(에셋 태그가 Ability.Action 아래)의 캔슬 창이며, 콤보 창을 닫아도 이미 시작한 Recovery는 유지한다.
+ * 액션(에셋 태그가 Ability.Action 아래)의 본동작과 후딜레이를 구분한다.
  */
 enum class EWxAbilityActionPhase : uint8
 {
 	/** 기본 차단 태그를 유지하는 본동작. */
 	Blocking,
-
-	/** 차단 태그를 유지하되 자기 재발동 검사에서 자기 차단 기여만 제외한다. */
-	ComboWindow,
 
 	/** 태그 차단을 해제한 후딜레이. 뒤이어 발동한 액션이 이 액션을 취소한다. */
 	Recovery,
@@ -80,7 +77,7 @@ public:
 	bool IsActivationExclusive(const UWxAbilityBase& Other) const;
 #endif
 
-	/** AI·이벤트로만 발동하면 비운다. 같은 입력의 어빌리티가 여럿이면 세트 순서대로 시도해 처음 성공한 것을 쓴다. */
+	/** AI·이벤트로만 발동하면 비운다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<UInputAction> ActivationInputAction;
 
@@ -126,12 +123,8 @@ public:
 	/** 정확한 SectionName 또는 접두사 SectionName에 Forward를 붙인 섹션이 있는지 검사한다. NAME_None은 빈 접두사다. */
 	static bool HasMontageSection(const UAnimMontage* Montage, FName SectionName);
 
-	/** 몽타주 재생 속도. 공격 속도(ASPD)는 콤보(공격·스킬·패턴)만 따른다. */
+	/** 몽타주 재생 속도. */
 	virtual float GetMontagePlayRate() const;
-
-	/** 노티파이를 보낸 몽타주 인스턴스가 지금 재생 중인 것이 아니면 무시한다 — 끊긴 앞 단 몽타주도 블렌드아웃 동안 노티파이를 보낸다. */
-	void OpenComboWindow(int32 MontageInstanceID);
-	void CloseComboWindow(int32 MontageInstanceID);
 
 	/**
 	 * 본동작의 태그 차단을 풀어서 이후 발동하는 액션에 의한 캔슬을 허용한다.
@@ -139,7 +132,7 @@ public:
 	 */
 	void StartRecovery(int32 MontageInstanceID);
 
-	/** 재생 중인 액션의 차단 몫은 콤보 창의 자기 재발동과, 그 액션을 CancelAbilitiesWithTag로 지목한 어빌리티에 빼 준다. 소유자 발동 조건은 콤보 재발동·IgnoreAbilityActivationTags만 면제한다. */
+	/** 취소 대상의 차단 기여와 IgnoreAbilityActivationTags를 반영한다. */
 	virtual bool DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 	/** 소유자 태그만으로 본 발동 조건(ActivationRequiredTags·ActivationBlockedTags). 재생 중인 액션의 차단은 보지 않아 같은 슬롯의 후보를 고르는 데 쓴다. */
@@ -164,11 +157,14 @@ public:
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 protected:
+	/** 새 동작을 시작할 때 방향 입력과 후딜 상태를 초기화한다. */
+	void ResetActionState();
+
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	/**
-	 * StartSection이 비었거나 존재하지 않고 [StartSection]Forward가 있으면 활성화마다 한 번 확정한 이동 입력 방향으로 섹션을 자동 선택한다.
+	 * StartSection이 비었거나 존재하지 않고 [StartSection]Forward가 있으면 동작 시작에 확정한 이동 입력 방향으로 섹션을 자동 선택한다.
 	 * LocalPredicted·ServerInitiated에서는 로컬 클라이언트가 방향을 보내고 원격 플레이어의 서버 실행은 수신을 기다린다.
 	 * 수신을 기다리는 동안에도 true(요청 접수)를 반환하고, 나중에 재생이 실패하면 어빌리티를 취소한다.
 	 */
@@ -177,11 +173,8 @@ protected:
 	/** 방향 선택 이후의 재생 수명. 그로기는 태스크 종료 대신 GP와 폴링으로 수명을 관리한다. */
 	virtual bool PlayMontageInternal(UAnimMontage* Montage, FName StartSection);
 
-	/** PlayMontage가 방향 섹션을 자동 선택할 때, 이 활성화에서 확정·동기화한 로컬 입력 방향으로 섹션을 고른다. */
+	/** PlayMontage가 방향 섹션을 자동 선택할 때, 동기화한 로컬 입력 방향으로 섹션을 고른다. */
 	virtual FName SelectInputDirectionSection(const UAnimMontage* Montage, const FString& Prefix, const FVector& LocalDirection);
-
-	/** 창이 닫힌 뒤의 발동은 첫 단부터 시작해야 한다. */
-	virtual void OnComboWindowClosed();
 
 	UFUNCTION()
 	virtual void HandleMontageCompleted();
@@ -223,15 +216,15 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UWxAbilityTask_MontageEvents> MontageEventsTask;
 
-	void SetActionPhase(EWxAbilityActionPhase NewPhase);
 	EWxAbilityActionPhase ActionPhase = EWxAbilityActionPhase::Blocking;
+	void SetActionPhase(EWxAbilityActionPhase NewPhase);
 
 	bool IsPlayingMontageInstance(int32 MontageInstanceID) const;
 	FVector GetLocalMontageInputDirection() const;
 	void HandleMontageDirectionReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ApplicationTag);
 	void ClearPendingDirectionalMontage();
 
-	// 한 활성화의 첫 방향 재생에서 확정해 후속 섹션도 서버와 같은 로컬 좌표를 사용한다.
+	// 동작 시작에 확정해 후속 섹션도 서버와 같은 로컬 좌표를 사용한다.
 	FVector MontageInputDirection = FVector::ZeroVector;
 	bool bHasMontageInputDirection = false;
 	FDelegateHandle MontageDirectionHandle;

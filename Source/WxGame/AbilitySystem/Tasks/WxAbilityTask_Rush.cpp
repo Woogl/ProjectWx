@@ -15,7 +15,7 @@
 #include "Net/UnrealNetwork.h"
 #include "WxGameplayTags.h"
 
-UWxAbilityTask_Rush* UWxAbilityTask_Rush::CreateTask(UGameplayAbility* OwningAbility, AActor& Other, float InDuration, float StopDistance, const TArray<TEnumAsByte<EObjectTypeQuery>>& InIgnoreCollisions)
+UWxAbilityTask_Rush* UWxAbilityTask_Rush::CreateTask(UGameplayAbility* OwningAbility, int32 MontageInstanceID, AActor& Other, float InDuration, float StopDistance, const TArray<TEnumAsByte<EObjectTypeQuery>>& InIgnoreCollisions)
 {
 	ACharacter* Avatar = OwningAbility ? Cast<ACharacter>(OwningAbility->GetAvatarActorFromActorInfo()) : nullptr;
 	const UAbilitySystemComponent* OtherASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(&Other);
@@ -55,6 +55,7 @@ UWxAbilityTask_Rush* UWxAbilityTask_Rush::CreateTask(UGameplayAbility* OwningAbi
 	Task->IgnoreCollisions = InIgnoreCollisions;
 	Task->Target = &Other;
 	Task->AbilityHandle = OwningAbility->GetCurrentAbilitySpecHandle();
+	Task->SourceMontageInstanceID = MontageInstanceID;
 	Task->TrackPartner();
 	Task->SharedInitAndApply();
 	return Task;
@@ -93,8 +94,8 @@ void UWxAbilityTask_Rush::SharedInitAndApply()
 	}
 	bOwnsState = true;
 	UAnimInstance* AnimInstance = Avatar->GetMesh() ? Avatar->GetMesh()->GetAnimInstance() : nullptr;
-	const UAbilitySystemComponent* ASC = AbilitySystemComponent.Get();
-	if (FAnimMontageInstance* Instance = ASC && AnimInstance ? AnimInstance->GetActiveInstanceForMontage(ASC->GetCurrentMontage()) : nullptr)
+	// 몽타주 ID는 머신마다 다르므로 로컬 노티파이가 지정한 인스턴스만 잠근다.
+	if (FAnimMontageInstance* Instance = AnimInstance ? AnimInstance->GetMontageInstanceForID(SourceMontageInstanceID) : nullptr)
 	{
 		// 노티파이 끝이 먼저 처리되는 마지막 프레임에도 이동 소스가 마지막 이동분을 적용해야 한다.
 		Instance->PushDisableRootMotion();

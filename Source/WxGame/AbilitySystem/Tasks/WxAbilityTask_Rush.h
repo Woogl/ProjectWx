@@ -17,7 +17,7 @@ class WXGAME_API UWxAbilityTask_Rush : public UAbilityTask_ApplyRootMotionMoveTo
 	GENERATED_BODY()
 
 public:
-	static UWxAbilityTask_Rush* CreateTask(UGameplayAbility* OwningAbility, AActor& Other, float InDuration, float StopDistance, const TArray<TEnumAsByte<EObjectTypeQuery>>& InIgnoreCollisions);
+	static UWxAbilityTask_Rush* CreateTask(UGameplayAbility* OwningAbility, int32 MontageInstanceID, AActor& Other, float InDuration, float StopDistance, const TArray<TEnumAsByte<EObjectTypeQuery>>& InIgnoreCollisions);
 	static UWxAbilityTask_Rush* FindRush(AActor& Actor);
 
 	virtual void TickTask(float DeltaTime) override;

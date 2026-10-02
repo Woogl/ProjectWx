@@ -5,12 +5,8 @@
 
 UWxAbility_Attack::UWxAbility_Attack()
 {
+	// 콤보 창이 닫힌 후딜에서 새 공격을 시작할 때만 GAS가 기존 활성화를 교체한다.
 	bRetriggerInstancedAbility = true;
-}
-
-void UWxAbility_Attack::OnComboWindowClosed()
-{
-	ComboIndex = INDEX_NONE;
 }
 
 UWxAbility_Attack_Light::UWxAbility_Attack_Light()

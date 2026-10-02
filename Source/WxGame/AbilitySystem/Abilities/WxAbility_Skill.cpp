@@ -14,10 +14,6 @@ UWxAbility_Skill::UWxAbility_Skill()
 	
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 
+	// 콤보 연결은 입력 태스크로, 후딜에서의 신규 사용은 정상 발동 조건으로 처리한다.
 	bRetriggerInstancedAbility = true;
-}
-
-void UWxAbility_Skill::OnComboWindowClosed()
-{
-	ComboIndex = INDEX_NONE;
 }

@@ -173,42 +173,6 @@ void UWxAbilityBase::SetActionPhase(EWxAbilityActionPhase NewPhase)
 	}
 }
 
-void UWxAbilityBase::OpenComboWindow(int32 MontageInstanceID)
-{
-	// 공용 몽타주의 노티파이가 액션이 아닌 어빌리티에 콤보 재발동 예외를 열지 않게 한다.
-	if (GetAssetTags().HasTag(WxGameplayTags::Ability_Action) && ActionPhase == EWxAbilityActionPhase::Blocking && IsPlayingMontageInstance(MontageInstanceID))
-	{
-		SetActionPhase(EWxAbilityActionPhase::ComboWindow);
-
-		// 입력 버퍼 처리로 같은 인스턴스가 재발동할 수 있으므로 이후 상태를 덮어쓰지 않는다.
-		const AActor* Avatar = GetAvatarActorFromActorInfo();
-		if (UWxInputBufferComponent* InputBuffer = Avatar ? Avatar->FindComponentByClass<UWxInputBufferComponent>() : nullptr)
-		{
-			InputBuffer->FlushBufferedInputs();
-		}
-	}
-}
-
-void UWxAbilityBase::CloseComboWindow(int32 MontageInstanceID)
-{
-	if (!IsPlayingMontageInstance(MontageInstanceID))
-	{
-		return;
-	}
-
-	// 콤보 창이 후딜보다 늦게 닫혀도 이미 시작한 Recovery를 되돌리지 않는다.
-	if (ActionPhase == EWxAbilityActionPhase::ComboWindow)
-	{
-		SetActionPhase(EWxAbilityActionPhase::Blocking);
-	}
-
-	OnComboWindowClosed();
-}
-
-void UWxAbilityBase::OnComboWindowClosed()
-{
-}
-
 void UWxAbilityBase::StartRecovery(int32 MontageInstanceID)
 {
 	// 공용 몽타주의 노티파이가 액션이 아닌 어빌리티의 단계까지 바꾸지 않게 한다.
@@ -216,11 +180,11 @@ void UWxAbilityBase::StartRecovery(int32 MontageInstanceID)
 	{
 		SetActionPhase(EWxAbilityActionPhase::Recovery);
 
-		// 입력 버퍼에서 발동한 어빌리티가 이 인스턴스를 끝낼 수 있으므로 이후 상태를 덮어쓰지 않는다.
+		// 루트모션 노티파이는 무브 생성 도중에 오므로 입력 버퍼가 이동 처리 뒤에 재생한다.
 		const AActor* Avatar = GetAvatarActorFromActorInfo();
 		if (UWxInputBufferComponent* InputBuffer = Avatar ? Avatar->FindComponentByClass<UWxInputBufferComponent>() : nullptr)
 		{
-			InputBuffer->FlushBufferedInputs();
+			InputBuffer->RequestBufferedInputFlush();
 		}
 	}
 }
@@ -228,10 +192,9 @@ void UWxAbilityBase::StartRecovery(int32 MontageInstanceID)
 bool UWxAbilityBase::IsPlayingMontageInstance(int32 MontageInstanceID) const
 {
 	// 단계마다 같은 몽타주를 새로 트는 경우도 있어 에셋이 아니라 인스턴스로 가른다.
-	const UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	const UAnimInstance* AnimInstance = CurrentActorInfo ? CurrentActorInfo->GetAnimInstance() : nullptr;
-	const FAnimMontageInstance* MontageInstance = ASC && AnimInstance ? AnimInstance->GetActiveInstanceForMontage(ASC->GetCurrentMontage()) : nullptr;
-	return MontageInstance && MontageInstance->GetInstanceID() == MontageInstanceID;
+	UAnimInstance* AnimInstance = CurrentActorInfo ? CurrentActorInfo->GetAnimInstance() : nullptr;
+	const FAnimMontageInstance* MontageInstance = AnimInstance ? AnimInstance->GetMontageInstanceForID(MontageInstanceID) : nullptr;
+	return MontageInstance && MontageInstance->IsActive();
 }
 
 bool UWxAbilityBase::DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
@@ -241,16 +204,15 @@ bool UWxAbilityBase::DoesAbilitySatisfyTagRequirements(const UAbilitySystemCompo
 	{
 		Occupant = nullptr;
 	}
-	const bool bComboRetrigger = Occupant == this && ActionPhase == EWxAbilityActionPhase::ComboWindow;
 	const bool bCancelEntry = Occupant && Occupant != this && Occupant->GetAssetTags().HasAny(CancelAbilitiesWithTag);
 	const bool bIgnoreActivationTags = AbilitySystemComponent.HasMatchingGameplayTag(WxGameplayTags::Effect_IgnoreAbilityActivationTags);
-	if (!bComboRetrigger && !bCancelEntry && !bIgnoreActivationTags)
+	if (!bCancelEntry && !bIgnoreActivationTags)
 	{
 		return Super::DoesAbilitySatisfyTagRequirements(AbilitySystemComponent, SourceTags, TargetTags, OptionalRelevantTags);
 	}
 
 	bool bBlocked = AbilitySystemComponent.AreAbilityTagsBlocked(GetAssetTags());
-	if (bComboRetrigger || bCancelEntry)
+	if (bCancelEntry)
 	{
 		if (const UWxAbilitySystemComponent* WxASC = Cast<UWxAbilitySystemComponent>(&AbilitySystemComponent))
 		{
@@ -259,9 +221,9 @@ bool UWxAbilityBase::DoesAbilitySatisfyTagRequirements(const UAbilitySystemCompo
 		}
 	}
 
-	// 콤보는 이미 성립한 액션의 다음 단이므로 소유자 발동 조건을 다시 요구하지 않는다. 끼어드는 어빌리티는 그대로 검사한다.
+	// 호출자가 지정한 소유자 조건만 면제하며 소스·대상 조건은 항상 검사한다.
 	bool bMissing = false;
-	if (!bComboRetrigger && !bIgnoreActivationTags)
+	if (!bIgnoreActivationTags)
 	{
 		bBlocked |= AbilitySystemComponent.HasAnyMatchingGameplayTags(ActivationBlockedTags);
 		bMissing |= !AbilitySystemComponent.HasAllMatchingGameplayTags(ActivationRequiredTags);
@@ -297,9 +259,7 @@ bool UWxAbilityBase::DoesOwnerSatisfyActivationTags(const UAbilitySystemComponen
 
 void UWxAbilityBase::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	bHasMontageInputDirection = false;
-	MontageInputDirection = FVector::ZeroVector;
-	SetActionPhase(EWxAbilityActionPhase::Blocking);
+	ResetActionState();
 
 	if (GetAssetTags().HasTag(WxGameplayTags::Ability_Action))
 	{
@@ -410,6 +370,14 @@ bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
 	}
 
 	return PlayMontageInternal(Montage, StartSection);
+}
+
+void UWxAbilityBase::ResetActionState()
+{
+	ClearPendingDirectionalMontage();
+	bHasMontageInputDirection = false;
+	MontageInputDirection = FVector::ZeroVector;
+	SetActionPhase(EWxAbilityActionPhase::Blocking);
 }
 
 bool UWxAbilityBase::PlayMontageInternal(UAnimMontage* Montage, FName StartSection)

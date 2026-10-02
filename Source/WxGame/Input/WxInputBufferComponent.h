@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "TimerManager.h"
 #include "WxInputBufferComponent.generated.h"
 
 class UInputAction;
@@ -38,13 +39,16 @@ public:
 	void InputActionTriggered(const UInputAction* Action);
 
 	/**
-	 * 캔슬 창이 열리는 전이점(콤보 창·후딜)에서 어빌리티가 부른다.
-	 * 만료된 항목은 버리고 남은 항목을 누른 순서로 시도한다.
+	 * 콤보 창·후딜·종료에서 재시도를 요청한다. 이동과 애니메이션 처리 뒤 한 번에 재생한다.
+	 * 콤보 창이 이 재생 전에 닫히면 선입력은 다음 타가 아니라 새 발동이 되므로 창은 한 프레임보다 길게 저작한다.
 	 */
-	void FlushBufferedInputs();
+	void RequestBufferedInputFlush();
 
 private:
+	void FlushBufferedInputs();
+	void ClearBufferedInputs();
 	void HandleAbilityEnded(const FAbilityEndedData& AbilityEndedData);
+	FTimerHandle FlushTimerHandle;
 
 	UPROPERTY()
 	TObjectPtr<UWxAbilitySystemComponent> AbilitySystemComponent;

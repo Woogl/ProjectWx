@@ -1,6 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AI/WxBTTask_MirrorAbility.h"
+#include "AbilitySystem/Abilities/WxAbility_Combo.h"
 #include "WxGame.h"
 #include "AI/WxBlackboardKeys.h"
 #include "AIController.h"
@@ -34,7 +35,7 @@ void UWxBTTask_MirrorAbility::InitializeFromAsset(UBehaviorTree& Asset)
 
 FString UWxBTTask_MirrorAbility::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("%s의 어빌리티 발동을 따라합니다."), *MirrorTarget.SelectedKeyName.ToString());
+	return FString::Printf(TEXT("%s의 어빌리티 발동과 종료를 따라합니다."), *MirrorTarget.SelectedKeyName.ToString());
 }
 
 EBTNodeResult::Type UWxBTTask_MirrorAbility::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -69,6 +70,7 @@ void UWxBTTask_MirrorAbility::BindMaster(UAbilitySystemComponent* ASC)
 	if (MasterASC.IsValid())
 	{
 		MasterASC->AbilityCommittedCallbacks.RemoveAll(this);
+		MasterASC->OnAbilityEnded.RemoveAll(this);
 	}
 	MasterASC.Reset();
 	ClearAutomaticAbilities();
@@ -78,6 +80,23 @@ void UWxBTTask_MirrorAbility::BindMaster(UAbilitySystemComponent* ASC)
 		return;
 	}
 	ASC->AbilityCommittedCallbacks.AddUObject(this, &ThisClass::HandleCommitted);
+	ASC->OnAbilityEnded.AddUObject(this, &ThisClass::HandleMasterAbilityEnded);
+}
+
+void UWxBTTask_MirrorAbility::HandleMasterAbilityEnded(const FAbilityEndedData& Data)
+{
+	UAbilitySystemComponent* ASC = MirrorASC.Get();
+	const FGameplayAbilitySpecHandle MirrorHandle = AutomaticHandles.FindRef(Data.AbilitySpecHandle);
+	if (!ASC || !MirrorHandle.IsValid())
+	{
+		return;
+	}
+	if (RetryHandle == MirrorHandle)
+	{
+		RetryHandle = FGameplayAbilitySpecHandle();
+		RetryElapsed = 0.f;
+	}
+	ASC->CancelAbilityHandle(MirrorHandle);
 }
 
 void UWxBTTask_MirrorAbility::HandleCommitted(UGameplayAbility* Ability)
@@ -126,12 +145,30 @@ void UWxBTTask_MirrorAbility::ReplayAutomatic(UGameplayAbility* Ability)
 		MirrorSpec->Level = Level;
 		ASC->MarkAbilitySpecDirty(*MirrorSpec);
 	}
-	// 콤보 상태·대상 이벤트를 추측하지 않고 일반 발동 조건을 그대로 적용한다.
-	const bool bActivated = ASC->TryActivateAbility(MirrorHandle, false);
-	// 선입력은 Master 노티파이 안에서 발동해, 같은 프레임에 아직 창을 열지 못한 분신의 앞 동작에 거절될 수 있다.
+	const UWxAbility_Combo* Combo = Cast<UWxAbility_Combo>(Ability);
+	const int32 ComboIndex = Combo ? Combo->GetComboIndex() : INDEX_NONE;
+	const bool bActivated = TryReplayAbility(MirrorHandle, ComboIndex);
+	if (Generation != MasterGeneration || MirrorASC.Get() != ASC || !Ability->IsActive())
+	{
+		return;
+	}
+	// 분신 자체의 피격·차단으로 거절된 요청은 마스터가 종료하기 전까지만 재시도한다.
 	RetryHandle = bActivated ? FGameplayAbilitySpecHandle() : MirrorHandle;
+	RetryComboIndex = ComboIndex;
 	RetryElapsed = 0.f;
 	UE_LOG(LogWxAI, Verbose, TEXT("Mirror commit: %s -> %s, activation %s"), *GetNameSafe(AbilityClass.Get()), *GetNameSafe(ASC->GetAvatarActor()), bActivated ? TEXT("accepted") : TEXT("rejected"));
+}
+
+bool UWxBTTask_MirrorAbility::TryReplayAbility(FGameplayAbilitySpecHandle Handle, int32 ComboIndex)
+{
+	UAbilitySystemComponent* ASC = MirrorASC.Get();
+	if (ComboIndex != INDEX_NONE)
+	{
+		const FGameplayAbilitySpec* Spec = ASC ? ASC->FindAbilitySpecFromHandle(Handle) : nullptr;
+		UWxAbility_Combo* Combo = Spec ? Cast<UWxAbility_Combo>(Spec->GetPrimaryInstance()) : nullptr;
+		return Combo && Combo->TryMirrorComboStep(ComboIndex);
+	}
+	return ASC && ASC->TryActivateAbility(Handle, false);
 }
 
 void UWxBTTask_MirrorAbility::ClearAutomaticAbilities()
@@ -161,7 +198,7 @@ void UWxBTTask_MirrorAbility::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 		return;
 	}
 	RetryElapsed += DeltaSeconds;
-	const bool bActivated = RetryElapsed <= RetryDuration && MirrorASC->TryActivateAbility(RetryHandle, false);
+	const bool bActivated = RetryElapsed <= RetryDuration && TryReplayAbility(RetryHandle, RetryComboIndex);
 	if (bActivated || RetryElapsed > RetryDuration)
 	{
 		UE_LOG(LogWxAI, Verbose, TEXT("Mirror retry: %s -> %s after %.3f s, activation %s"), *RetryHandle.ToString(), *GetNameSafe(MirrorASC->GetAvatarActor()), RetryElapsed, bActivated ? TEXT("accepted") : TEXT("expired"));
