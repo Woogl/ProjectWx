@@ -4,6 +4,7 @@
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
 #include "AbilitySystem/WxAbilityTargetData_Direction.h"
 #include "AbilitySystemComponent.h"
+#include "Animation/AnimMontage.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/RootMotionSource.h"
 #include "WxGameplayTags.h"
@@ -132,23 +133,33 @@ void UWxAbility_GuardReact::ActivateAbility(const FGameplayAbilitySpecHandle Han
 
 bool UWxAbility_GuardReact::PlayMontageInternal(UAnimMontage* Montage, FName StartSection)
 {
+	bWaitForKnockbackCompletion = StartSection == GuardKnockbackSectionName;
 	if (!Super::PlayMontageInternal(Montage, StartSection))
 	{
 		return false;
 	}
-	if (StartSection == GuardKnockbackSectionName && !KnockbackDirection.IsNearlyZero() && KnockbackDistance > 0.f && KnockbackDuration > 0.f)
+	if (StartSection == GuardKnockbackSectionName)
 	{
-		UAbilityTask_ApplyRootMotionConstantForce* KnockbackTask = UAbilityTask_ApplyRootMotionConstantForce::ApplyRootMotionConstantForce(
-			this, TEXT("WxGuardKnockback"), KnockbackDirection, KnockbackDistance / KnockbackDuration,
-			KnockbackDuration, false, nullptr, ERootMotionFinishVelocityMode::SetVelocity, FVector::ZeroVector, 0.f, true);
-		KnockbackTask->ReadyForActivation();
+		const int32 SectionIndex = Montage->GetSectionIndex(StartSection);
+		const float PlayRate = GetMontagePlayRate() * Montage->RateScale;
+		const float Duration = SectionIndex != INDEX_NONE && PlayRate > 0.f ? Montage->GetSectionLength(SectionIndex) / PlayRate : 0.f;
+		if (Duration > 0.f)
+		{
+			UAbilityTask_ApplyRootMotionConstantForce* KnockbackTask = UAbilityTask_ApplyRootMotionConstantForce::ApplyRootMotionConstantForce(
+				this, TEXT("WxGuardKnockback"), KnockbackDirection, KnockbackDistance / Duration,
+				Duration, false, nullptr, ERootMotionFinishVelocityMode::SetVelocity, FVector::ZeroVector, 0.f, true);
+			KnockbackTask->ReadyForActivation();
+		}
 	}
 	return true;
 }
 
 void UWxAbility_GuardReact::HandleMontageBlendOut()
 {
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	if (!bWaitForKnockbackCompletion)
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
 }
 
 FName UWxAbility_GuardReact::SelectSection(FGameplayTag TriggerTag, FGameplayTag ReactionTag)

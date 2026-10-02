@@ -19,10 +19,11 @@ UWxAbility_HitReact::UWxAbility_HitReact()
 
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 
-	// 진행 중인 것은 공격·스킬만 끊는다 — Ability.Action 전체로 끊으면 적 패턴까지 평타 피격에 중단된다.
+	// Ability.Action 전체를 취소하면 평타 피격에도 적 패턴이 중단되므로 취소 대상을 지정한다.
 	// 반응은 Ability.Action 밖이라 액션에 막히지 않을 뿐 남을 끊지는 않는다 — 진행 중인 공격을 실제로 중단시키려면 지목이 필요하다.
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action_Attack);
 	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action_Skill);
+	CancelAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action_UseItem);
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_HitReact);
 
@@ -131,12 +132,15 @@ bool UWxAbility_HitReact::PlayMontageInternal(UAnimMontage* Montage, FName Start
 	if (bPendingKnockback)
 	{
 		bPendingKnockback = false;
-		if (!KnockbackDirection.IsNearlyZero() && KnockbackDistance > 0.f && KnockbackDuration > 0.f)
+		const int32 SectionIndex = Montage->GetSectionIndex(StartSection);
+		const float PlayRate = GetMontagePlayRate() * Montage->RateScale;
+		const float Duration = SectionIndex != INDEX_NONE && PlayRate > 0.f ? Montage->GetSectionLength(SectionIndex) / PlayRate : 0.f;
+		if (Duration > 0.f)
 		{
 			UAbilityTask_ApplyRootMotionConstantForce* KnockbackTask = UAbilityTask_ApplyRootMotionConstantForce::ApplyRootMotionConstantForce(
-				this, TEXT("WxKnockback"), KnockbackDirection, KnockbackDistance / KnockbackDuration,
-				KnockbackDuration, false, nullptr, ERootMotionFinishVelocityMode::SetVelocity, FVector::ZeroVector, 0.f, true);
-			// 밀림이 끝나도 피격 몽타주는 유지한다. 취소·재피격은 소유 어빌리티 종료로 태스크를 회수한다.
+				this, TEXT("WxKnockback"), KnockbackDirection, KnockbackDistance / Duration,
+				Duration, false, nullptr, ERootMotionFinishVelocityMode::SetVelocity, FVector::ZeroVector, 0.f, true);
+			// 거리가 0이어도 경직 구간의 수평 이동은 덮어쓴다. 취소·재피격은 어빌리티 종료로 회수한다.
 			KnockbackTask->ReadyForActivation();
 		}
 	}

@@ -27,17 +27,15 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual bool PlayMontageInternal(UAnimMontage* Montage, FName StartSection) override;
 
-	/** GuardKnockback 섹션에만 적용하며, 해당 구간의 애니메이션 루트모션은 노티파이로 억제한다. */
+	/** GuardKnockback 섹션 전체에 걸쳐 이동할 거리. 해당 구간의 애니메이션 루트모션은 노티파이로 억제한다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability|Knockback", meta = (ClampMin = "0.0", Units = "cm"))
 	float KnockbackDistance = 100.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Ability|Knockback", meta = (ClampMin = "0.01", Units = "s"))
-	float KnockbackDuration = 0.2f;
-
-	/** 완주가 아니라 블렌드아웃에서 끝낸다 — 가드가 자세를 되찾는 구간이 연출 꼬리와 겹쳐야 끊겨 보이지 않는다. */
+	/** 넉백은 이동 구간을 완주한다. 그 외 반응은 블렌드아웃부터 가드 자세로 돌아간다. */
 	virtual void HandleMontageBlendOut() override;
 
 private:
+	bool bWaitForKnockbackCompletion = false;
 	FVector KnockbackDirection = FVector::ZeroVector;
 
 	static FName SelectSection(FGameplayTag TriggerTag, FGameplayTag ReactionTag);
