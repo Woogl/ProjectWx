@@ -22,25 +22,13 @@ UWxCharacterMovementComponent::UWxCharacterMovementComponent()
 	bUseSeparateBrakingFriction = true;
 	BrakingFrictionFactor = 1.f;
 	
-	JumpZVelocity = 640.f;
-	GravityScale = 2.f;
+	JumpZVelocity = 900.f;
+	GravityScale = 3.5f;
 	AirControl = 0.35f;
 
 	// 앉기는 캐릭터 종류가 아니라 이동 능력이라 여기서 연다. 실제로 앉는 것은 Crouch() 를 부르는 쪽뿐이다.
 	NavAgentProps.bCanCrouch = true;
 	SetCrouchedHalfHeight(60.f);
-}
-
-float UWxCharacterMovementComponent::GetGravityZ() const
-{
-	if (Velocity.Z >= 0.f)
-	{
-		return Super::GetGravityZ();
-	}
-	else
-	{
-		return Super::GetGravityZ() * 1.25f;
-	}
 }
 
 UAbilitySystemComponent* UWxCharacterMovementComponent::GetAbilitySystemComponent()

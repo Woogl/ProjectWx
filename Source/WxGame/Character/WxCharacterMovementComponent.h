@@ -10,7 +10,6 @@ class UAbilitySystemComponent;
 
 /**
  * 전 캐릭터 공용 CharacterMovementComponent — AWxCharacterBase 가 클래스를 교체해 파생 전부가 이걸 받는다.
- * 상승·하강에 서로 다른 중력 스케일을 적용해(비대칭 낙하) 액션성 있는 점프 감각을 낸다.
  */
 UCLASS()
 class WXGAME_API UWxCharacterMovementComponent : public UCharacterMovementComponent
@@ -19,10 +18,6 @@ class WXGAME_API UWxCharacterMovementComponent : public UCharacterMovementCompon
 
 public:
 	UWxCharacterMovementComponent();
-
-	//~ Begin UMovementComponent Interface
-	virtual float GetGravityZ() const override;
-	//~ End UMovementComponent Interface
 
 	//~ Begin UCharacterMovementComponent Interface
 	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
