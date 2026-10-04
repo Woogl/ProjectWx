@@ -23,6 +23,7 @@ AWxEnemyCharacter::AWxEnemyCharacter(const FObjectInitializer& ObjectInitializer
 	Team = EWxTeam::Enemy;
 	AIControllerClass = AWxAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	GetAbilitySystemComponent()->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
 	AIBehaviorComponent = CreateDefaultSubobject<UWxAIBehaviorComponent>(TEXT("AIBehaviorComponent"));
 
@@ -37,7 +38,6 @@ void AWxEnemyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Full);
 
 	GetLockOnComponent()->OnLockOnTargetChanged.AddDynamic(this, &ThisClass::HandleAITargetChanged);
 	OnDeath.AddDynamic(this, &ThisClass::HandleOwnerDeath);

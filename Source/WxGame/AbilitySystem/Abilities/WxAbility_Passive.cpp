@@ -25,11 +25,6 @@ EDataValidationResult UWxAbility_Passive::IsDataValid(FDataValidationContext& Co
 
 	for (const FAbilityTriggerData& Trigger : AbilityTriggers)
 	{
-		if (Trigger.TriggerSource != EGameplayAbilityTriggerSource::GameplayEvent)
-		{
-			Context.AddError(FText::FromString(FString::Printf(TEXT("트리거 %s가 GameplayEvent가 아니다. 공격 1회당 한 번 지급하는 판정은 이벤트 페이로드의 발동 정보로 한다."), *Trigger.TriggerTag.ToString())));
-		}
-
 		for (const FAbilityTriggerData& OtherTrigger : AbilityTriggers)
 		{
 			if (Trigger.TriggerTag != OtherTrigger.TriggerTag && Trigger.TriggerTag.MatchesTag(OtherTrigger.TriggerTag))
@@ -46,22 +41,6 @@ EDataValidationResult UWxAbility_Passive::IsDataValid(FDataValidationContext& Co
 void UWxAbility_Passive::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	// 발동마다 새로 채워지는 예측 키가 곧 그 발동의 식별자다 — 인스턴스를 재사용하는 콤보 재발동도 새 키를 받는다.
-	// 공격 어빌리티가 실리지 않은 독립 적중(반사 투사체 등)은 키가 무효라 그 히트를 한 번으로 쳐서 지급한다.
-	const UGameplayAbility* SourceAbility = TriggerEventData ? TriggerEventData->ContextHandle.GetAbilityInstance_NotReplicated() : nullptr;
-	const FPredictionKey SourceActivationKey = SourceAbility ? SourceAbility->GetCurrentActivationInfo().GetActivationPredictionKey() : FPredictionKey();
-	if (SourceActivationKey.IsValidKey() && SourceActivationKey == ChargedActivationKey)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	// 독립 적중이 끼어들어도 이미 지급한 근접 발동의 다단 적중을 다시 지급하지 않는다.
-	if (SourceActivationKey.IsValidKey())
-	{
-		ChargedActivationKey = SourceActivationKey;
-	}
 
 	for (const TSubclassOf<UGameplayEffect>& EffectClass : TriggeredEffects)
 	{
