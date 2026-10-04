@@ -102,3 +102,28 @@
 - 09-19 자원 규칙은 과거 전제와 당시 구현을 구분했다. 현재 공통 코스트 규칙을 새로 확정하지 않았다. 피해 계산은 HEAD 코드의 정본과 기획 차이를 연결했다.
 - 엔진 버전은 `.uproject`의 `EngineAssociation`, 설치 경로 탐색은 `BatchFiles/Get-WxEngineRoot.ps1`로 통합했다. 빌드 공용 사전 검사·프로젝트 생성·리디렉트 검사에서 이를 사용한다. 동시에 반영된 에디터 실행 공용화 구조를 보존했다.
 - 검증: PowerShell 구문 검사, PowerShell 5.1·현재 셸의 실제 설치 탐색, 공용 사전 검사(읽기 전용), 다른 버전·공백 경로·미등록 버전·버전 누락 검증 통과. 실제 빌드·에디터 종료·리디렉트 재저장은 실행하지 않았다.
+
+## [2026-10-05] ingest | Docs/Meeting/어빌리티 규칙 브리핑.md, Docs/Programmer/PCG 개발 방향성.md (무인)
+- 다시 적재: `Docs/Meeting/어빌리티 규칙 브리핑.md` (f21dbb0d9). 강제 그룹의 영어 이름이 Override에서 Reaction으로 바뀐 것뿐이라 [요약](sources/어빌리티-규칙-브리핑.md)과 [어빌리티 규칙](concepts/어빌리티-규칙.md)의 그룹 절에 영어 이름을 넣었다.
+- 새로 적재: `Docs/Programmer/PCG 개발 방향성.md` (29facaef6). [요약](sources/PCG-개발-방향성.md)을 쓰고 [기획 작업 도구](concepts/기획-작업-도구.md)의 PCG 기획·구현·결정·미결·출처를 고쳤다. 색인에 `Docs/Programmer` 분류를 만들었다.
+- 함께 적은 어긋남(미결): 07-19 '프로그래머가 PCG 제공' 대 10-05 '아트가 바이옴 PCG 배치'(역할 분담에 아트가 없다), 09-26 'PCG는 파라미터만 제공하고 마무리' 대 10-05 숲 바이옴 PCG 추가.
+- 구현 절은 HEAD 29facaef6에서 git으로만 확인했다(`Content/LevelDesign/PCG/Forest`·`Road`·`Maps`). PCG 그래프 내부는 에디터 없이 확인하지 못했다.
+
+## [2026-10-05] lint | 주간 루틴 점검 (무인)
+- 환경: 얕은 클론을 `git fetch --unshallow origin main`으로 풀고, PowerShell 7.4.6 linux-x64를 `/tmp`에 받아 점검 스크립트를 돌렸다.
+- 기계 점검(적재 뒤): 낡은 자료 0, 사라진 자료 0, 낡은 코드 출처 24, 없는 코드 이름 0, 깨진 링크 0, 고아 문서 0, 출처·반영 짝 0, 연결 후보 1, 색인 누락 0, 미적재 자료 0. 적재 전에는 낡은 자료 1, 미적재 자료 1이었다.
+  - 연결 후보: [현광](entities/현광.md)의 '피격 경직'은 지난 점검대로 그대로 둔다.
+  - 낡은 코드 출처 24건은 10-01~10-05 커밋(주석 정리, 콤보 GAS 입력 태스크 전환 4cc8cfb39, 노티파이 분기점 리팩터링 8ed34595d, 피격 취소·넉백 06ede3999, 처형 점유 e76ff6bb0, 패시브 다중 타격 1508c1632, 장치 복원 3c4fb1adc·e0accaab6, 미니언 속성 행 46eb978ce)이다. 주석만 바뀐 출처는 커밋만 갱신하면 된다.
+- 의미 점검(낡은 코드 출처가 걸린 문서·이번에 고친 문서와 링크된 문서): 구현 절이 코드와 다르거나 빠진 것.
+  - [체크포인트와 리스폰](concepts/체크포인트와-리스폰.md): 구현 절 '체크포인트는 PlayerStart 기반'과 달리 HEAD의 체크포인트는 장치(`BP_CheckPoint`·`ST_CheckPoint`)이고 `WxStateTreeTask_SaveCheckpoint`가 RespawnPoint 위치를 `UWxCheckpointSaveGame`에 저장한다. `PlayerStart`는 Source에 0건이다. 체크포인트 구현이 [장치와 배치물](concepts/장치와-배치물.md)과 이 문서 어디에도 없다.
+  - [피격 경직](concepts/피격-경직.md): 04-25 '넉백은 루트모션, 강도 수치 없음'과 달리 코드는 루트모션을 끄고 `KnockbackDistance`(HitReact 300·GuardReact 100)를 ConstantForce로 밀고 넉업은 `KnockupZVelocity` 750이다. HitReact가 `UseItem`도 취소한다(06ede3999). 패턴을 취소하는 것은 그로기·사망뿐이라 스킬 피격도 패턴을 끊지 않는 것으로 보인다(추정, 기획은 평타만 예외).
+  - [그로기와 처형](concepts/그로기와-처형.md): 처형이 `State.FinisherReserved`로 한 대상을 한 처형만 점유한다(e76ff6bb0). 미결 '그로기 중 피격 반응'은 코드가 WX 문서 쪽(그로기 중 넉백류를 Normal로 바꿈)이다.
+  - [아이템과 회복](concepts/아이템과-회복.md): 에셋 이름은 `GA_UseItem`이 아니라 `GA_Shared_UseItem`이다. 10-02 코드 리뷰의 '회복 전 피격 시 소비 안 함' 결정이 결정 절에 없다. C++ 기본 `MaxCharges`는 3이라 기획(4개)과 다르다(에셋 값 미확인). [피격 경직](concepts/피격-경직.md)과 링크가 없다.
+  - [현광](entities/현광.md): 도플갱어 미러링이 마스터의 종료·콤보 단계까지 따른다(4cc8cfb39). 분신은 `SummonedMinion`, 도플갱어는 `Minion` 속성 행을 쓴다(46eb978ce, 이진 에셋이라 추정 포함).
+  - [기획 작업 도구](concepts/기획-작업-도구.md): 46eb978ce가 '고치면 안 된다'던 `ABS_Shared_Enemy`에서 속성 행 지정을 뺐다. RandomChoice '균등 확률' 서술은 `WxBTDecorator_RandomWeight` 이후 낡았다.
+  - [초반 구간과 퀘스트](concepts/초반-구간과-퀘스트.md): 29facaef6이 PCG·Water 플러그인을 켜고 숲 바이옴 데모 레벨을 넣었으니 구현과 [기획 작업 도구](concepts/기획-작업-도구.md) 연결을 더할 만하다.
+  - [적 몬스터](concepts/적-몬스터.md)·[커스터](entities/커스터.md): 큐는 `GC_AttackTelegraph_Red/Blue/Purple`이고 기획의 가드 불가 '노란빛' 큐는 없다.
+  - [스탯과 피해 계산](concepts/스탯과-피해-계산.md): 패시브 MP·UP 수급이 1508c1632 뒤 대상 수에 비례한다.
+  - [장치와 배치물](concepts/장치와-배치물.md): 에셋 목록에 버튼(`BP_ButtonDevice`·`ST_Button`)이 없다. 복원·레이트조인 때 일회성 연출을 생략하는 규칙이 구현 절에 없다.
+  - 풀린 미결은 없다. 가드 미결이 [어빌리티 규칙](concepts/어빌리티-규칙.md)과 [게임 개요와 전투 방향](concepts/게임-개요와-전투-방향.md)에 중복돼 있다.
+- 무인 실행이라 점검 결과로는 아무 문서도 고치지 않았다(적재로 고친 문서만 바뀌었다).
