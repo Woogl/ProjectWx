@@ -24,6 +24,7 @@ void UWxAbility_Pattern::HandleMontageBlendOut()
 	}
 
 	ComboIndex = ComboIndex + 1;
+	ResetActionState();
 	if (!PlayMontage(GetMontage()))
 	{
 		EndAbility(CurrentSpecHandle, GetCurrentActorInfo(), GetCurrentActivationInfo(), true, false);
