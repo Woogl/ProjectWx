@@ -124,7 +124,7 @@
 
 **수정 제안**: `AWxCharacterBase::FellOutOfWorld`를 재정의한다. 권위 측에서 기존 사망 경로(Event.Death)로 보내고, Super의 Destroy는 하지 않는다.
 
-**2026-10-05 반영**: 권위 측에서 `Ability.Death`가 없으면 Event.Death를 보낸다. 받는 사망 어빌리티가 없는 폰(분신 등)은 엔진처럼 파괴한다. 그 뒤 엔진 기본처럼 이동·물리를 멈추고 숨기되 파괴하지는 않는다. 래그돌 시체가 KillZ 아래로 떨어져 물리 쪽에서 다시 불리는 경우도 같은 경로로 멈춘다. 이 경로는 HP가 남은 채 죽으므로 C12를 함께 고쳤다. PIE 검증은 하지 않았다.
+**2026-10-05 반영**: 권위 측에서 `Ability.Death`가 없으면 Event.Death를 보낸다. 받는 사망 어빌리티가 없는 폰(분신 등)은 엔진처럼 파괴하고, 그 밖에는 파괴하지 않는다(Lyra와 같은 방식). 래그돌 시체가 KillZ 아래로 떨어져 물리 쪽에서 다시 불려도 사망 표식 확인에서 끝난다. 처음 넣었던 이동·물리 정지, 숨김, 충돌 끄기는 하는 일이 없어 같은 날 걷어냈다. 이 경로는 HP가 남은 채 죽으므로 C12를 함께 고쳤다. PIE 검증은 하지 않았다.
 
 **확신도**: 높음 — 엔진 기본 동작과 프로젝트의 사망·부활 조건을 코드로 확인했다.
 
@@ -484,6 +484,8 @@ sequenceDiagram
 
 **수정 제안**: 루프에서 가중치를 먼저 읽고, 0이면 조건 검사와 통지 없이 넘어간다.
 
+**2026-10-05 반영**: 제안대로 가중치를 먼저 읽어, 0이면 조건 검사와 통지 없이 넘어간다. 가중치 0 자식은 후보가 없을 때 엔진에 돌려주는 자식도 되지 않으므로, 가중치가 전원 0이면 조건과 무관하게 부모가 직전 결과를 이어받는다(헤더에 반영). C59 주석도 함께 고쳤다. PIE 검증은 하지 않았다.
+
 **확신도**: 중간 — 엔진 경로는 확인했다. 가중치 0 자식이 없다는 것은 BT 에셋에 Weight가 직렬화돼 있지 않은 것으로 판단했다.
 
 ### C32. 🟡 CameraMove 임시 카메라 수명이 애니메이션 시간 기준이라 재생 속도가 느리면 구간 도중에 파괴된다
@@ -506,6 +508,8 @@ sequenceDiagram
 
 **수정 제안**: "0 이하 지속시간은 만료 타이머가 걸리지 않아 정지가 풀리지 않으므로 걸지 않는다"로 고친다.
 
+**2026-10-05 반영**: 엔진 확인 결과, 기본 지속시간이 0 이하면 수정치 계산·0.1초 보정·만료 타이머를 모두 건너뛴다. 0.1초 보정은 양수였던 지속시간이 수정으로 0 이하가 될 때만 걸린다. 제안 취지대로 고쳤다.
+
 **확신도**: 높음 — 엔진 소스로 확인했다.
 
 ### C34. 🟢 ComboWindow 헤더가 폐기된 "자기 재발동" 방식을 설명한다
@@ -513,6 +517,8 @@ sequenceDiagram
 **판단 근거**: [WxAnimNotifyState_ComboWindow.h:10](../../../../Source/WxGame/Animation/WxAnimNotifyState_ComboWindow.h#L10)은 재발동 방식을 설명한다. 10-02부터는 창 동안 WaitInputPress가 다음 타를 받아 한 활성화 안에서 이어간다(재발동 재도입 금지 결정).
 
 **수정 제안**: 10행을 "구간 동안 콤보 어빌리티가 다음 타 입력을 받아 한 활성화 안에서 다음 단으로 넘어간다"로 고친다.
+
+**2026-10-05 반영**: 제안대로 고쳤다.
 
 **확신도**: 높음.
 
@@ -522,6 +528,8 @@ sequenceDiagram
 
 **수정 제안**: "AdditionalEffects는 서버에서만 유효하며 직렬화하지 않는다(타입과 부모 필드는 복제된다)"로 고친다.
 
+**2026-10-05 반영**: 제안대로 고쳤다.
+
 **확신도**: 높음.
 
 ### C36. 🟢 FWxAbilityTargetData_Direction 주석이 두 용도 중 하나만 적는다
@@ -529,6 +537,8 @@ sequenceDiagram
 **판단 근거**: [WxAbilityTargetData_Direction.h:9](../../../../Source/WxGame/AbilitySystem/WxAbilityTargetData_Direction.h#L9)은 클라→서버 입력 방향만 적는다. 실제로는 서버가 만든 피격 방향도 Event.Hit에 실어 보낸다.
 
 **수정 제안**: "서버·클라이언트 사이에서 방향 벡터(입력 방향, 피격 방향)를 나르는 TargetData"로 넓힌다.
+
+**2026-10-05 반영**: 제안대로 고쳤다.
 
 **확신도**: 높음.
 
@@ -538,6 +548,8 @@ sequenceDiagram
 
 **수정 제안**: 29행을 지운다.
 
+**2026-10-05 반영**: 29행을 지웠다.
+
 **확신도**: 높음.
 
 ### C38. 🟢 WxEffect_AddAttribute.h의 Context 설명 주석이 어떤 선언에도 붙어 있지 않다
@@ -545,6 +557,8 @@ sequenceDiagram
 **판단 근거**: [WxEffect_AddAttribute.h:31](../../../../Source/WxGame/AbilitySystem/Effects/WxEffect_AddAttribute.h#L31)이 클래스 사이에 떠 있어, UWxEffect_AddGP 설명처럼 읽힌다.
 
 **수정 제안**: 베이스 Apply(28행) 주석에 한 문장으로 합친다.
+
+**2026-10-05 반영**: 베이스 Apply 주석으로 옮겼다.
 
 **확신도**: 높음.
 
@@ -554,6 +568,8 @@ sequenceDiagram
 
 **수정 제안**: Duration 인자·멤버와 타이머 분기를 지우고, 헤더 설명을 "구간 소유자가 EndTask로 끝낸다"로 고친다.
 
+**2026-10-05 반영**: Duration 인자·멤버와 타이머 분기를 지우고, 헤더를 「구간 소유자(몽타주 이벤트 태스크)가 EndTask로 끝낸다」로 고쳤다. World가 널이면 걸지 않고 소유자의 EndTask를 기다린다.
+
 **확신도**: 높음.
 
 ### C40. 🟢 Rush의 bUseControllerRotationYaw 저장·복원이 하는 일이 없다
@@ -561,6 +577,8 @@ sequenceDiagram
 **판단 근거**: 이 값은 `AWxCharacterBase`가 항상 false로 고정하고, 바꾸는 코드나 BP가 없다([WxAbilityTask_Rush.cpp:105-106](../../../../Source/WxGame/AbilitySystem/Tasks/WxAbilityTask_Rush.cpp#L105), [226](../../../../Source/WxGame/AbilitySystem/Tasks/WxAbilityTask_Rush.cpp#L226)).
 
 **수정 제안**: `bSavedControllerYaw`와 저장·복원 줄을 지운다. 회전 차단은 이미 LockMovementRotation이 맡는다.
+
+**2026-10-05 반영**: `bSavedControllerYaw`와 저장·복원 줄을 지웠다.
 
 **확신도**: 높음.
 
@@ -578,6 +596,8 @@ sequenceDiagram
 
 **수정 제안**: 58행 주석의 근거를 "같은 몽타주 안의 구간 겹침"으로 고치고, 서로 다른 행의 겹침은 지원하지 않는다고 적는다.
 
+**2026-10-05 반영**: 제안대로 고쳤다.
+
 **확신도**: 높음.
 
 ### C43. 🟢 HandlePossessedPawnChanged의 "같은 Pawn 알림" 가드는 도달할 수 없다
@@ -586,6 +606,8 @@ sequenceDiagram
 
 **수정 제안**: 가드와 주석을 지운다.
 
+**2026-10-05 반영**: 엔진 확인 결과, `OnPossessedPawnChanged`는 폰이 바뀔 때만(빙의 전 배정된 폰은 이전 폰을 null로) 방송하고, 바로 위 `ClearLayout`이 확인 대상을 비운다. 가드 두 개와 주석을 지웠다.
+
 **확신도**: 높음.
 
 ### C44. 🟢 자막 VM이 Global Collection 조회 코드를 따로 중복한다
@@ -593,6 +615,8 @@ sequenceDiagram
 **판단 근거**: [WxViewModel_Subtitle.cpp:14-21](../../../../Source/WxGame/UI/MVVM/WxViewModel_Subtitle.cpp#L14)의 조회 체인이 [WxViewModelUtils.cpp:40-46](../../../../Source/WxGame/UI/MVVM/WxViewModelUtils.cpp#L40)의 `WxViewModel::GetGlobalCollection`과 글자 그대로 같다.
 
 **수정 제안**: 유틸 호출로 바꾸고, 쓰지 않게 된 include를 정리한다.
+
+**2026-10-05 반영**: `WxViewModel::GetGlobalCollection` 호출로 바꾸고 쓰지 않게 된 include를 정리했다.
 
 **확신도**: 높음.
 
@@ -610,6 +634,8 @@ sequenceDiagram
 
 **수정 제안**: 25-28행을 지우고, 헤더를 "진입할 때 Niagara를 새로 띄우고 Succeeded로 완료한다"로 고친다.
 
+**2026-10-05 반영**: 25-28행 검사를 지우고 헤더를 제안대로 고쳤다.
+
 **확신도**: 높음.
 
 ### C47. 🟢 RequestUseConsumable은 호출하는 곳이 없는데 주석은 UI 진입점이라고 적는다
@@ -617,6 +643,8 @@ sequenceDiagram
 **판단 근거**: [WxInventoryComponent.h:171-177](../../../../Source/WxGame/Inventory/WxInventoryComponent.h#L171)의 함수는 C++·Content 어디서도 호출되지 않는다. UFUNCTION도 아니다. UI 호출 경로는 09-23 아이템 VM 단일화 때 사라졌다.
 
 **수정 제안**: 함수와 주석을 지운다. UI에서 필요해지면 VM Command(Request~)로 추가한다.
+
+**2026-10-05 반영**: 함수와 주석을 지웠다. 이 함수만 쓰던 `WxGameplayTags.h` include도 뺐다.
 
 **확신도**: 높음.
 
@@ -626,6 +654,8 @@ sequenceDiagram
 
 **수정 제안**: 둘을 함께 지운다. 둘만 쓰는 보조 함수가 있는지 확인한다.
 
+**2026-10-05 반영**: 둘을 함께 지웠다. 쓰던 보조 함수(`UnregisterReplicatedInstance`, `Notify*ChangedFromList`)는 소비·추가 경로에서도 쓰여 남긴다.
+
 **확신도**: 높음.
 
 ### C49. 🟢 「UOL 픽커는 AllowedClasses를 읽지 않는다」 주석이 현재 커스텀 픽커와 어긋난다
@@ -634,6 +664,8 @@ sequenceDiagram
 
 **수정 제안**: "픽커가 AllowedClasses로 후보를 좁히지만 드래그 앤 드롭·텍스트 입력은 거르지 못해 ST 컴파일이 한 번 더 잡는다"로 고친다.
 
+**2026-10-05 반영**: WxEditor 커스텀 픽커(`FWxActorLocatorCustomization`)에는 드래그 앤 드롭·텍스트 입력이 없어, 거르지 못하는 경로를 복사·붙여넣기로 적었다. 세 곳을 고쳤다.
+
 **확신도**: 높음.
 
 ### C50. 🟢 SpawnTarget의 처치 상태·기존 인스턴스 가드와 로그는 도달할 수 없다
@@ -641,6 +673,8 @@ sequenceDiagram
 **판단 근거**: 호출자는 Respawn과 BeginPlay 둘뿐이고, 두 경로 모두에서 [WxSpawner.cpp:130-139](../../../../Source/WxGame/Spawner/WxSpawner.cpp#L130)의 조건은 거짓이다. 세이브가 있던 시절의 방어 코드다.
 
 **수정 제안**: 두 if 블록과 로그를 지운다.
+
+**2026-10-05 반영**: 호출자가 Respawn(처치 상태 해제·추적 인스턴스 파괴 뒤)과 BeginPlay 둘뿐임을 확인하고 두 if 블록과 로그를 지웠다.
 
 **확신도**: 높음.
 
@@ -674,6 +708,8 @@ sequenceDiagram
 
 **수정 제안**: "태그 취소는 그로기·사망뿐이고, 같은 슬롯 그룹의 넉·패리 반응 몽타주가 패턴을 끊는다"로 고친다.
 
+**2026-10-05 반영**: 제안대로 고쳤다.
+
 **확신도**: 중간.
 
 ### C55. 🟢 UWxEffect_Exceed와 짝 큐는 파생 에셋이 삭제돼 도달할 수 없는 죽은 코드다
@@ -690,6 +726,8 @@ sequenceDiagram
 
 **수정 제안**: AssetTags 컴포넌트와 해당 include를 지운다. 다른 GE의 AssetTags는 관례라 범위에서 뺐다.
 
+**2026-10-05 반영**: AssetTags 컴포넌트와 include를 지웠다. 이 GE를 부모로 쓰는 에셋은 없고(ABS_Doppelganger·ABS_Minion이 C++ 클래스를 직접 부여), 태그 사용처는 모두 부여 태그 확인이다.
+
 **확신도**: 중간 — BP 쪽 질의는 문자열 검색으로만 확인했다.
 
 ### C57. 🟢 SnapToTarget의 「지정 대상이 늦게 도착하면 회전을 옮긴다」 설명은 폴백 결과가 있을 때만 맞다
@@ -697,6 +735,8 @@ sequenceDiagram
 **판단 근거**: 대상이 전혀 없으면 modifier가 Disabled가 되고, 엔진에는 Active로 돌아오는 경로가 없다. 그래서 [WxRootMotionModifier_SnapToTarget.h:20](../../../../Source/WxGame/Targeting/WxRootMotionModifier_SnapToTarget.h#L20)의 재조준은 폴백으로라도 Active가 된 경우에만 돈다.
 
 **수정 제안**: 주석을 그 범위로 한정한다. 동작은 바꾸지 않는다.
+
+**2026-10-05 반영**: 엔진 확인 결과, 워프 타겟이 없으면 `URootMotionModifier_Warp::Update`가 Disabled로 바꾸고 Active 전이는 Waiting에서만 일어난다. 그 범위를 주석에 적었다.
 
 **확신도**: 중간.
 
@@ -706,6 +746,8 @@ sequenceDiagram
 
 **수정 제안**: "엔진이 기본 맵으로 되돌리며, 문구는 GameInstance 수명이라 다시 뜬 메뉴가 읽는다"로 고친다.
 
+**2026-10-05 반영**: 엔진 확인 결과, `TickWorldTravel`이 `BrowseToDefaultMap` 뒤에 실패를 방송하고, `UEngine::HandleTravelFailure`도 `?closed` 이동으로 기본 맵(LV_FrontEnd)에 보낸다. 제안대로 고쳤다.
+
 **확신도**: 중간 — LoadMap 단계 실패의 문구 누락은 PIE로 확인하지 않았다.
 
 ### C59. 🟢 RandomChoice 주석이 엔진의 실제 재진입 동작과 다르다
@@ -713,6 +755,8 @@ sequenceDiagram
 **판단 근거**: 조건이 뒤집힌 자식은 추첨을 거치지 않고 강제로 진입한다(C31). [WxBTComposite_RandomChoice.h:28](../../../../Source/WxGame/AI/WxBTComposite_RandomChoice.h#L28)의 "재추첨"과 [cpp:87-88](../../../../Source/WxGame/AI/WxBTComposite_RandomChoice.cpp#L87)의 "선점만 하고 실행되지 못한다"는 틀렸다.
 
 **수정 제안**: 실제 동작대로 고친다. C31을 고치면 함께 고친다.
+
+**2026-10-05 반영**: C31과 함께 고쳤다. 엔진은 관찰자 조건이 뒤집히면 `GetNextChild`에서 그 자식으로 바로 들어가 `GetNextChildHandler`를 거치지 않는다.
 
 **확신도**: 중간.
 
@@ -722,6 +766,8 @@ sequenceDiagram
 
 **수정 제안**: 호출부에서 `FindComponentByClass<UWxAIBehaviorComponent>()`를 직접 부르고 정적 함수를 지운다.
 
+**2026-10-05 반영**: 정적 함수를 지우고 BT Patrol 태스크 두 곳에서 `FindComponentByClass<UWxAIBehaviorComponent>()`로 직접 찾는다.
+
 **확신도**: 중간 — 규칙 문구는 자기 클래스를 찾는 형태를 말해서, 적용 범위에 해석이 필요하다.
 
 ### C61. 🟢 AI 컨트롤러의 SelfActor 기록이 엔진이 이미 하는 일을 되풀이한다
@@ -730,6 +776,8 @@ sequenceDiagram
 
 **수정 제안**: 두 호출과 `SetSelfActor` 접근자를 지우고, [WxBlackboardKeys.h:13](../../../../Source/WxGame/AI/WxBlackboardKeys.h#L13) 주석을 "SelfActor는 엔진이 채운다"로 고친다.
 
+**2026-10-05 반영**: 엔진 확인 결과, SelfActor는 모든 Blackboard 에셋의 고정 키(`UpdatePersistentKey`)이고 `InitializeBlackboard`·`SetPawn`이 채운다. 두 호출과 `SetSelfActor`를 지우고 키 주석을 고쳤다. `GetSelfActor`는 TargetDistance 서비스가 써서 남긴다.
+
 **확신도**: 중간 — 각 블랙보드 에셋의 SelfActor 키는 에디터에서 열어 보지 않았다.
 
 ### C62. 🟢 PawnHitDelegateHandle은 해제에 쓰이지 않고 중복 가드에만 쓰인다
@@ -737,6 +785,8 @@ sequenceDiagram
 **판단 근거**: 핸들은 [WxAIBehaviorComponent.cpp:61](../../../../Source/WxGame/AI/WxAIBehaviorComponent.cpp#L61)의 가드에서만 읽힌다. BeginPlay는 한 번만 불리고 ASC도 폰과 수명이 같아서, 이 가드가 막는 경우가 없다.
 
 **수정 제안**: 멤버와 가드를 지운다.
+
+**2026-10-05 반영**: 멤버와 가드를 지웠다.
 
 **확신도**: 중간.
 
@@ -762,6 +812,8 @@ sequenceDiagram
 
 **수정 제안**: 설명을 21-24행 쪽으로 옮긴다.
 
+**2026-10-05 반영**: 설명을 AssetTags 주석으로 옮겼다.
+
 **확신도**: 중간.
 
 ### C66. 🟢 러너 상태 변경 콜백의 "재진입 가드에 막힌다" 주석이 StopLogic 경로에는 맞지 않는다
@@ -770,6 +822,8 @@ sequenceDiagram
 
 **수정 제안**: "Tick·Start 경로에서만 막힌다"로 고치거나 지운다.
 
+**2026-10-05 반영**: 엔진 확인 결과, `StopLogic`의 비재진입 갈래는 `CurrentlyRunningExecContext` 가드 없이 방송한다. 「Tick·Start 경로에서만 막힌다」로 고쳤다.
+
 **확신도**: 중간.
 
 ### C67. 🟢 치트 매니저 클래스 주석이 「존재 = 권위 측」으로 단정하고, 쓰지 않는 선언이 남아 있다
@@ -777,6 +831,8 @@ sequenceDiagram
 **판단 근거**: EnableCheats로 클라에 강제 생성한 매니저는 권위가 없다. `Templates/SubclassOf.h` include와 `UGameplayAbility` 전방 선언은 쓰이지 않는다([WxCheatManager.h:5-14](../../../../Source/WxGame/Development/WxCheatManager.h#L5)).
 
 **수정 제안**: 미사용 선언을 지우고 주석의 단정을 완화한다.
+
+**2026-10-05 반영**: 엔진 확인 결과, 개발 빌드의 `EnableCheats`는 `AddCheats(true)`로 권위와 무관하게 매니저를 만든다. 미사용 include·전방 선언을 지우고, 주석은 「권위 측 전제라 클라에 강제로 만든 매니저에서는 제대로 동작하지 않는다」로 고쳤다. 가드는 더하지 않았다.
 
 **확신도**: 중간.
 
