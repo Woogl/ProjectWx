@@ -50,6 +50,9 @@ private:
 	UFUNCTION()
 	void HandleGuardReactEnded();
 
+	/** 자세를 다시 세울 때 재생을 시작하는 루프 섹션. 진입 구간의 퍼펙트 가드 창·대상 스냅은 첫 입력에만 걸린다. */
+	static const FName LoopSectionName;
+
 	/**
 	 * 원격 서버 인스턴스는 판단하지 않는다 — 스펙의 키 상태를 발동 RPC가 true로 세운 뒤 릴리즈로 내려주는 경로가 없어 늘 눌린 것으로 보인다.
 	 * 그쪽은 소유 클라가 복제하는 종료로 정리된다.

@@ -5,6 +5,8 @@
 #include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
 #include "WxGameplayTags.h"
 
+const FName UWxAbility_Guard::LoopSectionName(TEXT("LoopStart"));
+
 UWxAbility_Guard::UWxAbility_Guard()
 {
 	FGameplayTagContainer AssetTags;
@@ -100,7 +102,8 @@ void UWxAbility_Guard::HandleGuardReactEnded()
 		return;
 	}
 
-	PlayMontage(GetMontage());
+	// 키를 누르고 있었을 뿐 새 가드 입력이 아니므로, 처음부터 재생하면 입력 없이 퍼펙트 가드 창이 다시 열린다.
+	PlayMontage(GetMontage(), LoopSectionName);
 }
 
 bool UWxAbility_Guard::IsInputHeld() const
