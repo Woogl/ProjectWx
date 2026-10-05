@@ -103,7 +103,10 @@ void UWxAbility_Guard::HandleGuardReactEnded()
 	}
 
 	// 키를 누르고 있었을 뿐 새 가드 입력이 아니므로, 처음부터 재생하면 입력 없이 퍼펙트 가드 창이 다시 열린다.
-	PlayMontage(GetMontage(), LoopSectionName);
+	if (!PlayMontage(GetMontage(), LoopSectionName))
+	{
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
 }
 
 bool UWxAbility_Guard::IsInputHeld() const
