@@ -7,7 +7,7 @@
 
 class UAbilityTask_WaitInputPress;
 
-/** 한 활성화 안에서 입력으로 몽타주 단계를 이어간다. 각 단계마다 비용·쿨다운을 커밋한다. */
+/** 한 활성화 안에서 입력으로 몽타주 단계를 이어간다. 각 단계마다 비용·쿨다운을 커밋하고, 다음 단계를 커밋하지 못하면 입력만 버린다. */
 UCLASS(Abstract, HideCategories = ("Wx|Montage"))
 class WXGAME_API UWxAbility_Combo : public UWxAbilityBase
 {

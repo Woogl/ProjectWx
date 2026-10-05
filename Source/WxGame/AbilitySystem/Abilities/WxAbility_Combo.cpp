@@ -73,17 +73,24 @@ void UWxAbility_Combo::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 
 bool UWxAbility_Combo::PlayComboStep(int32 Index)
 {
-	CloseComboWindow();
+	const int32 PlayingIndex = ComboIndex;
+	// 분신은 커밋 통지 안에서 이 단계를 읽는다.
 	ComboIndex = Index;
 	if (!CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo))
 	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		// 첫 단계는 발동 실패라 끝내고, 다음 단계는 입력만 버리고 지금 단계를 이어간다.
+		ComboIndex = PlayingIndex;
+		if (PlayingIndex == INDEX_NONE)
+		{
+			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		}
 		return false;
 	}
 	if (!IsActive())
 	{
 		return false;
 	}
+	CloseComboWindow();
 	ResetActionState();
 	if (!PlayMontage(GetMontage()))
 	{
@@ -100,5 +107,9 @@ void UWxAbility_Combo::HandleComboInput(float TimeWaited)
 {
 	// 태스크는 이 브로드캐스트 직후 스스로 끝난다.
 	InputTask = nullptr;
-	PlayComboStep(ComboMontages.IsValidIndex(ComboIndex + 1) ? ComboIndex + 1 : 0);
+	// 다음 단계를 못 냈으면 창이 끝날 때까지 다시 기다린다.
+	if (!PlayComboStep(ComboMontages.IsValidIndex(ComboIndex + 1) ? ComboIndex + 1 : 0) && IsActive())
+	{
+		OpenComboWindow();
+	}
 }
