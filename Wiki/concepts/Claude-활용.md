@@ -23,7 +23,9 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
 | 공용 스킬의 목록·사용법·실행 절차 | [.agents/skills/](../../.agents/skills/)의 각 `SKILL.md` |
 | 공용 스크립트의 동작 | [.agents/scripts/](../../.agents/scripts/) |
 | 도구별 연결·설정 | `.mcp.json`, `.codex/config.toml`, `.gemini/settings.json` |
-| Unreal MCP 도구 구현 | [Plugins/WxToolset/](../../Plugins/WxToolset/) |
+| Unreal MCP 도구 구현과 툴별 사용법(툴 설명) | [Plugins/WxToolset/](../../Plugins/WxToolset/) |
+| 에디터·MCP 작업 요령과 함정 | [.agents/skills/unreal-editor/](../../.agents/skills/unreal-editor/) |
+| 빌드 실패 분류와 빌드 환경 요령 | [.agents/skills/build-doctor/](../../.agents/skills/build-doctor/) |
 | 위키 운영 규칙과 지식 탐색 | [Wiki/AGENTS.md](../AGENTS.md), [Wiki/index.md](../index.md) |
 | 클라우드 루틴의 실행 지시·일정·활성 상태 | claude.ai의 해당 루틴 설정 |
 
@@ -47,6 +49,11 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
 - 2026-10-06 AI가 다루기 쉽도록 로직을 C++로 옮기는 범위는 블루프린트 그래프 로직까지다. State Tree 흐름 조립, 수치(`GE_`·`DT_`·`GA_` 값), 위젯 연출(WBP), 몽타주 타이밍은 에셋에 둔다. 기획자 저작, 08-03 위젯 결정, 09-25 값 위치 결정과 맞물리기 때문이다. (사용자 결정, 커밋 85731316d)
   - 그래프가 있던 BP 둘 중 퀘스트 볼륨만 옮겼다([퀘스트 시스템](퀘스트-시스템.md#결정)).
   - 노드 3개인 `BP_FrontEndPlayerController`는 09-13의 '새 C++ 컨트롤러를 만들지 않는다' 방침대로 둔다.
+- 2026-10-06 Claude 개인 메모리에 남아 있던 에디터·MCP 작업 요령 27건을 옮겼다. 다른 AI와 팀원도 같은 함정을 피하게 하려는 것이다. (사용자 결정, 커밋 249a100ad·08d2e34ab)
+  - 위키가 아니라 공용 스킬 `unreal-editor`에 두었다. 위키는 기획·구현·결정을 찾아 들어가는 자리이고, 스킬은 MCP 작업을 시작할 때 Claude·Codex가 스스로 읽는다. 빌드 요령은 `build-doctor` 참고 문서로 갔다.
+  - 고칠 수 있는 함정은 문서로 옮기지 않고 `WxToolset`에서 없앴다. `GetBindings`는 표시명 대신 프로퍼티 이름을 돌려주고, `RemoveBinding`은 지울 바인딩이 없으면 실패하며, `CompileStateTree`는 링크까지 통과해야 succeeded다. 저장은 `SaveMontage`를 범용 `WxPackageToolset.SavePackages`로 바꿔, 수정 표시가 없는 패키지와 WP 외부 액터도 쓰고 못 쓴 패키지는 실패로 알린다.
+  - 툴별 사용법과 함정은 `AICallable` 함수의 doc 주석에 둔다. MCP가 이를 툴 설명으로 그대로 내보내 어느 AI든 호출할 때 읽는다. 그래서 `AGENTS.md` 9번 규칙과 `comment-cleanup`에 이 주석은 사용법·함정을 적는 예외로 명시했다.
+  - 새로 알게 된 에디터 함정도 개인 메모리가 아니라 이 자리(우리 툴은 코드나 툴 설명, 엔진 툴은 `unreal-editor` 참고 문서)에 쓴다.
 
 ## 관련
 
@@ -64,5 +71,7 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
 - 사용자 대화: 운영 정보의 중복을 줄이고 SSoT를 유지하기로 한 결정 (2026-10-02)
 - 사용자 대화로 정한 지난 결정: Claude 메모리 기록에서 옮기고 HEAD 2a3baca6a 코드로 확인 (2026-10-06 조회)
 - 사용자 대화: 메모리 이관과 코딩 규칙 정리, C++ 이전 범위 (2026-10-06)
-- `AGENTS.md`, `.agents/scripts/Check-CodingRules.ps1` (f60aac7f4)
-- `.agents/skills/` (b9bb78410)
+- 사용자 대화: 에디터·MCP 요령 이관과 WxToolset 정리 (2026-10-06)
+- `AGENTS.md` (08d2e34ab), `.agents/scripts/Check-CodingRules.ps1` (f60aac7f4)
+- `.agents/skills/` (08d2e34ab)
+- `Plugins/WxToolset/` (249a100ad)
