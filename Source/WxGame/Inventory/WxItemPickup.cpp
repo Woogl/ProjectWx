@@ -15,7 +15,6 @@
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 #include "WxCollisionChannels.h"
-#include "Interaction/WxInteractable.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogWxItemPickup, Log, All);
 

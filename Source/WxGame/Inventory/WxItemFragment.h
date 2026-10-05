@@ -12,7 +12,6 @@ class AWxItemPickup;
 class UGameplayEffect;
 class UNiagaraSystem;
 class UStaticMesh;
-class UTexture2D;
 class UWxItemInstance;
 
 UENUM(BlueprintType)

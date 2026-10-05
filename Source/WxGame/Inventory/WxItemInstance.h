@@ -8,7 +8,6 @@
 
 #include "WxItemInstance.generated.h"
 
-class UTexture2D;
 class UWxItemDefinition;
 class UWxItemFragment;
 

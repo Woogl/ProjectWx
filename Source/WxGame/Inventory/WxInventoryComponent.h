@@ -11,7 +11,6 @@
 
 class UWxItemDefinition;
 class UWxItemInstance;
-class UWxInventoryComponent;
 struct FWxInventoryList;
 
 USTRUCT(BlueprintType)

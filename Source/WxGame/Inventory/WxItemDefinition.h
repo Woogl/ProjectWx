@@ -9,7 +9,6 @@
 
 #include "WxItemDefinition.generated.h"
 
-class UTexture2D;
 class UWxItemFragment;
 
 /**

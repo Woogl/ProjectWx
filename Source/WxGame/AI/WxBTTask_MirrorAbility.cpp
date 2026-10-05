@@ -17,8 +17,6 @@ UWxBTTask_MirrorAbility::UWxBTTask_MirrorAbility()
 	NodeName = TEXT("Mirror Ability");
 	bCreateNodeInstance = true;
 	INIT_TASK_NODE_NOTIFY_FLAGS();
-	bNotifyTick = true;
-	bNotifyTaskFinished = true;
 	MirrorTarget.SelectedKeyName = WxBlackboardKeys::Master;
 	MirrorTarget.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(ThisClass, MirrorTarget), AActor::StaticClass());
 }

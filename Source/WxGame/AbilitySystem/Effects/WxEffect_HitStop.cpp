@@ -2,7 +2,6 @@
 
 #include "AbilitySystem/Effects/WxEffect_HitStop.h"
 #include "AbilitySystemComponent.h"
-#include "Abilities/GameplayAbility.h"
 #include "GameplayEffectComponents/TargetTagsGameplayEffectComponent.h"
 #include "WxGameplayTags.h"
 
@@ -28,12 +27,7 @@ void UWxEffect_HitStop::Apply(float Duration, UAbilitySystemComponent* Source, U
 		return;
 	}
 
-	const UGameplayAbility* AnimatingAbility = Source->GetAnimatingAbility();
-
-	FGameplayEffectContextHandle Context = Source->MakeEffectContext();
-	Context.SetAbility(AnimatingAbility);
-
-	const FGameplayEffectSpecHandle Spec = Source->MakeOutgoingSpec(StaticClass(), 1.f, Context);
+	const FGameplayEffectSpecHandle Spec = Source->MakeOutgoingSpec(StaticClass(), 1.f, Source->MakeEffectContext());
 	if (!Spec.IsValid())
 	{
 		return;

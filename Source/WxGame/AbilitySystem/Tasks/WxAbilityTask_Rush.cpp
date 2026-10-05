@@ -100,7 +100,6 @@ void UWxAbilityTask_Rush::SharedInitAndApply()
 		// 노티파이 끝이 먼저 처리되는 마지막 프레임에도 이동 소스가 마지막 이동분을 적용해야 한다.
 		Instance->PushDisableRootMotion();
 		SourceAnimInstance = AnimInstance;
-		SourceMontageInstanceID = Instance->GetInstanceID();
 	}
 	// 회전 모드 플래그는 락온이 소유하므로 건드리지 않고, 중첩을 처리하는 회전 속도 잠금으로 CMC 회전을 막는다.
 	if (Ability)
