@@ -24,11 +24,12 @@ public:
 protected:
 	void AddAttributeModifier(const FGameplayAttribute& Attribute);
 
-	/** static은 어느 파생 클래스로 불렸는지 알 수 없어, 파생 클래스의 Apply가 자기 클래스를 실어 부른다. */
+	/**
+	 * static은 어느 파생 클래스로 불렸는지 알 수 없어, 파생 클래스의 Apply가 자기 클래스를 실어 부른다.
+	 * Context는 이 변경의 원인을 가리킨다 — 비워 두면 TargetASC 자신이 원인이 된다.
+	 */
 	static void Apply(TSubclassOf<UWxEffect_AddAttribute> EffectClass, UAbilitySystemComponent* TargetASC, float Delta, const FGameplayEffectContextHandle& Context);
 };
-
-/** Context는 이 변경의 원인을 가리킨다 — 비워 두면 TargetASC 자신이 원인이 된다. */
 
 UCLASS()
 class WXGAME_API UWxEffect_AddGP : public UWxEffect_AddAttribute

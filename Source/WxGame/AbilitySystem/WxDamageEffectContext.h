@@ -8,7 +8,7 @@
 
 class UGameplayEffect;
 
-/** 한 타격의 Damage GE에 피해 행의 추가 효과 목록을 넘기는 입력 Context. 서버 로컬이며 복제하지 않는다. */
+/** 한 타격의 Damage GE에 피해 행의 추가 효과 목록을 넘기는 입력 Context. AdditionalEffects는 서버에서만 유효해 직렬화하지 않는다 — 타입과 부모 필드는 복제된다. */
 USTRUCT()
 struct WXGAME_API FWxDamageEffectContext : public FGameplayEffectContext
 {

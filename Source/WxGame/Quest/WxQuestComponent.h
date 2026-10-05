@@ -76,7 +76,7 @@ public:
 	virtual void BeginPlay() override;
 
 private:
-	/** 이 콜백 안 재시작은 엔진 재진입 가드에 막힌다. */
+	/** Tick·Start 경로의 방송은 엔진 재진입 가드 안이라 이 콜백 안 재시작이 막힌다. StopLogic 경로는 가드 밖에서 방송한다. */
 	UFUNCTION()
 	void HandleStateTreeRunStatusChanged(EStateTreeRunStatus StateTreeRunStatus);
 

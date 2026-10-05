@@ -55,7 +55,8 @@ void AWxWeaponBase::BeginAttack(const FDataTableRowHandle& InDamageInfo, const F
 		return;
 	}
 
-	// 공격 구간마다 비워, 콤보 전환으로 ANS가 겹쳐도 이전 스윙의 피격 기록이 새 스윙을 막지 않게 한다.
+	// 공격 구간마다 비워, 같은 몽타주에서 앞 구간이 닫히기 전에 다음 구간이 열려도 앞 구간의 피격 기록이 새 구간을 막지 않게 한다.
+	// 피해 행은 하나뿐이라 겹친 동안은 나중에 열린 구간의 행으로 판정한다 — 서로 다른 행의 겹침은 지원하지 않는다.
 	HitActorsThisSwing.Empty();
 
 	// SetCollisionEnabled는 이미 겹쳐 있는 액터에 Overlap을 즉시 발생시키므로, DamageInfo가 그보다 먼저 준비돼야 한다.

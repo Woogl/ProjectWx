@@ -116,7 +116,7 @@ void UWxGameFlowSubsystem::HandleTravelFailure(UWorld* World, ETravelFailure::Ty
 	{
 		return;
 	}
-	// 출발 맵에 그대로 있으므로 선택만 버리면 메뉴가 문구를 띄우고 버튼을 다시 연다.
+	// 엔진이 기본 맵(프론트엔드)으로 되돌린다. 문구는 GameInstance 수명이라 다시 뜬 메뉴가 읽고, 선택은 여기서 버린다.
 	PendingPawnClass = nullptr;
 	PendingLevel.Reset();
 	StatusText = FText::Format(LOCTEXT("TravelFailure", "레벨 전환에 실패했습니다: {0}"), FText::FromString(Error));

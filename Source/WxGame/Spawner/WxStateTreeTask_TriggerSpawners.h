@@ -16,7 +16,7 @@ struct FWxStateTreeTask_TriggerSpawnersInstanceData
 {
 	GENERATED_BODY()
 
-	/** UOL 픽커는 AllowedClasses 를 읽지 않아 모든 액터가 후보이므로, WxSpawner 가 아닌 지정은 ST 컴파일 에러가 잡는다(Compile 참조). */
+	/** 픽커는 AllowedClasses 로 후보를 좁히지만 복사·붙여넣기처럼 픽커를 거치지 않은 값은 거르지 못해, WxSpawner 가 아닌 지정은 ST 컴파일 에러가 한 번 더 잡는다(Compile 참조). */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedLocators = "Actor", AllowedClasses = "/Script/WxGame.WxSpawner"))
 	TArray<FUniversalObjectLocator> Spawners;
 };
