@@ -1,12 +1,10 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AbilitySystem/Abilities/WxAbility_HitReact.h"
-#include "Abilities/Tasks/AbilityTask_ApplyRootMotionConstantForce.h"
 #include "AbilitySystem/WxAbilityTargetData_Direction.h"
 #include "AbilitySystemComponent.h"
 #include "Animation/AnimMontage.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/RootMotionSource.h"
 #include "WxGameplayTags.h"
 
 UWxAbility_HitReact::UWxAbility_HitReact()
@@ -79,9 +77,8 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	}
 	const AActor* Instigator = TriggerEventData ? TriggerEventData->Instigator.Get() : nullptr;
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
-	bPendingKnockback = ReactionTag == WxGameplayTags::HitReact_KnockBack;
-	KnockbackDirection = FVector::ZeroVector;
-	if (bPendingKnockback && TriggerEventData)
+	FVector KnockbackDirection = FVector::ZeroVector;
+	if (ReactionTag == WxGameplayTags::HitReact_KnockBack && TriggerEventData)
 	{
 		// 발동 RPC에 실린 서버 확정 방향을 써서, 이동 중인 공격자 위치로 재계산하지 않는다.
 		const FGameplayAbilityTargetData* DirectionData = TriggerEventData->TargetData.Get(0);
@@ -111,6 +108,7 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	}
 	else if (ReactionTag == WxGameplayTags::HitReact_KnockBack && AvatarActor && !KnockbackDirection.IsNearlyZero())
 	{
+		// 넉백 루트모션은 몸 뒤쪽으로 밀므로 맞은 방향의 반대를 보게 한다.
 		AvatarActor->SetActorRotation((-KnockbackDirection).Rotation());
 	}
 	else if (ReactionTag == WxGameplayTags::HitReact_KnockBack
@@ -119,32 +117,6 @@ void UWxAbility_HitReact::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	{
 		FaceInstigator(AvatarActor, Instigator);
 	}
-}
-
-bool UWxAbility_HitReact::PlayMontageInternal(UAnimMontage* Montage, FName StartSection)
-{
-	if (!Super::PlayMontageInternal(Montage, StartSection))
-	{
-		return false;
-	}
-
-	// 방향 섹션 수신을 기다린 경우에도 실제 재생이 시작되는 시점에 한 번만 이동한다.
-	if (bPendingKnockback)
-	{
-		bPendingKnockback = false;
-		const int32 SectionIndex = Montage->GetSectionIndex(StartSection);
-		const float PlayRate = GetMontagePlayRate() * Montage->RateScale;
-		const float Duration = SectionIndex != INDEX_NONE && PlayRate > 0.f ? Montage->GetSectionLength(SectionIndex) / PlayRate : 0.f;
-		if (Duration > 0.f)
-		{
-			UAbilityTask_ApplyRootMotionConstantForce* KnockbackTask = UAbilityTask_ApplyRootMotionConstantForce::ApplyRootMotionConstantForce(
-				this, TEXT("WxKnockback"), KnockbackDirection, KnockbackDistance / Duration,
-				Duration, false, nullptr, ERootMotionFinishVelocityMode::SetVelocity, FVector::ZeroVector, 0.f, true);
-			// 거리가 0이어도 경직 구간의 수평 이동은 덮어쓴다. 취소·재피격은 어빌리티 종료로 회수한다.
-			KnockbackTask->ReadyForActivation();
-		}
-	}
-	return true;
 }
 
 FGameplayTag UWxAbility_HitReact::GetReactionTag(const FGameplayEventData& Payload)

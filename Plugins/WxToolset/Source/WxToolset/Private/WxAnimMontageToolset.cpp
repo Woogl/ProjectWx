@@ -666,6 +666,31 @@ bool UWxAnimMontageToolset::AddNotify(UAnimMontage* Montage, TSubclassOf<UAnimNo
 	return true;
 }
 
+int32 UWxAnimMontageToolset::RemoveNotifiesOfClass(UAnimMontage* Montage, UClass* NotifyClass)
+{
+	if (!ValidateMontage(Montage, TEXT("대상")))
+	{
+		return 0;
+	}
+
+	if (!NotifyClass)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("노티파이 클래스가 비었다."));
+		return 0;
+	}
+
+	Montage->Modify();
+	const int32 RemovedCount = Montage->Notifies.RemoveAll([NotifyClass](const FAnimNotifyEvent& Event)
+	{
+		return (Event.Notify && Event.Notify->IsA(NotifyClass)) || (Event.NotifyStateClass && Event.NotifyStateClass->IsA(NotifyClass));
+	});
+
+	Montage->RefreshCacheData();
+	Montage->PostEditChange();
+	Montage->MarkPackageDirty();
+	return RemovedCount;
+}
+
 bool UWxAnimMontageToolset::SaveMontage(UAnimMontage* Montage)
 {
 	if (!ValidateMontage(Montage, TEXT("대상")))

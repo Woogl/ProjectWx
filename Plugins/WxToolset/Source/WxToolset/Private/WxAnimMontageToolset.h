@@ -72,6 +72,10 @@ public:
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool AddNotify(UAnimMontage* Montage, TSubclassOf<UAnimNotify> NotifyClass, FName SectionName, float OffsetInSection, int32 TrackIndex);
 
+	/** 단발 노티파이와 노티파이 구간 중 그 클래스(파생 포함)인 것을 모두 지우고 지운 개수를 돌려준다. */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static int32 RemoveNotifiesOfClass(UAnimMontage* Montage, UClass* NotifyClass);
+
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool SaveMontage(UAnimMontage* Montage);
 };
