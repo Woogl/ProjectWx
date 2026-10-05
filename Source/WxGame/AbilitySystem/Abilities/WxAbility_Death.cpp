@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/Abilities/WxAbility_Death.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
 #include "AbilitySystemComponent.h"
 #include "Animation/AnimMontage.h"
 #include "GameFramework/Actor.h"
@@ -39,6 +40,17 @@ void UWxAbility_Death::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	// 커밋하지 않는다 — 사망은 코스트·쿨다운이 없는 강제 전이이고, 커밋 실패가 곧 사망 미성립(Ability.Death 미부여)이 된다.
 
 	// 시체의 피격 판정 해제와 수명은 AWxCharacterBase::HandleDeath가, BT 정지는 그 OnDeath를 받는 AI 컨트롤러가 맡는다 — 모두 발동 전에 붙는 Ability.Death로 이미 끝나 있다.
+
+	// 처형 짝 연출처럼 밖에서 건 연출은 도중에 죽어도 끝까지 재생하고, 끝난 뒤 사망 연출로 넘어간다.
+	const UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	if (ASC && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_PlayMontageOnce))
+	{
+		UAbilityTask_WaitGameplayTagRemoved* WaitTask = UAbilityTask_WaitGameplayTagRemoved::WaitGameplayTagRemove(this, WxGameplayTags::Ability_PlayMontageOnce, nullptr, true);
+		WaitTask->Removed.AddDynamic(this, &UWxAbility_Death::PlayDeathMontageOrRagdoll);
+		WaitTask->ReadyForActivation();
+		return;
+	}
+
 	PlayDeathMontageOrRagdoll();
 }
 
