@@ -44,7 +44,7 @@ uint16 UWxBTDecorator_BeyondLeash::GetInstanceMemorySize() const
 
 FString UWxBTDecorator_BeyondLeash::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("%s로부터 %.0f m 이상 이탈 시 true"), *Anchor.SelectedKeyName.ToString(), LeashRadius / 100);
+	return FString::Printf(TEXT("%s: %s로부터 %.0f m 이상 이탈 시 true"), *Super::GetStaticDescription(), *Anchor.SelectedKeyName.ToString(), LeashRadius / 100);
 }
 
 bool UWxBTDecorator_BeyondLeash::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const

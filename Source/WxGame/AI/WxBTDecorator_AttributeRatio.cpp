@@ -32,7 +32,7 @@ FString UWxBTDecorator_AttributeRatio::GetStaticDescription() const
 		default: break;
 	}
 
-	return FString::Printf(TEXT("%s / %s  %s  %.2f"), *AttributeName, *MaxAttributeName, ComparisonSymbol, Ratio);
+	return FString::Printf(TEXT("%s: %s / %s  %s  %.2f"), *Super::GetStaticDescription(), *AttributeName, *MaxAttributeName, ComparisonSymbol, Ratio);
 }
 
 bool UWxBTDecorator_AttributeRatio::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
