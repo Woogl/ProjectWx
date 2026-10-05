@@ -43,7 +43,8 @@ void UWxEffectComponent_PerfectGuard::OnGameplayEffectExecuted(FActiveGameplayEf
 		}
 
 		// 저작으로 가르는 것은 리액션뿐이다 — 막아낸 대가인 GP는 어느 공격이든 들어간다.
-		if (GESpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanParry))
+		// 방금 반사 GP로 그로기에 들었으면 패리 넉 대신 그로기 시작 자세만 보인다 — 피해 쪽 반응과 같은 규칙이다.
+		if (GESpec.GetDynamicAssetTags().HasTag(WxGameplayTags::Damage_CanParry) && !SourceASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 		{
 			FGameplayEventData ParryEventData;
 			ParryEventData.EventTag = WxGameplayTags::Event_Hit_Parry;
