@@ -52,9 +52,9 @@ public:
 	//~ Begin IGenericTeamAgentInterface
 	/** 팀을 따로 들지 않고 Instigator의 것을 그대로 쓴다 — 피격 판정도 같은 출처로 적대 여부를 가린다. */
 	virtual FGenericTeamId GetGenericTeamId() const override;
+	//~ End IGenericTeamAgentInterface
 
 	virtual void PostNetReceiveVelocity(const FVector& NewVelocity) override;
-	//~ End IGenericTeamAgentInterface
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Wx|Projectile|Damage", meta = (RowType = "/Script/WxGame.WxDamageTableRow", WxPreviewRow = "true"))

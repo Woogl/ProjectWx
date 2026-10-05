@@ -48,7 +48,6 @@ AWxWeaponBase* AWxWeaponBase::FindWeapon(const AActor* Owner)
 void AWxWeaponBase::BeginAttack(const FDataTableRowHandle& InDamageInfo, const FGuid& AttackId)
 {
 	// 피해는 권위 머신에서만 적용되므로 판정도 거기서만 켠다.
-	// 복제하지 않는 차일드 액터 무기는 클라이언트에서도 자신이 권위라 소유자로 가른다.
 	AActor* OwnerActor = GetOwner();
 	if (!OwnerActor || !OwnerActor->HasAuthority() || !AttackId.IsValid() || ActiveAttacks.Contains(AttackId))
 	{

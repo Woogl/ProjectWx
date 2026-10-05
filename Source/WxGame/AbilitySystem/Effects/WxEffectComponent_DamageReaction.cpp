@@ -80,7 +80,7 @@ void UWxEffectComponent_DamageReaction::ProcessDamageTaken(UAbilitySystemCompone
 	}
 
 	// 브레이크 여부를 반응 종류에 실어 보내는 이유: 어빌리티 트리거는 RPC라 어트리뷰트 복제보다 먼저 도착해, 소유 클라가 SP를 다시 읽으면 차감 전 값을 본다.
-	// 받아 줄 GuardReact가 Ability.Action.Guard를 요구하므로, 같은 히트의 GP로 뜬 그로기가 가드를 먼저 끊었으면 일반 반응으로 보낸다.
+	// 받아 줄 GuardReact가 Ability.Action.Guard를 요구하므로, 같은 히트의 GP로 뜬 그로기가 가드를 먼저 끊었으면 브레이크가 아닌 Event.Hit으로 보낸다(반응 태그는 위에서 비웠다).
 	const bool bGuardBroken = DamageTags.HasTag(WxGameplayTags::Damage_GuardBreak) && ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Action_Guard);
 	const FGameplayTag HitEventTag = bGuardBroken
 		? WxGameplayTags::Event_Hit_GuardBreak

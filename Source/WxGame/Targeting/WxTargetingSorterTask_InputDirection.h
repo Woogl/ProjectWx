@@ -10,7 +10,7 @@
  * 소스 폰의 이동 입력 방향(수평)과 타겟 방향의 사이각이 작을수록 앞에 온다.
  * 입력이 없으면(스틱 중립) 모두 같은 점수를 줘 순서에 관여하지 않는다.
  *
- * 입력 방향은 CharacterMovementComponent의 Acceleration에서 읽는다 — 서버가 ServerMove로 받은 클라이언트 값을 그대로 넣어 주므로 머신 간 판정이 일치한다.
+ * 입력 방향은 CharacterMovementComponent의 Acceleration에서 읽는다 — 서버가 ServerMove로 받은 클라이언트 값을 그대로 넣어 주므로 서버와 소유 클라이언트의 판정이 일치한다(시뮬 프록시는 가속을 받지 않는다).
  */
 UCLASS()
 class WXGAME_API UWxTargetingSorterTask_InputDirection : public UTargetingSortTask_Base

@@ -122,7 +122,7 @@ void UWxUIManagerSubsystem::ObserveWidgetForGamePause(UCommonActivatableWidget* 
 		return;
 	}
 
-	// 위젯은 CommonUI 풀에서 재사용될 수 있어 이미 구독돼 있을 수 있으므로, 중복 없이 다시 건다.
+	// 같은 인스턴스가 다시 push돼도 중복 구독하지 않도록 지우고 다시 건다.
 	Widget->OnActivated().RemoveAll(this);
 	Widget->OnDeactivated().RemoveAll(this);
 	Widget->OnActivated().AddUObject(this, &ThisClass::HandleObservedWidgetActivationChanged);

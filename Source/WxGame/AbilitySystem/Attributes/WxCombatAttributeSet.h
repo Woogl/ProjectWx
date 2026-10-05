@@ -104,7 +104,7 @@ public:
 	FGameplayAttributeData MOV;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, MOV)
 
-	/** 어빌리티 몽타주 PlayRate로 그대로 쓰이는 공격 속도 배율(기본 1.0) */
+	/** 콤보 어빌리티(UWxAbility_Combo 계열) 몽타주 PlayRate로 쓰이는 공격 속도 배율(기본 1.0) */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Attributes|Combat", ReplicatedUsing = OnRep_ASPD)
 	FGameplayAttributeData ASPD;
 	ATTRIBUTE_ACCESSORS(UWxCombatAttributeSet, ASPD)

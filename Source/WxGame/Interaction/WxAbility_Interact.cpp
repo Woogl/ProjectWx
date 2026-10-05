@@ -32,7 +32,7 @@ UWxAbility_Interact::UWxAbility_Interact()
 	// 처형 연출 도중 근처 다른 대상과 상호작용해 처형 흐름에 개입하는 것을 차단한다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::Ability_Finisher);
 
-	// State.Dialogue는 PC의 WxDialogueSessionComponent가 세션 시작·종료에 맞춰 폰 ASC에 발행한다.
+	// State.Dialogue는 PC의 WxDialogueSessionComponent가 세션 시작·종료에 맞춰 폰 ASC에 발행하는 소유 머신 로컬 태그라, 원격 클라의 대화 중 차단은 클라 표시 게이트가 맡는다.
 	ActivationBlockedTags.AddTag(WxGameplayTags::State_Dialogue);
 }
 

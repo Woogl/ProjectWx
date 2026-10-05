@@ -95,7 +95,7 @@ void UWxCheatManager::WxKillEnemies(float RadiusMeters)
 			continue;
 		}
 
-		// 이미 죽은 대상은 HP 가 0 이라 어차피 아무 일도 없지만, 헛도는 GE 를 막고 처치 수를 정확히 세기 위해 거른다.
+		// 이미 죽은 대상은 HP 가 0 이라 어차피 아무 일도 없지만, 헛도는 GE 와 처치 로그를 막기 위해 거른다.
 		if (TargetAbilitySystem->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 		{
 			continue;
