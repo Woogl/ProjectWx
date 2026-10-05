@@ -17,6 +17,16 @@ allowed-tools: Bash, PowerShell, Read, Write
 - `git status` 로 변경/추가/삭제된 파일 목록 확인
 - `git diff` 와 `git diff --staged` 로 변경 내용 확인
 
+이어서 이번에 올릴 파일이 AGENTS.md 코딩 규칙 1·2·3·5를 지키는지 검사한다.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .agents/scripts/Check-CodingRules.ps1 -Changed
+```
+
+- 종료 코드 0이면 진행한다.
+- 1이면 커밋하지 말고 위반 목록을 사용자에게 보고한 뒤 멈춘다.
+- 2(검사 실패)는 통과로 취급하지 않고 오류를 보고한다.
+
 작업 트리에 변경이 없으면 2~4단계만 건너뛰고 5단계로 간다. 이미 만든 미전송 커밋이나 upstream 없는 새 브랜치가 있을 수 있으므로 여기서 종료하지 않는다.
 
 ### 2단계: 변경 분석 및 논리 그룹화
