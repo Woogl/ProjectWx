@@ -111,6 +111,12 @@ void AWxCharacterBase::OnJumped_Implementation()
 {
 	Super::OnJumped_Implementation();
 
+	// 위치 보정 뒤 저장된 무브를 재연할 때도 불리므로 재연 중에는 끊지 않는다.
+	if (bClientUpdating)
+	{
+		return;
+	}
+
 	// 액션 차단을 통과해 실제로 점프한 뒤에만 앞 액션의 후딜을 끊는다.
 	AbilitySystemComponent->CancelRecoveringAbilities(nullptr);
 }
@@ -122,7 +128,7 @@ void AWxCharacterBase::FellOutOfWorld(const UDamageType& DamageType)
 		return;
 	}
 
-	// 래그돌 시체가 떨어져 다시 불리는 경우도 있어 아직 살아 있을 때만 사망시킨다.
+	// KillZ 아래 남은 캡슐 때문에 이동 컴포넌트가 매 틱 다시 부르므로 아직 살아 있을 때만 사망시킨다.
 	if (!AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
 	{
 		FGameplayEventData EventData;
