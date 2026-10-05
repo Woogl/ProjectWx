@@ -38,26 +38,26 @@ bool UWxGameFlowSubsystem::RequestNewGame(TSoftClassPtr<APawn> PawnClass, TSoftO
 	UWorld* World = GetWorld();
 	if (!World || !World->IsNetMode(NM_Standalone))
 	{
-		StatusText = LOCTEXT("StandaloneOnly", "새 게임 진입은 싱글플레이에서 사용할 수 있습니다.");
+		StatusText = LOCTEXT("StandaloneOnly", "Starting a new game is only available in single player.");
 		return false;
 	}
 	if (PawnClass.IsNull() || Level.IsNull()
 		|| !FPackageName::DoesPackageExist(Level.ToSoftObjectPath().GetLongPackageName())
 		|| IsWorldPackage(World, Level))
 	{
-		StatusText = LOCTEXT("InvalidSelection", "캐릭터 또는 레벨을 확인해주세요.");
+		StatusText = LOCTEXT("InvalidSelection", "Check the selected character and level.");
 		return false;
 	}
 	UClass* SelectedPawnClass = PawnClass.LoadSynchronous();
 	if (!SelectedPawnClass || !SelectedPawnClass->IsChildOf(APawn::StaticClass())
 		|| SelectedPawnClass->HasAnyClassFlags(CLASS_Abstract | CLASS_Deprecated | CLASS_NewerVersionExists))
 	{
-		StatusText = LOCTEXT("InvalidPawnClass", "선택한 캐릭터를 생성할 수 없습니다. 다른 캐릭터를 선택해주세요.");
+		StatusText = LOCTEXT("InvalidPawnClass", "The selected character cannot be spawned. Choose another character.");
 		return false;
 	}
 	if (!UWxCheckpointSaveGame::ResetCheckpoint(World))
 	{
-		StatusText = LOCTEXT("CheckpointResetFailed", "체크포인트 저장 초기화에 실패했습니다. 다시 시도해주세요.");
+		StatusText = LOCTEXT("CheckpointResetFailed", "Failed to reset the checkpoint save. Please try again.");
 		return false;
 	}
 	// 검증한 클래스를 맵 이동 중에도 유지해 목적지에서 다시 로드하거나 기본 Pawn으로 대체하지 않는다.
@@ -77,7 +77,7 @@ const FText& UWxGameFlowSubsystem::GetStatusText() const
 {
 	if (StatusText.IsEmpty() && !GetDefault<UWxFrontEndDeveloperSettings>()->HasSelectableOptions())
 	{
-		static const FText NoOptions = LOCTEXT("NoOptions", "선택 가능한 캐릭터 또는 레벨이 없습니다.");
+		static const FText NoOptions = LOCTEXT("NoOptions", "No selectable characters or levels.");
 		return NoOptions;
 	}
 	return StatusText;
@@ -112,14 +112,15 @@ void UWxGameFlowSubsystem::HandlePostLoadMap(UWorld* World)
 
 void UWxGameFlowSubsystem::HandleTravelFailure(UWorld* World, ETravelFailure::Type FailureType, const FString& Error)
 {
-	if (!World || World->GetGameInstance() != GetGameInstance() || !IsBusy())
+	if (!World || World->GetGameInstance() != GetGameInstance())
 	{
 		return;
 	}
-	// 엔진이 기본 맵(프론트엔드)으로 되돌린다. 문구는 GameInstance 수명이라 다시 뜬 메뉴가 읽고, 선택은 여기서 버린다.
+	// 엔진이 기본 맵(프론트엔드)으로 되돌린다. 맵 로드 단계 실패는 폴백 맵 로드가 이 방송보다 먼저 와 선택을 이미 비우므로 진행 중인지 묻지 않는다.
+	// 문구는 GameInstance 수명이라 다시 뜬 메뉴가 읽는다.
 	PendingPawnClass = nullptr;
 	PendingLevel.Reset();
-	StatusText = FText::Format(LOCTEXT("TravelFailure", "레벨 전환에 실패했습니다: {0}"), FText::FromString(Error));
+	StatusText = FText::Format(LOCTEXT("TravelFailure", "Level travel failed: {0}"), FText::FromString(Error));
 }
 
 bool UWxGameFlowSubsystem::IsDestinationWorld(const UWorld* World) const
