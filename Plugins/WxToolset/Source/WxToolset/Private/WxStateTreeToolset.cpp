@@ -3,6 +3,7 @@
 #include "WxStateTreeToolset.h"
 
 #include "AssetToolsModule.h"
+#include "Components/StateTreeAIComponentSchema.h"
 #include "Components/StateTreeComponentSchema.h"
 #include "Dom/JsonObject.h"
 #include "IAssetTools.h"
@@ -145,6 +146,26 @@ namespace
 		using FStateTreeCompilerLog::Messages;
 	};
 
+	/** 스키마의 컨텍스트 클래스는 protected UPROPERTY 라 리플렉션으로 쓰고, 스키마가 컨텍스트 데이터의 타입을 맞추는 편집 통지를 직접 보낸다. */
+	bool SetSchemaClassProperty(UStateTreeSchema& Schema, const FName PropertyName, UClass* Value)
+	{
+		FClassProperty* ClassProperty = FindFProperty<FClassProperty>(Schema.GetClass(), PropertyName);
+		if (!ClassProperty)
+		{
+			UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("스키마 '%s' 에서 클래스 프로퍼티 '%s' 를 찾지 못했다."), *Schema.GetClass()->GetName(), *PropertyName.ToString()));
+			return false;
+		}
+
+		ClassProperty->SetObjectPropertyValue_InContainer(&Schema, Value);
+
+		FEditPropertyChain PropertyChain;
+		PropertyChain.AddHead(ClassProperty);
+		FPropertyChangedEvent ChangedEvent(ClassProperty);
+		FPropertyChangedChainEvent ChainEvent(PropertyChain, ChangedEvent);
+		Schema.PostEditChangeChainProperty(ChainEvent);
+		return true;
+	}
+
 	bool MakeBindingPath(const FString& StructId, const FString& Path, FPropertyBindingPath& OutPath)
 	{
 		FGuid Guid;
@@ -182,6 +203,35 @@ UStateTree* UWxStateTreeToolset::CreateStateTree(const FString& PackagePath, con
 		return nullptr;
 	}
 	return Cast<UStateTree>(NewAsset);
+}
+
+UStateTree* UWxStateTreeToolset::CreateAIStateTree(const FString& PackagePath, const FString& AssetName, UClass* AIControllerClass, UClass* ContextActorClass)
+{
+	if (PackagePath.IsEmpty() || AssetName.IsEmpty() || !AIControllerClass || !ContextActorClass)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("PackagePath·AssetName·AIControllerClass·ContextActorClass 는 비울 수 없다."));
+		return nullptr;
+	}
+
+	UStateTreeFactory* Factory = NewObject<UStateTreeFactory>();
+	Factory->SetSchemaClass(UStateTreeAIComponentSchema::StaticClass());
+
+	UStateTree* StateTree = Cast<UStateTree>(FAssetToolsModule::GetModule().Get().CreateAsset(AssetName, PackagePath, UStateTree::StaticClass(), Factory));
+	UStateTreeEditorData* EditorData = StateTree ? Cast<UStateTreeEditorData>(StateTree->EditorData) : nullptr;
+	if (!EditorData || !EditorData->Schema)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("에셋 생성 실패: %s/%s"), *PackagePath, *AssetName));
+		return nullptr;
+	}
+
+	if (!SetSchemaClassProperty(*EditorData->Schema, TEXT("AIControllerClass"), AIControllerClass)
+		|| !SetSchemaClassProperty(*EditorData->Schema, TEXT("ContextActorClass"), ContextActorClass))
+	{
+		return nullptr;
+	}
+
+	StateTree->MarkPackageDirty();
+	return StateTree;
 }
 
 FString UWxStateTreeToolset::GetRootParameters(UStateTree* StateTree)

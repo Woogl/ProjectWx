@@ -28,6 +28,15 @@ public:
 	static UStateTree* CreateStateTree(const FString& PackagePath, const FString& AssetName);
 
 	/**
+	 * StateTreeAIComponentSchema 로 고정된 UStateTree 에셋을 생성한다. AIController 의 UStateTreeAIComponent 가 돌리는 트리다.
+	 * @param AIControllerClass 컨텍스트 AIController 의 클래스. 이 클래스의 프로퍼티가 바인딩 소스가 된다(소스 ID EDB3CD97-95F9-4E0A-BD15-207B98645CDC).
+	 * @param ContextActorClass 컨텍스트 Actor(빙의한 폰)의 클래스.
+	 * @return 생성된 StateTree 에셋. 실패 시 스크립트 에러.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static UStateTree* CreateAIStateTree(const FString& PackagePath, const FString& AssetName, UClass* AIControllerClass, UClass* ContextActorClass);
+
+	/**
 	 * 루트 파라미터 백의 소스 ID(바인딩 소스로 쓰는 GUID)와 파라미터 목록을 JSON 으로 돌려준다.
 	 * 반환 형식: {"rootParametersId":"GUID","parameters":[{"name":...,"id":"GUID","type":"Text|Float|Struct|...","container":"None|Array","valueTypeObject":"/Script/... 또는 빈 문자열"}]}
 	 */
