@@ -112,11 +112,8 @@ void UWxAbility_Groggy::HandleMontagePollTick()
 		return;
 	}
 
-	if (ASC->GetCurrentMontage() != nullptr)
-	{
-		return;
-	}
-	if (const UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance(); AnimInstance && AnimInstance->Montage_IsActive(GetMontage()))
+	// GAS는 마지막에 재생한 몽타주 하나만 기록해, 그 위에 겹친 가산 피격이 끝나면 아직 도는 처형 짝 몽타주를 놓친다 — 실제 재생 상태를 본다.
+	if (const UAnimInstance* AnimInstance = CurrentActorInfo->GetAnimInstance(); AnimInstance && AnimInstance->Montage_IsActive(nullptr))
 	{
 		return;
 	}
@@ -127,16 +124,12 @@ void UWxAbility_Groggy::HandleMontagePollTick()
 bool UWxAbility_Groggy::PlayMontageInternal(UAnimMontage* Montage, FName StartSection)
 {
 	// 그로기는 몽타주 종료가 아니라 GP 드레인으로 끝나며, 중간 피격 뒤에는 폴링으로 자세를 복구한다.
+	// 방향을 기다리는 사이 다른 몽타주가 시작됐으면 다음 폴링까지 기다린다.
+	if (const UAnimInstance* AnimInstance = CurrentActorInfo ? CurrentActorInfo->GetAnimInstance() : nullptr; AnimInstance && AnimInstance->Montage_IsActive(nullptr))
+	{
+		return true;
+	}
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	if (const UAnimInstance* AnimInstance = CurrentActorInfo ? CurrentActorInfo->GetAnimInstance() : nullptr; AnimInstance && AnimInstance->Montage_IsActive(Montage))
-	{
-		return true;
-	}
-	if (ASC && ASC->GetCurrentMontage())
-	{
-		// 방향을 기다리는 사이 다른 반응이 시작됐으면 다음 폴링까지 기다린다.
-		return true;
-	}
 	return ASC && ASC->PlayMontage(this, CurrentActivationInfo, Montage, 1.f, StartSection) > 0.f;
 }
 
