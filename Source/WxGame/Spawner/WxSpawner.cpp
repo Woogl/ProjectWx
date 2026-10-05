@@ -108,7 +108,8 @@ void AWxSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (SpawnMode == EWxSpawnerMode::Auto)
+	// 셀이 로드된 뒤 BeginPlay 전에 TriggerSpawners가 이미 스폰했을 수 있다.
+	if (SpawnMode == EWxSpawnerMode::Auto && !SpawnedActor.IsValid())
 	{
 		SpawnTarget();
 	}
