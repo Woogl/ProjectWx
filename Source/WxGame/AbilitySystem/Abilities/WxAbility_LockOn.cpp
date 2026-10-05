@@ -132,15 +132,15 @@ void UWxAbility_LockOn::HandleTargetLost()
 				continue;
 			}
 
-			// 락온 유지 범위(MaxDistance)를 벗어난 후보로 갈아타면 다음 틱에 즉시 다시 잃으므로 제외한다.
-			if (FVector::DistSquared(AvatarLocation, Candidate->GetActorLocation()) > MaxDistanceSquared)
+			// ResolveLockOnTarget이 죽은 대상 등 불가 지점을 이미 거른다.
+			USceneComponent* TargetComponent = UWxLockOnPointComponent::ResolveLockOnTarget(Candidate);
+			if (!TargetComponent)
 			{
 				continue;
 			}
 
-			// ResolveLockOnTarget이 죽은 대상 등 불가 지점을 이미 거른다.
-			USceneComponent* TargetComponent = UWxLockOnPointComponent::ResolveLockOnTarget(Candidate);
-			if (!TargetComponent)
+			// 락온 유지 범위(MaxDistance)를 벗어난 후보로 갈아타면 다음 틱에 즉시 다시 잃으므로 제외한다. 유지 판정처럼 지점 위치로 잰다.
+			if (FVector::DistSquared(AvatarLocation, TargetComponent->GetComponentLocation()) > MaxDistanceSquared)
 			{
 				continue;
 			}
