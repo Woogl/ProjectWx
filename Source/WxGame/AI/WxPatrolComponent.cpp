@@ -3,8 +3,6 @@
 #include "AI/WxPatrolComponent.h"
 
 #include "Components/ArrowComponent.h"
-#include "GameFramework/Pawn.h"
-#include "AI/WxAIBehaviorComponent.h"
 
 UWxPatrolComponent::UWxPatrolComponent()
 {
@@ -19,13 +17,6 @@ UWxPatrolComponent::UWxPatrolComponent()
 		DirectionArrow->SetHiddenInGame(true);
 	}
 #endif
-}
-
-UWxPatrolComponent* UWxPatrolComponent::FindPatrolComponent(const APawn* Pawn)
-{
-	const UWxAIBehaviorComponent* AIBehavior = Pawn ? Pawn->FindComponentByClass<UWxAIBehaviorComponent>() : nullptr;
-
-	return AIBehavior ? AIBehavior->GetPatrolPath() : nullptr;
 }
 
 int32 UWxPatrolComponent::GetNumPoints() const

@@ -6,7 +6,6 @@
 #include "Components/SplineComponent.h"
 #include "WxPatrolComponent.generated.h"
 
-class APawn;
 class UArrowComponent;
 
 UENUM(BlueprintType)
@@ -35,8 +34,6 @@ class WXGAME_API UWxPatrolComponent : public USplineComponent
 
 public:
 	UWxPatrolComponent();
-
-	static UWxPatrolComponent* FindPatrolComponent(const APawn* Pawn);
 
 	int32 GetNumPoints() const;
 

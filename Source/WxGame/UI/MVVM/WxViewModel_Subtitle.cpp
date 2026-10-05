@@ -3,18 +3,13 @@
 #include "UI/MVVM/WxViewModel_Subtitle.h"
 
 #include "Blueprint/UserWidget.h"
-#include "Engine/GameInstance.h"
-#include "Engine/World.h"
-#include "MVVMGameSubsystem.h"
+#include "UI/MVVM/WxViewModelUtils.h"
 #include "Types/MVVMViewModelCollection.h"
 #include "Types/MVVMViewModelContext.h"
 
 UWxViewModel_Subtitle* UWxViewModel_Subtitle::GetOrCreate(const UObject* WorldContextObject)
 {
-	const UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
-	const UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
-	UMVVMGameSubsystem* ViewModelSubsystem = GameInstance ? GameInstance->GetSubsystem<UMVVMGameSubsystem>() : nullptr;
-	UMVVMViewModelCollectionObject* ViewModelCollection = ViewModelSubsystem ? ViewModelSubsystem->GetViewModelCollection() : nullptr;
+	UMVVMViewModelCollectionObject* ViewModelCollection = WxViewModel::GetGlobalCollection(WorldContextObject);
 	if (!ViewModelCollection)
 	{
 		return nullptr;

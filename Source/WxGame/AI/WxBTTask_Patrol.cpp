@@ -2,6 +2,7 @@
 
 #include "AI/WxBTTask_Patrol.h"
 
+#include "AI/WxAIBehaviorComponent.h"
 #include "AI/WxPatrolComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
@@ -36,7 +37,8 @@ EBTNodeResult::Type UWxBTTask_Patrol::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
 
 	// 정찰 경로가 없는 적(정찰 안 함)은 실패시켜 Selector 가 다음 행동(배회 등)으로 넘어가게 한다.
-	const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(Pawn);
+	const UWxAIBehaviorComponent* AIBehavior = Pawn ? Pawn->FindComponentByClass<UWxAIBehaviorComponent>() : nullptr;
+	const UWxPatrolComponent* Patrol = AIBehavior ? AIBehavior->GetPatrolPath() : nullptr;
 	if (!Patrol || Patrol->GetNumPoints() == 0)
 	{
 		return EBTNodeResult::Failed;
@@ -99,7 +101,9 @@ void UWxBTTask_Patrol::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* 
 	MoveSpeedEffectHandle = FActiveGameplayEffectHandle();
 
 	const AAIController* AIController = OwnerComp.GetAIOwner();
-	const UWxPatrolComponent* Patrol = UWxPatrolComponent::FindPatrolComponent(AIController ? AIController->GetPawn() : nullptr);
+	const APawn* Pawn = AIController ? AIController->GetPawn() : nullptr;
+	const UWxAIBehaviorComponent* AIBehavior = Pawn ? Pawn->FindComponentByClass<UWxAIBehaviorComponent>() : nullptr;
+	const UWxPatrolComponent* Patrol = AIBehavior ? AIBehavior->GetPatrolPath() : nullptr;
 	if (!Patrol)
 	{
 		return;
