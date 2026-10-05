@@ -102,8 +102,6 @@ void UWxAbilityTask_Rush::SharedInitAndApply()
 		SourceAnimInstance = AnimInstance;
 		SourceMontageInstanceID = Instance->GetInstanceID();
 	}
-	bSavedControllerYaw = Avatar->bUseControllerRotationYaw;
-	Avatar->bUseControllerRotationYaw = false;
 	// 회전 모드 플래그는 락온이 소유하므로 건드리지 않고, 중첩을 처리하는 회전 속도 잠금으로 CMC 회전을 막는다.
 	if (Ability)
 	{
@@ -221,14 +219,10 @@ void UWxAbilityTask_Rush::ReleaseState()
 			OtherASC->OnAbilityEnded.RemoveAll(this);
 		}
 	}
-	if (ACharacter* Avatar = Cast<ACharacter>(GetAvatarActor()))
+	if (ACharacter* Avatar = Cast<ACharacter>(GetAvatarActor()); Avatar && bChangedCollisionResponses)
 	{
-		Avatar->bUseControllerRotationYaw = bSavedControllerYaw;
-		if (bChangedCollisionResponses)
-		{
-			Avatar->GetCapsuleComponent()->SetCollisionResponseToChannels(SavedCollisionResponses);
-			bChangedCollisionResponses = false;
-		}
+		Avatar->GetCapsuleComponent()->SetCollisionResponseToChannels(SavedCollisionResponses);
+		bChangedCollisionResponses = false;
 	}
 }
 

@@ -47,5 +47,4 @@ private:
 	FCollisionResponseContainer SavedCollisionResponses;
 	bool bOwnsState = false;
 	bool bChangedCollisionResponses = false;
-	bool bSavedControllerYaw = false;
 };

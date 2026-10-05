@@ -56,19 +56,7 @@ void UWxPlayerLayoutComponent::HandlePossessedPawnChanged(APawn* OldPawn, APawn*
 		return;
 	}
 
-	UWxPrimaryGameLayout* Layout = UWxUILibrary::GetPrimaryGameLayout(this);
-	if (!Layout)
-	{
-		return;
-	}
-
-	// 같은 Pawn 알림은 기존 HUD를 유지한다. CommonUI 풀에 남은 참조는 스택 포함 여부로 구분한다.
-	const UCommonActivatableWidgetStack* GameStack = Layout->GetLayerWidgetStack(WxGameplayTags::UI_Layer_Game);
-	if (GameStack && GameStack->GetWidgetList().Contains(LayoutWidget.Get()))
-	{
-		return;
-	}
-	if (PendingLayoutPush)
+	if (!UWxUILibrary::GetPrimaryGameLayout(this))
 	{
 		return;
 	}
