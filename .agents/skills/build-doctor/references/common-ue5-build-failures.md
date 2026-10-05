@@ -11,18 +11,25 @@ High-signal signatures:
 - `Access to the path ... is denied`
 - `BUILD_DOCTOR_EXIT_CODE=-532462766`
 - output stops immediately after `Running UnrealBuildTool`
+- the same CLR exit code right after `Using 'git status' to determine working set for adaptive non-unity build`
+- `Unable to build while Live Coding is active` followed by `Result: Failed (OtherCompilationError)` within seconds
 
 Likely cause:
 - The project root is wrong or contains zero/multiple `.uproject` files.
 - `LauncherInstalled.dat` has no installation entry matching the project `EngineAssociation`.
 - `Build.bat` or the build log directory cannot be accessed.
 - UnrealBuildTool cannot create `%LOCALAPPDATA%/UnrealBuildTool/Log.txt`, `Trace.uba`, or its mutex. The CLR exception exit code `-532462766` (`0xE0434352`) can be the only visible symptom.
+- UnrealBuildTool cannot parse `git status` paths escaped as octal non-ASCII (deleted Korean file names), which crashes the working-set step.
+- An editor of the same configuration is running with Live Coding; compilation never starts. An editor of another configuration (for example `UnrealEditor-Win64-DebugGame.exe`) does not block a Development build.
 
 Good immediate fixes:
 - Fix the failing preflight path instead of editing project source.
 - Keep build-doctor logs under `<project>/Saved/Logs/BuildDoctor`.
 - When the harness runs inside a filesystem sandbox, get approval to run outside it so UnrealBuildTool can write its user-local files.
 - Retry once only when the first UnrealBuildTool process ended before producing a log; repeated failure needs permission or process-lock diagnosis.
+- For the `git status` crash, run `git config core.quotepath false` in the repository.
+- Judge a build by the `Result:` line, never by the shell exit code: piping `Build.bat` output (for example `| Select-Object -Last N`) returns 0 even for the Live Coding refusal.
+- List editors with the `UnrealEditor*` pattern; configuration-suffixed executables are easy to miss. Do not close an editor another session started — ask the user.
 
 ## 1) UHT / reflection / generated code
 
@@ -98,6 +105,7 @@ Good immediate fixes:
 - Confirm the `.cpp` implementing the symbol is compiled into the target.
 - Check missing module/library dependencies in `Build.cs`.
 - For an editor-owned DLL, close the editor and rebuild or use the `run-editor` skill.
+- Compilation still runs before the `LNK1104`, so the build is usable as a compile check while that editor stays open.
 
 ## 5) Target / plugin / configuration mismatch
 
@@ -122,11 +130,14 @@ High-signal signatures:
 - build errors reference old generated paths or removed symbols
 - errors disappear after cleaning
 - repeated failures after hot reload/live coding changes
+- the build succeeds but a feature silently does nothing (no log line) after Live Coding patched a newly added module or class
 
 Likely cause:
 - `Binaries` / `Intermediate` / generated files are stale.
+- Live Coding cannot reliably patch virtual dispatch or reflection for newly added modules, classes, or `USTRUCT`/`UPROPERTY` layout changes.
 
 Good immediate fixes:
+- For new modules, classes, or reflected layout changes, do a full build and restart the editor instead of Live Coding.
 - Close the editor.
 - Delete `Binaries` and `Intermediate`.
 - Regenerate project files.

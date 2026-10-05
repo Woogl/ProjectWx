@@ -77,6 +77,7 @@ if (TargetASC->HasMatchingGameplayTag(WxGameplayTags::State_Dead))
 
 - **왜** 그렇게 했는지, 전제·제약, 엔진 함정, 순서가 그래야 하는 이유. 이 코드베이스가 이미 잘 하고 있는 쪽이고, 없애면 "불필요해 보이는 코드"로 오판해 건드릴 위험이 생긴다.
 - `UPROPERTY`의 `/** */` 중 이름만으로는 모르는 것 — 단위·유효 범위·기획 의도·다른 값과의 관계. 툴팁이라 남기는 게 아니라 **비자명해서** 남긴다.
+- `meta = (AICallable)`인 `UFUNCTION`과 그 툴셋 `UCLASS`의 `/** */`. MCP가 그대로 툴 설명으로 내보내 호출하는 AI가 읽는 사용 설명이라, 용도 한 줄·인자 형식·사용법·함정을 지우지 않는다. 낡은 서술 정정만 한다.
 - `//~ Begin/End <Type>`, `// IInterface` 등 구조 마커. 마커 스타일 통일도 이 스킬이 할 일이 아니다.
 - 첫 줄 `// Copyright Woogle. All Rights Reserved.`
 - `TODO`/`HACK` — 문구는 다듬되 항목 자체는 유지한다.
