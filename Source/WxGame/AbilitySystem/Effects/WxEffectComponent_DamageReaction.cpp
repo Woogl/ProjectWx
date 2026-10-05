@@ -54,8 +54,7 @@ void UWxEffectComponent_DamageReaction::ProcessDamageTaken(UAbilitySystemCompone
 
 	FGameplayTag ReactionTag = DamageTags.Filter(FGameplayTagContainer(WxGameplayTags::HitReact)).First();
 
-	// GP 적용이 이 컴포넌트보다 먼저라, 지금 그로기면 이 히트가 그로기를 띄웠거나 이미 그로기였다.
-	// GP는 그로기가 아닐 때만 쌓이므로 GP 기록이 있으면 전자다 — 원래 반응 없이 그로기 시작 자세만 보인다.
+	// GP는 그로기가 아닐 때만 쌓이므로, 지금 그로기인데 GP 기록이 있으면 이 히트가 그로기를 띄운 것이라 원래 반응 없이 그로기 시작 자세만 보인다.
 	// 이미 그로기면 날아가지 않는다 — 긴 넉 몽타주가 그로기 몽타주를 밀어내는 동안에도 GP 드레인은 돌아 그로기 창이 잘려나간다.
 	if (ASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Groggy))
 	{

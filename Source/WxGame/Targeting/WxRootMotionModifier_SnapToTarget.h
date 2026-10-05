@@ -26,7 +26,7 @@ class WXGAME_API UWxRootMotionModifier_SnapToTarget : public URootMotionModifier
 	GENERATED_BODY()
 
 public:
-	/** 스냅 가능 범위 판정에 쓸 TargetingPreset. 노티파이가 주입한다. */
+	/** 이동 역할의 스냅 범위 판정과 지정 대상이 없을 때의 회전 폴백 쿼리에 쓴다. 노티파이가 주입한다. */
 	UPROPERTY()
 	TObjectPtr<UTargetingPreset> TargetingPreset;
 

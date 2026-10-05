@@ -33,7 +33,10 @@ class WXGAME_API AWxProjectileBase : public AActor, public IGenericTeamAgentInte
 public:
 	AWxProjectileBase();
 
-	/** 서버에서만 생성한다. Owner를 소유자이자 Instigator로 심어 투사체가 팀과 적중 판정의 출처로 쓴다. 생성하지 않으면 null. */
+	/**
+	 * 서버에서만 생성하고, 생성하지 않으면 null이다.
+	 * Owner를 소유자이자 Instigator로 심어 투사체가 팀과 적중 판정의 출처로 쓴다.
+	 */
 	static AWxProjectileBase* SpawnProjectile(AActor& Owner, TSubclassOf<AWxProjectileBase> ProjectileClass, const FTransform& SpawnTransform, int32 InProjectileLevel);
 
 	int32 GetProjectileLevel() const;

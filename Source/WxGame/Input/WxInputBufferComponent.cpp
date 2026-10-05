@@ -149,7 +149,6 @@ void UWxInputBufferComponent::FlushBufferedInputs()
 		++Index;
 	}
 
-	// 남은 입력은 발동되거나 만료될 때까지 매 틱 다시 시도한다.
 	if (!BufferedInputs.IsEmpty())
 	{
 		FlushTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::FlushBufferedInputs);

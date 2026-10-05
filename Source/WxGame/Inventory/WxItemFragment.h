@@ -105,7 +105,7 @@ class WXGAME_API UWxItemFragment_Pickup : public UWxItemFragment
 	GENERATED_BODY()
 
 public:
-	/** 지급 데이터(아이템/수량)는 스포너가 스폰 후 주입한다. */
+	/** 지급 데이터(아이템/수량)는 스포너가 지연 스폰 중 FinishSpawning 전에 주입한다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Pickup")
 	TSoftClassPtr<AWxItemPickup> ItemActorClass;
 

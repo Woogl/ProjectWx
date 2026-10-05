@@ -46,7 +46,7 @@ void AWxItemPickup::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// ItemDef/Quantity 는 스폰 직후 설정되고 이후 변하지 않으므로 초기 1회만 복제.
+	// ItemDef/Quantity 는 지연 스폰의 FinishSpawning 전에 설정되고 이후 변하지 않으므로 초기 1회만 복제한다.
 	DOREPLIFETIME_CONDITION(AWxItemPickup, ItemDef, COND_InitialOnly);
 	DOREPLIFETIME_CONDITION(AWxItemPickup, Quantity, COND_InitialOnly);
 }
