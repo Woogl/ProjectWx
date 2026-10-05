@@ -17,7 +17,8 @@ bool UWxCheckpointSaveGame::SaveCheckpoint(const UWorld* World, const FTransform
 		return false;
 	}
 	Save->LevelPackage = FName(*UWorld::RemovePIEPrefix(World->GetOutermost()->GetName()));
-	Save->RespawnTransform = FTransform(Transform.GetRotation(), Transform.GetLocation());
+	// 엔진 PlayerStart 스폰처럼 Yaw만 남겨 기운 채 스폰되지 않게 한다.
+	Save->RespawnTransform = FTransform(FRotator(0.f, Transform.Rotator().Yaw, 0.f), Transform.GetLocation());
 	return UGameplayStatics::SaveGameToSlot(Save, GetSlotName(), 0);
 }
 
