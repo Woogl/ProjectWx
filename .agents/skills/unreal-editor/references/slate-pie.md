@@ -14,7 +14,8 @@ MCP 툴로 안 되는 일은 SlateInspector로 에디터 UI를 직접 누른다.
 
 ## PIE
 
-- `EditorAppToolset.StartPIE(options{warmupSeconds, startTransform})`·`StopPIE`. 스폰 지점이 막혀 있으면 폰이 아예 생기지 않는다. `LogSpawn`을 확인하고 여유 높이에서 떨어뜨린다.
+- 오류만 볼 때는 `.agents/scripts/Check-PieErrors.ps1`을 쓴다. 에디터 git 소스 컨트롤이 PIE 임시 패키지(`/Memory`)에 내는 오류는 게임과 무관해 빼고 보고한다.
+- `EditorAppToolset.StartPIE(options{bSimulate, playMode, warmupSeconds, startTransform})`·`StopPIE`·`IsPIERunning`. `StartPIE`는 BeginPlay 뒤 `warmupSeconds`가 지나야 돌아온다. 스폰 지점이 막혀 있으면 폰이 아예 생기지 않는다. `LogSpawn`을 확인하고 여유 높이에서 떨어뜨린다.
 - 게임 UI 흐름(메뉴 → 선택 → 맵 이동)은 위 SlateInspector 클릭으로 끝까지 몰 수 있다.
 - `PressKey`는 PIE 게임 뷰포트까지 닿지 않는다. 캐릭터 조작이 필요한 검증은 사람이 한다.
 - PIE 오브젝트는 `UEDPIE_0_` 경로로 조회·편집한다. 폰을 텔레포트해 오버랩을 일으키는 식으로 상황을 만든다. UPROPERTY가 아닌 값(`IgnoreMoveInput` 등)은 읽을 수 없다.
