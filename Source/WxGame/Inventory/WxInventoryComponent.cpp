@@ -11,7 +11,6 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
-#include "WxGameplayTags.h"
 
 FWxInventoryEntry::FWxInventoryEntry()
 	: Instance(nullptr)
@@ -148,19 +147,6 @@ UWxItemInstance* FWxInventoryList::AddEntry(const UWxItemDefinition* ItemDef, in
 
 	MarkItemDirty(NewEntry);
 	return NewEntry.Instance;
-}
-
-void FWxInventoryList::RemoveEntry(UWxItemInstance* Instance)
-{
-	for (auto It = Entries.CreateIterator(); It; ++It)
-	{
-		if (It->Instance == Instance)
-		{
-			It.RemoveCurrent();
-			MarkArrayDirty();
-			return;
-		}
-	}
 }
 
 int32 FWxInventoryList::AddToEntryStack(int32 EntryIndex, int32 Amount)
@@ -337,40 +323,6 @@ void UWxInventoryComponent::GrantItems(const TArray<FWxItemRewardEntry>& Items)
 	}
 }
 
-void UWxInventoryComponent::RemoveItemInstance(UWxItemInstance* ItemInstance)
-{
-	if (!ItemInstance)
-	{
-		return;
-	}
-
-	check(GetOwner() && GetOwner()->HasAuthority());
-
-	int32 RemovedStackCount = 0;
-	for (const FWxInventoryEntry& Entry : InventoryList.GetEntries())
-	{
-		if (Entry.GetInstance() == ItemInstance)
-		{
-			RemovedStackCount = Entry.GetStackCount();
-			break;
-		}
-	}
-
-	if (RemovedStackCount <= 0)
-	{
-		return;
-	}
-
-	const UWxItemDefinition* RemovedDef = ItemInstance->GetItemDef();
-
-	UnregisterReplicatedInstance(ItemInstance);
-
-	InventoryList.RemoveEntry(ItemInstance);
-
-	NotifySlotChangedFromList(ItemInstance, 0, -RemovedStackCount);
-	NotifyStackChangedFromList(RemovedDef, -RemovedStackCount);
-}
-
 bool UWxInventoryComponent::ConsumeItemsByDefinition(const UWxItemDefinition* ItemDef, int32 NumToConsume)
 {
 	if (!ItemDef || NumToConsume <= 0)
@@ -468,18 +420,6 @@ TArray<UWxItemInstance*> UWxInventoryComponent::GetAllItems() const
 		}
 	}
 	return Result;
-}
-
-bool UWxInventoryComponent::RequestUseConsumable()
-{
-	const APlayerController* PC = GetOwner<APlayerController>();
-	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(PC ? PC->GetPawn() : nullptr);
-	if (!ASC)
-	{
-		return false;
-	}
-
-	return ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(WxGameplayTags::Ability_Action_UseItem));
 }
 
 bool UWxInventoryComponent::CanUseConsumable() const

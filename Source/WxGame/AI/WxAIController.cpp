@@ -101,7 +101,6 @@ void AWxAIController::OnPossess(APawn* InPawn)
 
 	if (UBlackboardComponent* BB = GetBlackboardComponent())
 	{
-		WxBlackboardKeys::SetSelfActor(BB, InPawn);
 		WxBlackboardKeys::SetHomeLocation(BB, InPawn->GetActorLocation());
 
 		// 재사용된 컨트롤러가 이전 폰의 타겟을 물려받지 않도록 비운다.
@@ -139,7 +138,6 @@ void AWxAIController::OnUnPossess()
 	{
 		BB->UnregisterObserversFrom(this);
 
-		WxBlackboardKeys::SetSelfActor(BB, nullptr);
 		WxBlackboardKeys::SetTargetActor(BB, nullptr);
 
 		const APawn* PreviousPawn = GetPawn();

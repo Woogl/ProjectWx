@@ -22,11 +22,6 @@ EStateTreeRunStatus FWxStateTreeTask_SpawnNiagara::EnterState(FStateTreeExecutio
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	if (IsValid(Instance.SpawnedComponent) && !Instance.SpawnedComponent->IsComplete())
-	{
-		return EStateTreeRunStatus::Succeeded;
-	}
-
 	AActor* Owner = Cast<AActor>(Context.GetOwner());
 	if (!Owner)
 	{

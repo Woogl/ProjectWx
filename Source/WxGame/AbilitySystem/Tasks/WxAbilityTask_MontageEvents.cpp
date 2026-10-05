@@ -257,7 +257,7 @@ void UWxAbilityTask_MontageEvents::HandleGameplayWindow(const UAnimNotifyState* 
 	}
 	else if (Slow)
 	{
-		Window.SlowTime = UWxAbilityTask_SlowTime::CreateTask(Ability, Slow->TimeDilation, -1.f);
+		Window.SlowTime = UWxAbilityTask_SlowTime::CreateTask(Ability, Slow->TimeDilation);
 		Window.SlowTime->ReadyForActivation();
 	}
 	FWxMontageWindow* ActiveWindow = MontageWindows.FindByPredicate([&Window](const FWxMontageWindow& Candidate) { return Candidate.ID == Window.ID; });

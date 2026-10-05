@@ -10,7 +10,8 @@ class UBlackboardComponent;
 class UBlackboardKeyType;
 
 /**
- * 키 SET/CLEAR 는 AIController(SelfActor·HomeLocation·Master·빙의 전환 시 TargetActor), BTTask/BTService(TargetActor·PatrolTargetLocation·TargetDistance) 가 나눠 담당한다.
+ * SelfActor 는 엔진이 채운다(모든 Blackboard 에셋의 고정 키이고, AAIController 가 블랙보드 초기화·빙의 때 폰으로 갱신한다).
+ * 나머지 키 SET/CLEAR 는 AIController(HomeLocation·Master·빙의 전환 시 TargetActor), BTTask/BTService(TargetActor·PatrolTargetLocation·TargetDistance) 가 나눠 담당한다.
  * Blackboard 에셋에 같은 이름의 키가 등록돼 있어야 한다.
  *
  * 키별 accessor 는 키 이름과 값 타입을 한 곳에 묶어 GetValueAs / SetValueAs 계열의 타입 오용을 막는다.
@@ -36,7 +37,6 @@ namespace WxBlackboardKeys
 	WXGAME_API void SetTargetActor(UBlackboardComponent* Blackboard, AActor* Value);
 
 	WXGAME_API AActor* GetSelfActor(const UBlackboardComponent* Blackboard);
-	WXGAME_API void SetSelfActor(UBlackboardComponent* Blackboard, AActor* Value);
 
 	WXGAME_API void SetMaster(UBlackboardComponent* Blackboard, AActor* Value);
 

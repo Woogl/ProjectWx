@@ -68,12 +68,6 @@ namespace WxBlackboardKeys
 		return Cast<AActor>(Blackboard->GetValueAsObject(SelfActor));
 	}
 
-	void SetSelfActor(UBlackboardComponent* Blackboard, AActor* Value)
-	{
-		VerifyBlackboardKey(Blackboard, SelfActor, UBlackboardKeyType_Object::StaticClass());
-		Blackboard->SetValueAsObject(SelfActor, Value);
-	}
-
 	void SetMaster(UBlackboardComponent* Blackboard, AActor* Value)
 	{
 		VerifyBlackboardKey(Blackboard, Master, UBlackboardKeyType_Object::StaticClass());

@@ -127,16 +127,6 @@ void AWxSpawner::SpawnTarget()
 	{
 		return;
 	}
-	if (bIsKilled)
-	{
-		UE_LOG(LogWxWorld, Verbose, TEXT("Spawner(%s): 처치 상태라 생성 시도를 건너뛴다."), *GetName());
-		return;
-	}
-	if (const AActor* Existing = SpawnedActor.Get())
-	{
-		UE_LOG(LogWxWorld, Verbose, TEXT("Spawner(%s): 추적 중인 인스턴스 %s가 있어 생성 시도를 건너뛴다."), *GetName(), *Existing->GetName());
-		return;
-	}
 
 	if (!SpawnableActorClass->ImplementsInterface(UWxSpawnable::StaticClass()))
 	{

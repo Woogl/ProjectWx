@@ -58,10 +58,10 @@ void UWxAIBehaviorComponent::BeginPlay()
 	Pawn->ReceiveControllerChangedDelegate.AddUniqueDynamic(this, &UWxAIBehaviorComponent::HandleControllerChanged);
 	ApplySenseSettings(Pawn->GetController());
 
-	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn); ASC && !PawnHitDelegateHandle.IsValid())
+	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
 	{
 		// 가드 브레이크 히트는 Event.Hit.GuardBreak 자식으로 나가므로 정확 매칭 구독은 놓친다.
-		PawnHitDelegateHandle = ASC->AddGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Hit),
+		ASC->AddGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Hit),
 			FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxAIBehaviorComponent::HandlePawnHit));
 	}
 }

@@ -67,9 +67,6 @@ struct FWxInventoryList : public FFastArraySerializer
 	/** 권한: Fragment 의 OnInstanceCreated 가 호출된다. */
 	UWxItemInstance* AddEntry(const UWxItemDefinition* ItemDef, int32 StackCount);
 
-	/** 권한: 인스턴스에 해당하는 엔트리를 통째로 제거. */
-	void RemoveEntry(UWxItemInstance* Instance);
-
 	/** 권한: 갱신 후 수량을 반환한다(MarkItemDirty 포함). */
 	int32 AddToEntryStack(int32 EntryIndex, int32 Amount);
 
@@ -147,12 +144,6 @@ public:
 	void GrantItems(const TArray<FWxItemRewardEntry>& Items);
 
 	/**
-	 * 권한: 특정 인스턴스 슬롯을 통째로 제거한다.
-	 * 현재 호출부가 없다(소비는 ConsumeItemsByDefinition 경로가 담당한다).
-	 */
-	void RemoveItemInstance(UWxItemInstance* ItemInstance);
-
-	/**
 	 * 권한: ItemDef 의 소유 수량을 NumToConsume 만큼 차감한다.
 	 * 부족하면 false 반환하고 아무것도 차감하지 않는다(원자적).
 	 * 같은 ItemDef 가 복수 엔트리로 분산돼 있어도 합산 차감하고, 0 이 된 슬롯은 제거한다.
@@ -167,14 +158,6 @@ public:
 	int32 GetStackCountByInstance(const UWxItemInstance* Instance) const;
 
 	TArray<UWxItemInstance*> GetAllItems() const;
-
-	/**
-	 * 입력이 아닌 경로(UI 클릭 등)의 진입점으로, 소유 폰의 UseItem 어빌리티를 AssetTag 로 발동한다 — 입력이 타는 것과 같은 경로다.
-	 * 사용 가능 여부 판정과 차감은 어빌리티가 수행하므로 여기서는 검사하지 않는다.
-	 *
-	 * 소비 아이템은 에스트병 하나뿐이라 대상을 지목하지 않는다.
-	 */
-	bool RequestUseConsumable();
 
 	/** 쓸 수 있는 소비 아이템(Usable Fragment, 충전형이면 충전이 남은 것)이 있으면 true. */
 	bool CanUseConsumable() const;

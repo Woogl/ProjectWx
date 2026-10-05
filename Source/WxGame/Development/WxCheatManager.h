@@ -4,14 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/CheatManager.h"
-#include "Templates/SubclassOf.h"
 #include "WxCheatManager.generated.h"
-
-class UGameplayAbility;
 
 /**
  * AWxPlayerController 가 CheatClass 로 지정하며, 엔진은 AGameModeBase::AllowCheats(Standalone·에디터)일 때만 이 객체를 만든다.
- * 배포 빌드에선 UE_WITH_CHEAT_MANAGER 로 아예 빠지고, 존재하는 시점은 곧 권위 측이므로 각 치트는 권위 가드 없이 곧바로 적용한다.
+ * 배포 빌드에선 UE_WITH_CHEAT_MANAGER 로 아예 빠진다.
+ * 각 치트는 권위 측을 전제로 가드 없이 곧바로 적용한다 — EnableCheats 로 클라에 강제로 만든 매니저에서는 제대로 동작하지 않는다.
  */
 UCLASS()
 class WXGAME_API UWxCheatManager : public UCheatManager
