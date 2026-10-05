@@ -6,7 +6,6 @@
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "Dom/JsonObject.h"
-#include "FileHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
@@ -689,23 +688,4 @@ int32 UWxAnimMontageToolset::RemoveNotifiesOfClass(UAnimMontage* Montage, UClass
 	Montage->PostEditChange();
 	Montage->MarkPackageDirty();
 	return RemovedCount;
-}
-
-bool UWxAnimMontageToolset::SaveMontage(UAnimMontage* Montage)
-{
-	if (!ValidateMontage(Montage, TEXT("대상")))
-	{
-		return false;
-	}
-
-	UPackage* Package = Montage->GetPackage();
-	if (!Package)
-	{
-		UKismetSystemLibrary::RaiseScriptError(TEXT("몽타주의 패키지를 찾지 못했다."));
-		return false;
-	}
-
-	TArray<UPackage*> PackagesToSave;
-	PackagesToSave.Add(Package);
-	return UEditorLoadingAndSavingUtils::SavePackages(PackagesToSave, false);
 }

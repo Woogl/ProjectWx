@@ -24,7 +24,7 @@ public:
 	 * @param Widths 점마다 강 폭(cm). 비우면 물 바디 기본값을 쓴다.
 	 * @param Depths 점마다 깊이(cm). 비우면 물 바디 기본값을 쓴다.
 	 * @param bLinear 점 사이를 직선으로 잇는다(촘촘한 해안선). 거짓이면 곡선.
-	 * @return 레벨은 저장하지 않으므로 AssetTools.save_assets 를 따로 부른다.
+	 * @return 저장하지 않으므로 물 바디 액터를 WxPackageToolset.SavePackages 에 넘겨 따로 저장한다.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool SetWaterBodySpline(AWaterBody* WaterBody, const TArray<FVector>& Points, const TArray<float>& Widths, const TArray<float>& Depths, bool bLinear);

@@ -470,6 +470,13 @@ bool UWxStateTreeToolset::RemoveBinding(UStateTree* StateTree, const FString& Ta
 		return false;
 	}
 
+	// 엔진 제거는 일치하는 바인딩이 없어도 조용히 끝나므로 먼저 확인한다.
+	if (!EditorData->GetPropertyEditorBindings()->HasBinding(Target, FPropertyBindingBindingCollection::ESearchMode::Includes))
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("'%s' 의 '%s' 에 바인딩이 없다. 경로는 GetBindings 의 targetPath 처럼 프로퍼티 이름으로 쓴다."), *TargetStructId, *TargetPath));
+		return false;
+	}
+
 	EditorData->Modify();
 	EditorData->RemovePropertyBinding(Target);
 	UStateTreeEditingSubsystem::MarkAsModified(StateTree);
@@ -484,15 +491,34 @@ FString UWxStateTreeToolset::GetBindings(UStateTree* StateTree)
 		return FString();
 	}
 
+	// ToString 은 에디터에서 표시명을 쓰므로 AddBinding·RemoveBinding 이 받는 프로퍼티 이름으로 다시 잇는다.
+	const auto ToNamePath = [](const FPropertyBindingPath& Path)
+	{
+		TStringBuilder<256> Result;
+		for (const FPropertyBindingPathSegment& Segment : Path.GetSegments())
+		{
+			if (Result.Len() > 0)
+			{
+				Result << TEXT('.');
+			}
+			Result << Segment.GetName();
+			if (Segment.GetArrayIndex() >= 0)
+			{
+				Result << TEXT('[') << Segment.GetArrayIndex() << TEXT(']');
+			}
+		}
+		return FString(Result);
+	};
+
 	TArray<TSharedPtr<FJsonValue>> Entries;
 	// 바인딩 컬렉션 순회가 TFunctionRef 를 요구해 람다가 불가피하다.
-	EditorData->GetPropertyEditorBindings()->ForEachBinding([&Entries](const FPropertyBindingBinding& Binding)
+	EditorData->GetPropertyEditorBindings()->ForEachBinding([&Entries, &ToNamePath](const FPropertyBindingBinding& Binding)
 	{
 		TSharedRef<FJsonObject> Entry = MakeShared<FJsonObject>();
 		Entry->SetStringField(TEXT("sourceId"), Binding.GetSourcePath().GetStructID().ToString(EGuidFormats::DigitsWithHyphens));
-		Entry->SetStringField(TEXT("sourcePath"), Binding.GetSourcePath().ToString());
+		Entry->SetStringField(TEXT("sourcePath"), ToNamePath(Binding.GetSourcePath()));
 		Entry->SetStringField(TEXT("targetId"), Binding.GetTargetPath().GetStructID().ToString(EGuidFormats::DigitsWithHyphens));
-		Entry->SetStringField(TEXT("targetPath"), Binding.GetTargetPath().ToString());
+		Entry->SetStringField(TEXT("targetPath"), ToNamePath(Binding.GetTargetPath()));
 		Entries.Add(MakeShared<FJsonValueObject>(Entry));
 	});
 
@@ -633,10 +659,16 @@ FString UWxStateTreeToolset::CompileStateTree(UStateTree* StateTree)
 	}
 
 	FWxStateTreeCompilerLogReader Log;
-	const bool bSuccess = UStateTreeEditingSubsystem::CompileStateTree(StateTree, Log);
+	const bool bCompiled = UStateTreeEditingSubsystem::CompileStateTree(StateTree, Log);
+	// 컴파일이 통과해도 링크가 깨지면 StateTree 컴포넌트가 트리를 열지 못하므로 실행 준비까지 본다.
+	const bool bReadyToRun = bCompiled && StateTree->IsReadyToRun();
 
 	TStringBuilder<1024> Result;
-	Result << (bSuccess ? TEXT("succeeded") : TEXT("failed"));
+	Result << (bReadyToRun ? TEXT("succeeded") : TEXT("failed"));
+	if (bCompiled && !bReadyToRun)
+	{
+		Result << TEXT("\n[Error] 컴파일은 통과했지만 링크에 실패해 실행할 수 없다. LogStateTree 를 확인한다.");
+	}
 	for (const FStateTreeCompilerLogMessage& Message : Log.Messages)
 	{
 		Result << TEXT("\n");

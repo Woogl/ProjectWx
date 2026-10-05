@@ -19,6 +19,7 @@ public class WxToolset : ModuleRules
 		{
 			"AssetTools",
 			"BlueprintGraph",
+			// LandscapeEdit.h 가 InstancedFoliageActor.h 를 포함한다.
 			"Foliage",
 			"GameplayStateTreeModule",
 			"Json",

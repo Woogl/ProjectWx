@@ -30,7 +30,7 @@ public:
 	 * @param Location 정점 (0,0)의 월드 위치(cm).
 	 * @param LayerNames 페인트 레이어 이름. 가중치는 WeightmapFolder/<이름>.raw 에서 읽고, 레이어 인포는 LayerInfoPath/LI_<이름> 을 쓰되 없으면 만든다.
 	 * @param LayerInfoPath 레이어 인포 에셋 폴더. 예: "/Game/LevelDesign/Landscape/LayerInfo"
-	 * @return 만든 랜드스케이프. 레벨과 레이어 인포 에셋은 저장하지 않으므로 AssetTools.save_assets 를 따로 부른다.
+	 * @return 만든 랜드스케이프. 레벨과 레이어 인포 에셋은 저장하지 않으므로 WxPackageToolset.SavePackages 를 따로 부른다.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static ALandscape* CreateLandscape(const FString& HeightmapPath, int32 SizeVerts, int32 QuadsPerSection, int32 SectionsPerComponent, FVector Location, FVector Scale, UMaterialInterface* Material, const TArray<FName>& LayerNames, const FString& WeightmapFolder, const FString& LayerInfoPath, int32 GridSizeInComponents);

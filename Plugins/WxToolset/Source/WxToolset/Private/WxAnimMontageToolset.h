@@ -11,6 +11,7 @@ class UAnimNotify;
 
 /**
  * 몽타주의 섹션과 세그먼트는 Blueprint 노출이 없어 Python·기존 MCP 표면이 닿지 못한다 — 그 지점만 뚫는다.
+ * 노티파이도 ObjectTools 로는 읽지도 쓰지도 못하므로 이 툴셋으로 다루고, 저장은 WxPackageToolset.SavePackages 로 한다.
  */
 UCLASS(BlueprintType, Hidden)
 class UWxAnimMontageToolset : public UToolsetDefinition
@@ -75,7 +76,4 @@ public:
 	/** 단발 노티파이와 노티파이 구간 중 그 클래스(파생 포함)인 것을 모두 지우고 지운 개수를 돌려준다. */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static int32 RemoveNotifiesOfClass(UAnimMontage* Montage, UClass* NotifyClass);
-
-	UFUNCTION(meta = (AICallable), Category = "Wx")
-	static bool SaveMontage(UAnimMontage* Montage);
 };

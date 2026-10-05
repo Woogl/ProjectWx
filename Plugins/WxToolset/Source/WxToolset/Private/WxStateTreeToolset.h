@@ -11,7 +11,8 @@ class UStateTreeState;
 
 /**
  * 기존 MCP 표면(ObjectTools 등)이 닿지 못하는 지점만 뚫는다 — 루트 파라미터 백 정의, 프로퍼티 바인딩(EditorBindings, 편집 플래그 없는 UPROPERTY), 링크 상태 전환·파라미터 오버라이드, 프로그래매틱 컴파일, 스키마 고정 에셋 생성.
- * 상태·태스크·전이의 일반 편집은 기존 ObjectTools.set_properties 를 그대로 쓴다.
+ * 상태·태스크·전이의 일반 편집은 기존 ObjectTools.set_properties 를 그대로 쓰며, 그 배열 편집 함정은 .agents/skills/unreal-editor/references/statetree.md 에 있다.
+ * set_properties 편집은 에디터 자동 컴파일을 거치지 않으므로 편집 뒤 CompileStateTree 를 부르고, 저장은 WxPackageToolset.SavePackages 로 한다.
  */
 UCLASS(BlueprintType, Hidden)
 class UWxStateTreeToolset : public UToolsetDefinition
@@ -61,7 +62,8 @@ public:
 	static bool SetRootParameterMeta(UStateTree* StateTree, FName Name, const FString& MetaJson);
 
 	/**
-	 * 그 파라미터를 소스로 쓰던 바인딩은 함께 지워지지 않으므로 RemoveBinding 으로 별도 정리한다.
+	 * 루트 파라미터를 지운다.
+	 * 그 파라미터를 소스로 쓰던 바인딩은 남는다 — 같은 이름으로 다시 추가하면 그대로 이어지고, 아니면 RemoveBinding 으로 지운다.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool RemoveRootParameter(UStateTree* StateTree, FName Name);
@@ -70,30 +72,32 @@ public:
 	 * 루트 파라미터 백의 값(기본값)을 JSON 으로 기입한다.
 	 * 모든 값의 변환이 성공해야 반영하며, 실패하면 원래 값과 더티 상태를 보존한다.
 	 * @param ValuesJson {"파라미터명": 값, ...}.
-	 *   값 규약 — Text/숫자/bool 은 JSON 원시값, 오브젝트·소프트 참조는 경로 문자열(레벨 액터 예: "/Game/Maps/LV_X.LV_X:PersistentLevel.액터명"), 배열은 그 값들의 JSON 배열, DataTableRowHandle 은 {"DataTable":"/Game/...경로","RowName":"행이름"}.
+	 *   값 규약 — Text/숫자/bool 은 JSON 원시값, 오브젝트·소프트 참조는 경로 문자열(레벨 액터 예: "/Game/Maps/LV_X.LV_X:PersistentLevel.액터명"), 배열은 그 값들의 JSON 배열, DataTableRowHandle 은 {"DataTable":"/Game/...경로","RowName":"행이름"}, UOL 은 괄호로 감싼 문자열 "(uobj://actor?payload0=...)".
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool SetRootParameterValues(UStateTree* StateTree, const FString& ValuesJson);
 
 	/**
-	 * 프로퍼티 바인딩을 추가한다. 소스가 루트 파라미터면 SourceStructId 에 GetRootParameters 의 rootParametersId 를 넣는다.
-	 * @param SourceStructId 소스 구조체 GUID(루트 파라미터 ID 또는 노드 ID).
-	 * @param SourcePath 소스 프로퍼티 경로. 예: "Npcs" (구조체 전체 복사면 빈 문자열 불가 — 프로퍼티명까지 쓴다)
-	 * @param TargetStructId 타깃 노드의 ID(GUID).
-	 * @param TargetPath 타깃 인스턴스 데이터의 프로퍼티 경로. 예: "Target", "StartRow"
+	 * 프로퍼티 바인딩을 추가한다. 바인딩이 실제로 풀리는지는 CompileStateTree 가 미해석 바인딩을 오류로 잡는 것으로 확인한다.
+	 * @param SourceStructId 소스 구조체 GUID. 루트 파라미터면 GetRootParameters 의 rootParametersId, 노드면 그 노드의 iD.
+	 *   스키마 컨텍스트는 에셋에 드러나지 않는 엔진 고정값이다 — StateTreeComponentSchema 의 Context Actor 는 1D971B00-2888-4FDE-B543-680236984FD5, StateTreeAIComponentSchema 의 AIController 는 EDB3CD97-95F9-4E0A-BD15-207B98645CDC.
+	 * @param SourcePath 소스 프로퍼티 이름(표시명이 아닌 공백 없는 이름). 예: "Npcs" (구조체 전체 복사면 빈 문자열 불가 — 프로퍼티명까지 쓴다)
+	 * @param TargetStructId 타깃 노드의 iD. On Delegate 전이면 전이의 iD 다.
+	 * @param TargetPath 타깃 인스턴스 데이터의 프로퍼티 이름. 예: "Target", "StartRow". On Delegate 전이면 "DelegateListener".
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool AddBinding(UStateTree* StateTree, const FString& SourceStructId, const FString& SourcePath, const FString& TargetStructId, const FString& TargetPath);
 
 	/**
-	 * 지정 타깃 경로의 바인딩을 제거한다(경로 포함 일치).
+	 * 지정 타깃 경로의 바인딩을 제거한다(경로 포함 일치). 지울 바인딩이 없으면 실패한다.
 	 * @param TargetStructId 타깃 노드의 ID(GUID).
+	 * @param TargetPath GetBindings 의 targetPath 와 같은 프로퍼티 이름.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool RemoveBinding(UStateTree* StateTree, const FString& TargetStructId, const FString& TargetPath);
 
 	/**
-	 * 에셋의 모든 프로퍼티 바인딩을 JSON 배열로 돌려준다.
+	 * 에셋의 모든 프로퍼티 바인딩을 JSON 배열로 돌려준다. 경로는 에디터 표시명이 아닌 프로퍼티 이름이라 AddBinding·RemoveBinding 에 그대로 넣을 수 있다.
 	 * 반환 형식: [{"sourceId":"GUID","sourcePath":"...","targetId":"GUID","targetPath":"..."}]
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
@@ -102,8 +106,9 @@ public:
 	/**
 	 * 상태를 LinkedAsset 타입으로 전환하고 다른 StateTree 에셋을 링크한다.
 	 * 상태의 기존 태스크는 제거되고, 파라미터 백이 링크 에셋의 루트 파라미터 레이아웃으로 동기화된다.
+	 * 이미 링크된 상태를 다시 링크하면 오버라이드 표시는 남고 값만 링크 에셋 기본값으로 돌아가므로, 값을 떠 두었다가 SetStateParameterValues 로 다시 쓴다.
 	 * @param State 전환할 상태. 예: "/Game/.../ST_X.ST_X:StateTreeEditorData_0.StateTreeState_0.StateTreeState_1"
-	 * @param LinkedAsset 링크할 StateTree 에셋(스키마가 호환돼야 컴파일이 통과한다).
+	 * @param LinkedAsset 링크할 StateTree 에셋. 동기화가 이 에셋의 컴파일된 파라미터를 읽으므로 먼저 컴파일해 둔다. 스키마가 호환돼야 컴파일이 통과한다.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool LinkStateToAsset(UStateTreeState* State, UStateTree* LinkedAsset);
@@ -142,7 +147,8 @@ public:
 
 	/**
 	 * StateTree 를 컴파일하고 결과와 컴파일러 로그를 돌려준다. 더티 상태와 무관하게 항상 컴파일한다.
-	 * 저장은 하지 않으므로 성공 후 AssetTools.save_assets 를 따로 호출한다.
+	 * 첫 줄은 컴파일과 링크를 모두 통과해 실행할 수 있을 때만 succeeded 다.
+	 * 저장은 하지 않으므로 성공 후 WxPackageToolset.SavePackages 를 따로 호출한다.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static FString CompileStateTree(UStateTree* StateTree);

@@ -22,9 +22,11 @@ class UWxMVVMToolset : public UToolsetDefinition
 public:
 	/**
 	 * MVVM 이벤트의 목적지를 호출 가능한 함수로 바꾼다. 래퍼 그래프도 에디터 서브시스템에서 갱신한다.
+	 * 이벤트 행 자체는 MCP 로 만들 수 없으므로 바인딩 패널에서 먼저 만들어 둔다.
+	 * @param EventIndex MVVMBlueprintView 의 events 배열 인덱스.
 	 * @param DestinationPath "Self.함수" 또는 "뷰모델이름.함수".
 	 */
-	UFUNCTION(BlueprintCallable, meta = (AICallable), Category = "Wx")
+	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool SetEventDestination(UWidgetBlueprint* WidgetBlueprint, int32 EventIndex, const FString& DestinationPath);
 
 	/**
@@ -42,7 +44,7 @@ public:
 	 * @param ArgumentName 비우면 바인딩 자체의 소스 경로다. 이때 엔진 에디터와 같이 기존 변환 함수는 제거된다.
 	 * @param SourcePath "뷰모델이름.필드[.필드...]" 또는 "Self.필드[.필드...]".
 	 */
-	UFUNCTION(BlueprintCallable, meta = (AICallable), Category = "Wx")
+	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool SetBindingSourcePath(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId, FName ArgumentName, const FString& SourcePath);
 
 private:

@@ -18,7 +18,7 @@ class UWxBlueprintToolset : public UToolsetDefinition
 
 public:
 	/**
-	 * 넘긴 키만 덮어쓰므로 카테고리·툴팁 같은 기존 메타는 남는다.
+	 * BP 가 선언한 변수에 메타를 기입한다. 넘긴 키만 덮어쓰므로 카테고리·툴팁 같은 기존 메타는 남는다.
 	 * 변수 서술자에 저장되며 컴파일 때 프로퍼티로 전달된다 — 생성자에서 프로퍼티에 직접 넣는 방식은 컴파일마다 지워지므로 쓸 수 없다.
 	 * @param MetaJson 기입할 메타 {"키":"값", ...}.
 	 *   예: {"RowType":"/Script/WxGame.WxRewardTableRow"} 는 DataTableRowHandle 변수의 테이블 픽커를 그 행 구조체를 쓰는 테이블로 제한한다.
@@ -27,13 +27,14 @@ public:
 	static bool SetVariableMeta(UBlueprint* Blueprint, FName VarName, const FString& MetaJson);
 
 	/**
+	 * BP 가 선언한 변수의 메타를 돌려준다.
 	 * 반환 형식: {"키":"값", ...}. 메타가 없으면 빈 오브젝트.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static FString GetVariableMeta(UBlueprint* Blueprint, FName VarName);
 
 	/**
-	 * BlueprintTools.add_variable 은 기본 타입만 받아 enum 멤버 변수를 만들 수 없다.
+	 * enum 타입 멤버 변수를 추가한다. BlueprintTools.add_variable 은 기본 타입만 받아 enum 변수를 만들 수 없다.
 	 * @param DefaultValue enum 항목 이름(예: "Equipment"). 비우면 첫 항목.
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
