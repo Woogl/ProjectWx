@@ -80,7 +80,7 @@ void FWxStateTreeTask_LockOn::ApplyLockOn(AAIController& AIController, APawn& Pa
 	// 이동 중에는 PathFollowing 이 Move 우선순위로 진행 방향을 응시시키므로, 그보다 높은 Gameplay 로 걸어야 전투 대상을 계속 본다.
 	AIController.SetFocus(&Target, EAIFocusPriority::Gameplay);
 
-	// 폰을 기록해 두는 이유: 빙의 해제는 컨트롤러의 폰 참조를 끊은 뒤에야 트리를 멈추므로, 그 경로의 해제 시점엔 GetPawn() 이 이미 비어 있다.
+	// 폰을 기록해 두는 이유: 해제는 컨트롤러의 폰이 비었거나 다른 폰으로 바뀐 뒤에도 불리므로, 그 시점엔 GetPawn() 으로 이전 폰을 찾을 수 없다.
 	Instance.LockedOnPawn = &Pawn;
 
 	const ACharacter* Character = Cast<ACharacter>(&Pawn);

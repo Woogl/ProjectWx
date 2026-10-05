@@ -12,7 +12,7 @@ UWxAbility_Pattern::UWxAbility_Pattern()
 
 	ActivationOwnedTags.AddTag(WxGameplayTags::Ability_Action_Pattern);
 	
-	// 피격 반응은 공격·스킬만 취소하므로 태그로 패턴을 끊는 것은 그로기·사망뿐이다. 같은 슬롯 그룹의 넉·패리 반응 몽타주는 패턴 몽타주를 밀어내 끊는다.
+	// 피격 반응은 공격·스킬·아이템 사용만 취소하므로 태그로 패턴을 끊는 것은 그로기·사망뿐이다. 같은 슬롯 그룹의 넉·패리 반응 몽타주는 패턴 몽타주를 밀어내 끊는다.
 	BlockAbilitiesWithTag.AddTag(WxGameplayTags::Ability_Action);
 }
 
