@@ -157,3 +157,12 @@
 - 고친 문서: [어빌리티 구현 구조](concepts/어빌리티-구현-구조.md)(값의 위치 표·쿨다운·엔진 동작·결정·미결·출처), [어빌리티 규칙](concepts/어빌리티-규칙.md)(구현·결정·출처), [플레이어 캐릭터](concepts/플레이어-캐릭터.md)(구현·결정·출처), [피격 경직](concepts/피격-경직.md)(구현·결정·출처, 넉백 루트모션 미결 해소), 색인 한 줄
 - 코드가 커밋 전이라 구현 절은 "작업 트리"와 HEAD 동작을 함께 적었다. 커밋 뒤 출처 커밋을 넣고 HEAD 서술 줄을 지운다.
 - 에셋: 쿨다운 GE_ 6개 생성, GA_ 7개 `CooldownGameplayEffectClass` 지정, 회피·피격 넉백·가드 반응 몽타주의 DisableRootMotion 19개 삭제(작업 트리).
+
+## [2026-10-06] ingest | 대화로 정한 결정: 적·소환물 AI의 State Tree 전환과 BT 제거 (사용자 요청)
+- 자료: 사용자 대화와 그 구현(커밋 8b331baec, 사용자가 DebugGame 에디터 PIE로 적·소환물 동작을 확인). 요약 문서는 쓰지 않았다(대화 결정).
+- 고친 문서: [적 몬스터](concepts/적-몬스터.md)(구현·결정·미결·관련·출처), [기획 작업 도구](concepts/기획-작업-도구.md)(소개·기획·구현·결정·미결·출처), [현광](entities/현광.md)(구현·결정·관련·출처), [커스터](entities/커스터.md)(구현·미결·출처), 색인 한 줄
+- 적재할 때는 코드가 커밋 전이었고, 같은 날 8b331baec 로 제출하면서 구현 절의 출처 커밋을 넣었다.
+- 에셋: `ST_Shared_Enemy`·`ST_Template_Pattern`·`ST_Soldier_Pattern`·`ST_Minion`·`ST_Doppelganger` 생성, BP 4종(Template·Soldier·Minion·Doppelganger)에 State Tree 지정, `BT_Template`·`BT_Soldier`·`BT_Minion`·`BT_Doppelganger`·`BB_Shared` 삭제.
+- 풀린 미결: [적 몬스터](concepts/적-몬스터.md)의 '적 BT 공용화'(09-19).
+- 새 미결: 복귀 경로를 못 찾은 적의 행동([적 몬스터](concepts/적-몬스터.md)), 직전 패턴 방지·HP 비율 분기를 할 State Tree 노드가 없음([커스터](entities/커스터.md)).
+- 기획 절의 'BT' 표기(보스 공통 BT 초안, 그로기·피격 경직의 "BT가 정한다·끊는다")는 기획서 원문 표현이라 그대로 뒀다.
