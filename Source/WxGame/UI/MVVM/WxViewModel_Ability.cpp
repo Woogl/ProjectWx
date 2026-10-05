@@ -27,9 +27,9 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGam
 
 	// 다른 어빌리티의 발동·종료도 배타 점유를 바꾸므로 특정 슬롯의 블록/필요 태그로 구독을 좁히지 않는다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
-	ActionPhaseChangedHandle = InASC->AddGameplayEventTagContainerDelegate(
-		FGameplayTagContainer(WxGameplayTags::Event_Ability_ActionPhaseChanged),
-		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxViewModel_Ability::HandleActionPhaseChanged));
+	BlockingChangedHandle = InASC->AddGameplayEventTagContainerDelegate(
+		FGameplayTagContainer(WxGameplayTags::Event_Ability_BlockingChanged),
+		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxViewModel_Ability::HandleBlockingChanged));
 
 	RefreshBoundAbility();
 }
@@ -41,14 +41,14 @@ void UWxViewModel_Ability::Deinitialize()
 	{
 		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
-		ASC->RemoveGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Ability_ActionPhaseChanged), ActionPhaseChangedHandle);
+		ASC->RemoveGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Ability_BlockingChanged), BlockingChangedHandle);
 		UnbindCostAttributes(*ASC);
 		if (UWorld* World = ASC->GetWorld())
 		{
 			World->GetTimerManager().ClearTimer(ActivationRefreshHandle);
 		}
 	}
-	ActionPhaseChangedHandle.Reset();
+	BlockingChangedHandle.Reset();
 	ActivationRefreshHandle.Invalidate();
 	CachedASC.Reset();
 	CachedAbility.Reset();
@@ -57,7 +57,7 @@ void UWxViewModel_Ability::Deinitialize()
 	CostAttribute = FGameplayAttribute();
 
 	// 풀에 남은 위젯이 이전 슬롯을 보유해도 발동하거나 늦은 아이콘 로드로 되살아나지 않게 한다.
-	SetPresentation(FText::GetEmpty(), FText::GetEmpty(), nullptr, 0, 0.f);
+	SetPresentation(FText::GetEmpty(), FText::GetEmpty(), nullptr, 0);
 	UE_MVVM_SET_PROPERTY_VALUE(CooldownRemaining, 0.f);
 	UE_MVVM_SET_PROPERTY_VALUE(CooldownPercent, 0.f);
 	UE_MVVM_SET_PROPERTY_VALUE(IsOnCooldown, false);
@@ -104,25 +104,29 @@ void UWxViewModel_Ability::HandleCooldownTimer()
 	}
 }
 
-int32 UWxViewModel_Ability::QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining) const
+int32 UWxViewModel_Ability::QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining, float& OutDuration) const
 {
 	OutRemaining = 0.f;
+	OutDuration = 0.f;
 
 	int32 ConsumedCharges = 0;
 	for (auto It = ASC.GetActiveGameplayEffects().CreateConstIterator(); It; ++It)
 	{
-		// 쿨다운 태그는 어빌리티가 공용 쿨다운 GE의 스펙에 붙이는 동적 태그다.
 		const FActiveGameplayEffect& ActiveGE = *It;
-		if (!ActiveGE.Spec.DynamicGrantedTags.HasAny(CachedCooldownTags) || ActiveGE.GetDuration() <= 0.f)
+		if (!ActiveGE.Spec.Def || !ActiveGE.Spec.Def->GetGrantedTags().HasAny(CachedCooldownTags) || ActiveGE.GetDuration() <= 0.f)
 		{
 			continue;
 		}
 
-		// 회복 시점이 지나도 제거 복제가 올 때까지는 소모된 상태 그대로 둔다.
+		// 회복 시점이 지나도 스택 제거 복제가 올 때까지는 소모된 상태 그대로 둔다.
 		// 발동 판정도 같은 복제 값을 보므로, 여기서 미리 돌려주면 표시만 앞서가 "게이지는 찼는데 안 나가는" 구간이 생긴다.
 		const float Remaining = FMath::Max(ActiveGE.GetTimeRemaining(WorldTime), 0.f);
-		OutRemaining = ConsumedCharges == 0 ? Remaining : FMath::Min(OutRemaining, Remaining);
-		++ConsumedCharges;
+		if (ConsumedCharges == 0 || Remaining < OutRemaining)
+		{
+			OutRemaining = Remaining;
+			OutDuration = ActiveGE.GetDuration();
+		}
+		ConsumedCharges += ActiveGE.Spec.GetStackCount();
 	}
 
 	return ConsumedCharges;
@@ -189,21 +193,20 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 
 	CachedAbility = MatchedAbility;
 	CachedCooldownTags.Reset();
-	CachedCooldownTime = 0.f;
 	UE_MVVM_SET_PROPERTY_VALUE(CooldownRemaining, 0.f);
 	UE_MVVM_SET_PROPERTY_VALUE(CooldownPercent, 0.f);
 	UE_MVVM_SET_PROPERTY_VALUE(IsOnCooldown, false);
 
 	if (!MatchedAbility)
 	{
-		SetPresentation(FText::GetEmpty(), FText::GetEmpty(), nullptr, 0, 0.f);
+		SetPresentation(FText::GetEmpty(), FText::GetEmpty(), nullptr, 0);
 		UE_MVVM_SET_PROPERTY_VALUE(CostAmount, 0.f);
 		UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, 0);
 		RefreshCheckCost();
 		return;
 	}
 
-	SetPresentation(MatchedAbility->GetTitle(), MatchedAbility->GetDescription(), MatchedAbility->GetIcon(), MatchedAbility->GetMaxRecharges(), MatchedAbility->GetCooldownTime());
+	SetPresentation(MatchedAbility->GetTitle(), MatchedAbility->GetDescription(), MatchedAbility->GetIcon(), MatchedAbility->GetMaxRecharges());
 
 	if (const FGameplayTagContainer* CooldownTags = MatchedAbility->GetCooldownTags())
 	{
@@ -238,7 +241,8 @@ void UWxViewModel_Ability::SetMaxRecharges(int32 NewValue)
 
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
 {
-	if (CachedCooldownTags.IsEmpty() || !SpecApplied.DynamicGrantedTags.HasAny(CachedCooldownTags))
+	// 이미 쿨다운 중이면 스택만 늘어 이 알림이 오지 않지만, 그때는 타이머가 이미 돌고 있다.
+	if (CachedCooldownTags.IsEmpty() || !SpecApplied.Def || !SpecApplied.Def->GetGrantedTags().HasAny(CachedCooldownTags))
 	{
 		return;
 	}
@@ -253,10 +257,10 @@ void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCou
 	ScheduleActivationRefresh();
 }
 
-void UWxViewModel_Ability::HandleActionPhaseChanged(FGameplayTag EventTag, const FGameplayEventData* Payload)
+void UWxViewModel_Ability::HandleBlockingChanged(FGameplayTag EventTag, const FGameplayEventData* Payload)
 {
 	// 컨테이너 구독은 하위 태그도 받지만 이 계약은 전용 이벤트만 처리한다.
-	if (EventTag == WxGameplayTags::Event_Ability_ActionPhaseChanged)
+	if (EventTag == WxGameplayTags::Event_Ability_BlockingChanged)
 	{
 		ScheduleActivationRefresh();
 	}
@@ -298,7 +302,8 @@ bool UWxViewModel_Ability::UpdateCooldownState()
 	}
 
 	float ChargeRemaining = 0.f;
-	const int32 ConsumedCharges = QueryCooldownStacks(*ASC, World->GetTimeSeconds(), ChargeRemaining);
+	float ChargeDuration = 0.f;
+	const int32 ConsumedCharges = QueryCooldownStacks(*ASC, World->GetTimeSeconds(), ChargeRemaining, ChargeDuration);
 
 	// GE 가 살아 있는 동안은 스택이 최소 하나라 여기 오지 않는다. 갱신은 GE 가 실제로 사라진 뒤에만 멈춘다.
 	if (ConsumedCharges == 0)
@@ -312,7 +317,7 @@ bool UWxViewModel_Ability::UpdateCooldownState()
 
 	UE_MVVM_SET_PROPERTY_VALUE(IsOnCooldown, true);
 	UE_MVVM_SET_PROPERTY_VALUE(CooldownRemaining, ChargeRemaining);
-	UE_MVVM_SET_PROPERTY_VALUE(CooldownPercent, CachedCooldownTime > 0.f ? ChargeRemaining / CachedCooldownTime : 0.f);
+	UE_MVVM_SET_PROPERTY_VALUE(CooldownPercent, ChargeDuration > 0.f ? ChargeRemaining / ChargeDuration : 0.f);
 
 	UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, FMath::Max(0, MaxRecharges - ConsumedCharges));
 
@@ -371,12 +376,11 @@ void UWxViewModel_Ability::UnbindCostAttributes(UAbilitySystemComponent& ASC)
 	CostAttribute = FGameplayAttribute();
 }
 
-void UWxViewModel_Ability::SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon, int32 InMaxRecharges, float InCooldownTime)
+void UWxViewModel_Ability::SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon, int32 InMaxRecharges)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(Title, InTitle);
 	UE_MVVM_SET_PROPERTY_VALUE(Description, InDescription);
 	SetMaxRecharges(InMaxRecharges);
-	CachedCooldownTime = InCooldownTime;
 	WxViewModel::RequestImageAsync(*this, IconHandle, InIcon, [this](UObject* LoadedIcon)
 	{
 		UE_MVVM_SET_PROPERTY_VALUE(Icon, LoadedIcon);

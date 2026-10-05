@@ -97,7 +97,7 @@ void UWxAbilityTask_MontageEvents::HandleMontageNotify(const UAnimNotify* Notify
 	{
 		if (UWxAbilityBase* FlowAbility = Cast<UWxAbilityBase>(Ability))
 		{
-			FlowAbility->StartRecovery(Payload.MontageInstanceID);
+			FlowAbility->StartRecovery();
 		}
 		return;
 	}

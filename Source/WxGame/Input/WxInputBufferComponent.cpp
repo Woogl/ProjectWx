@@ -17,32 +17,14 @@ void UWxInputBufferComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	AbilitySystemComponent = Cast<UWxAbilitySystemComponent>(UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()));
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->OnAbilityEnded.AddUObject(this, &UWxInputBufferComponent::HandleAbilityEnded);
-	}
 }
 
 void UWxInputBufferComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	ClearBufferedInputs();
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->OnAbilityEnded.RemoveAll(this);
-	}
 	AbilitySystemComponent = nullptr;
 
 	Super::EndPlay(EndPlayReason);
-}
-
-void UWxInputBufferComponent::RequestBufferedInputFlush()
-{
-	if (!AbilitySystemComponent || BufferedInputs.IsEmpty() || FlushTimerHandle.IsValid())
-	{
-		return;
-	}
-	// 타이머는 월드의 PostPhysics 이후 실행되며, 노티파이·종료 콜스택에 재진입하지 않는다.
-	FlushTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::FlushBufferedInputs);
 }
 
 void UWxInputBufferComponent::InputActionTriggered(const UInputAction* Action)
@@ -52,10 +34,11 @@ void UWxInputBufferComponent::InputActionTriggered(const UInputAction* Action)
 		return;
 	}
 
-	// 액션이 아닌 어빌리티(질주·락온)는 버퍼에 관여하지 않는다 — 거절 주체가 액션이 아니고, 락온 해제 입력을 기억하면 그 종료가 곧 재시도 지점이 되어 다시 켜진다.
+	// 액션이 아닌 어빌리티(질주·락온)는 버퍼에 관여하지 않는다 — 거절 주체가 액션이 아니고, 락온 해제 입력을 기억하면 다시 켜진다.
 	// 키 상태는 ASC가 이 호출에서 세우므로 그 전에 읽는다 — 이미 서 있으면 쥔 채 반복해서 들어온 홀드다.
 	bool bAction = false;
 	bool bHeld = false;
+	FGameplayAbilitySpecHandle IntendedHandle;
 	for (const FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
 	{
 		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.Ability);
@@ -66,6 +49,12 @@ void UWxInputBufferComponent::InputActionTriggered(const UInputAction* Action)
 
 		bAction = bAction || Ability->GetAssetTags().HasTag(WxGameplayTags::Ability_Action);
 		bHeld = bHeld || Spec.InputPressed;
+
+		// 발동 시도와 같은 부여 순서로, 소유자 태그 조건을 만족하는 첫 어빌리티가 이 입력이 노린 것이다.
+		if (!IntendedHandle.IsValid() && Ability->DoesOwnerSatisfyActivationTags(*AbilitySystemComponent))
+		{
+			IntendedHandle = Spec.Handle;
+		}
 	}
 
 	if (AbilitySystemComponent->AbilityInputActionTriggered(Action))
@@ -81,6 +70,17 @@ void UWxInputBufferComponent::InputActionTriggered(const UInputAction* Action)
 	if (!bAction)
 	{
 		return;
+	}
+
+	// 쿨다운·비용으로 막힌 입력을 기억하면, 충전이나 자원이 돌아오는 순간 플레이어가 이미 그만둔 입력이 나간다.
+	if (const FGameplayAbilitySpec* Intended = AbilitySystemComponent->FindAbilitySpecFromHandle(IntendedHandle))
+	{
+		const UGameplayAbility* Ability = Intended->GetPrimaryInstance() ? Intended->GetPrimaryInstance() : Intended->Ability.Get();
+		const FGameplayAbilityActorInfo* ActorInfo = AbilitySystemComponent->AbilityActorInfo.Get();
+		if (!Ability->CheckCooldown(IntendedHandle, ActorInfo) || !Ability->CheckCost(IntendedHandle, ActorInfo))
+		{
+			return;
+		}
 	}
 
 	const double Now = GetWorld()->GetRealTimeSeconds();
@@ -114,13 +114,20 @@ void UWxInputBufferComponent::InputActionTriggered(const UInputAction* Action)
 	}
 
 	BufferedInputs.Add({Action, Now});
+
+	// 타이머는 월드의 PostPhysics 이후 실행되므로, 루트모션 이동이나 노티파이·종료 콜스택 도중에 발동하지 않는다.
+	if (!FlushTimerHandle.IsValid())
+	{
+		FlushTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::FlushBufferedInputs);
+	}
 }
 
 void UWxInputBufferComponent::FlushBufferedInputs()
 {
+	// 실행 중인 단발 예약을 놓아야 다음 틱을 예약할 수 있다.
+	FlushTimerHandle.Invalidate();
 	if (!AbilitySystemComponent)
 	{
-		FlushTimerHandle.Invalidate();
 		return;
 	}
 
@@ -133,7 +140,6 @@ void UWxInputBufferComponent::FlushBufferedInputs()
 			continue;
 		}
 
-		// 실패한 항목은 다음 재시도 지점까지 남긴다. 콤보 창은 다음 타만 허용하므로, 거기서 버리면 같이 쌓인 회피가 후딜에 못 나간다.
 		if (AbilitySystemComponent->TryActivateByInputAction(BufferedInputs[Index].Action))
 		{
 			ClearBufferedInputs();
@@ -142,14 +148,12 @@ void UWxInputBufferComponent::FlushBufferedInputs()
 
 		++Index;
 	}
-	FlushTimerHandle.Invalidate();
-}
 
-void UWxInputBufferComponent::HandleAbilityEnded(const FAbilityEndedData& AbilityEndedData)
-{
-	// 종료 통지는 재발동(이전 인스턴스 종료 → 새 활성화)과 취소 경로 안에서 동기로 온다.
-	// 새 인스턴스가 서기 전에 다른 입력이 끼어들지 않도록 공통 재생 시점에 맡긴다.
-	RequestBufferedInputFlush();
+	// 남은 입력은 발동되거나 만료될 때까지 매 틱 다시 시도한다.
+	if (!BufferedInputs.IsEmpty())
+	{
+		FlushTimerHandle = GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::FlushBufferedInputs);
+	}
 }
 
 void UWxInputBufferComponent::ClearBufferedInputs()

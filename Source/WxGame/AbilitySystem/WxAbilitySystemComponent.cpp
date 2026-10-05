@@ -298,7 +298,7 @@ void UWxAbilitySystemComponent::CancelRecoveringAbilities(UGameplayAbility* Igno
 
 		// 기반 생성자가 InstancedPerActor를 사용하므로 스펙당 인스턴스는 하나뿐이다.
 		const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(Spec.GetPrimaryInstance());
-		if (Ability && Ability != IgnoreAbility && Ability->IsActive() && Ability->GetAssetTags().HasTag(WxGameplayTags::Ability_Action) && Ability->GetActionPhase() == EWxAbilityActionPhase::Recovery)
+		if (Ability && Ability != IgnoreAbility && Ability->IsActive() && Ability->GetAssetTags().HasTag(WxGameplayTags::Ability_Action) && !Ability->IsBlockingOtherAbilities())
 		{
 			CancelAbilitySpec(Spec, IgnoreAbility);
 		}

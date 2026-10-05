@@ -132,12 +132,6 @@ EDataValidationResult UWxAbilitySet::IsDataValid(FDataValidationContext& Context
 				Context.AddWarning(FText::FromString(FString::Printf(TEXT("%s와 %s가 같은 입력 %s인데 발동 조건이 겹친다. 둘 다 성립하면 세트 순서대로 앞 어빌리티가 나간다."),
 					*Ability.GetClass()->GetName(), *Other.GetClass()->GetName(), *Ability.ActivationInputAction->GetName())));
 			}
-
-			if (Ability.GetCooldownTags()->HasAnyExact(*Other.GetCooldownTags()) && (Ability.GetCooldownTime() != Other.GetCooldownTime() || Ability.GetMaxRecharges() != Other.GetMaxRecharges()))
-			{
-				Context.AddWarning(FText::FromString(FString::Printf(TEXT("%s와 %s가 같은 쿨다운 태그를 쓰는데 쿨다운 시간이나 충전 수가 다르다."),
-					*Ability.GetClass()->GetName(), *Other.GetClass()->GetName())));
-			}
 		}
 	}
 

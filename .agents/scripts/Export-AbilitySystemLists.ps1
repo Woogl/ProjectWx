@@ -845,7 +845,7 @@ function Get-CharacterBody($Characters, $Sets, $Abilities, $AttributeTables, $Ro
     return ($lines -join "`n") + "`n"
 }
 
-function Get-AbilityBody($Abilities, $Montages) {
+function Get-AbilityBody($Abilities, $Montages, $Effects) {
     $lines = New-Object System.Collections.Generic.List[string]
     $lines.Add('# 어빌리티 목록')
     $lines.Add('')
@@ -854,10 +854,11 @@ function Get-AbilityBody($Abilities, $Montages) {
     $lines.Add('- 발동 조건의 Required·Blocked는 `ActivationRequiredTags`·`ActivationBlockedTags`다. `ActivationOwnedTags`는 AbilityTags와 같으면 적지 않는다.')
     $lines.Add('- WxAbilitySet 칸의 에셋을 받는 캐릭터와 그 구성은 [캐릭터 목록](character-list.md)에 있다.')
     $lines.Add('- 콤보 몽타주는 `ComboMontages` 배열 순서대로 표시한다. 각 몽타주의 방향 섹션은 콤보 단계와 별개다.')
+    $lines.Add('- 쿨다운 칸은 `CooldownGameplayEffectClass`로 지목한 GE와, 그 GE에 저장된 지속시간·스택 상한(충전 수)이다. 같은 GE를 지목한 어빌리티끼리 쿨다운을 나눠 쓴다.')
     $lines.Add('')
 
     # Properties that have their own column; everything else goes to 기타 in serialized order.
-    $columnProps = @('ActivationInputAction', 'AbilityMontage', 'ComboMontages', 'AbilityTags', 'ActivationRequiredTags', 'ActivationBlockedTags', 'CooldownTags', 'CooldownTime', 'MaxRecharges', 'CooldownGameplayEffectClass', 'CostResource', 'CostAmount', 'Title', 'Description')
+    $columnProps = @('ActivationInputAction', 'AbilityMontage', 'ComboMontages', 'AbilityTags', 'ActivationRequiredTags', 'ActivationBlockedTags', 'CooldownGameplayEffectClass', 'CostResource', 'CostAmount', 'Title', 'Description')
     $lines.Add('## 어빌리티')
     $group = $null
     foreach ($a in (Sort-Ordinal $Abilities.Values { param($r) $r.File })) {
@@ -878,10 +879,17 @@ function Get-AbilityBody($Abilities, $Montages) {
         if ($p.Contains('ActivationRequiredTags')) { $conditions += 'Required: ' + (Format-Value $p['ActivationRequiredTags']) }
         if ($p.Contains('ActivationBlockedTags')) { $conditions += 'Blocked: ' + (Format-Value $p['ActivationBlockedTags']) }
         $cooldown = @()
-        if ($p.Contains('CooldownTags')) { $cooldown += Format-Value $p['CooldownTags'] }
-        if ($p.Contains('CooldownTime')) { $cooldown += (Format-Value $p['CooldownTime']) + '초' }
-        if ($p.Contains('MaxRecharges')) { $cooldown += '충전 ' + (Format-Value $p['MaxRecharges']) }
-        if ($p.Contains('CooldownGameplayEffectClass')) { $cooldown += Format-Value $p['CooldownGameplayEffectClass'] }
+        if ($p.Contains('CooldownGameplayEffectClass')) {
+            $cooldown += Format-Value $p['CooldownGameplayEffectClass']
+            # The GE's own saved values; a GE_ that only inherits them shows its name alone.
+            $cooldownEffect = if ($p['CooldownGameplayEffectClass']) { $Effects[$p['CooldownGameplayEffectClass'].Split('.')[0]] }
+            if ($cooldownEffect) {
+                $duration = Format-Value (Get-Field $cooldownEffect.Props 'DurationMagnitude')
+                if ($duration) { $cooldown += $duration + '초' }
+                $charges = Format-Value (Get-Field $cooldownEffect.Props 'StackLimitCount')
+                if ($charges) { $cooldown += '충전 ' + $charges }
+            }
+        }
         $cost = @()
         if ($p.Contains('CostResource')) { $cost += Format-Value $p['CostResource'] }
         if ($p.Contains('CostAmount')) { $cost += Format-Value $p['CostAmount'] }
@@ -1103,7 +1111,7 @@ try {
     $assetUsage = Get-AssetUsage $records (@(foreach ($type in ($effectTypes + $partTypes)) { $type.Name }) + @($effects.Keys))
     $rowUsage = Get-RowUsage $records ($damageTables + $attributeTables)
 
-    $abilityBody = Get-AbilityBody $abilities $usedMontages
+    $abilityBody = Get-AbilityBody $abilities $usedMontages $effects
     $characterBody = Get-CharacterBody $characterList $sets $abilities (Sort-Ordinal $attributeTables { param($r) $r.File }) $rowUsage
     $effectBody = Get-EffectBody $effects ($effectTypes + $partTypes) (Sort-Ordinal $damageTables { param($r) $r.File }) $rowUsage $assetUsage
     Write-Output (Write-Article $repo 'ability-list' '어빌리티 목록' '["GA_ 목록", "몽타주 노티파이 목록"]' 'GA_·AM_ 에셋에서 생성한 표로, 어빌리티마다 타입·WxAbilitySet·입력·몽타주·태그·쿨다운·비용과 몽타주 섹션·노티파이를 보인다.' $abilityBody)

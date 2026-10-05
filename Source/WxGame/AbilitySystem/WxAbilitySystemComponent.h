@@ -59,7 +59,7 @@ public:
 	/** 이 액터의 ASPD가 반영된 몽타주 재생 속도. UWxAbility_Combo 계열만 이 값을 몽타주 재생 속도로 쓰고, 나머지 어빌리티는 1이다. */
 	float GetMontagePlayRate() const;
 
-	/** Recovery 상태의 액션을 취소하되, 새로 발동한 IgnoreAbility는 제외한다. */
+	/** 후딜 중인 액션(다른 어빌리티 차단을 끈 액션)을 취소하되, 새로 발동한 IgnoreAbility는 제외한다. */
 	void CancelRecoveringAbilities(UGameplayAbility* IgnoreAbility);
 
 	/** 활성 어빌리티 하나가 건 차단 기여만 제외해 조회한다. 같은 태그를 건 다른 어빌리티·GE의 차단은 남는다. */

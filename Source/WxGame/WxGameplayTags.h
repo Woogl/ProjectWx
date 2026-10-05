@@ -76,11 +76,11 @@ namespace WxGameplayTags
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_KnockUp);
 
 	/**
-	 * UWxAbilityBase가 ActionPhase가 바뀔 때마다 자기 ASC에 로컬로 보낸다(복제 없음).
+	 * UWxAbilityBase가 액션의 다른 어빌리티 차단을 켜고 끌 때마다(후딜 시작, 후딜에서 다음 단계로 이어짐) 자기 ASC에 로컬로 보낸다(복제 없음).
 	 * 태그·쿨다운·코스트 변화는 싣지 않는다.
 	 * 어빌리티 발동 트리거로 사용하지 않는다.
 	 */
-	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Ability_ActionPhaseChanged);
+	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Ability_BlockingChanged);
 
 	/**
 	 * 대미지 파이프라인이 서버에서 피격자 ASC에 히트마다 한 번 보낸다.
@@ -228,7 +228,7 @@ namespace WxGameplayTags
 
 	/**
 	 * 쿨다운 식별 태그. 순정 CheckCooldown·쿨다운 조회 API가 이 태그로 쿨다운을 식별한다.
-	 * 어빌리티가 CooldownTags로 골라 공용 쿨다운 GE의 스펙에 붙인다. 같은 태그를 고른 어빌리티끼리 쿨다운을 나눠 쓴다.
+	 * 쿨다운 GE_ 에셋이 자식 태그 하나를 부여하고, 같은 GE_를 지목한 어빌리티끼리 쿨다운을 나눠 쓴다. 부모 태그는 쿨다운 GE 전체를 고를 때(UWxEffect_IgnoreCooldowns) 쓴다.
 	 * 적은 쿨다운을 쓰지 않는다 — 패턴 간격은 BT가 잡는다.
 	 */
 
@@ -242,7 +242,7 @@ namespace WxGameplayTags
 
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Magnitude);
 	
-	/** WxEffect_HitStop·WxEffect_Cooldown의 DurationMagnitude에서 사용 */
+	/** WxEffect_HitStop의 DurationMagnitude에서 사용 */
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
 
 	/** WxExecCalc_Damage가 ATK 어트리뷰트에 곱하는 배율 */

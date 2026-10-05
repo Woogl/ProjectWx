@@ -3,8 +3,6 @@
 #include "AbilitySystem/Abilities/WxAbility_Combo.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
-#include "Input/WxInputBufferComponent.h"
-#include "GameFramework/Actor.h"
 
 UAnimMontage* UWxAbility_Combo::GetMontage() const
 {
@@ -29,12 +27,6 @@ void UWxAbility_Combo::OpenComboWindow()
 	InputTask = UAbilityTask_WaitInputPress::WaitInputPress(this, false);
 	InputTask->OnPress.AddDynamic(this, &ThisClass::HandleComboInput);
 	InputTask->ReadyForActivation();
-
-	const AActor* Avatar = GetAvatarActorFromActorInfo();
-	if (UWxInputBufferComponent* InputBuffer = Avatar ? Avatar->FindComponentByClass<UWxInputBufferComponent>() : nullptr)
-	{
-		InputBuffer->RequestBufferedInputFlush();
-	}
 }
 
 void UWxAbility_Combo::CloseComboWindow()

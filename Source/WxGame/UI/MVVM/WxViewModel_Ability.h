@@ -24,7 +24,7 @@ class UWxAbilityBase;
  * 무는 대상은 스펙의 기본 인스턴스다 — 엔진 발동 경로(InternalTryActivateAbility)처럼 인스턴스로 판정한다.
  *
  * 쿨다운은 어빌리티의 GetCooldownTags() 로 식별하고, 쿨다운 중에는 월드 타이머로 매 프레임 남은 시간·충전 수를 갱신한다.
- * 소모한 충전 하나가 쿨다운 GE 하나이고 충전은 차례로 돌아오므로, 남은 시간·진행률은 가장 먼저 끝나는 쿨다운(다음 충전) 기준이다.
+ * 소모한 충전 하나가 쿨다운 GE 의 스택 하나이고 충전은 하나씩 돌아오므로, 남은 시간·진행률은 다음 충전 기준이다.
  *
  * CheckCost 는 ASC 태그·발동 조건 이벤트/비용 어트리뷰트 변화 시점에 재평가된다.
  * 태그 변경과 발동 조건 이벤트는 한 프레임 분을 모아 다음 월드 타이머 틱에 한 번 판정한다.
@@ -92,7 +92,7 @@ private:
 
 	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
-	void HandleActionPhaseChanged(FGameplayTag EventTag, const FGameplayEventData* Payload);
+	void HandleBlockingChanged(FGameplayTag EventTag, const FGameplayEventData* Payload);
 	void ScheduleActivationRefresh();
 	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
 	bool UpdateCooldownState();
@@ -104,10 +104,10 @@ private:
 	void StopCooldownTimer();
 
 	/**
-	 * 쿨다운 태그를 부여하는 활성 GE 수(소모된 충전 수)를 반환하고, 다음 충전까지의 잔여 시간을 낸다.
+	 * 쿨다운 태그를 부여하는 활성 GE 의 스택 수(소모한 충전 수)를 반환하고, 다음 충전까지의 잔여 시간과 충전 하나의 회복 시간을 낸다.
 	 * 순정 조회 API 는 호출마다 배열을 새로 할당하므로, 매 프레임 도는 이 경로에서는 컨테이너를 직접 한 번만 훑는다.
 	 */
-	int32 QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining) const;
+	int32 QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining, float& OutDuration) const;
 
 	void RefreshCheckCost();
 
@@ -118,7 +118,7 @@ private:
 	void UnbindCostAttributes(UAbilitySystemComponent& ASC);
 
 	/** 이후 충전·쿨다운 갱신이 이 값을 사용한다. */
-	void SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon, int32 InMaxRecharges, float InCooldownTime);
+	void SetPresentation(const FText& InTitle, const FText& InDescription, const TSoftObjectPtr<UObject>& InIcon, int32 InMaxRecharges);
 
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	TWeakObjectPtr<const UGameplayAbility> CachedAbility;
@@ -129,19 +129,13 @@ private:
 	/** 비어 있으면 쿨다운이 없는 어빌리티다. */
 	FGameplayTagContainer CachedCooldownTags;
 
-	/**
-	 * 충전 하나의 회복 시간. 진행률의 분모다.
-	 * 뒤 쿨다운 GE 는 앞 쿨다운을 기다린 시간까지 지속시간에 품고 있어 GE 지속시간으로 대신할 수 없다.
-	 */
-	float CachedCooldownTime = 0.f;
-
 	FGameplayAttribute CostAttribute;
 
 	FTimerHandle CooldownTimerHandle;
 
 	/** 타이머가 활성이면 재평가가 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
 	FTimerHandle ActivationRefreshHandle;
-	FDelegateHandle ActionPhaseChangedHandle;
+	FDelegateHandle BlockingChangedHandle;
 
 	TSharedPtr<FStreamableHandle> IconHandle;
 };

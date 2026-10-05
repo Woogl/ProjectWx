@@ -40,18 +40,6 @@ enum class EWxAbilityCostResource : uint8
 };
 
 /**
- * 액션(에셋 태그가 Ability.Action 아래)의 본동작과 후딜레이를 구분한다.
- */
-enum class EWxAbilityActionPhase : uint8
-{
-	/** 기본 차단 태그를 유지하는 본동작. */
-	Blocking,
-
-	/** 태그 차단을 해제한 후딜레이. 뒤이어 발동한 액션이 이 액션을 취소한다. */
-	Recovery,
-};
-
-/**
  * 어빌리티 하나는 데이터 전용 GA_ 하나다. C++ 파생 클래스가 타입이고, 생성자에서 식별 태그와 차단·취소·발동 조건 같은 태그 관계의 기본값을 정한다.
  * GA_는 몽타주·입력·수치·표시를 채운다.
  */
@@ -67,9 +55,6 @@ public:
 	static const FName LandingSectionName;
 
 #if WITH_EDITOR
-	/** 쿨다운 시간에 쿨다운 태그가 있는지 본다. GA_를 저장할 때 엔진이 CDO에 대고 부른다. */
-	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
-
 	/**
 	 * 같은 입력을 쓰는 두 어빌리티가 함께 발동 조건을 만족할 수 없는지. 한쪽이 요구하는 태그를 다른 쪽이 막으면 배타적이다.
 	 * 엔진이 태그 조건을 protected로 두어 판정을 여기서 한다.
@@ -80,9 +65,6 @@ public:
 	/** AI·이벤트로만 발동하면 비운다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx")
 	TObjectPtr<UInputAction> ActivationInputAction;
-
-	/** 지금 열려 있는 캔슬 창. 액션일 때만 뜻이 있고, 활성화마다 Blocking에서 다시 시작한다. */
-	EWxAbilityActionPhase GetActionPhase() const;
 
 	/**
 	 * 활성 구간 동안 소유자에게 유지되는 효과. ActivationOwnedTags의 GE판으로, 활성화에서 걸고 종료에서 걷는다.
@@ -107,8 +89,9 @@ public:
 	FText GetTitle() const;
 	FText GetDescription() const;
 	TSoftObjectPtr<UObject> GetIcon() const;
+
+	/** 쿨다운 GE의 스택 상한이 충전 수다. 쌓이지 않는 쿨다운이나 쿨다운이 없으면 1이다. */
 	int32 GetMaxRecharges() const;
-	float GetCooldownTime() const;
 
 	/** 방향별 변형은 각 몽타주의 섹션으로 나눈다. */
 	virtual UAnimMontage* GetMontage() const;
@@ -126,10 +109,11 @@ public:
 	virtual float GetMontagePlayRate() const;
 
 	/**
-	 * 본동작의 태그 차단을 풀어서 이후 발동하는 액션에 의한 캔슬을 허용한다.
+	 * 액션의 후딜레이를 시작한다. 후딜은 엔진의 다른 어빌리티 차단을 끈 상태이고, 뒤이어 발동한 액션이 이 액션을 취소한다.
 	 * 코스트·쿨다운·ActivationBlockedTags는 그대로 검사한다.
+	 * 몽타주 이벤트 태스크가 이 어빌리티의 몽타주 인스턴스에서 온 노티파이인지 확인한 뒤 부른다.
 	 */
-	void StartRecovery(int32 MontageInstanceID);
+	void StartRecovery();
 
 	/** 취소 대상의 차단 기여와 IgnoreAbilityActivationTags를 반영한다. */
 	virtual bool DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
@@ -137,17 +121,8 @@ public:
 	/** 소유자 태그만으로 본 발동 조건(ActivationRequiredTags·ActivationBlockedTags). 재생 중인 액션의 차단은 보지 않아 같은 슬롯의 후보를 고르는 데 쓴다. */
 	bool DoesOwnerSatisfyActivationTags(const UAbilitySystemComponent& AbilitySystemComponent) const;
 
-	/** UWxEffect_Cooldown은 쿨다운 시간이 없으면 nullptr — 호출자들이 이것을 "쿨다운 없음" 게이트로 쓴다. */
-	virtual UGameplayEffect* GetCooldownGameplayEffect() const override;
-
-	/** 남은 충전이 있으면 쿨다운 태그가 붙어 있어도 통과시킨다. (MaxRecharges) */
+	/** 순정 판정은 쿨다운 태그가 붙어 있기만 하면 막으므로, 쿨다운 GE의 스택이 충전 수보다 적으면 통과시킨다. */
 	virtual bool CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-
-	/** 쿨다운 GE가 아니라 어빌리티의 CooldownTags가 쿨다운의 식별자다. */
-	virtual const FGameplayTagContainer* GetCooldownTags() const override;
-
-	/** 공용 쿨다운 GE의 스펙에 CooldownTags를 붙여 적용한다. */
-	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 	/** 소유자에게 Effect.IgnoreCosts가 있으면 무조건 통과한다. */
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
@@ -156,7 +131,7 @@ public:
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 protected:
-	/** 새 동작을 시작할 때 방향 입력과 후딜 상태를 초기화한다. */
+	/** 새 동작을 시작할 때 방향 입력을 비우고, 후딜에서 이어진 액션이면 본동작의 차단을 다시 건다. */
 	void ResetActionState();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -190,18 +165,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Montage")
 	TObjectPtr<UAnimMontage> AbilityMontage;
 
-	/** 0 이하이면 쿨다운 미적용. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cooldown")
-	float CooldownTime = 0.f;
-
-	/** 쿨다운의 식별자. 같은 태그를 고른 어빌리티끼리 쿨다운을 나눠 쓴다. */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cooldown", meta = (Categories = "Cooldown"))
-	FGameplayTagContainer CooldownTags;
-
-	/** 1이면 단일 쿨다운 */
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|Cooldown")
-	int32 MaxRecharges = 1;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|Display")
 	FText Title;
 
@@ -215,10 +178,9 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UWxAbilityTask_MontageEvents> MontageEventsTask;
 
-	EWxAbilityActionPhase ActionPhase = EWxAbilityActionPhase::Blocking;
-	void SetActionPhase(EWxAbilityActionPhase NewPhase);
+	/** 액션의 다른 어빌리티 차단을 켜고 끄고, 바뀌었으면 관찰자에게 알린다. */
+	void SetActionBlocking(bool bBlocking);
 
-	bool IsPlayingMontageInstance(int32 MontageInstanceID) const;
 	FVector GetLocalMontageInputDirection() const;
 	void HandleMontageDirectionReceived(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ApplicationTag);
 	void ClearPendingDirectionalMontage();

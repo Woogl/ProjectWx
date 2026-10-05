@@ -2,20 +2,16 @@
 
 #include "AbilitySystem/Abilities/WxAbilityBase.h"
 #include "AbilitySystem/Tasks/WxAbilityTask_MontageEvents.h"
-#include "AbilitySystem/Effects/WxEffect_Cooldown.h"
 #include "AbilitySystem/Effects/WxEffect_Cost.h"
 #include "AbilitySystem/WxAbilityTargetData_Direction.h"
 #include "AbilitySystem/WxAbilitySystemComponent.h"
-#include "Input/WxInputBufferComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
-#include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "GameplayEffect.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Misc/DataValidation.h"
 #include "WxGame.h"
 #include "WxGameplayTags.h"
 
@@ -26,9 +22,7 @@ UWxAbilityBase::UWxAbilityBase()
 	InstancingPolicy  = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 
-	// 쿨다운 GE도 공용이다 — 쌓지 않고 어빌리티의 CooldownTags로 구분하므로 어빌리티끼리 섞이지 않는다.
 	CostGameplayEffectClass = UWxEffect_Cost::StaticClass();
-	CooldownGameplayEffectClass = UWxEffect_Cooldown::StaticClass();
 }
 
 float UWxAbilityBase::QueryCost(const UAbilitySystemComponent& ASC, FGameplayAttribute& OutCostAttribute) const
@@ -81,12 +75,13 @@ TSoftObjectPtr<UObject> UWxAbilityBase::GetIcon() const
 
 int32 UWxAbilityBase::GetMaxRecharges() const
 {
-	return FMath::Max(1, MaxRecharges);
-}
+	const UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
+	if (!CooldownGE || CooldownGE->GetStackingType() == EGameplayEffectStackingType::None)
+	{
+		return 1;
+	}
 
-float UWxAbilityBase::GetCooldownTime() const
-{
-	return FMath::Max(0.f, CooldownTime);
+	return FMath::Max(1, CooldownGE->StackLimitCount);
 }
 
 UAnimMontage* UWxAbilityBase::GetMontage() const
@@ -146,55 +141,28 @@ float UWxAbilityBase::GetMontagePlayRate() const
 	return 1.f;
 }
 
-EWxAbilityActionPhase UWxAbilityBase::GetActionPhase() const
+void UWxAbilityBase::StartRecovery()
 {
-	return ActionPhase;
+	SetActionBlocking(false);
 }
 
-void UWxAbilityBase::SetActionPhase(EWxAbilityActionPhase NewPhase)
+void UWxAbilityBase::SetActionBlocking(bool bBlocking)
 {
-	if (ActionPhase == NewPhase)
+	// 액션이 아닌 어빌리티는 몽타주에 후딜 노티파이가 섞여 있어도 차단을 유지한다.
+	if (!IsActive() || !GetAssetTags().HasTag(WxGameplayTags::Ability_Action) || IsBlockingOtherAbilities() == bBlocking)
 	{
 		return;
 	}
 
-	ActionPhase = NewPhase;
-	if (IsActive() && GetAssetTags().HasTag(WxGameplayTags::Ability_Action))
-	{
-		SetShouldBlockOtherAbilities(NewPhase != EWxAbilityActionPhase::Recovery);
-	}
+	SetShouldBlockOtherAbilities(bBlocking);
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
 		FGameplayEventData Payload;
-		Payload.EventTag = WxGameplayTags::Event_Ability_ActionPhaseChanged;
+		Payload.EventTag = WxGameplayTags::Event_Ability_BlockingChanged;
 		Payload.Instigator = GetAvatarActorFromActorInfo();
 		// 관찰자는 입력 버퍼의 재발동·종료까지 끝난 뒤 최종 상태를 평가한다.
 		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
 	}
-}
-
-void UWxAbilityBase::StartRecovery(int32 MontageInstanceID)
-{
-	// 공용 몽타주의 노티파이가 액션이 아닌 어빌리티의 단계까지 바꾸지 않게 한다.
-	if (GetAssetTags().HasTag(WxGameplayTags::Ability_Action) && ActionPhase != EWxAbilityActionPhase::Recovery && IsPlayingMontageInstance(MontageInstanceID))
-	{
-		SetActionPhase(EWxAbilityActionPhase::Recovery);
-
-		// 루트모션 노티파이는 무브 생성 도중에 오므로 입력 버퍼가 이동 처리 뒤에 재생한다.
-		const AActor* Avatar = GetAvatarActorFromActorInfo();
-		if (UWxInputBufferComponent* InputBuffer = Avatar ? Avatar->FindComponentByClass<UWxInputBufferComponent>() : nullptr)
-		{
-			InputBuffer->RequestBufferedInputFlush();
-		}
-	}
-}
-
-bool UWxAbilityBase::IsPlayingMontageInstance(int32 MontageInstanceID) const
-{
-	// 단계마다 같은 몽타주를 새로 트는 경우도 있어 에셋이 아니라 인스턴스로 가른다.
-	UAnimInstance* AnimInstance = CurrentActorInfo ? CurrentActorInfo->GetAnimInstance() : nullptr;
-	const FAnimMontageInstance* MontageInstance = AnimInstance ? AnimInstance->GetMontageInstanceForID(MontageInstanceID) : nullptr;
-	return MontageInstance && MontageInstance->IsActive();
 }
 
 bool UWxAbilityBase::DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
@@ -377,7 +345,8 @@ void UWxAbilityBase::ResetActionState()
 	ClearPendingDirectionalMontage();
 	bHasMontageInputDirection = false;
 	MontageInputDirection = FVector::ZeroVector;
-	SetActionPhase(EWxAbilityActionPhase::Blocking);
+	// 활성화는 엔진이 차단을 켠 채 시작하고, 콤보·패턴의 다음 단계는 후딜에서 이어질 수 있다.
+	SetActionBlocking(true);
 }
 
 bool UWxAbilityBase::PlayMontageInternal(UAnimMontage* Montage, FName StartSection)
@@ -500,75 +469,20 @@ void UWxAbilityBase::HandleMontageCancelled()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 }
 
-UGameplayEffect* UWxAbilityBase::GetCooldownGameplayEffect() const
-{
-	UGameplayEffect* CooldownGE = Super::GetCooldownGameplayEffect();
-
-	// 지속시간이 0인 GE는 만료 타이머가 걸리지 않는다.
-	if (CooldownGE && CooldownGE->IsA<UWxEffect_Cooldown>() && GetCooldownTime() <= 0.f)
-	{
-		return nullptr;
-	}
-
-	return CooldownGE;
-}
-
 bool UWxAbilityBase::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	// 쿨다운 태그가 없으면 쿨다운도 없다. 순정 판정은 이때 공용 쿨다운 GE가 지정돼 있다고 경고만 낸다.
-	if (CooldownTags.IsEmpty())
+	// 충전은 쿨다운 GE의 스택이 센다. 소모한 충전 하나가 스택 하나이고, 엔진의 스택 만료 정책이 하나씩 되돌린다.
+	const int32 MaxRecharges = GetMaxRecharges();
+	const FGameplayTagContainer* CooldownTags = GetCooldownTags();
+	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	if (MaxRecharges > 1 && CooldownTags && !CooldownTags->IsEmpty() && ASC
+		&& ASC->GetAggregatedStackCount(FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(*CooldownTags)) < MaxRecharges)
 	{
 		return true;
 	}
 
-	// 순정 판정은 쿨다운 태그가 붙어 있기만 하면 막는다.
-	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	if (ASC)
-	{
-		const FGameplayEffectQuery CooldownQuery = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldownTags);
-		if (ASC->GetAggregatedStackCount(CooldownQuery) < GetMaxRecharges())
-		{
-			return true;
-		}
-	}
-
 	// 실패 사유 태그를 채워 NotifyAbilityFailed 파이프라인에 전달하는 것까지 순정에 맡긴다.
 	return Super::CheckCooldown(Handle, ActorInfo, OptionalRelevantTags);
-}
-
-const FGameplayTagContainer* UWxAbilityBase::GetCooldownTags() const
-{
-	return &CooldownTags;
-}
-
-void UWxAbilityBase::ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
-{
-	const UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
-	if (!CooldownGE)
-	{
-		return;
-	}
-
-	const FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(Handle, ActorInfo, ActivationInfo, CooldownGE->GetClass(), GetAbilityLevel(Handle, ActorInfo));
-	if (!SpecHandle.IsValid())
-	{
-		return;
-	}
-
-	// 같은 쿨다운 태그의 쿨다운이 남아 있으면 그 끝부터 회복을 시작해 충전이 차례로 돌아온다.
-	// 엔진은 GE를 활성 목록에 넣은 뒤 지속시간을 다시 계산하므로, 목록을 보는 계산은 적용 전에 끝내 값으로 넘긴다.
-	float QueuedTime = 0.f;
-	if (const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr)
-	{
-		for (const float TimeRemaining : ASC->GetActiveEffectsTimeRemaining(FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldownTags)))
-		{
-			QueuedTime = FMath::Max(QueuedTime, TimeRemaining);
-		}
-	}
-
-	SpecHandle.Data->SetSetByCallerMagnitude(WxGameplayTags::SetByCaller_Duration, QueuedTime + GetCooldownTime());
-	SpecHandle.Data->DynamicGrantedTags.AppendTags(CooldownTags);
-	ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 }
 
 bool UWxAbilityBase::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
@@ -594,19 +508,6 @@ void UWxAbilityBase::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FG
 }
 
 #if WITH_EDITOR
-EDataValidationResult UWxAbilityBase::IsDataValid(FDataValidationContext& Context) const
-{
-	const EDataValidationResult Result = Super::IsDataValid(Context);
-	const uint32 NumErrors = Context.GetNumErrors();
-
-	if (CooldownTime > 0.f && CooldownTags.IsEmpty())
-	{
-		Context.AddError(INVTEXT("쿨다운 시간이 있는데 쿨다운 태그가 없어 쿨다운이 걸리지 않는다."));
-	}
-
-	return CombineDataValidationResults(Result, Context.GetNumErrors() > NumErrors ? EDataValidationResult::Invalid : EDataValidationResult::Valid);
-}
-
 bool UWxAbilityBase::IsActivationExclusive(const UWxAbilityBase& Other) const
 {
 	// 요구한 태그를 가지면 그 태그나 부모를 막는 쪽은 발동할 수 없다.
