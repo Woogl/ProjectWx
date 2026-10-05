@@ -51,7 +51,8 @@ public:
 	/**
 	 * 획득(Delta>0)마다 새 VM 으로 교체되므로 같은 정의를 연속 획득해도 FieldNotify 가 항상 발생하고, 토스트 위젯 간 표시 데이터가 서로 영향을 주지 않는다.
 	 * 획득 시점의 값으로 채운 뒤 더 갱신하지 않는다.
-	 * 뷰 초기화 시점의 첫 실행에서는 nullptr 가 전달되므로 수신측이 유효성을 검사해야 한다.
+	 * 통지 직후 비우므로 뷰 초기화 시점의 실행에서는 항상 nullptr 가 전달되고, 수신측이 유효성을 검사해야 한다.
+	 * 같은 이유로 수신 바인딩은 즉시 실행이어야 한다 — 지연 실행이면 비운 뒤의 값을 읽는다.
 	 */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	TObjectPtr<UWxViewModel_Item> LastAcquiredItem;
