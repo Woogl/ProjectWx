@@ -115,6 +115,34 @@ void AWxCharacterBase::OnJumped_Implementation()
 	AbilitySystemComponent->CancelRecoveringAbilities(nullptr);
 }
 
+void AWxCharacterBase::FellOutOfWorld(const UDamageType& DamageType)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	// 래그돌 시체가 떨어져 다시 불리는 경우도 있어 아직 살아 있을 때만 사망시킨다.
+	if (!AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
+	{
+		FGameplayEventData EventData;
+		EventData.EventTag = WxGameplayTags::Event_Death;
+		EventData.Target = this;
+		if (AbilitySystemComponent->HandleGameplayEvent(WxGameplayTags::Event_Death, &EventData) == 0)
+		{
+			// 사망 어빌리티가 없는 폰(분신 등)은 엔진처럼 지운다.
+			Super::FellOutOfWorld(DamageType);
+			return;
+		}
+	}
+
+	// 엔진처럼 멈추고 숨기되 파괴하지 않는다 — 시체는 부활·스포너가 정리한다.
+	GetCharacterMovement()->DisableMovement();
+	DisableComponentsSimulatePhysics();
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+}
+
 UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
@@ -165,6 +193,10 @@ ETeamAttitude::Type AWxCharacterBase::GetTeamAttitudeTowards(const AActor& Other
 
 bool AWxCharacterBase::IsAlive() const
 {
+	if (AbilitySystemComponent->HasMatchingGameplayTag(WxGameplayTags::Ability_Death))
+	{
+		return false;
+	}
 	if (const UWxCombatAttributeSet* AttrSet = AbilitySystemComponent->GetSet<UWxCombatAttributeSet>())
 	{
 		return AttrSet->GetHP() > 0.f;

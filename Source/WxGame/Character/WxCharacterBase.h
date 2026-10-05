@@ -12,6 +12,7 @@
 #include "WxCharacterBase.generated.h"
 
 class UChildActorComponent;
+class UDamageType;
 class UMotionWarpingComponent;
 class UWxAbilitySystemComponent;
 class UWxCombatAttributeSet;
@@ -38,6 +39,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnJumped_Implementation() override;
 
+	/** 엔진 기본(Destroy) 대신 사망 경로로 보낸다 — 파괴되면 플레이어는 부활할 Pawn을, 적은 처치 통지를 잃는다. */
+	virtual void FellOutOfWorld(const UDamageType& DamageType) override;
+
 	//~ Begin IAbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	//~ End IAbilitySystemInterface
@@ -52,6 +56,7 @@ public:
 	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
 	//~ End IGenericTeamAgentInterface
 
+	/** HP를 깎지 않고 Event.Death로 바로 죽는 경로(소환 해제·KillZ)가 있어 사망 표식도 함께 본다. */
 	bool IsAlive() const;
 
 	UWxLockOnComponent* GetLockOnComponent() const;
