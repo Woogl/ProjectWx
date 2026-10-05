@@ -132,15 +132,8 @@ void AWxCharacterBase::FellOutOfWorld(const UDamageType& DamageType)
 		{
 			// 사망 어빌리티가 없는 폰(분신 등)은 엔진처럼 지운다.
 			Super::FellOutOfWorld(DamageType);
-			return;
 		}
 	}
-
-	// 엔진처럼 멈추고 숨기되 파괴하지 않는다 — 시체는 부활·스포너가 정리한다.
-	GetCharacterMovement()->DisableMovement();
-	DisableComponentsSimulatePhysics();
-	SetActorHiddenInGame(true);
-	SetActorEnableCollision(false);
 }
 
 UAbilitySystemComponent* AWxCharacterBase::GetAbilitySystemComponent() const
