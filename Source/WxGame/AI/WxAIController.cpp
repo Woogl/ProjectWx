@@ -1,16 +1,12 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "AI/WxAIController.h"
-#include "AI/WxBlackboardKeys.h"
 #include "AI/WxAIBehaviorComponent.h"
 #include "WxGameplayTags.h"
 #include "Character/WxCharacterBase.h"
 #include "AbilitySystemComponent.h"
-#include "BehaviorTree/BehaviorTree.h"
-#include "BehaviorTree/BlackboardComponent.h"
-#include "BrainComponent.h"
+#include "Components/StateTreeAIComponent.h"
 #include "GenericTeamAgentInterface.h"
-#include "Minion/WxMinionComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
@@ -46,6 +42,11 @@ AWxAIController::AWxAIController()
 	Perception->ConfigureSense(*DamageConfig);
 
 	Perception->SetDominantSense(UAISense_Sight::StaticClass());
+
+	StateTreeComponent = CreateDefaultSubobject<UStateTreeAIComponent>(TEXT("StateTreeComponent"));
+
+	// 어느 트리를 돌릴지는 빙의한 폰이 정하므로 BeginPlay 에서 스스로 시작하지 않는다.
+	StateTreeComponent->SetStartLogicAutomatically(false);
 }
 
 ETeamAttitude::Type AWxAIController::GetTeamAttitudeTowards(const AActor& Other) const
@@ -55,6 +56,27 @@ ETeamAttitude::Type AWxAIController::GetTeamAttitudeTowards(const AActor& Other)
 		return PawnTeamAgent->GetTeamAttitudeTowards(Other);
 	}
 	return Super::GetTeamAttitudeTowards(Other);
+}
+
+AActor* AWxAIController::GetTargetActor() const
+{
+	return TargetActor;
+}
+
+void AWxAIController::SetTargetActor(AActor* NewTargetActor)
+{
+	TargetActor = NewTargetActor;
+
+	// 조준 지점은 대상의 루트다 — 락온 지점은 플레이어 락온 전용 계약이라 AI 가 겨누는 액터에는 없다.
+	if (const AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(GetPawn()))
+	{
+		WxCharacter->GetLockOnComponent()->SetLockOnTarget(NewTargetActor ? NewTargetActor->GetRootComponent() : nullptr);
+	}
+}
+
+FVector AWxAIController::GetHomeLocation() const
+{
+	return HomeLocation;
 }
 
 void AWxAIController::OnPossess(APawn* InPawn)
@@ -82,38 +104,27 @@ void AWxAIController::OnPossess(APawn* InPawn)
 		}
 	}
 
-	// Blackboard 컴포넌트는 RunBehaviorTree 안에서 생성되므로, BT 를 먼저 실행한 뒤에 컨텍스트 키를 세팅한다.
+	// 트리가 시작하자마자 읽으므로 트리를 돌리기 전에 잡는다.
+	HomeLocation = InPawn->GetActorLocation();
+
+	// 재사용된 폰·컨트롤러도 새 빙의에서는 대상 없이 시작한다.
+	SetTargetActor(nullptr);
+
 	if (AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(InPawn))
 	{
 		WxCharacter->OnDeath.AddDynamic(this, &AWxAIController::HandlePawnDeath);
 		WxCharacter->GetAbilitySystemComponent()->RegisterGameplayTagEvent(WxGameplayTags::Ability_Groggy, EGameplayTagEventType::NewOrRemoved)
 			.AddUObject(this, &AWxAIController::HandleGroggyTagChanged);
 
-		// 재사용된 폰도 새 빙의에서는 대상 없이 시작한다.
-		WxCharacter->GetLockOnComponent()->SetLockOnTarget(nullptr);
-
 		const UWxAIBehaviorComponent* AIBehaviorComponent = WxCharacter->FindComponentByClass<UWxAIBehaviorComponent>();
-		if (UBehaviorTree* BT = AIBehaviorComponent ? AIBehaviorComponent->GetBehaviorTree() : nullptr)
+		if (AIBehaviorComponent && AIBehaviorComponent->GetStateTree().IsValid())
 		{
-			RunBehaviorTree(BT);
-		}
-	}
-
-	if (UBlackboardComponent* BB = GetBlackboardComponent())
-	{
-		WxBlackboardKeys::SetHomeLocation(BB, InPawn->GetActorLocation());
-
-		// 재사용된 컨트롤러가 이전 폰의 타겟을 물려받지 않도록 비운다.
-		WxBlackboardKeys::SetTargetActor(BB, nullptr);
-
-		BB->RegisterObserver(BB->GetKeyID(WxBlackboardKeys::TargetActor), this,
-			FOnBlackboardChangeNotification::CreateUObject(this, &AWxAIController::HandleTargetActorChanged));
-
-		// 소환자는 Deferred Spawn 시 Instigator로 지정되어 빙의보다 먼저 사용할 수 있다.
-		// 소환물이 아닌 폰의 블랙보드에는 Master 키가 없으니 쓰지 않는다 — 쓰면 키를 못 찾았다는 경고만 남는다.
-		if (APawn* Master = UWxMinionComponent::GetMaster(*InPawn))
-		{
-			WxBlackboardKeys::SetMaster(BB, Master);
+			StateTreeComponent->SetStateTreeReference(AIBehaviorComponent->GetStateTree());
+			if (AIBehaviorComponent->GetPatternStateTree().IsValid())
+			{
+				StateTreeComponent->AddLinkedStateTreeOverrides(WxGameplayTags::AI_Pattern, AIBehaviorComponent->GetPatternStateTree());
+			}
+			StateTreeComponent->StartLogic();
 		}
 	}
 }
@@ -125,27 +136,16 @@ void AWxAIController::OnUnPossess()
 	{
 		WxCharacter->OnDeath.RemoveDynamic(this, &AWxAIController::HandlePawnDeath);
 		WxCharacter->GetAbilitySystemComponent()->RegisterGameplayTagEvent(WxGameplayTags::Ability_Groggy, EGameplayTagEventType::NewOrRemoved).RemoveAll(this);
-		WxCharacter->GetLockOnComponent()->SetLockOnTarget(nullptr);
 	}
+
+	// State Tree 는 폰이 컨텍스트라, 엔진이 Super 에서 폰 참조를 끊은 뒤에 멈추려 하면 컨텍스트를 채우지 못해 멈추지 못한다.
+	StateTreeComponent->StopLogic(TEXT("UnPossess"));
+
+	// 폰 참조가 끊기기 전에 비워야 폰의 락온 컴포넌트까지 풀린다.
+	SetTargetActor(nullptr);
 
 	// 구독을 끊으면 그로기 태그 제거를 받지 못하므로, 이 폰 때문에 건 잠금을 여기서 푼다.
-	if (BrainComponent)
-	{
-		BrainComponent->ClearResourceLock(EAIRequestPriority::Reaction);
-	}
-
-	if (UBlackboardComponent* BB = GetBlackboardComponent())
-	{
-		BB->UnregisterObserversFrom(this);
-
-		WxBlackboardKeys::SetTargetActor(BB, nullptr);
-
-		const APawn* PreviousPawn = GetPawn();
-		if (PreviousPawn && UWxMinionComponent::GetMaster(*PreviousPawn))
-		{
-			WxBlackboardKeys::SetMaster(BB, nullptr);
-		}
-	}
+	StateTreeComponent->ClearResourceLock(EAIRequestPriority::Reaction);
 
 	Super::OnUnPossess();
 
@@ -157,45 +157,20 @@ void AWxAIController::OnUnPossess()
 	}
 }
 
-EBlackboardNotificationResult AWxAIController::HandleTargetActorChanged(const UBlackboardComponent& InBlackboard, FBlackboard::FKey KeyID)
-{
-	AWxCharacterBase* WxCharacter = Cast<AWxCharacterBase>(GetPawn());
-	if (!WxCharacter)
-	{
-		return EBlackboardNotificationResult::ContinueObserving;
-	}
-
-	// 겨누는 대상은 서버 권위로 복제돼야 스냅 워프·타겟팅 필터·발사체가 전 머신에서 같은 답을 읽는다.
-	// 조준 지점은 대상의 루트다 — 락온 지점은 플레이어 락온 전용 계약이라 AI 가 겨누는 액터에는 없다.
-	// 무는 대상은 복제되는 폰이라는 전제다. 루트가 런타임 생성 비복제 컴포넌트인 액터를 물면 원격에는 null 로 도착한다.
-	AActor* NewTarget = WxBlackboardKeys::GetTargetActor(&InBlackboard);
-	WxCharacter->GetLockOnComponent()->SetLockOnTarget(NewTarget ? NewTarget->GetRootComponent() : nullptr);
-
-	return EBlackboardNotificationResult::ContinueObserving;
-}
-
 void AWxAIController::HandlePawnDeath(AWxCharacterBase* DeadCharacter)
 {
-	if (BrainComponent)
-	{
-		BrainComponent->StopLogic(TEXT("Pawn died"));
-	}
+	StateTreeComponent->StopLogic(TEXT("Pawn died"));
 }
 
 void AWxAIController::HandleGroggyTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
-	if (!BrainComponent)
-	{
-		return;
-	}
-
 	if (NewCount > 0)
 	{
-		BrainComponent->LockResource(EAIRequestPriority::Reaction);
+		StateTreeComponent->LockResource(EAIRequestPriority::Reaction);
 	}
 	else
 	{
 		// 사망으로 트리가 멈춘 뒤에도 푼다 — 엔진은 트리를 다시 시작할 때 일시정지를 초기화하지 않는다.
-		BrainComponent->ClearResourceLock(EAIRequestPriority::Reaction);
+		StateTreeComponent->ClearResourceLock(EAIRequestPriority::Reaction);
 	}
 }

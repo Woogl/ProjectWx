@@ -114,14 +114,44 @@ void UWxAIBehaviorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 }
 #endif
 
-UBehaviorTree* UWxAIBehaviorComponent::GetBehaviorTree() const
+const FStateTreeReference& UWxAIBehaviorComponent::GetStateTree() const
 {
-	return BehaviorTreeAsset;
+	return StateTree;
 }
 
-UWxPatrolComponent* UWxAIBehaviorComponent::GetPatrolPath() const
+const FStateTreeReference& UWxAIBehaviorComponent::GetPatternStateTree() const
 {
-	return PatrolPath;
+	return PatternStateTree;
+}
+
+bool UWxAIBehaviorComponent::GetPatrolDestination(FVector& OutLocation) const
+{
+	if (!PatrolPath || PatrolCursor >= PatrolPath->GetNumPoints())
+	{
+		return false;
+	}
+
+	OutLocation = PatrolPath->GetPointLocation(PatrolCursor);
+	return true;
+}
+
+void UWxAIBehaviorComponent::AdvancePatrol()
+{
+	if (!PatrolPath)
+	{
+		return;
+	}
+
+	int32 NextIndex = PatrolCursor;
+	if (PatrolPath->GetNextIndex(PatrolCursor, PatrolDirection, NextIndex))
+	{
+		PatrolCursor = NextIndex;
+	}
+	else if (PatrolPath->GetMoveMode() == EWxPatrolMoveMode::Once)
+	{
+		// 지점이 하나뿐인 나머지 모드는 그 지점이 계속 목적지라, 전투로 밀려나도 돌아온다.
+		PatrolCursor = PatrolPath->GetNumPoints();
+	}
 }
 
 void UWxAIBehaviorComponent::HandleControllerChanged(APawn* Pawn, AController* OldController, AController* NewController)

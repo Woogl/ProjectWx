@@ -5,7 +5,7 @@
 
 UWxAbility_Skill::UWxAbility_Skill()
 {
-	// BT가 부르는 번호 태그(Ability.Action.Skill.1 등)는 GA_가 에셋 태그와 소유 태그에 더한다.
+	// State Tree가 부르는 번호 태그(Ability.Action.Skill.1 등)는 GA_가 에셋 태그와 소유 태그에 더한다.
 	FGameplayTagContainer AssetTags;
 	AssetTags.AddTag(WxGameplayTags::Ability_Action_Skill);
 	SetAssetTags(AssetTags);

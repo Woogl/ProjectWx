@@ -1,38 +1,32 @@
 // Copyright Woogle. All Rights Reserved.
 
-#include "AI/WxBTService_UpdateTargetActor.h"
+#include "AI/WxStateTreeEvaluator_UpdateTarget.h"
 
-#include "AI/WxBlackboardKeys.h"
+#include "AI/WxAIController.h"
 #include "WxGameplayTags.h"
-#include "AIController.h"
-#include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "BehaviorTree/BehaviorTreeComponent.h"
-#include "BehaviorTree/BlackboardComponent.h"
+#include "AbilitySystemComponent.h"
 #include "Perception/AIPerceptionComponent.h"
+#include "StateTreeExecutionContext.h"
 
-UWxBTService_UpdateTargetActor::UWxBTService_UpdateTargetActor()
+void FWxStateTreeEvaluator_UpdateTarget::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
 {
-	NodeName = TEXT("Update Target Actor");
+	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	bNotifyTick = true;
+	Instance.TimeUntilUpdate -= DeltaTime;
+	if (Instance.TimeUntilUpdate > 0.f)
+	{
+		return;
+	}
+	Instance.TimeUntilUpdate = Interval;
 
-	Interval = 0.1f;
-	RandomDeviation = 0.0f;
-}
-
-void UWxBTService_UpdateTargetActor::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
-{
-	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
-
-	AAIController* AIController = OwnerComp.GetAIOwner();
-	UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
-	if (!AIController || !Blackboard)
+	AWxAIController* AIController = Cast<AWxAIController>(Context.GetOwner());
+	if (!AIController)
 	{
 		return;
 	}
 
-	AActor* CurrentTarget = WxBlackboardKeys::GetTargetActor(Blackboard);
+	AActor* CurrentTarget = AIController->GetTargetActor();
 	const UAbilitySystemComponent* CurrentTargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(CurrentTarget);
 	if (IsValid(CurrentTarget) && !(CurrentTargetASC && (CurrentTargetASC->HasMatchingGameplayTag(WxGameplayTags::Ability_Death) || CurrentTargetASC->HasMatchingGameplayTag(WxGameplayTags::Effect_IgnoreAggro))))
 	{
@@ -42,17 +36,23 @@ void UWxBTService_UpdateTargetActor::TickNode(UBehaviorTreeComponent& OwnerComp,
 	UAIPerceptionComponent* Perception = AIController->GetPerceptionComponent();
 	if (!Perception)
 	{
-		WxBlackboardKeys::SetTargetActor(Blackboard, nullptr);
+		AIController->SetTargetActor(nullptr);
 		return;
 	}
 
 	// 타겟에서 내려오는 대상은 감지 기록까지 지운다 — Hearing·Damage 자극은 MaxAge 안에 남아 있어, 자격을 되찾는 순간 그대로 어그로가 된다.
 	Perception->ForgetActor(CurrentTarget);
 
-	WxBlackboardKeys::SetTargetActor(Blackboard, FindPerceivedTarget(*Perception, AIController->GetPawn()));
+	AActor* NewTarget = FindPerceivedTarget(*Perception, AIController->GetPawn());
+
+	// 대상 없이 머무는 동안에는 같은 값을 다시 쓰지 않는다 — 쓸 때마다 락온 컴포넌트까지 내려간다.
+	if (NewTarget != CurrentTarget)
+	{
+		AIController->SetTargetActor(NewTarget);
+	}
 }
 
-AActor* UWxBTService_UpdateTargetActor::FindPerceivedTarget(const UAIPerceptionComponent& Perception, const AActor* SelfActor) const
+AActor* FWxStateTreeEvaluator_UpdateTarget::FindPerceivedTarget(const UAIPerceptionComponent& Perception, const AActor* SelfActor) const
 {
 	TArray<AActor*> PerceivedActors;
 	Perception.GetCurrentlyPerceivedActors(nullptr, PerceivedActors);

@@ -67,6 +67,8 @@ namespace WxGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Device_Piston_On, "Device.Piston.On");
 	UE_DEFINE_GAMEPLAY_TAG(Device_Piston_Off, "Device.Piston.Off");
 
+	UE_DEFINE_GAMEPLAY_TAG(AI_Pattern, "AI.Pattern");
+
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_DamageFloater, "GameplayCue.DamageFloater");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Hit, "GameplayCue.Hit");
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_PerfectGuard, "GameplayCue.PerfectGuard");

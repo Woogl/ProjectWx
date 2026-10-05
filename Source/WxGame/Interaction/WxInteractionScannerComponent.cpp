@@ -301,7 +301,7 @@ void UWxInteractionScannerComponent::SetActorHighlighted(AActor* Actor, bool bHi
 
 bool UWxInteractionScannerComponent::CanActivateInteract(const UAbilitySystemComponent* ASC) const
 {
-	// 애셋 태그로 어빌리티를 지목하는 것은 UWxBTTask_ActivateAbility 와 동일한 관례다.
+	// 애셋 태그로 어빌리티를 지목하는 것은 FWxStateTreeTask_ActivateAbility 와 동일한 관례다.
 	const FGameplayAbilityActorInfo* ActorInfo = ASC->AbilityActorInfo.Get();
 	if (!ActorInfo)
 	{

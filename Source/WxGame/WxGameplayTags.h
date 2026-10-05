@@ -143,6 +143,9 @@ namespace WxGameplayTags
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Piston_On);
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Device_Piston_Off);
 
+	/** 공용 적 State Tree 의 패턴 상태에 붙는다. AWxAIController 가 이 태그로 적마다 다른 패턴 트리를 갈아 끼운다. */
+	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(AI_Pattern);
+
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_DamageFloater);
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Hit);
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_PerfectGuard);
@@ -229,7 +232,7 @@ namespace WxGameplayTags
 	/**
 	 * 쿨다운 식별 태그. 순정 CheckCooldown·쿨다운 조회 API가 이 태그로 쿨다운을 식별한다.
 	 * 쿨다운 GE_ 에셋이 자식 태그 하나를 부여하고, 같은 GE_를 지목한 어빌리티끼리 쿨다운을 나눠 쓴다. 부모 태그는 쿨다운 GE 전체를 고를 때(UWxEffect_IgnoreCooldowns) 쓴다.
-	 * 적은 쿨다운을 쓰지 않는다 — 패턴 간격은 BT가 잡는다.
+	 * 적은 쿨다운을 쓰지 않는다 — 패턴 간격은 State Tree가 잡는다.
 	 */
 
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown);

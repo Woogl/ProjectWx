@@ -5,11 +5,11 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "GameplayTagContainer.h"
+#include "StateTreeReference.h"
 #include "WxAIBehaviorComponent.generated.h"
 
 class AController;
 class APawn;
-class UBehaviorTree;
 class UWxPatrolComponent;
 struct FGameplayEventData;
 
@@ -33,9 +33,15 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 #endif
 
-	UBehaviorTree* GetBehaviorTree() const;
+	const FStateTreeReference& GetStateTree() const;
 
-	UWxPatrolComponent* GetPatrolPath() const;
+	const FStateTreeReference& GetPatternStateTree() const;
+
+	/** 지금 향할 정찰 지점을 준다. 경로가 없거나 Once 경로를 완주했으면 false. */
+	bool GetPatrolDestination(FVector& OutLocation) const;
+
+	/** 정찰 지점에 도착했을 때 불러 다음 지점으로 넘긴다. */
+	void AdvancePatrol();
 
 private:
 	UFUNCTION()
@@ -50,12 +56,26 @@ private:
 	 */
 	void HandlePawnHit(FGameplayTag MatchingTag, const FGameplayEventData* Payload);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI")
-	TObjectPtr<UBehaviorTree> BehaviorTreeAsset;
+	/** AWxAIController 가 이 폰에 빙의할 때 돌리는 트리. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI", meta = (Schema = "/Script/GameplayStateTreeModule.StateTreeAIComponentSchema"))
+	FStateTreeReference StateTree;
+
+	/** StateTree 의 AI.Pattern 태그 상태에 갈아 끼울 이 캐릭터의 패턴 트리. 비우면 StateTree 에 링크된 기본 패턴을 쓴다. */
+	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI", meta = (Schema = "/Script/GameplayStateTreeModule.StateTreeAIComponentSchema"))
+	FStateTreeReference PatternStateTree;
 
 	/** 스폰 주체(스포너 등)에 붙은 경로. 비어 있으면 정찰하지 않는다. */
 	UPROPERTY(Transient)
 	TObjectPtr<UWxPatrolComponent> PatrolPath;
+
+	/**
+	 * State Tree 태스크의 데이터는 상태에 들어올 때마다 새로 만들어지므로, 전투 뒤에 이어서 정찰하려면 진행 위치를 폰이 들고 있어야 한다.
+	 * Once 경로를 완주하면 지점 개수로 넘겨 더 갈 곳이 없음을 나타낸다.
+	 */
+	int32 PatrolCursor = 0;
+
+	/** PingPong 진행 방향(+1/-1). */
+	int32 PatrolDirection = 1;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Wx|AI|Perception", meta = (ClampMin = "0", ForceUnits = "cm"))
 	float SightRadius = 1500.f;
