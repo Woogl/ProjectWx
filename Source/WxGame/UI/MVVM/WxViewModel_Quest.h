@@ -23,7 +23,4 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Quest")
 	TArray<TObjectPtr<UWxViewModel_QuestObjective>> Objectives;
-
-private:
-	void RebuildObjectives(const TArray<FText>& InObjectiveTexts);
 };

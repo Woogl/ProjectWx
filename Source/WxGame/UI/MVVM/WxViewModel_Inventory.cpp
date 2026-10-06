@@ -59,7 +59,7 @@ UWxViewModel_Item* UWxViewModel_Inventory::GetOrCreateItemViewModel(const UWxIte
 		return nullptr;
 	}
 
-	for (UWxViewModel_Item* Existing : ItemViewModels)
+	for (UWxViewModel_Item* Existing : DefinitionItems)
 	{
 		if (Existing && Existing->GetDefinition() == ItemDef)
 		{
@@ -68,7 +68,7 @@ UWxViewModel_Item* UWxViewModel_Inventory::GetOrCreateItemViewModel(const UWxIte
 	}
 
 	UWxViewModel_Item* ItemViewModel = CreateItemViewModel(*ItemDef, nullptr);
-	ItemViewModels.Add(ItemViewModel);
+	DefinitionItems.Add(ItemViewModel);
 	return ItemViewModel;
 }
 
@@ -108,7 +108,7 @@ void UWxViewModel_Inventory::RefreshItems()
 		return;
 	}
 
-	TArray<TObjectPtr<UWxViewModel_Item>> NewItems;
+	TArray<TObjectPtr<UWxViewModel_Item>> NewSlotItems;
 	for (UWxItemInstance* Instance : InventoryComponent->GetAllItems())
 	{
 		const UWxItemDefinition* ItemDef = Instance ? Instance->GetItemDef() : nullptr;
@@ -118,7 +118,7 @@ void UWxViewModel_Inventory::RefreshItems()
 		}
 
 		UWxViewModel_Item* ItemViewModel = nullptr;
-		for (UWxViewModel_Item* Existing : Items)
+		for (UWxViewModel_Item* Existing : SlotItems)
 		{
 			if (Existing && Existing->GetInstance() == Instance)
 			{
@@ -127,10 +127,10 @@ void UWxViewModel_Inventory::RefreshItems()
 			}
 		}
 
-		NewItems.Add(ItemViewModel ? ItemViewModel : CreateItemViewModel(*ItemDef, Instance));
+		NewSlotItems.Add(ItemViewModel ? ItemViewModel : CreateItemViewModel(*ItemDef, Instance));
 	}
 
-	Items = MoveTemp(NewItems);
+	SlotItems = MoveTemp(NewSlotItems);
 	RefreshCategorizedItems();
 	RefreshItemViewModels();
 }
@@ -143,14 +143,14 @@ void UWxViewModel_Inventory::RefreshItemViewModels()
 		return;
 	}
 
-	for (UWxViewModel_Item* ItemViewModel : Items)
+	for (UWxViewModel_Item* ItemViewModel : SlotItems)
 	{
 		if (ItemViewModel)
 		{
 			ItemViewModel->Refresh(*InventoryComponent);
 		}
 	}
-	for (UWxViewModel_Item* ItemViewModel : ItemViewModels)
+	for (UWxViewModel_Item* ItemViewModel : DefinitionItems)
 	{
 		if (ItemViewModel)
 		{
@@ -175,9 +175,9 @@ UWxViewModel_Item* UWxViewModel_Inventory::CreateItemViewModel(const UWxItemDefi
 void UWxViewModel_Inventory::RefreshCategorizedItems()
 {
 	TArray<TObjectPtr<UWxViewModel_Item>> NewCategorized;
-	NewCategorized.Reserve(Items.Num());
+	NewCategorized.Reserve(SlotItems.Num());
 
-	for (UWxViewModel_Item* ItemViewModel : Items)
+	for (UWxViewModel_Item* ItemViewModel : SlotItems)
 	{
 		if (ItemViewModel && ItemViewModel->Category.MatchesTagExact(CurrentCategory))
 		{

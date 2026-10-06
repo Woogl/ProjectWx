@@ -6,11 +6,7 @@
 void UWxViewModel_Quest::SetJournal(const FText& InQuestTitle, const TArray<FText>& InObjectiveTexts)
 {
 	UE_MVVM_SET_PROPERTY_VALUE(QuestTitle, InQuestTitle);
-	RebuildObjectives(InObjectiveTexts);
-}
 
-void UWxViewModel_Quest::RebuildObjectives(const TArray<FText>& InObjectiveTexts)
-{
 	Objectives.Reset(InObjectiveTexts.Num());
 	for (const FText& ObjectiveText : InObjectiveTexts)
 	{

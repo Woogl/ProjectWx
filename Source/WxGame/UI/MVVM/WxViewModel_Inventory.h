@@ -44,7 +44,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, FieldNotify, BlueprintSetter = SetCurrentCategory, Category = "Wx|Inventory", meta = (Categories = "Item.Category"))
 	FGameplayTag CurrentCategory;
 
-	/** Items 중 CurrentCategory 에 속한 것. 둘 중 하나가 바뀌면 다시 거른다. */
+	/** SlotItems 중 CurrentCategory 에 속한 것. 둘 중 하나가 바뀌면 다시 거른다. */
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	TArray<TObjectPtr<UWxViewModel_Item>> CategorizedItems;
 
@@ -75,8 +75,8 @@ private:
 
 	/** 슬롯 하나당 하나. 동일 정의가 여러 슬롯으로 나뉘어 있어도 각자 자기 슬롯을 표시한다. */
 	UPROPERTY()
-	TArray<TObjectPtr<UWxViewModel_Item>> Items;
+	TArray<TObjectPtr<UWxViewModel_Item>> SlotItems;
 
 	UPROPERTY()
-	TArray<TObjectPtr<UWxViewModel_Item>> ItemViewModels;
+	TArray<TObjectPtr<UWxViewModel_Item>> DefinitionItems;
 };

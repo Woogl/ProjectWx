@@ -5,8 +5,6 @@
 
 void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGameplayAttribute InAttribute, FGameplayAttribute InMaxAttribute)
 {
-	Deinitialize();
-
 	if (!InASC || !InAttribute.IsValid())
 	{
 		return;

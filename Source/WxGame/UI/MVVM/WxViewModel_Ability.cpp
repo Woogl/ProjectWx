@@ -10,8 +10,6 @@
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags)
 {
-	Deinitialize();
-
 	if (!InASC || InAbilityTags.IsEmpty())
 	{
 		return;
@@ -62,72 +60,6 @@ void UWxViewModel_Ability::Deinitialize()
 	UE_MVVM_SET_PROPERTY_VALUE(CostAmount, 0.f);
 }
 
-void UWxViewModel_Ability::StartCooldownTimer()
-{
-	if (CooldownTimerHandle.IsValid())
-	{
-		return;
-	}
-
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
-	if (!World)
-	{
-		return;
-	}
-
-	CooldownTimerHandle = World->GetTimerManager().SetTimerForNextTick(this, &UWxViewModel_Ability::HandleCooldownTimer);
-}
-
-void UWxViewModel_Ability::StopCooldownTimer()
-{
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
-	if (World)
-	{
-		World->GetTimerManager().ClearTimer(CooldownTimerHandle);
-	}
-	CooldownTimerHandle.Invalidate();
-}
-
-void UWxViewModel_Ability::HandleCooldownTimer()
-{
-	// 실행 중인 단발 예약을 놓아야 다음 월드 틱을 예약할 수 있다.
-	CooldownTimerHandle.Invalidate();
-	if (UpdateCooldownState())
-	{
-		StartCooldownTimer();
-	}
-}
-
-int32 UWxViewModel_Ability::QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining, float& OutDuration) const
-{
-	OutRemaining = 0.f;
-	OutDuration = 0.f;
-
-	int32 ConsumedCharges = 0;
-	for (auto It = ASC.GetActiveGameplayEffects().CreateConstIterator(); It; ++It)
-	{
-		const FActiveGameplayEffect& ActiveGE = *It;
-		if (!ActiveGE.Spec.Def || !ActiveGE.Spec.Def->GetGrantedTags().HasAny(CachedCooldownTags) || ActiveGE.GetDuration() <= 0.f)
-		{
-			continue;
-		}
-
-		// 회복 시점이 지나도 스택 제거 복제가 올 때까지는 소모된 상태 그대로 둔다.
-		// 발동 판정도 같은 복제 값을 보므로, 여기서 미리 돌려주면 표시만 앞서가 "게이지는 찼는데 안 나가는" 구간이 생긴다.
-		const float Remaining = FMath::Max(ActiveGE.GetTimeRemaining(WorldTime), 0.f);
-		if (ConsumedCharges == 0 || Remaining < OutRemaining)
-		{
-			OutRemaining = Remaining;
-			OutDuration = ActiveGE.GetDuration();
-		}
-		ConsumedCharges += ActiveGE.Spec.GetStackCount();
-	}
-
-	return ConsumedCharges;
-}
-
 bool UWxViewModel_Ability::TryActivateAbility()
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
@@ -138,6 +70,11 @@ bool UWxViewModel_Ability::TryActivateAbility()
 	}
 
 	return ASC->TryActivateAbility(Ability->GetCurrentAbilitySpecHandle());
+}
+
+const FGameplayTagContainer& UWxViewModel_Ability::GetAbilityTags() const
+{
+	return AbilityTags;
 }
 
 void UWxViewModel_Ability::RefreshBoundAbility()
@@ -224,17 +161,6 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 	RefreshCheckCost();
 }
 
-const FGameplayTagContainer& UWxViewModel_Ability::GetAbilityTags() const
-{
-	return AbilityTags;
-}
-
-void UWxViewModel_Ability::SetMaxRecharges(int32 NewValue)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(MaxRecharges, NewValue);
-	UE_MVVM_SET_PROPERTY_VALUE(HasMultipleCharges, NewValue > 1);
-}
-
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
 {
 	// 이미 쿨다운 중이면 스택만 늘어 이 알림이 오지 않지만, 그때는 타이머가 이미 돌고 있다.
@@ -270,6 +196,16 @@ void UWxViewModel_Ability::ScheduleActivationRefresh()
 	}
 
 	ActivationRefreshHandle = World->GetTimerManager().SetTimerForNextTick(this, &UWxViewModel_Ability::FlushActivationRefresh);
+}
+
+void UWxViewModel_Ability::FlushActivationRefresh()
+{
+	ActivationRefreshHandle.Invalidate();
+
+	// 후보를 가르는 요건이 태그라 대상부터 다시 고른다.
+	RefreshBoundAbility();
+
+	RefreshCheckCost();
 }
 
 void UWxViewModel_Ability::HandleCostAttributeChanged(const FOnAttributeChangeData& Data)
@@ -316,14 +252,70 @@ bool UWxViewModel_Ability::UpdateCooldownState()
 	return true;
 }
 
-void UWxViewModel_Ability::FlushActivationRefresh()
+void UWxViewModel_Ability::StartCooldownTimer()
 {
-	ActivationRefreshHandle.Invalidate();
+	if (CooldownTimerHandle.IsValid())
+	{
+		return;
+	}
 
-	// 후보를 가르는 요건이 태그라 대상부터 다시 고른다.
-	RefreshBoundAbility();
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
+	if (!World)
+	{
+		return;
+	}
 
-	RefreshCheckCost();
+	CooldownTimerHandle = World->GetTimerManager().SetTimerForNextTick(this, &UWxViewModel_Ability::HandleCooldownTimer);
+}
+
+void UWxViewModel_Ability::StopCooldownTimer()
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(CooldownTimerHandle);
+	}
+	CooldownTimerHandle.Invalidate();
+}
+
+void UWxViewModel_Ability::HandleCooldownTimer()
+{
+	// 실행 중인 단발 예약을 놓아야 다음 월드 틱을 예약할 수 있다.
+	CooldownTimerHandle.Invalidate();
+	if (UpdateCooldownState())
+	{
+		StartCooldownTimer();
+	}
+}
+
+int32 UWxViewModel_Ability::QueryCooldownStacks(const UAbilitySystemComponent& ASC, float WorldTime, float& OutRemaining, float& OutDuration) const
+{
+	OutRemaining = 0.f;
+	OutDuration = 0.f;
+
+	int32 ConsumedCharges = 0;
+	for (auto It = ASC.GetActiveGameplayEffects().CreateConstIterator(); It; ++It)
+	{
+		const FActiveGameplayEffect& ActiveGE = *It;
+		if (!ActiveGE.Spec.Def || !ActiveGE.Spec.Def->GetGrantedTags().HasAny(CachedCooldownTags) || ActiveGE.GetDuration() <= 0.f)
+		{
+			continue;
+		}
+
+		// 회복 시점이 지나도 스택 제거 복제가 올 때까지는 소모된 상태 그대로 둔다.
+		// 발동 판정도 같은 복제 값을 보므로, 여기서 미리 돌려주면 표시만 앞서가 "게이지는 찼는데 안 나가는" 구간이 생긴다.
+		const float Remaining = FMath::Max(ActiveGE.GetTimeRemaining(WorldTime), 0.f);
+		if (ConsumedCharges == 0 || Remaining < OutRemaining)
+		{
+			OutRemaining = Remaining;
+			OutDuration = ActiveGE.GetDuration();
+		}
+		ConsumedCharges += ActiveGE.Spec.GetStackCount();
+	}
+
+	return ConsumedCharges;
 }
 
 void UWxViewModel_Ability::RefreshCheckCost()
@@ -372,7 +364,8 @@ void UWxViewModel_Ability::SetPresentation(const FText& InTitle, const FText& In
 {
 	UE_MVVM_SET_PROPERTY_VALUE(Title, InTitle);
 	UE_MVVM_SET_PROPERTY_VALUE(Description, InDescription);
-	SetMaxRecharges(InMaxRecharges);
+	UE_MVVM_SET_PROPERTY_VALUE(MaxRecharges, InMaxRecharges);
+	UE_MVVM_SET_PROPERTY_VALUE(HasMultipleCharges, InMaxRecharges > 1);
 	WxViewModel::RequestImageAsync(*this, IconHandle, InIcon, [this](UObject* LoadedIcon)
 	{
 		UE_MVVM_SET_PROPERTY_VALUE(Icon, LoadedIcon);

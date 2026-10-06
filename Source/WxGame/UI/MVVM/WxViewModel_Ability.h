@@ -88,21 +88,17 @@ private:
 	/** 물고 있던 어빌리티가 그대로면 아무것도 하지 않는다. */
 	void RefreshBoundAbility();
 
-	/** 충전이 여럿인지가 이 값에서 파생되므로 함께 갱신된다. */
-	void SetMaxRecharges(int32 NewValue);
-
 	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
 	void HandleAbilitySpecDirtied(const FGameplayAbilitySpec& Spec);
 	void ScheduleActivationRefresh();
-	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
-	bool UpdateCooldownState();
-	void HandleCooldownTimer();
-
 	void FlushActivationRefresh();
+	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
 
+	bool UpdateCooldownState();
 	void StartCooldownTimer();
 	void StopCooldownTimer();
+	void HandleCooldownTimer();
 
 	/**
 	 * 쿨다운 태그를 부여하는 활성 GE 의 스택 수(소모한 충전 수)를 반환하고, 다음 충전까지의 잔여 시간과 충전 하나의 회복 시간을 낸다.

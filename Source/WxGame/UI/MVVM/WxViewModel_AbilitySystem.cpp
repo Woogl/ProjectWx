@@ -10,7 +10,6 @@
 
 void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 {
-	Deinitialize();
 	if (!InASC)
 	{
 		return;
@@ -164,35 +163,6 @@ void UWxViewModel_AbilitySystem::HandleActiveEffectAdded(UAbilitySystemComponent
 	}
 }
 
-bool UWxViewModel_AbilitySystem::AddActiveEffectViewModel(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
-{
-	if (!Handle.IsValid() || !Spec.Def)
-	{
-		return false;
-	}
-
-	// 억제 해제도 같은 핸들로 추가 통지를 보내므로 기존 VM과 스택 구독을 유지한다.
-	for (const UWxViewModel_Effect* Existing : ActiveEffectViewModels)
-	{
-		if (Existing && Existing->GetBoundHandle() == Handle)
-		{
-			return false;
-		}
-	}
-
-	UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(this);
-	EffectVM->Initialize(InASC, Handle);
-
-	// 초기화가 핸들을 잡지 못했으면 제거 통지와 영영 매칭되지 않아 목록에 유령으로 남는다.
-	if (!EffectVM->GetBoundHandle().IsValid())
-	{
-		return false;
-	}
-
-	ActiveEffectViewModels.Add(EffectVM);
-	return true;
-}
-
 void UWxViewModel_AbilitySystem::HandleActiveEffectRemoved(const FActiveGameplayEffect& ActiveEffect)
 {
 	for (int32 i = 0; i < ActiveEffectViewModels.Num(); ++i)
@@ -226,4 +196,33 @@ void UWxViewModel_AbilitySystem::FlushOwnedTagsRefresh()
 {
 	OwnedTagsRefreshHandle.Invalidate();
 	RefreshOwnedTags();
+}
+
+bool UWxViewModel_AbilitySystem::AddActiveEffectViewModel(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle)
+{
+	if (!Handle.IsValid() || !Spec.Def)
+	{
+		return false;
+	}
+
+	// 억제 해제도 같은 핸들로 추가 통지를 보내므로 기존 VM과 스택 구독을 유지한다.
+	for (const UWxViewModel_Effect* Existing : ActiveEffectViewModels)
+	{
+		if (Existing && Existing->GetBoundHandle() == Handle)
+		{
+			return false;
+		}
+	}
+
+	UWxViewModel_Effect* EffectVM = NewObject<UWxViewModel_Effect>(this);
+	EffectVM->Initialize(InASC, Handle);
+
+	// 초기화가 핸들을 잡지 못했으면 제거 통지와 영영 매칭되지 않아 목록에 유령으로 남는다.
+	if (!EffectVM->GetBoundHandle().IsValid())
+	{
+		return false;
+	}
+
+	ActiveEffectViewModels.Add(EffectVM);
+	return true;
 }

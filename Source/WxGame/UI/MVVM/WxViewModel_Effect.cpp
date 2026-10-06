@@ -91,42 +91,17 @@ void UWxViewModel_Effect::SetStackCount(int32 NewValue)
 	UE_MVVM_SET_PROPERTY_VALUE(IsStackCountAboveOne, NewValue > 1);
 }
 
+void UWxViewModel_Effect::SetIcon(const TSoftObjectPtr<UObject>& InIcon)
+{
+	WxViewModel::RequestImageAsync(*this, IconHandle, InIcon, [this](UObject* LoadedIcon)
+	{
+		UE_MVVM_SET_PROPERTY_VALUE(Icon, LoadedIcon);
+	});
+}
+
 void UWxViewModel_Effect::HandleStackCountChanged(FActiveGameplayEffectHandle Handle, int32 NewStackCount, int32 PreviousStackCount)
 {
 	SetStackCount(NewStackCount);
-}
-
-void UWxViewModel_Effect::StartTimeRemainingTimer()
-{
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
-	if (!World)
-	{
-		return;
-	}
-
-	TimeRemainingTimerHandle = World->GetTimerManager().SetTimerForNextTick(this, &UWxViewModel_Effect::HandleTimeRemainingTimer);
-}
-
-void UWxViewModel_Effect::StopTimeRemainingTimer()
-{
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
-	if (World)
-	{
-		World->GetTimerManager().ClearTimer(TimeRemainingTimerHandle);
-	}
-	TimeRemainingTimerHandle.Invalidate();
-}
-
-void UWxViewModel_Effect::HandleTimeRemainingTimer()
-{
-	// 실행 중인 단발 예약을 놓아야 다음 월드 틱을 예약할 수 있다.
-	TimeRemainingTimerHandle.Invalidate();
-	if (UpdateEffectState())
-	{
-		StartTimeRemainingTimer();
-	}
 }
 
 bool UWxViewModel_Effect::UpdateEffectState()
@@ -165,10 +140,35 @@ bool UWxViewModel_Effect::UpdateEffectState()
 	return true;
 }
 
-void UWxViewModel_Effect::SetIcon(const TSoftObjectPtr<UObject>& InIcon)
+void UWxViewModel_Effect::HandleTimeRemainingTimer()
 {
-	WxViewModel::RequestImageAsync(*this, IconHandle, InIcon, [this](UObject* LoadedIcon)
+	// 실행 중인 단발 예약을 놓아야 다음 월드 틱을 예약할 수 있다.
+	TimeRemainingTimerHandle.Invalidate();
+	if (UpdateEffectState())
 	{
-		UE_MVVM_SET_PROPERTY_VALUE(Icon, LoadedIcon);
-	});
+		StartTimeRemainingTimer();
+	}
+}
+
+void UWxViewModel_Effect::StartTimeRemainingTimer()
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
+	if (!World)
+	{
+		return;
+	}
+
+	TimeRemainingTimerHandle = World->GetTimerManager().SetTimerForNextTick(this, &UWxViewModel_Effect::HandleTimeRemainingTimer);
+}
+
+void UWxViewModel_Effect::StopTimeRemainingTimer()
+{
+	UAbilitySystemComponent* ASC = CachedASC.Get();
+	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
+	if (World)
+	{
+		World->GetTimerManager().ClearTimer(TimeRemainingTimerHandle);
+	}
+	TimeRemainingTimerHandle.Invalidate();
 }
