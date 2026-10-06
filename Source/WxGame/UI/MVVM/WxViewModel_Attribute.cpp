@@ -1,10 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "UI/MVVM/WxViewModel_Attribute.h"
-#include "UI/MVVM/WxViewModel_AbilitySystem.h"
-#include "UI/MVVM/WxViewModel_Character.h"
 #include "AbilitySystemComponent.h"
-#include "Blueprint/UserWidget.h"
 
 void UWxViewModel_Attribute::Initialize(UAbilitySystemComponent* InASC, FGameplayAttribute InAttribute, FGameplayAttribute InMaxAttribute)
 {
@@ -80,13 +77,4 @@ void UWxViewModel_Attribute::RefreshDerivedFields()
 {
 	UE_MVVM_SET_PROPERTY_VALUE(IsAttributeFull, AttributeAmount >= MaxAttributeAmount);
 	UE_MVVM_SET_PROPERTY_VALUE(AttributePercent, MaxAttributeAmount > 0.f ? AttributeAmount / MaxAttributeAmount : 0.f);
-}
-
-UObject* UWxViewModelResolver_Attribute::CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const
-{
-	// 플레이어 Character VM 의 어빌리티시스템 VM 이 어트리뷰트 조합별 인스턴스를 소유하므로 같은 조합을 보는 위젯이 공유한다.
-	const UWxViewModel_Character* PlayerViewModel = UWxViewModel_Character::FindPlayer(UserWidget);
-	UWxViewModel_AbilitySystem* AbilitySystemViewModel = PlayerViewModel ? PlayerViewModel->AbilitySystem.Get() : nullptr;
-
-	return AbilitySystemViewModel ? AbilitySystemViewModel->GetOrCreateAttributeViewModel(Attribute, MaxAttribute) : nullptr;
 }

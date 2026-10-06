@@ -5,13 +5,10 @@
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
 #include "MVVMViewModelBase.h"
-#include "View/MVVMViewModelContextResolver.h"
 #include "WxViewModel_Attribute.generated.h"
 
 struct FOnAttributeChangeData;
 class UAbilitySystemComponent;
-class UMVVMView;
-class UUserWidget;
 
 UCLASS()
 class WXGAME_API UWxViewModel_Attribute : public UMVVMViewModelBase
@@ -46,20 +43,4 @@ private:
 	FGameplayAttribute BoundAttribute;
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
 	FGameplayAttribute BoundMaxAttribute;
-};
-
-UCLASS(EditInlineNew, CollapseCategories)
-class WXGAME_API UWxViewModelResolver_Attribute : public UMVVMViewModelContextResolver
-{
-	GENERATED_BODY()
-
-public:
-	virtual UObject* CreateInstance(const UClass* ExpectedType, const UUserWidget* UserWidget, const UMVVMView* View) const override;
-
-	UPROPERTY(EditAnywhere, Category = "Wx")
-	FGameplayAttribute Attribute;
-
-	/** 지정하지 않으면 Attribute 를 최대값으로 쓴다 */
-	UPROPERTY(EditAnywhere, Category = "Wx")
-	FGameplayAttribute MaxAttribute;
 };
