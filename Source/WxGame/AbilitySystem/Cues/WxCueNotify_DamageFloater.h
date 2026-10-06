@@ -21,7 +21,7 @@ public:
 	virtual void HandleGameplayCue(AActor* MyTarget, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters) override;
 
 protected:
-	/** IWxDamageFloaterInterface를 구현하는 위젯 클래스 */
+	/** UWxViewModel_Damage 를 Manual 뷰모델 소스로 둔 위젯이어야 값이 들어온다. */
 	UPROPERTY(EditDefaultsOnly, Category = "Damage Floater")
 	TSubclassOf<UUserWidget> FloaterWidgetClass;
 };
@@ -39,19 +39,4 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UWidgetComponent> WidgetComponent;
-};
-
-UINTERFACE(MinimalAPI)
-class UWxDamageFloaterInterface : public UInterface
-{
-	GENERATED_BODY()
-};
-
-class WXGAME_API IWxDamageFloaterInterface
-{
-	GENERATED_BODY()
-
-public:
-	UFUNCTION(BlueprintNativeEvent, Category = "Damage Floater")
-	void InitDamageInfo(float DamageAmount, bool bIsCritical);
 };

@@ -253,3 +253,7 @@
 - 코드 변경 반영: [상호작용](topics/상호작용.md) 스캔 반경 단일화, [체크포인트와 리스폰](topics/체크포인트와-리스폰.md) 휴식·부활 공용 회복 GE `UWxEffect_FullRestore`, [플레이어 캐릭터](topics/플레이어-캐릭터.md) 락온 복제 조건, [현광](entities/현광.md) 분신 재시도의 시간 기준.
 - 그대로 둔 것: UI 세 문서의 규칙·결정 이중 서술은 [UI 설계 원칙](topics/UI-설계-원칙.md)의 동기화 규칙으로 관리하는 의도된 구조라 두었다. 관점이 다른 한 줄 언급(직전 패턴 회피, 첫 보스·적 정체 미결)도 두었다.
 - 재점검: 낡은 자료·사라진 자료·깨진 링크·고아 문서·출처 짝·색인 누락·미적재 자료 0. 없는 코드 이름 1(`UWxEffect_FullRestore`)은 아직 커밋하지 않은 새 클래스라 커밋 뒤 사라진다. 연결 후보 14는 기존과 같은 문자열 권고다.
+
+## [2026-10-07] ingest | 사용자 결정: 데미지 플로터를 UWxViewModel_Damage로
+- 자료: 사용자 대화와 `Source/WxGame/AbilitySystem/Cues/`·`Source/WxGame/UI/MVVM/` 코드, `WBP_DamageFloater`.
+- `topics/UI-뷰모델.md`의 뷰모델 표·월드 공간 위젯 설명에 `UWxViewModel_Damage`를 더하고 결정 항목(OneTime 바인딩, 치명타 Visibility, Lyra 대응과 다른 선택)을 기록했다.

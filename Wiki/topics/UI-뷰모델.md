@@ -23,6 +23,7 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
 | `UWxViewModel_InteractionList`·`Interaction` | 리졸버가 위젯마다 | `UWxViewModelResolver_InteractionList`(PC `UWxInteractionScannerComponent` 구독) |
 | `UWxViewModel_Subtitle` | Global Collection에 `VM_Subtitle` 하나 | `UWxViewModelResolver_Subtitle` |
 | `UWxViewModel_Indicator` | `AWxIndicator`가 만들어 Manual로 | — |
+| `UWxViewModel_Damage`(피해량, 치명타 여부) | `AWxDamageFloaterActor`가 피해마다 만들어 Manual로 | — |
 
 - 스킬 슬롯은 어빌리티 에셋 태그로 어빌리티를 지목한다([어빌리티 구현 구조](어빌리티-구현-구조.md#결정)). 부여가 바뀌면 슬롯 VM이 `AbilitySpecDirtiedCallbacks`를 직접 받아 다음 틱에 대상을 다시 고른다.
   - 엔진은 이 델리게이트를 권한 측에서만 부르므로 원격 클라에서는 다음 태그 변화 때 따라간다.
@@ -39,7 +40,9 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
 ### 위젯마다 만드는 뷰모델
 - Quest·Dialogue·InteractionList·BossCharacter 리졸버는 위젯을 Outer로 VM을 새로 만들고, 모델의 지금 값으로 한 번 채운 뒤 모델 델리게이트에 그 VM을 소유자로 구독한다. `DestroyInstance`에서는 그 VM의 구독을 끊고, 스스로 보스 ASC를 구독하는 BossCharacter의 Character VM은 `Deinitialize`까지 한다(ed7a5a640).
 - 보스 바의 현재 보스 추적은 [네임플레이트](네임플레이트.md#구현)에 있다.
-- 월드 공간 위젯(적 네임플레이트, 인디케이터)은 위젯을 만든 쪽이 VM을 만들어 `SetViewModelByClass`로 넣는다. 위젯의 소스는 Manual이고, 실패하면 경고 로그를 남긴다.
+- 월드 공간 위젯(적 네임플레이트, 인디케이터, 데미지 플로터)은 위젯을 만든 쪽이 VM을 만들어 `SetViewModelByClass`로 넣는다. 위젯의 소스는 Manual이고, 실패하면 경고 로그를 남긴다.
+  - 데미지 플로터의 값은 표시 뒤 바뀌지 않으므로 `UWxViewModel_Damage` 필드에 FieldNotify가 없고, `WBP_DamageFloater`의 바인딩은 모두 OneTime이다.
+  - 피해량은 `ToText (Float)`(내림, 자릿수 구분 없음, 소수 0자리)로, 치명타 표시 `!!`는 별도 텍스트 `CriticalText`의 Visibility를 `bIsCritical`로 켠다.
 
 ### 자막
 - 자막은 화면당 하나라 `UWxViewModel_Subtitle::GetOrCreate`가 Global Collection에 `VM_Subtitle` 하나만 둔다. 표시 위젯과 문구를 거는 StateTree 노드가 같은 인스턴스를 찾아가야 해서다.
@@ -98,6 +101,10 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
 - 2026-10-06 게임플레이 입력(상호작용·스킬·아이템 사용 키)은 위젯이 받지 않고 캐릭터가 받는다. BP에서 실행하는 함수를 줄이려는 것이다. VM 명령은 UI 안에서만 뜻이 있는 조작(대사 넘기기·탭 전환)과 마우스로 슬롯을 눌러 쓰는 클릭 사용(`TryActivateAbility`)에만 둔다. (사용자 결정, 커밋 d9768ca8d)
   - 이 목적으로 상호작용 VM 구조를 다시 짤 필요는 없다. 선택이 바뀌면 행 VM을 다시 만드는 09-23 방식(f98eef471)을 유지한다. 행 VM을 유지하고 선택만 갱신하던 이전 구조로 돌아가면 동기화 코드와 갱신 경로 둘이 되살아난다.
 - 2026-10-06 한 번만 반응해야 하는 신호(획득 알림)는 상태 필드가 아니라 VM 델리게이트와 MVVM 이벤트 바인딩으로 보낸다. 필드에 넣었다 통지 없이 비우던 방식은 뷰 초기화 때 null로 실행돼 경고를 냈고 수신 바인딩에 즉시 실행을 강제했다. WBP에서 null을 거르는 안은 BP 로직을 늘리고 우회가 남아 기각했다. (사용자 결정, 커밋 5b8803a69)
+- 2026-10-07 데미지 플로터 위젯에 값을 넣던 `IWxDamageFloaterInterface`를 걷어내고 `UWxViewModel_Damage`를 새로 만들었다. 기존 VM 중 피해 한 번의 값을 담을 곳이 없어서다. (사용자 결정)
+  - 표시 뒤 값이 바뀌지 않으므로 바인딩은 모두 OneTime이다.
+  - 치명타는 텍스트에 `!!`를 붙이지 않고 별도 텍스트의 Visibility로 켠다.
+  - Lyra 대응(`ULyraNumberPopComponent_NiagaraText`)은 위젯 없이 Niagara로 숫자를 그리지만, 지금 위젯 외형을 유지하려고 VM을 택했다.
 
 ## 미결
 - 자막은 StateTree 노드가 뷰모델을 직접 불러 '모델은 뷰모델을 모른다'에 어긋나는 알려진 예외다. 자막 상태를 GameState 컴포넌트에 두는 안이 1순위였고, 퀘스트 멀티플레이 정책과 함께 보기로 미뤘다(09-30 "퀘스트나 자막은 나중에 봅시다").
