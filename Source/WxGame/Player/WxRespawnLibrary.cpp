@@ -3,7 +3,7 @@
 #include "Player/WxRespawnLibrary.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystem/Attributes/WxCombatAttributeSet.h"
+#include "AbilitySystem/Effects/WxEffect_FullRestore.h"
 #include "Camera/PlayerCameraManager.h"
 #include "CommonActivatableWidget.h"
 #include "Engine/World.h"
@@ -67,8 +67,7 @@ bool UWxRespawnLibrary::RequestRespawn(UCommonActivatableWidget* DeathScreen)
 	}
 	if (UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(NewPawn))
 	{
-		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetHPAttribute(), ASC->GetNumericAttribute(UWxCombatAttributeSet::GetMaxHPAttribute()));
-		ASC->SetNumericAttributeBase(UWxCombatAttributeSet::GetMPAttribute(), ASC->GetNumericAttribute(UWxCombatAttributeSet::GetMaxMPAttribute()));
+		ASC->ApplyGameplayEffectToSelf(GetDefault<UWxEffect_FullRestore>(), 1.f, ASC->MakeEffectContext());
 	}
 	// 다음 월드 틱 전에 새 시점의 지형 스트리밍을 완료해 낙하를 방지한다.
 	Controller->SetViewTarget(NewPawn);
