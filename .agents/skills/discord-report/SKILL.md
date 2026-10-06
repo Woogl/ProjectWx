@@ -53,13 +53,12 @@ git log --since="24 hours ago" --author="$(git config user.name)" --pretty=forma
 & '<현재 저장소 루트>\.agents\scripts\Send-DiscordReport.ps1' -Path "$env:TEMP\wx-discord-report.txt" -Username '<실행 중인 하네스 이름>'
 ```
 
-- `-Username`에는 지금 이 스킬을 실행 중인 하네스 이름(`Claude Code`, `Codex` 등)을 넣는다. 생략하면 설정 파일의 `username`을, 그것도 없으면 `WX Agent`를 쓴다.
+- `-Username`에는 지금 이 스킬을 실행 중인 하네스 이름(`Claude Code`, `Codex` 등)을 넣는다.
 - 디스코드 2000자 제한은 스크립트가 1900자 단위로 자동 분할한다.
 - 전송 결과("Sent to Discord ...")를 확인하고 사용자에게 알린다.
 
 ## 설정 / 주의
 
 - 웹훅 URL(비밀): `<현재 저장소 루트>\.agents\discord-webhook.local.json` — git 미추적, 커밋 금지.
-- `Send-DiscordReport.ps1` 본문은 ASCII(영문) 전용 유지 — Windows PowerShell 5.1이 UTF-8 `.ps1`의 한글을 CP949로 잘못 읽어 파스 에러를 낸다. 한글 추가 금지.
+- `Send-DiscordReport.ps1`에 한글을 넣을 때는 `AGENTS.md`의 PowerShell 인코딩 규칙을 따른다.
 - 전송은 외부로 발행되는 행위다. 같은 내용을 직전에 이미 보냈다면 중복 전송 전 사용자에게 확인한다.
-- 관련 메모리: `discord-report-webhook`.

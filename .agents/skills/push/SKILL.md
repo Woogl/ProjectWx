@@ -17,7 +17,7 @@ allowed-tools: Bash, PowerShell, Read, Write
 - `git status` 로 변경/추가/삭제된 파일 목록 확인
 - `git diff` 와 `git diff --staged` 로 변경 내용 확인
 
-이어서 이번에 올릴 파일이 AGENTS.md 코딩 규칙 1·2·3·5를 지키는지 검사한다.
+이어서 이번에 올릴 파일을 AGENTS.md의 기계 검사 규칙(`Check-CodingRules.ps1`)으로 검사한다.
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .agents/scripts/Check-CodingRules.ps1 -Changed
@@ -73,7 +73,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .agents/scripts/Check-Coding
 
 - `.env`, 자격 증명 파일 등 민감한 파일이 포함되어 있지 않은지 확인하라.
 - **해당 그룹에 속한 파일만** 경로를 명시해 `git add`하라. `git add -A`나 `git add .`는 사용하지 마라.
-- 경로에 `Tests/` 폴더가 들어간 파일(임시 검증 테스트)은 어느 그룹에도 넣지 않는다.
+- 경로에 `Tests/` 폴더가 들어간 파일(AGENTS.md의 임시 검증 테스트)은 어느 그룹에도 넣지 않는다.
 - `git status`로 의도한 파일만 스테이징됐는지 확인한 뒤 커밋하라.
 - 한국어 커밋 메시지를 UTF-8 임시 파일에 저장하고 `git commit -F <메시지 파일>`로 커밋하라. Bash HEREDOC이나 PowerShell here-string 등 현재 셸에 맞는 저장 방법을 사용한다.
 - 시작할 때 이미 다른 그룹의 변경이 스테이징되어 있으면 그대로 섞어 커밋하지 않는다. 기존 인덱스의 파일·부분 스테이징 상태를 보존하면서 해당 그룹만 커밋하고, 커밋 뒤 나머지 스테이징이 유지됐는지 확인한다.

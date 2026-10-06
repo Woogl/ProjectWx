@@ -1,6 +1,6 @@
 # 주간 Routine 실행
 
-클라우드 Routine 「Wiki 주간 적재·점검 + 푸시」가 매주 월요일 07:00(KST) 새 클론에서 사람 없이 이 문서대로 실행한다. [SKILL.md](../SKILL.md)의 1~7절과 다른 점만 적는다.
+클라우드 Routine 「Wiki 주간 적재·점검 + 푸시」가 매주 새 클론에서 사람 없이 이 문서대로 실행한다(일정의 정본은 claude.ai의 루틴 설정). [SKILL.md](../SKILL.md)의 1~7절과 다른 점만 적는다.
 
 **점검 스크립트** — Linux라 `powershell` 대신 `pwsh -NoProfile -File .agents/skills/wiki-lint/scripts/Invoke-WikiLint.ps1`로 돌린다.
 - 새 클론은 얕은 클론이라 먼저 `git fetch --unshallow origin main`으로 전체 이력을 받는다. 얕은 클론이면 스크립트가 멈춘다.

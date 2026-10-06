@@ -16,7 +16,7 @@
 - **태스크 배열은 중간 삽입·재정렬하지 않는다.** 원소 타입은 제자리에 남고 `iD`만 옮겨져, `iD`에 매인 바인딩이 엉뚱한 노드로 넘어간다. 추가는 맨 뒤에 붙이고(기존 원소는 조회 결과 그대로), 순서·타입을 바꾸려면 `[]`로 비운 뒤 원래 `iD`를 붙여 전량 다시 쓴다. 원래 `iD`를 유지하면 바인딩도 살아남는다.
 - **축소 뒤 남은 원소가 빈 채로 남을 수 있다.** 원소를 원본 그대로 되돌려 넣어도 제거 지점 뒤 원소의 `node`·`instance`가 비고 `iD`만 남은 사례가 있다. 컴파일·저장은 성공을 답한다. 축소 후 `_structType`을 다시 확인하고, 비었으면 지웠다 맨 뒤에 다시 붙인 뒤 바인딩을 다시 건다.
 - **`TasksCompletion` 기본값은 Any다.** 즉시 끝나는 태스크와 기다리는 태스크를 섞으면 진입하자마자 상태가 완료돼 트리가 한 프레임에 끝까지 지나간다. 기다리는 상태는 `All`을 명시하고, 계속 Running인 태스크는 `bConsideredForCompletion=false`로 뺀다.
-- 레벨 액터를 노드·인스턴스 값에 리터럴로 넣으면 컴파일 오류("Direct Actor references are not allowed")가 난다. 바인딩으로 주입하거나 UOL 파라미터를 쓴다. UOL 파라미터는 `AddRootParameter`의 `MetaJson`에 `{"AllowedLocators":"Actor"}`를 줘야 액터 픽커가 뜬다.
+- 레벨 액터를 노드·인스턴스 값에 리터럴로 넣으면 컴파일 오류("Direct Actor references are not allowed")가 난다. 바인딩으로 주입하거나 UOL 파라미터를 쓴다. UOL 파라미터의 액터 픽커 메타는 `AddRootParameter` 설명에 있다.
 - 유틸리티 선택은 자식마다 Constant 고려 사항이 하나는 있어야 점수가 0이 아니다.
 
 ## 전이
@@ -24,11 +24,11 @@
 - 전이는 타깃 상태의 `ID`로 링크된다. `state` 안에 `linkType`을 명시한다. 옛 상태의 `ID`를 새 상태에 복사하면 전이 정의를 그대로 옮길 수 있다.
 - **`NextState`를 `set_properties`로 넣으면 자기 자신으로 가는 `GotoState`로 바뀐다.** 컴파일도 통과하고 런타임에 매 틱 재진입한다. 형제 상태의 `ID`를 읽어 `GotoState`로 명시한다.
 - **전이를 한 번에 둘 이상 추가하면 마지막 원소가 기본값(OnStateCompleted·자기 자신 GotoState)으로 초기화되고, 두 번째부터 `iD`가 새로 발급된다.** 같은 배열을 같은 크기로 한 번 더 쓰고, 다시 조회해 실제 `iD`로 바인딩한다.
-- On Delegate 전이: `trigger`를 `OnDelegate`로, `requiredEvent.tag`를 비우고, `AddBinding`으로 소스=발행자 노드 `iD`+델리게이트 프로퍼티, 타깃=전이 `iD`+`"DelegateListener"`를 건다. 미연결이면 컴파일 오류가 나므로 컴파일 통과가 곧 연결 확인이다.
+- On Delegate 전이: `trigger`를 `OnDelegate`로, `requiredEvent.tag`를 비우고, `AddBinding`으로 발행자 노드의 델리게이트를 전이에 건다(전이 쪽 경로는 `AddBinding` 설명). 미연결이면 컴파일 오류가 나므로 컴파일 통과가 곧 연결 확인이다.
 
 ## 바인딩·파라미터·링크
 
-- 바인딩 소스 ID와 경로 규칙은 `AddBinding` 설명에 있다. 경로는 표시명이 아닌 프로퍼티 이름이다.
+- 바인딩 소스 ID와 경로 규칙은 `AddBinding` 설명에 있다.
 - Context Actor 소스는 그 프로퍼티가 스키마의 컨텍스트 클래스에 있고 편집 플래그(`EditAnywhere`·`EditInstanceOnly`)가 있어야 풀린다. 안 풀리면 루트 파라미터를 소스로 두고, 배치마다 다른 값은 컴포넌트 `StateTreeRef`의 파라미터 오버라이드(`SetReferenceParameterValues`)로 준다.
 - 루트 파라미터를 같은 이름으로 지웠다 다시 만들면 그 파라미터를 소스로 쓰던 바인딩이 그대로 이어진다. 타입을 바꿔 다시 정의해도 다시 걸 필요가 없다.
 - 링크 상태(Linked Asset)는 `LinkStateToAsset` 후 `SetStateParameterValues`로 값을 쓴다. 다시 링크하면 값이 기본값으로 돌아간다. 루트 파라미터→링크 상태 바인딩이 남아 있으면 런타임에 오버라이드 값을 덮어쓴다.

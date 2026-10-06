@@ -45,7 +45,7 @@ allowed-tools: Read, Grep, Glob, Bash, PowerShell, Write, Agent
 - 묶음의 모든 파일을 끝까지 읽는다. 여러 파일을 한 번에 읽어 도구 호출을 줄인다(80회 안쪽 목표).
 - 각 함수의 호출자·피호출자를 범위 밖까지 추적한다. 점검 축은 다음과 같다: 수명(BeginPlay/EndPlay/Initialize/Deinitialize/빙의), 델리게이트·타이머 해제, 서버·클라 분기와 복제, GAS 발동·종료·취소와 태그·GE 적용 순서, null·범위, 엔진 API 의미론, 조기 return으로 건너뛰는 정리 코드.
 - 엔진 동작은 추측하지 않고 엔진 소스로 확인한다(엔진 경로는 `BatchFiles/Get-WxEngineRoot.ps1`).
-- 에셋 구성은 `Saved/AbilitySystemLists/` 목록과 Content `.uasset` 문자열 검색으로 확인한다.
+- 에셋 구성은 1절에서 갱신한 어빌리티·이펙트·캐릭터 목록과 Content `.uasset` 문자열 검색으로 확인한다.
 - 의심되면 확신 "낮음"으로라도 후보를 보고한다(최종 보고서에 실을지는 검증 단계에서 정한다). 개수를 채우지는 않는다.
 - 결과: 읽은 파일 / 못 읽은 파일, 후보 목록(제목·중요도·종류·위치·근거 위치·발생 조건·원인·영향·수정 제안·확신), 범위 밖 의심점, 다섯 문장 이내 요약.
 
@@ -62,7 +62,7 @@ allowed-tools: Read, Grep, Glob, Bash, PowerShell, Write, Agent
 
 ### 2.3 기계 검사
 
-1절에서 정한 게임 코드 범위 안에서 AGENTS.md 코딩 규칙 1~3(Wx 접두사, 저작권 첫 줄, 인라인 함수 정의)과 `.cpp`의 익명 namespace·static 자유 함수는 리뷰어에게 맡기지 않고 직접 검색으로 전수 확인한다.
+1절에서 정한 게임 코드 범위 안에서 AGENTS.md의 기계 검사 규칙은 리뷰어에게 맡기지 않고 `.agents/scripts/Check-CodingRules.ps1`(인자 없이 전체 범위)로 확인한다. 스크립트가 보지 않는 `.cpp`의 익명 namespace·static 자유 함수는 직접 검색으로 전수 확인한다.
 
 ### 2.4 중요도
 
@@ -78,8 +78,8 @@ allowed-tools: Read, Grep, Glob, Bash, PowerShell, Write, Agent
 
 ### 2.5 보고하지 않는 것
 
-- **의도·결정으로 기록된 동작**: 하네스 메모리가 있으면 먼저 읽고, 없으면 git 커밋 메시지·작업 기록·코드 주석·Wiki의 결정 기록을 찾는다. 기획서와 달라도 나중의 결정 기록이 있으면 결함이 아니다.
-- **이 프로젝트가 받지 않는 수정 제안**: 요청 없는 에디터 검증기·`IsDataValid` 규칙 추가, AnimBlueprint 수정, BT SimpleParallel, 익명 namespace·static 헬퍼, 새 추상화 계층·전용 서브시스템, 클라 예측·동기화 장치 신설, 엔진이 이미 하는 판정을 되풀이하는 게이트.
+- **의도·결정으로 기록된 동작**: `AGENTS.md`와 Wiki의 결정 기록을 먼저 찾고, 그다음 git 커밋 메시지·코드 주석을 본다. 개인 하네스 메모리는 팀 규칙의 정본이 아니니 판정 근거로 쓰지 않는다. 기획서와 달라도 나중의 결정 기록이 있으면 결함이 아니다.
+- **이 프로젝트가 받지 않는 수정 제안**: `AGENTS.md` 7번이 금지한 구조, 요청 없는 에디터 검증기·`IsDataValid` 규칙 추가, AnimBlueprint 수정, 익명 namespace·static 헬퍼, 새 추상화 계층·전용 서브시스템, 클라 예측·동기화 장치 신설, 엔진이 이미 하는 판정을 되풀이하는 게이트, Wiki 결정 절에 "다시 넣지 않는다"로 적힌 안.
 - 취향 차이, 함수 길이만을 이유로 한 분리, 아직 구현되지 않은 기획 기능 자체.
 
 ## 3. 검증
