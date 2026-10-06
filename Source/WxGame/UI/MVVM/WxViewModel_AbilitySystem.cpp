@@ -19,8 +19,17 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 	CachedASC = InASC;
 
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
+	InASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectAdded);
+	InASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
 
 	RefreshOwnedTags();
+	for (const FActiveGameplayEffectHandle& Handle : InASC->GetActiveEffects(FGameplayEffectQuery()))
+	{
+		if (const FActiveGameplayEffect* Effect = InASC->GetActiveGameplayEffect(Handle))
+		{
+			AddActiveEffectViewModel(InASC, Effect->Spec, Handle);
+		}
+	}
 }
 
 void UWxViewModel_AbilitySystem::Deinitialize()
@@ -36,7 +45,7 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 		}
 	}
 	OwnedTagsRefreshHandle.Invalidate();
-	// 아래 변경 알림에서 Getter 가 재진입해도 자식 VM 을 다시 만들거나 ASC 를 재구독하지 않는다.
+	// 아래 변경 알림으로 다시 도는 변환 함수가 자식 VM 을 새로 만들지 않게 먼저 놓는다.
 	CachedASC.Reset();
 
 	for (UWxViewModel_Attribute* AttributeVM : AttributeViewModels)
@@ -77,28 +86,6 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 UAbilitySystemComponent* UWxViewModel_AbilitySystem::GetBoundASC() const
 {
 	return CachedASC.Get();
-}
-
-const TArray<TObjectPtr<UWxViewModel_Effect>>& UWxViewModel_AbilitySystem::GetActiveEffectViewModels() const
-{
-	// 리플렉션 Getter는 const 계약이므로, 표시 데이터의 지연 초기화만 비const 경로로 넘긴다.
-	const_cast<UWxViewModel_AbilitySystem*>(this)->InitializeActiveEffects();
-	return ActiveEffectViewModels;
-}
-
-void UWxViewModel_AbilitySystem::InitializeActiveEffects()
-{
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-
-	// 추가 통지를 구독했으면 목록도 이미 구성돼 있다.
-	if (!ASC || ASC->OnActiveGameplayEffectAddedDelegateToSelf.IsBoundToObject(this))
-	{
-		return;
-	}
-
-	ASC->OnActiveGameplayEffectAddedDelegateToSelf.AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectAdded);
-	ASC->OnAnyGameplayEffectRemovedDelegate().AddUObject(this, &UWxViewModel_AbilitySystem::HandleActiveEffectRemoved);
-	BuildActiveEffectViewModels();
 }
 
 UWxViewModel_Attribute* UWxViewModel_AbilitySystem::GetOrCreateAttributeViewModel(FGameplayAttribute Current, FGameplayAttribute Max)
@@ -149,26 +136,6 @@ UWxViewModel_Ability* UWxViewModel_AbilitySystem::GetOrCreateAbilityViewModel(co
 	AbilityVM->Initialize(ASC, InAbilityTags);
 	AbilityViewModels.Add(AbilityVM);
 	return AbilityVM;
-}
-
-void UWxViewModel_AbilitySystem::BuildActiveEffectViewModels()
-{
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	if (!ASC)
-	{
-		return;
-	}
-
-	// Getter 안에서는 같은 필드의 변경을 통지하지 않고 현재 스냅샷만 구성한다.
-	FGameplayEffectQuery Query;
-	TArray<FActiveGameplayEffectHandle> Handles = ASC->GetActiveEffects(Query);
-	for (const FActiveGameplayEffectHandle& Handle : Handles)
-	{
-		if (const FActiveGameplayEffect* Effect = ASC->GetActiveGameplayEffect(Handle))
-		{
-			AddActiveEffectViewModel(ASC, Effect->Spec, Handle);
-		}
-	}
 }
 
 void UWxViewModel_AbilitySystem::RefreshOwnedTags()

@@ -20,7 +20,7 @@ class UWxViewModel_Effect;
 /**
  * ASC의 어트리뷰트/어빌리티/이펙트를 자식 ViewModel로 노출하는 Composite 뷰모델.
  *
- * 자식 VM 은 조회할 때 지연 생성한다. 이펙트 목록은 최초 조회부터 활성 GE 추가/제거 이벤트로 관리한다.
+ * 어트리뷰트·스킬 슬롯 VM 은 조회할 때 지연 생성한다. 이펙트 목록은 초기화 때 구성하고 활성 GE 추가/제거 이벤트로 관리한다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_AbilitySystem : public UMVVMViewModelBase
@@ -49,14 +49,13 @@ public:
 	 */
 	UWxViewModel_Ability* GetOrCreateAbilityViewModel(const FGameplayTagContainer& InAbilityTags);
 
-	const TArray<TObjectPtr<UWxViewModel_Effect>>& GetActiveEffectViewModels() const;
-
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|AbilitySystem")
 	FGameplayTagContainer OwnedTags;
 
-protected:
-	void BuildActiveEffectViewModels();
+	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|AbilitySystem")
+	TArray<TObjectPtr<UWxViewModel_Effect>> ActiveEffectViewModels;
 
+protected:
 	void RefreshOwnedTags();
 
 	void HandleActiveEffectAdded(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
@@ -77,11 +76,6 @@ protected:
 	FTimerHandle OwnedTagsRefreshHandle;
 
 private:
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter, Category = "Wx|AbilitySystem", meta = (AllowPrivateAccess = "true"))
-	TArray<TObjectPtr<UWxViewModel_Effect>> ActiveEffectViewModels;
-
-	void InitializeActiveEffects();
-
 	/** 최초 목록 구성에서도 사용하므로 FieldNotify 없이 추가 성공 여부만 반환한다. */
 	bool AddActiveEffectViewModel(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
 };
