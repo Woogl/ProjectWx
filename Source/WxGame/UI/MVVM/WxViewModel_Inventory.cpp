@@ -82,12 +82,9 @@ void UWxViewModel_Inventory::HandleInventoryStackChanged(const UWxItemDefinition
 {
 	if (Delta > 0 && ItemDef)
 	{
-		UWxViewModel_Item* AcquisitionViewModel = CreateItemViewModel(*ItemDef, nullptr);
-		AcquisitionViewModel->AcquiredCount = Delta;
-		UE_MVVM_SET_PROPERTY_VALUE(LastAcquiredItem, AcquisitionViewModel);
-
-		// 알린 획득은 소비된 것이다 — 통지 없이 비워, 부활로 다시 뜬 HUD의 초기 바인딩이 지난 획득을 다시 띄우지 않게 한다.
-		LastAcquiredItem = nullptr;
+		LastAcquiredItem = CreateItemViewModel(*ItemDef, nullptr);
+		LastAcquiredItem->AcquiredCount = Delta;
+		OnItemAcquired.Broadcast();
 	}
 
 	RefreshItems();

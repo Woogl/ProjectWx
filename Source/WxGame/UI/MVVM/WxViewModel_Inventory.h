@@ -14,6 +14,8 @@ class UWxItemDefinition;
 class UWxItemInstance;
 class UWxViewModel_Item;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWxOnItemAcquired);
+
 /**
  * 플레이어 인벤토리의 아이템 VM 을 소유하고 탭으로 거르는 Composite 뷰모델.
  * 로컬 PC 가 만들어 Global Collection 에 VM_Inventory 로 등록하고, 자기 인벤토리로 초기화한다.
@@ -49,13 +51,15 @@ public:
 	TArray<TObjectPtr<UWxViewModel_Item>> CategorizedItems;
 
 	/**
-	 * 획득(Delta>0)마다 새 VM 으로 교체되므로 같은 정의를 연속 획득해도 FieldNotify 가 항상 발생하고, 토스트 위젯 간 표시 데이터가 서로 영향을 주지 않는다.
-	 * 획득 시점의 값으로 채운 뒤 더 갱신하지 않는다.
-	 * 통지 직후 비우므로 뷰 초기화 시점의 실행에서는 항상 nullptr 가 전달되고, 수신측이 유효성을 검사해야 한다.
-	 * 같은 이유로 수신 바인딩은 즉시 실행이어야 한다 — 지연 실행이면 비운 뒤의 값을 읽는다.
+	 * 획득(Delta>0)마다 새 VM 으로 교체되므로 토스트 위젯 간 표시 데이터가 서로 영향을 주지 않고, 획득 시점의 값으로 채운 뒤 더 갱신하지 않는다.
+	 * 상태 바인딩으로 받으면 뷰 초기화 때 지난 획득이 다시 실행되므로, OnItemAcquired 이벤트의 목적지 인자로만 읽는다.
 	 */
-	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
+	UPROPERTY(BlueprintReadOnly, Category = "Wx|Inventory")
 	TObjectPtr<UWxViewModel_Item> LastAcquiredItem;
+
+	/** 뷰는 MVVM 이벤트 바인딩으로 받는다 — 엔진 이벤트 바인딩은 델리게이트 인자를 넘기지 못해 획득 VM 은 LastAcquiredItem 으로 읽는다. */
+	UPROPERTY(BlueprintAssignable, Category = "Wx|Inventory")
+	FWxOnItemAcquired OnItemAcquired;
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Inventory")
 	void SetCurrentCategory(FGameplayTag NewCategory);
