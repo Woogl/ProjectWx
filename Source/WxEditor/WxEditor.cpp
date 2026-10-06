@@ -2,6 +2,7 @@
 
 #include "WxEditor.h"
 
+#include "CommonInputBaseTypes.h"
 #include "Editor.h"
 #include "Editor/UnrealEdEngine.h"
 #include "Engine/Blueprint.h"
@@ -89,6 +90,9 @@ void FWxEditorModule::StartupModule()
 	{
 		GUnrealEd->RegisterComponentVisualizer(UWxDeviceStateTreeComponent::StaticClass()->GetFName(), MakeShared<FWxDeviceLinkVisualizer>());
 	}
+
+	// 에디터는 컨트롤러 데이터 BP를 첫 조회 때 동기 로드하므로, 그 조회가 위젯 컴파일 검증 안에서 일어나 컴파일 중 BP 로드 ensure가 나지 않게 미리 조회한다.
+	UCommonInputPlatformSettings::Get()->GetControllerDataForInputType(ECommonInputType::MouseAndKeyboard, NAME_None);
 }
 
 void FWxEditorModule::ShutdownModule()

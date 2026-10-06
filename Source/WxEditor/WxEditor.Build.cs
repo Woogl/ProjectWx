@@ -19,6 +19,8 @@ public class WxEditor : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
+			"CommonInput",
+			"DeveloperSettings",
 			"GameplayAbilities",
 			"GameplayTags",
 			"GameplayStateTreeModule",
