@@ -7,6 +7,7 @@
 - **읽고 그대로 되쓰면 조용히 틀린 그래프가 될 수 있다.** `read_graph_dsl`은 출력이 여럿인 노드의 핀 선택, FormatText 명명 인자, 텍스트 로컬라이즈 키, CreateEvent 바인딩을 잃는다. 되쓰면 0번 출력이 연결되고 타입이 다르면 변환 노드까지 끼어든다. 되쓰기 전에 `get_node_infos`로 실제 연결을 보고 `(bind (a b) ...)`로 직접 적는다.
 - 노드 타입은 `find_node_types`(`context_pins:[]` 필수), 핀 이름은 `get_node_type_pins`로 찾는다. `get_node_type_pins`는 그래프에 임시 노드를 남기니 정리한다.
 - 타입이 다른 핀(String→Name 등)을 이으면 변환 노드가 자동으로 들어간다.
+- self 핀이 있는 함수(`PlayAnimation` 등)에 위치 인자를 주면 첫 인자가 self에 붙어 실패한다. `:InAnimation`처럼 핀 이름 키워드로 넘긴다. 위젯 BP 이벤트는 `UserInterface|EventConstruct`처럼 `find_node_types`가 돌려준 ID에서 `AddEvent|`를 뺀 이름으로 쓴다.
 - `delete_node`는 K2 노드만 지운다. 주석 노드는 BP 에디터 그래프 영역을 클릭하고 `Ctrl+A`·`Delete`로 지운다([slate-pie.md](slate-pie.md)). 함수 진입 노드는 엔진이 삭제를 막는다.
 - 컴파일 판정은 `compile_blueprint(warnings_as_errors=True)`로 한다. 오류와 경고를 모두 실패로 알리지만 메시지 목록은 그래프 노드 오류만 모아 MVVM 오류나 Cast 경고는 `Compile Errors: []`로 비어 나온다. `UMGToolSet.CompileWidgetBlueprint`는 MVVM 오류 본문까지 돌려주지만 경고는 `true`로 통과시킨다.
 - 메시지 본문은 `EditorToolset.LogsToolset.GetLogEntries(category:"LogBlueprint", pattern:"<에셋 이름>")`의 `[Compiler]` 줄로 본다. 컴파일할 때마다 같은 줄이 다시 찍히니 가장 최근 시각의 줄만 본다.
@@ -29,6 +30,8 @@
 
 - `UMGToolSet`: CreateWidgetBlueprint·AddWidget·ToggleWidgetAsVariable·CompileWidgetBlueprint·GetWidgets·RemoveWidget·RenameWidget. `RenameWidget`은 바인딩된 OnClicked 이벤트 노드도 함께 고친다.
 - 슬롯·위젯 속성과 버튼 라벨 같은 인스턴스 값은 `ObjectTools`로 쓴다.
+- 새로 넣은 `CommonTextBlock`에는 CommonUI 기본 텍스트 스타일(`TextStyle_Small`)이 붙어 `font`를 덮는다. 기존 텍스트 모양을 옮길 때는 두 위젯의 속성을 비교해 다른 값을 옮기고 `style`은 원본처럼 `None`으로 비운다.
+- 위젯 애니메이션 트랙은 위젯 이름으로 대상을 찾고, `RenameWidget`을 하면 트랙도 새 이름을 따라간다. 트랙 대상을 감싸는 패널로 옮기려면 `ReplaceWidgetWithTemplate`로 이름과 슬롯을 유지한 채 그 위젯을 패널로 바꾸고, 이름을 바꾼 뒤 자식을 새로 넣는다(`WBP_DamageFloater`의 `DamageBox`). `WrapWidgets`로 감싸면 트랙이 안쪽 위젯에 남는다.
 - NamedSlot을 가진 부모 WBP를 지우거나 자식을 재부모화하면 자식의 `NamedSlotBindings`에 고아 위젯이 남아 디자이너에서 `ensure(WidgetTree)`가 난다. 계층 패널에 보이지 않으니 `GetWidgets`에서 parent와 namedSlotHost가 둘 다 None인데 루트가 아닌 위젯을 찾아 `RemoveWidget`으로 지운다. `ensure`는 세션당 한 번만 보고되니 확인은 에디터 재시작 후 로그로 한다.
 
 ## MVVM
