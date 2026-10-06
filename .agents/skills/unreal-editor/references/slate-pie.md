@@ -26,7 +26,7 @@ MCP 툴로 안 되는 일은 SlateInspector로 에디터 UI를 직접 누른다.
 
 ## 로그·캡처
 
-- 로그: `LogsToolset.GetLogEntries(category:"", maxEntries, pattern)`. 컴파일·저장 같은 결과는 반환값보다 새로 찍힌 로그 줄로 판정한다.
+- 로그: `EditorToolset.LogsToolset.GetLogEntries(category:"", maxEntries, pattern)`. 컴파일·저장 같은 결과는 반환값보다 새로 찍힌 로그 줄로 판정한다.
 - 같은 머신의 다른 에디터도 `Saved/Logs/Wx.log`에 쓴다. 파일로 볼 때는 명령줄 줄로 내 프로세스 것인지 가른다.
 - 뷰포트: `EditorAppToolset.CaptureViewport`는 `captureTransform`이 필수이고 에디터 월드 기준이다. 결과는 `returnValue.image.data`의 base64 PNG다. PIE 게임 화면은 `CaptureEditorImage`로 찍는다.
 - UI: `SlateInspectorToolset.Screenshot(ref:"")`은 `returnValue.data`에 base64 PNG를 준다.

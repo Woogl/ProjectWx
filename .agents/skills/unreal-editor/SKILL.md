@@ -31,12 +31,14 @@ description: 실행 중인 언리얼 에디터를 unreal-mcp로 다룰 때(에�
 - **큰 응답은 파일로 받는다.** 캡처·스크린샷은 base64 PNG가 수십만 자라 잘라 읽지 말고 디코드해 파일로 본다.
 - 에디터는 새로 저장한 파일을 git 인덱스에 자동으로 올린다(`A`, 삭제는 `D`). 커밋에 섞이지 않게 `git restore --staged`로 내린다.
 - 프로젝트 툴셋 `WxToolset.*`은 기존 표면이 못 닿는 곳(StateTree 바인딩·파라미터·컴파일, 몽타주 섹션·노티파이, MVVM 경로, BP 변수 메타·enum 변수, 랜드스케이프 생성, 물 바디 스플라인, 저장)을 맡는다. 쓰기 전에 `describe_toolset`으로 설명을 읽는다. 소스는 `Plugins/WxToolset/`이고, 툴을 추가하거나 시그니처를 바꾸면 Live Coding으로는 등록되지 않으니 빌드 후 에디터를 재시작한다.
+- 새 툴을 만들기 전에 엔진 툴이 같은 일을 하는지 소스로 확인한다. C++ 툴은 `Engine/Plugins/Experimental/Toolsets/`, Python 툴은 각 툴셋 플러그인의 `Content/Python`, 공용 도우미는 `ToolsetRegistry/Content/Python/toolset_registry/helpers.py`에 있다.
 
 ## 다른 세션과 함께 쓸 때
 
 - 다른 세션이 띄운 에디터는 닫지 않는다. 에디터 프로세스는 `UnrealEditor*` 패턴으로 찾는다(`-Win64-DebugGame`·`-Cmd` 변형이 있다).
 - `run-editor`는 이 프로젝트의 에디터를 모두 종료한다. 다른 세션 에디터가 떠 있으면 쓰지 말고, 빌드 후 `Start-WxEditorMcp.ps1`로 띄운다. 끝나면 저장할 것을 다 저장했는지 확인하고 내가 띄운 PID만 `Stop-Process -Id`로 닫는다(창을 닫으면 저장 확인 창이 MCP를 막는다).
-  - 자동 저장이 한 번이라도 돈 세션을 이렇게 닫으면 다음 시작에 `Restore Packages` 창이 떠 `Start-WxEditorMcp.ps1`이 시간 초과한다. 그 세션에서 저장하지 않은 작업이 없으면 그 창을 user32 `WM_CLOSE`로 닫는다(복구하지 않는다).
+  - 자동 저장이 한 번이라도 돈 세션을 이렇게 닫으면 다음 시작에 `Restore Packages` 창이 뜬다. `Start-WxEditorMcp.ps1`은 이 창을 감지하면 답하지 않고 `WX_MCP_RESULT=blocked by the 'Restore Packages' dialog`로 멈춘다. 그 세션에서 저장하지 않은 작업이 없으면 그 창을 user32 `WM_CLOSE`로 닫는다(복구하지 않는다).
+  - 검증용으로 만들고 저장하지 않은 임시 에셋도 수정 상태라 자동 저장될 수 있다. 닫기 전에 `AssetTools.delete`로 지운다.
   - 그 창에서 복구가 눌리면 자동 저장본이 원본 에셋 파일을 덮어쓴다. 버리려던 미저장 편집이 디스크에 들어가니, 닫기 전에 저장하지 않을 편집은 에디터 안에서 되돌리고 다시 시작한 뒤 `git status`로 확인한다.
 - 포트 8000은 먼저 뜬 에디터가 차지한다. `Start-WxEditorMcp.ps1`가 빈 포트(`-ModelContextProtocolPort=N`)를 고르니 출력된 포트로만 호출한다. 엉뚱한 에디터에 보내면 옛 바이너리가 에셋을 만든다.
 - 다른 에디터가 로드한 에셋은 파일이 잠겨 내 저장이 "Failed to move ... to temp directory"로 실패한다. 그 에디터가 닫힐 때까지 저장을 미룬다.

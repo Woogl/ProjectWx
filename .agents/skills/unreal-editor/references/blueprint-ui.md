@@ -8,6 +8,8 @@
 - 노드 타입은 `find_node_types`(`context_pins:[]` 필수), 핀 이름은 `get_node_type_pins`로 찾는다. `get_node_type_pins`는 그래프에 임시 노드를 남기니 정리한다.
 - 타입이 다른 핀(String→Name 등)을 이으면 변환 노드가 자동으로 들어간다.
 - `delete_node`는 K2 노드만 지운다. 주석 노드는 BP 에디터 그래프 영역을 클릭하고 `Ctrl+A`·`Delete`로 지운다([slate-pie.md](slate-pie.md)). 함수 진입 노드는 엔진이 삭제를 막는다.
+- 컴파일 판정은 `compile_blueprint(warnings_as_errors=True)`로 한다. 오류와 경고를 모두 실패로 알리지만 메시지 목록은 그래프 노드 오류만 모아 MVVM 오류나 Cast 경고는 `Compile Errors: []`로 비어 나온다. `UMGToolSet.CompileWidgetBlueprint`는 MVVM 오류 본문까지 돌려주지만 경고는 `true`로 통과시킨다.
+- 메시지 본문은 `EditorToolset.LogsToolset.GetLogEntries(category:"LogBlueprint", pattern:"<에셋 이름>")`의 `[Compiler]` 줄로 본다. 컴파일할 때마다 같은 줄이 다시 찍히니 가장 최근 시각의 줄만 본다.
 - `compile_blueprint`는 패키지를 더티로 만들지 않는다. 저장은 `SavePackages`로 한다.
 - enum 멤버 변수와 변수 메타는 `WxToolset.WxBlueprintToolset`으로 만든다.
 
