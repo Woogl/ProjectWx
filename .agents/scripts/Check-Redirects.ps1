@@ -495,8 +495,8 @@ function Invoke-Commandlet([string]$Exe, [string[]]$Arguments, [string]$LogPath)
 
 function Invoke-Resave([string]$Root, $Redirects) {
     $uproject = Join-Path $Root 'Wx.uproject'
-    $running = @(Get-CimInstance Win32_Process -Filter "Name LIKE 'UnrealEditor%'" |
-        Where-Object { $_.CommandLine -and $_.CommandLine.IndexOf('Wx.uproject', [StringComparison]::OrdinalIgnoreCase) -ge 0 })
+    . (Join-Path $PSScriptRoot '..\skills\run-editor\scripts\Get-WxProjectProcess.ps1')
+    $running = @(Get-WxProjectProcess -ProjectFile $uproject -Processes @(Get-CimInstance Win32_Process -Filter "Name LIKE 'UnrealEditor%'"))
     if ($running.Count -gt 0) {
         # A running editor keeps loaded packages open, so the commandlet cannot replace them.
         throw ('Close every editor or commandlet that has Wx.uproject open before resaving (PID: {0}).' -f (($running | ForEach-Object { $_.ProcessId }) -join ', '))

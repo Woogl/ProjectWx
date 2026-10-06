@@ -10,7 +10,8 @@ function Get-WxProjectProcess {
     $name = [IO.Path]::GetFileNameWithoutExtension($project)
     $binaryDirectory = [IO.Path]::GetFullPath((Join-Path $root 'Binaries\Win64'))
     foreach ($process in $Processes) {
-        if ($process.Name -match '^UnrealEditor(?:-Win64-(?:Debug|DebugGame|Development|Shipping|Test))?\.exe$') {
+        # Commandlets (-Cmd) also load the project modules, so they count as project processes that lock the build output.
+        if ($process.Name -match '^UnrealEditor(?:-Win64-(?:Debug|DebugGame|Development|Shipping|Test))?(?:-Cmd)?\.exe$') {
             $projects = @()
             foreach ($token in [regex]::Matches([string]$process.CommandLine, '(?:[^\s"]+|"[^"]*")+')) {
                 $argument = $token.Value.Replace('"', '')

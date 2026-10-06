@@ -39,7 +39,7 @@ try
 	$LogName = 'build_{0}_{1}.log' -f (Get-Date -Format 'yyyy-MM-dd_HHmmss_fff'), $PID
 	$LogPath = Join-Path $LogDirectory $LogName
 
-	$EditorProcesses = @(Get-Process -Name 'UnrealEditor' -ErrorAction SilentlyContinue)
+	$EditorProcesses = @(Get-Process -Name 'UnrealEditor*' -ErrorAction SilentlyContinue)
 	$EditorProcessSummary = if ($EditorProcesses.Count -gt 0)
 	{
 		($EditorProcesses.Id -join ',')
