@@ -32,6 +32,7 @@ public class WxToolset : ModuleRules
 			"StateTreeEditorModule",
 			"StateTreeModule",
 			"ToolsetRegistry",
+			"UMG",
 			"UMGEditor",
 			"UnrealEd",
 			"Water",

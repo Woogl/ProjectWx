@@ -2,6 +2,7 @@
 
 #include "WxMVVMToolset.h"
 
+#include "Blueprint/WidgetTree.h"
 #include "Dom/JsonObject.h"
 #include "Editor.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -19,6 +20,41 @@
 #include "Serialization/JsonSerializer.h"
 #include "Types/MVVMFieldVariant.h"
 #include "WidgetBlueprint.h"
+
+int32 UWxMVVMToolset::AddEvent(UWidgetBlueprint* WidgetBlueprint, const FString& EventPath)
+{
+	const UMVVMWidgetBlueprintExtension_View* Extension = WidgetBlueprint ? UWidgetBlueprintExtension::GetExtension<UMVVMWidgetBlueprintExtension_View>(WidgetBlueprint) : nullptr;
+	UMVVMBlueprintView* View = Extension ? const_cast<UMVVMWidgetBlueprintExtension_View*>(Extension)->GetBlueprintView() : nullptr;
+	if (!View)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("WidgetBlueprint 에 MVVM 뷰가 없다."));
+		return INDEX_NONE;
+	}
+
+	FMVVMBlueprintPropertyPath Path;
+	if (!ResolvePropertyPath(WidgetBlueprint, View, EventPath, Path))
+	{
+		return INDEX_NONE;
+	}
+
+	// 서브시스템은 델리게이트가 아닌 경로를 받으면 이벤트를 지우고 바인딩으로 바꿔 버리므로 먼저 거른다.
+	if (!UMVVMBlueprintViewEvent::Supports(WidgetBlueprint, Path))
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("'%s' 는 이벤트로 쓸 수 있는 멀티캐스트 델리게이트가 아니다."), *EventPath));
+		return INDEX_NONE;
+	}
+
+	UMVVMEditorSubsystem* Subsystem = GEditor->GetEditorSubsystem<UMVVMEditorSubsystem>();
+	UMVVMBlueprintViewEvent* Event = Subsystem->AddEvent(WidgetBlueprint);
+	if (!Event)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("이벤트를 만들지 못했다. 프로젝트 설정 bAllowBindingEvent 를 확인한다."));
+		return INDEX_NONE;
+	}
+
+	Subsystem->SetEventPath(Event, Path, false);
+	return View->GetEvents().IndexOfByKey(Event);
+}
 
 bool UWxMVVMToolset::SetEventDestination(UWidgetBlueprint* WidgetBlueprint, int32 EventIndex, const FString& DestinationPath)
 {
@@ -45,6 +81,37 @@ bool UWxMVVMToolset::SetEventDestination(UWidgetBlueprint* WidgetBlueprint, int3
 	}
 
 	GEditor->GetEditorSubsystem<UMVVMEditorSubsystem>()->SetEventDestinationPath(View->GetEvents()[EventIndex], Path);
+	return true;
+}
+
+bool UWxMVVMToolset::SetEventArgumentPath(UWidgetBlueprint* WidgetBlueprint, int32 EventIndex, FName ArgumentName, const FString& SourcePath)
+{
+	const UMVVMWidgetBlueprintExtension_View* Extension = WidgetBlueprint ? UWidgetBlueprintExtension::GetExtension<UMVVMWidgetBlueprintExtension_View>(WidgetBlueprint) : nullptr;
+	UMVVMBlueprintView* View = Extension ? const_cast<UMVVMWidgetBlueprintExtension_View*>(Extension)->GetBlueprintView() : nullptr;
+	UMVVMBlueprintViewEvent* Event = View && View->GetEvents().IsValidIndex(EventIndex) ? View->GetEvents()[EventIndex].Get() : nullptr;
+	if (!Event)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("MVVM 이벤트를 찾지 못했다."));
+		return false;
+	}
+
+	// 없는 핀 이름은 래퍼 그래프에 핀이 없어 경로가 조용히 버려진다.
+	const TArray<UE::MVVM::FMVVMConstFieldVariant> Fields = Event->GetDestinationPath().GetFields(WidgetBlueprint->SkeletonGeneratedClass);
+	const UFunction* Function = !Fields.IsEmpty() && Fields.Last().IsFunction() ? Fields.Last().GetFunction() : nullptr;
+	const FProperty* Parameter = Function ? FindFProperty<FProperty>(Function, ArgumentName) : nullptr;
+	if (!Parameter || !Parameter->HasAnyPropertyFlags(CPF_Parm) || Parameter->HasAnyPropertyFlags(CPF_ReturnParm))
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("이벤트 %d 의 목적지 함수에 입력 파라미터 '%s' 가 없다. 목적지를 먼저 정한다."), EventIndex, *ArgumentName.ToString()));
+		return false;
+	}
+
+	FMVVMBlueprintPropertyPath Path;
+	if (!ResolvePropertyPath(WidgetBlueprint, View, SourcePath, Path))
+	{
+		return false;
+	}
+
+	GEditor->GetEditorSubsystem<UMVVMEditorSubsystem>()->SetEventArgumentPath(Event, FMVVMBlueprintPinId(TArray<FName>{ArgumentName}), Path);
 	return true;
 }
 
@@ -170,6 +237,22 @@ bool UWxMVVMToolset::SetBindingSourcePath(UWidgetBlueprint* WidgetBlueprint, con
 	return true;
 }
 
+bool UWxMVVMToolset::RemoveBinding(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId)
+{
+	const UMVVMWidgetBlueprintExtension_View* Extension = WidgetBlueprint ? UWidgetBlueprintExtension::GetExtension<UMVVMWidgetBlueprintExtension_View>(WidgetBlueprint) : nullptr;
+	UMVVMBlueprintView* View = Extension ? const_cast<UMVVMWidgetBlueprintExtension_View*>(Extension)->GetBlueprintView() : nullptr;
+	FGuid Id;
+	const FMVVMBlueprintViewBinding* Binding = View && FGuid::Parse(BindingId, Id) ? View->GetBinding(Id) : nullptr;
+	if (!Binding)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("바인딩 '%s' 가 없다."), *BindingId));
+		return false;
+	}
+
+	GEditor->GetEditorSubsystem<UMVVMEditorSubsystem>()->RemoveBinding(WidgetBlueprint, *Binding);
+	return true;
+}
+
 bool UWxMVVMToolset::ResolvePropertyPath(const UWidgetBlueprint* WidgetBlueprint, const UMVVMBlueprintView* View, const FString& PathString, FMVVMBlueprintPropertyPath& OutPath)
 {
 	TArray<FString> Segments;
@@ -190,6 +273,11 @@ bool UWxMVVMToolset::ResolvePropertyPath(const UWidgetBlueprint* WidgetBlueprint
 	{
 		Path.SetViewModelId(Context->GetViewModelId());
 		Owner = Context->GetViewModelClass();
+	}
+	else if (const UWidget* Widget = WidgetBlueprint->WidgetTree ? WidgetBlueprint->WidgetTree->FindWidget(FName(*Segments[0])) : nullptr)
+	{
+		Path.SetWidgetName(Widget->GetFName());
+		Owner = Widget->GetClass();
 	}
 
 	for (int32 Index = 1; Index < Segments.Num(); ++Index)

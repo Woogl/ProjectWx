@@ -36,6 +36,7 @@ description: 실행 중인 언리얼 에디터를 unreal-mcp로 다룰 때(에�
 
 - 다른 세션이 띄운 에디터는 닫지 않는다. 에디터 프로세스는 `UnrealEditor*` 패턴으로 찾는다(`-Win64-DebugGame`·`-Cmd` 변형이 있다).
 - `run-editor`는 이 프로젝트의 에디터를 모두 종료한다. 다른 세션 에디터가 떠 있으면 쓰지 말고, 빌드 후 `Start-WxEditorMcp.ps1`로 띄운다. 끝나면 저장할 것을 다 저장했는지 확인하고 내가 띄운 PID만 `Stop-Process -Id`로 닫는다(창을 닫으면 저장 확인 창이 MCP를 막는다).
+  - 자동 저장이 한 번이라도 돈 세션을 이렇게 닫으면 다음 시작에 `Restore Packages` 창이 떠 `Start-WxEditorMcp.ps1`이 시간 초과한다. 그 세션에서 저장하지 않은 작업이 없으면 그 창을 user32 `WM_CLOSE`로 닫는다(복구하지 않는다).
 - 포트 8000은 먼저 뜬 에디터가 차지한다. `Start-WxEditorMcp.ps1`가 빈 포트(`-ModelContextProtocolPort=N`)를 고르니 출력된 포트로만 호출한다. 엉뚱한 에디터에 보내면 옛 바이너리가 에셋을 만든다.
 - 다른 에디터가 로드한 에셋은 파일이 잠겨 내 저장이 "Failed to move ... to temp directory"로 실패한다. 그 에디터가 닫힐 때까지 저장을 미룬다.
 - 병행 세션이 도는 동안에는 `git add`·`git mv`로 인덱스를 채워 두지 않는다. 그 세션의 커밋에 섞인다.
