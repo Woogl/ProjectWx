@@ -29,7 +29,7 @@ EDataValidationResult UWxAbility_Passive::IsDataValid(FDataValidationContext& Co
 		{
 			if (Trigger.TriggerTag != OtherTrigger.TriggerTag && Trigger.TriggerTag.MatchesTag(OtherTrigger.TriggerTag))
 			{
-				Context.AddError(FText::FromString(FString::Printf(TEXT("트리거 %s가 %s의 하위라 한 이벤트에 두 번 발동해 효과가 두 번 걸린다."), *Trigger.TriggerTag.ToString(), *OtherTrigger.TriggerTag.ToString())));
+				Context.AddError(FText::FromString(FString::Printf(TEXT("Trigger %s is a child of %s, so a single event fires it twice and applies the effect twice."), *Trigger.TriggerTag.ToString(), *OtherTrigger.TriggerTag.ToString())));
 			}
 		}
 	}

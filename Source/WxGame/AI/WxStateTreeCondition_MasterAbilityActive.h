@@ -24,7 +24,7 @@ struct FWxStateTreeCondition_MasterAbilityActiveInstanceData
  * 이 폰을 소환한 주인이 태그에 맞는 어빌리티를 실행 중이면 통과한다. 주인 없이 태어난 폰은 통과하지 못한다.
  * 평가할 때마다 주인의 어빌리티 목록을 훑으므로, 발동을 놓치지 않으려면 틱 전이에 건다.
  */
-USTRUCT(meta = (DisplayName = "주인 어빌리티 실행 중", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Master Ability Active", Category = "Wx"))
 struct FWxStateTreeCondition_MasterAbilityActive : public FStateTreeAIConditionBase
 {
 	GENERATED_BODY()

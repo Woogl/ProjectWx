@@ -39,6 +39,6 @@ FText FWxStateTreeCondition_MasterAbilityActive::GetDescription(const FGuid& ID,
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("주인이 {0} 실행 중"), FText::FromString(InstanceData->AbilityTags.ToStringSimple()));
+	return FText::Format(INVTEXT("Master is running {0}"), FText::FromString(InstanceData->AbilityTags.ToStringSimple()));
 }
 #endif

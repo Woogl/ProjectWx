@@ -113,6 +113,6 @@ FText FWxStateTreeTask_PlayDialogue::GetDescription(const FGuid& ID, FStateTreeD
 	check(InstanceData);
 
 	const FText RowText = InstanceData->StartRow.RowName.IsNone() ? INVTEXT("unset") : FText::FromName(InstanceData->StartRow.RowName);
-	return FText::Format(INVTEXT("대화 재생 ({0})"), RowText);
+	return FText::Format(INVTEXT("Play Dialogue ({0})"), RowText);
 }
 #endif

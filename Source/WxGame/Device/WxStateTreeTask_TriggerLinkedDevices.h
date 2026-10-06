@@ -22,7 +22,7 @@ struct FWxStateTreeTask_TriggerLinkedDevicesInstanceData
  *
  * 복원 진입이면 보내지 않는다 — 대상도 자기 복원 경로로 같은 상태에 수렴한다.
  */
-USTRUCT(meta = (DisplayName = "연결 장치 작동", Category = "Wx|장치"))
+USTRUCT(meta = (DisplayName = "Trigger Linked Devices", Category = "Wx|Device"))
 struct FWxStateTreeTask_TriggerLinkedDevices : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

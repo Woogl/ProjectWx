@@ -35,7 +35,7 @@ struct FWxStateTreeTask_PlayLevelSequenceInstanceData
  * 모든 피어가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
  * 카메라 컷만 당사자를 조종하는 피어로 한정하므로(당사자가 없으면 끈다) 상태가 끝나는 시점(서버의 재생 종료)은 그대로다.
  */
-USTRUCT(meta = (DisplayName = "레벨 시퀀스 재생", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Play Level Sequence", Category = "Wx"))
 struct FWxStateTreeTask_PlayLevelSequence : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

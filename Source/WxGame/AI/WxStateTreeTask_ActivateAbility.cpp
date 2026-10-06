@@ -124,6 +124,6 @@ FText FWxStateTreeTask_ActivateAbility::GetDescription(const FGuid& ID, FStateTr
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("어빌리티 발동 ({0})"), FText::FromName(InstanceData->AbilityTag.GetTagName()));
+	return FText::Format(INVTEXT("Activate Ability ({0})"), FText::FromName(InstanceData->AbilityTag.GetTagName()));
 }
 #endif

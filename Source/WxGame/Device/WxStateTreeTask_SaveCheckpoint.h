@@ -17,7 +17,7 @@ struct FWxStateTreeTask_SaveCheckpointInstanceData
 };
 
 /** 상호작용에 따른 라이브 상태 진입에서만 부활 지점을 갱신한다. 시작·복원은 기존 기록을 유지한다. */
-USTRUCT(meta = (DisplayName = "체크포인트 저장", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Save Checkpoint", Category = "Wx"))
 struct FWxStateTreeTask_SaveCheckpoint : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

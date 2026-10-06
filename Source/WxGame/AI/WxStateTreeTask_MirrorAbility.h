@@ -37,7 +37,7 @@ struct FWxStateTreeTask_MirrorAbilityInstanceData
  * 따라 쓰려고 부여한 어빌리티는 상태를 떠날 때 취소하고 걷는다.
  * 스스로 끝나지 않으므로 상태의 완료 판정에서 빠진다.
  */
-USTRUCT(meta = (DisplayName = "주인 어빌리티 따라 쓰기", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Mirror Master Ability", Category = "Wx"))
 struct FWxStateTreeTask_MirrorAbility : public FStateTreeAITaskBase
 {
 	GENERATED_BODY()

@@ -31,7 +31,7 @@ struct FWxStateTreeTask_PatrolInstanceData : public FStateTreeMoveToTaskInstance
  *
  * 이동 목표(Destination·TargetActor)는 진입 때 정찰 지점으로 덮어쓰므로 저작 대상이 아니다.
  */
-USTRUCT(meta = (DisplayName = "정찰 이동", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Patrol", Category = "Wx"))
 struct FWxStateTreeTask_Patrol : public FStateTreeMoveToTask
 {
 	GENERATED_BODY()

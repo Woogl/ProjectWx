@@ -26,7 +26,7 @@ struct FWxStateTreeTask_PlaySoundInstanceData
  * 재생 핸들을 남기지 않아 상태를 떠나도 멈추지 않으므로 루프 사운드를 넣지 않는다.
  * 모든 피어(서버+클라)가 각자 진입 시 로컬 재생하므로 별도 멀티캐스트가 필요 없다.
  */
-USTRUCT(meta = (DisplayName = "사운드 재생", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Play Sound", Category = "Wx"))
 struct FWxStateTreeTask_PlaySound : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

@@ -79,6 +79,6 @@ FText FWxStateTreeTask_Patrol::GetDescription(const FGuid& ID, FStateTreeDataVie
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("정찰 이동 (x{0})"), FText::AsNumber(InstanceData->MoveSpeedMultiplier));
+	return FText::Format(INVTEXT("Patrol (x{0})"), FText::AsNumber(InstanceData->MoveSpeedMultiplier));
 }
 #endif

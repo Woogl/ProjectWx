@@ -36,7 +36,7 @@ struct FWxStateTreeTask_GiveRewardsInstanceData
  * 라이브 전이로 진입할 때 권위 측에서만 UWxRewardLibrary::GrantReward 로 RewardRow 의 보상을 지급한다.
  * 장치 트리의 초기 진입·복원·레이트조인은 IsRestoring으로 제외한다. 퀘스트 등 일반 트리의 첫 진입은 지급한다.
  */
-USTRUCT(meta = (DisplayName = "보상 지급", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Give Rewards", Category = "Wx"))
 struct FWxStateTreeTask_GiveRewards : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

@@ -38,6 +38,6 @@ FText FWxStateTreeCondition_TargetDistance::GetDescription(const FGuid& ID, FSta
 		DistanceValue = FText::AsNumber(InstanceData->Distance);
 	}
 
-	return FText::Format(INVTEXT("타겟 거리 {0} {1}"), UE::StateTree::DescHelpers::GetOperatorText(Operator, Formatting), DistanceValue);
+	return FText::Format(INVTEXT("Target Distance {0} {1}"), UE::StateTree::DescHelpers::GetOperatorText(Operator, Formatting), DistanceValue);
 }
 #endif

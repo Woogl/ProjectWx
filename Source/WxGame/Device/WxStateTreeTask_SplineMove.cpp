@@ -88,7 +88,7 @@ FText FWxStateTreeTask_SplineMove::GetDescription(const FGuid& ID, FStateTreeDat
 	check(InstanceData);
 
 	const FName SplineName = InstanceData->Spline.Name;
-	return FText::Format(INVTEXT("스플라인 이동 ({0})"),
+	return FText::Format(INVTEXT("Spline Move ({0})"),
 		SplineName.IsNone() ? INVTEXT("none") : FText::FromName(SplineName));
 }
 #endif

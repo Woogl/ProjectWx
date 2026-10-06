@@ -24,7 +24,7 @@ struct FWxStateTreeEvaluator_UpdateTargetInstanceData
  *
  * 타겟은 죽거나 사라지거나 어그로 비허용으로 바뀌면 갈린다. 시야에서 벗어나도 유지하며, 리시 복귀는 감지 기록을 지워 해제한다.
  */
-USTRUCT(meta = (DisplayName = "타겟 갱신", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Update Target", Category = "Wx"))
 struct FWxStateTreeEvaluator_UpdateTarget : public FStateTreeEvaluatorCommonBase
 {
 	GENERATED_BODY()

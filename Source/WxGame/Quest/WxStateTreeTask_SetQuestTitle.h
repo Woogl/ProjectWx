@@ -24,7 +24,7 @@ struct FWxStateTreeTask_SetQuestTitleInstanceData
  *
  * 완료 판정에서 빠져 있어 진입 즉시 Succeeded 로 끝나도 그 상태를 끝내지 않는다. 상태 완료는 스텝 상태의 대기 태스크가 낸다.
  */
-USTRUCT(meta = (DisplayName = "퀘스트 제목 설정", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Set Quest Title", Category = "Wx"))
 struct FWxStateTreeTask_SetQuestTitle : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

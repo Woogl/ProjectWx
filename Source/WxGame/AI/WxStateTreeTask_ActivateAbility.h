@@ -35,7 +35,7 @@ struct FWxStateTreeTask_ActivateAbilityInstanceData
  * 정상 종료면 Succeeded, 발동 실패나 캔슬이면 Failed 로 완료한다.
  * 상태를 떠날 때 어빌리티가 아직 돌고 있으면 취소한다. 취소를 거부하는 어빌리티(CanBeCanceled가 false)는 혼자 계속 돈다.
  */
-USTRUCT(meta = (DisplayName = "어빌리티 발동", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Activate Ability", Category = "Wx"))
 struct FWxStateTreeTask_ActivateAbility : public FStateTreeAITaskBase
 {
 	GENERATED_BODY()

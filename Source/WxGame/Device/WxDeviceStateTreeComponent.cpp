@@ -52,7 +52,7 @@ void UWxDeviceStateTreeComponent::SynchronizeAfterStart()
 {
 	if (GetOwnerRole() == ROLE_Authority)
 	{
-		// 틱 없이 잠드는 첫 상태('작동 대기' 뿐인 상태)도 발행되게 한다. InitialState 로의 전이는 그 요청이 깨운 틱이 발행한다.
+		// 틱 없이 잠드는 첫 상태('Wait For Trigger' 뿐인 상태)도 발행되게 한다. InitialState 로의 전이는 그 요청이 깨운 틱이 발행한다.
 		if (InitialState == RootInitialStateName || !EnterState(FGameplayTag::RequestGameplayTag(InitialState, false), true))
 		{
 			PublishState();

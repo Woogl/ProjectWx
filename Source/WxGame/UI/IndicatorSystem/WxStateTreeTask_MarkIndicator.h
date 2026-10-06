@@ -54,7 +54,7 @@ struct FWxStateTreeTask_MarkIndicatorInstanceData
  * 완료 없는 머무는 태스크라 항상 Running 이다.
  * 인디케이터는 복제되지 않으므로 이 노드를 도는 머신에만 뜬다(v1 싱글/리슨 호스트 전제).
  */
-USTRUCT(meta = (DisplayName = "인디케이터 표시", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Mark Indicator", Category = "Wx"))
 struct FWxStateTreeTask_MarkIndicator : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

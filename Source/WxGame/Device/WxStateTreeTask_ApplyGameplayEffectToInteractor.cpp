@@ -60,6 +60,6 @@ FText FWxStateTreeTask_ApplyGameplayEffectToInteractor::GetDescription(const FGu
 	check(InstanceData);
 
 	const FText EffectText = InstanceData->EffectClass ? FText::FromString(InstanceData->EffectClass->GetName()) : INVTEXT("none");
-	return FText::Format(INVTEXT("상호작용자에게 \"{0}\" 적용"), EffectText);
+	return FText::Format(INVTEXT("Apply \"{0}\" to Interactor"), EffectText);
 }
 #endif

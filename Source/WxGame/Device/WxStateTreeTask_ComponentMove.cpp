@@ -75,6 +75,6 @@ FText FWxStateTreeTask_ComponentMove::GetDescription(const FGuid& ID, FStateTree
 	check(InstanceData);
 
 	const FName ComponentName = InstanceData->TargetComponent.Name;
-	return FText::Format(INVTEXT("컴포넌트 이동 ({0})"), ComponentName.IsNone() ? INVTEXT("none") : FText::FromName(ComponentName));
+	return FText::Format(INVTEXT("Component Move ({0})"), ComponentName.IsNone() ? INVTEXT("none") : FText::FromName(ComponentName));
 }
 #endif

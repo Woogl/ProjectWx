@@ -50,7 +50,7 @@ FText FWxStateTreeTask_PlayAnimation::GetDescription(const FGuid& ID, FStateTree
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("애니메이션 재생 ({0})"),
+	return FText::Format(INVTEXT("Play Animation ({0})"),
 		InstanceData->Animation ? FText::FromString(InstanceData->Animation->GetName()) : INVTEXT("none"));
 }
 #endif

@@ -76,7 +76,7 @@ void AWxDevice::NotifyDeviceInteracted(AActor* Interactor, const AWxDevice* Send
 	if (!Accepted.ContainsByPredicate([Value](const FWxInteractionOption& Option) { return Option.Value == Value || Option.Value == INDEX_NONE; })
 		|| !WaitingContext.FinishTask(EStateTreeFinishTaskType::Succeeded))
 	{
-		UE_LOG(LogWxWorld, Verbose, TEXT("Device(%s): 작동 신호를 받지 않음(보낸 장치 %s, 값 %d) — 지금 상태에 '작동 대기' 가 없거나, 그 수락 규칙이 받지 않는 값이다."), *GetName(), *GetNameSafe(Sender), Value);
+		UE_LOG(LogWxWorld, Verbose, TEXT("Device(%s): 작동 신호를 받지 않음(보낸 장치 %s, 값 %d) — 지금 상태에 'Wait For Trigger' 가 없거나, 그 수락 규칙이 받지 않는 값이다."), *GetName(), *GetNameSafe(Sender), Value);
 
 		return;
 	}
@@ -112,7 +112,7 @@ void AWxDevice::BeginWaitForTrigger(const FWxStateTreeTask_WaitForTrigger& Task,
 {
 	if (WaitingTask && WaitingTask != &Task)
 	{
-		UE_LOG(LogWxWorld, Warning, TEXT("Device(%s): 활성 경로에 '작동 대기' 가 둘 이상이다 — 나중에 진입한 것만 작동을 받는다. 부모·자식 상태에 겹쳐 두지 않는다."), *GetName());
+		UE_LOG(LogWxWorld, Warning, TEXT("Device(%s): 활성 경로에 'Wait For Trigger' 가 둘 이상이다 — 나중에 진입한 것만 작동을 받는다. 부모·자식 상태에 겹쳐 두지 않는다."), *GetName());
 	}
 
 	WaitingTask = &Task;

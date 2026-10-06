@@ -20,7 +20,7 @@ struct FWxStateTreeTask_RefillItemChargesInstanceData
  * 라이브 전이로 진입할 때 권위 측에서만 로컬 플레이어(0번 컨트롤러) 인벤토리에 UWxInventoryComponent::RefillAllItemCharges 를 돌린다 — 충전형(Charges Fragment)이 아닌 아이템은 그 안에서 걸러진다.
  * 장치 트리의 초기 진입·복원·레이트조인은 IsRestoring으로 제외한다. 일반 트리의 첫 진입은 실행한다.
  */
-USTRUCT(meta = (DisplayName = "아이템 충전 리필", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Refill Item Charges", Category = "Wx"))
 struct FWxStateTreeTask_RefillItemCharges : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

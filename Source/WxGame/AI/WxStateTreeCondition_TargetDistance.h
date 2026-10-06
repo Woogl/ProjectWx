@@ -23,7 +23,7 @@ struct FWxStateTreeCondition_TargetDistanceInstanceData
  * 폰과 AWxAIController 가 겨누는 대상 사이의 거리를 평가하는 순간에 재서 비교한다.
  * 대상이 없으면 무한히 먼 것으로 본다 — 0으로 두면 근거리 비교를 통과해 버린다.
  */
-USTRUCT(meta = (DisplayName = "타겟 거리 비교", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Target Distance", Category = "Wx"))
 struct FWxStateTreeCondition_TargetDistance : public FStateTreeAIConditionBase
 {
 	GENERATED_BODY()

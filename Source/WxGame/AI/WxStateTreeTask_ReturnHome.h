@@ -17,7 +17,7 @@ struct FStateTreeTransitionResult;
  *
  * 이동 목표(Destination·TargetActor)는 진입 때 홈 위치로 덮어쓰므로 저작 대상이 아니다.
  */
-USTRUCT(meta = (DisplayName = "홈 복귀", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Return Home", Category = "Wx"))
 struct FWxStateTreeTask_ReturnHome : public FStateTreeMoveToTask
 {
 	GENERATED_BODY()

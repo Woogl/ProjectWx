@@ -37,7 +37,7 @@ struct FWxStateTreeTask_PlayDialogueInstanceData
  * 상태를 먼저 떠나도 대화를 끊지 않는다 — 읽던 대사가 사라지는 편이 더 나쁘고, 세션은 자기 데이터를 끝까지 진행한다.
  * 0번 컨트롤러 사용은 다른 노드와 같은 전제(v1 싱글/리슨 호스트)다.
  */
-USTRUCT(meta = (DisplayName = "대화 재생", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Play Dialogue", Category = "Wx"))
 struct FWxStateTreeTask_PlayDialogue : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

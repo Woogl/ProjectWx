@@ -59,7 +59,7 @@ struct FWxStateTreeTask_SplineMoveInstanceData
  * 지정 컴포넌트를 TargetPointIndex 가 가리키는 스플라인 포인트로 옮기고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다.
  * 복원 진입이면 목표 포인트로 즉시 스냅하고, 그 밖의 진입에서는 컴포넌트의 실제 현재 위치에서 곡선을 따라 슬라이드한다.
  */
-USTRUCT(meta = (DisplayName = "스플라인 이동", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Spline Move", Category = "Wx"))
 struct FWxStateTreeTask_SplineMove : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

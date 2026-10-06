@@ -34,7 +34,7 @@ struct FWxStateTreeTask_WaitSpawnersKilledInstanceData
  *
  * 대상은 FUniversalObjectLocator 로 배치 액터를 직접 지정한다 — 순수 구조체라 ST 컴파일러의 레벨 액터 참조 검증에 걸리지 않고, 씬 픽커와 WP 런타임 셀·PIE 픽스업 해석이 엔진에 내장돼 있어 레벨 밖 호스트(퀘스트 ST)에서도 조립할 수 있다.
  */
-USTRUCT(meta = (DisplayName = "스포너 처치 대기", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Wait Spawners Killed", Category = "Wx"))
 struct FWxStateTreeTask_WaitSpawnersKilled : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

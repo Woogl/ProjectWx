@@ -110,7 +110,7 @@ FText FWxStateTreeTask_WaitSpawnersKilled::GetDescription(const FGuid& ID, FStat
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("스포너 처치 대기 ({0})"), FWxLocatorUtils::GetDisplayNames(InstanceData->Spawners));
+	return FText::Format(INVTEXT("Wait Spawners Killed ({0})"), FWxLocatorUtils::GetDisplayNames(InstanceData->Spawners));
 }
 #endif
 

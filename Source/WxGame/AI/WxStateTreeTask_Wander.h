@@ -54,7 +54,7 @@ struct FWxStateTreeTask_WanderInstanceData
  * 이동은 내비게이션이 아니라 원시 입력이므로, 방향을 고를 때 그 구간이 내비메시 위인지 직접 검증한다.
  * 내비메시가 없는 맵이나 걸어갈 거리가 0인 상태(속박·Duration 0)에서는 검증이 성립하지 않아 배회하지 않는다.
  */
-USTRUCT(meta = (DisplayName = "배회", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Wander", Category = "Wx"))
 struct FWxStateTreeTask_Wander : public FStateTreeAITaskBase
 {
 	GENERATED_BODY()

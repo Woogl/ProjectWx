@@ -40,6 +40,6 @@ EStateTreeRunStatus FWxStateTreeTask_ReturnHome::EnterState(FStateTreeExecutionC
 #if WITH_EDITOR
 FText FWxStateTreeTask_ReturnHome::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
-	return INVTEXT("홈 복귀");
+	return INVTEXT("Return Home");
 }
 #endif

@@ -57,17 +57,17 @@ void FWxStateTreeTask_WaitForTrigger::ExitState(FStateTreeExecutionContext& Cont
 #if WITH_EDITOR
 FText FWxStateTreeTask_WaitForTrigger::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
-	FText Description = INVTEXT("작동 대기");
+	FText Description = INVTEXT("Wait For Trigger");
 	if (bPlayerInteraction)
 	{
 		Description = bOnlyWhenLinkedAccepts
-			? FText::Format(INVTEXT("\"{0}\" 상호작용 대기 (연결 장치가 대기 중일 때만)"), Prompt)
-			: FText::Format(INVTEXT("\"{0}\" 상호작용 대기"), Prompt);
+			? FText::Format(INVTEXT("Wait for \"{0}\" interaction (only while a linked device is waiting)"), Prompt)
+			: FText::Format(INVTEXT("Wait for \"{0}\" interaction"), Prompt);
 	}
 
 	if (const UScriptStruct* RuleStruct = Rule.GetScriptStruct())
 	{
-		return FText::Format(INVTEXT("{0} — 수락 규칙: {1}"), Description, RuleStruct->GetDisplayNameText());
+		return FText::Format(INVTEXT("{0} — Accept rule: {1}"), Description, RuleStruct->GetDisplayNameText());
 	}
 
 	return Description;

@@ -31,7 +31,7 @@ struct FWxStateTreeCondition_BeyondLeashInstanceData
  * 폰이 앵커에서 LeashRadius 넘게 벗어났는지(리시 이탈) 판정한다.
  * 복귀를 언제 끝낼지는 이 조건이 아니라 복귀 상태의 태스크가 정한다 — 복귀 상태에는 이 조건으로 빠져나가는 전이를 두지 않는다.
  */
-USTRUCT(meta = (DisplayName = "리시 이탈", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Beyond Leash", Category = "Wx"))
 struct FWxStateTreeCondition_BeyondLeash : public FStateTreeAIConditionBase
 {
 	GENERATED_BODY()

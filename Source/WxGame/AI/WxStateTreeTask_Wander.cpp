@@ -134,6 +134,6 @@ FText FWxStateTreeTask_Wander::GetDescription(const FGuid& ID, FStateTreeDataVie
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("배회 ({0}초, x{1})"), FText::AsNumber(InstanceData->Duration), FText::AsNumber(InstanceData->MoveSpeedMultiplier));
+	return FText::Format(INVTEXT("Wander ({0}s, x{1})"), FText::AsNumber(InstanceData->Duration), FText::AsNumber(InstanceData->MoveSpeedMultiplier));
 }
 #endif

@@ -62,7 +62,7 @@ struct FWxStateTreeTask_MirrorMovementInstanceData
  * 이 태스크를 둔 상태가 살아 있는 동안 폰을 소환한 주인 옆으로 이동시키며, 몽타주 종료 또는 도달 제한 시간 초과 시 위치를 보정한다.
  * 스스로 끝나지 않으므로 상태의 완료 판정에서 빠진다.
  */
-USTRUCT(meta = (DisplayName = "주인 이동 따라가기", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Mirror Master Movement", Category = "Wx"))
 struct FWxStateTreeTask_MirrorMovement : public FStateTreeAITaskBase
 {
 	GENERATED_BODY()

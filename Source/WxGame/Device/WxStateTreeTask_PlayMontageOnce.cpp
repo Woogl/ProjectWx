@@ -79,7 +79,7 @@ FText FWxStateTreeTask_PlayMontageOnce::GetDescription(const FGuid& ID, FStateTr
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("몽타주 1회 재생 ({0})"),
+	return FText::Format(INVTEXT("Play Montage Once ({0})"),
 		InstanceData->Montage ? FText::FromString(InstanceData->Montage->GetName()) : INVTEXT("none"));
 }
 #endif

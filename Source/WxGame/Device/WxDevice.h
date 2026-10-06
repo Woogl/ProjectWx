@@ -16,13 +16,13 @@ struct FWxStateTreeTask_WaitForTrigger;
  * StateTree 로 자기 상태를 구동하는 월드 장치(문·상자·체크포인트·엘리베이터)의 공통 호스트.
  *
  * 루트를 만들지 않는다 — 파생 BP 가 저마다 다른 몸통을 세운다.
- * 버튼·레버 같은 발동 장치도 이 클래스다 — 누른 상태를 자기 트리로 몰면서 '연결 장치 작동' 태스크로 상대를 민다.
+ * 버튼·레버 같은 발동 장치도 이 클래스다 — 누른 상태를 자기 트리로 몰면서 'Trigger Linked Devices' 태스크로 상대를 민다.
  *
  * 상태의 실행·소유(복제 StateTag)·ST 에셋 저작은 전부 UWxDeviceStateTreeComponent 가 맡는다 — 상태 구동 패턴은 그 클래스 doc-comment 참조.
  * 이 액터에 남는 것은 상호작용 표면(IWxInteractable·프롬프트·당사자), 그리고 배치가 정하는 배선(LinkedDevices)뿐이다.
  * 상호작용 신호는 액터가 받아 트리에 전달한다 — 스캐너·어빌리티·발동 장치가 보는 계약 상대는 액터 하나다.
  *
- * 작동 신호는 하나다. 직접 눌리든 다른 장치가 밀든 그 상태에서 기다리던 '작동 대기' 태스크(FWxStateTreeTask_WaitForTrigger)를 완료시키고, 어느 상태로 갈지는 그 상태의 「성공 시」 전이가 정한다.
+ * 작동 신호는 하나다. 직접 눌리든 다른 장치가 밀든 그 상태에서 기다리던 'Wait For Trigger' 태스크(FWxStateTreeTask_WaitForTrigger)를 완료시키고, 어느 상태로 갈지는 그 상태의 「성공 시」 전이가 정한다.
  * 그 태스크가 없는 상태에서는 작동도 플레이어 상호작용도 받지 않는다 — 이 장치를 미는 버튼은 그동안 잠긴다. 프롬프트와 수락 규칙은 그 태스크의 설정에서 읽는다.
  */
 UCLASS(Abstract)
@@ -53,13 +53,13 @@ public:
 	void GetAcceptedOptions(const AWxDevice* Sender, TArray<FWxInteractionOption>& OutOptions) const;
 
 	/**
-	 * '작동 대기' 태스크가 상태 진입에 등록하고 이탈에 걷는다. 노드 포인터는 그 상태가 활성인 동안만 유효하므로 이탈에서 반드시 걷는다.
+	 * 'Wait For Trigger' 태스크가 상태 진입에 등록하고 이탈에 걷는다. 노드 포인터는 그 상태가 활성인 동안만 유효하므로 이탈에서 반드시 걷는다.
 	 * 복제하지 않는다 — ST 가 각 피어에서 실행되어 같은 값에 수렴한다.
 	 */
 	void BeginWaitForTrigger(const FWxStateTreeTask_WaitForTrigger& Task, const FStateTreeWeakExecutionContext& Context);
 	void EndWaitForTrigger(const FWxStateTreeTask_WaitForTrigger& Task);
 
-	/** '연결 장치 작동' 태스크의 대상. 자식 장치는 BeginPlay 에 부모 장치를 여기에 넣는다. */
+	/** 'Trigger Linked Devices' 태스크의 대상. 자식 장치는 BeginPlay 에 부모 장치를 여기에 넣는다. */
 	UPROPERTY(EditInstanceOnly, Category = "Wx")
 	TArray<TObjectPtr<AWxDevice>> LinkedDevices;
 

@@ -98,7 +98,7 @@ EDataValidationResult UWxAbilitySet::IsDataValid(FDataValidationContext& Context
 		const FWxCombatAttributeInitTableRow* AttributeRow = AttributeInitRow.DataTable ? AttributeInitRow.DataTable->FindRow<FWxCombatAttributeInitTableRow>(AttributeInitRow.RowName, GetName(), false) : nullptr;
 		if (!AttributeRow)
 		{
-			Context.AddError(FText::FromString(FString::Printf(TEXT("속성 행 %s.%s를 찾을 수 없어 속성 초기화를 건너뛴다."), *GetNameSafe(AttributeInitRow.DataTable), *AttributeInitRow.RowName.ToString())));
+			Context.AddError(FText::FromString(FString::Printf(TEXT("Attribute row %s.%s was not found, so attribute initialization is skipped."), *GetNameSafe(AttributeInitRow.DataTable), *AttributeInitRow.RowName.ToString())));
 		}
 	}
 
@@ -107,14 +107,14 @@ EDataValidationResult UWxAbilitySet::IsDataValid(FDataValidationContext& Context
 	{
 		if (!AbilityClass)
 		{
-			Context.AddWarning(INVTEXT("빈 어빌리티 칸이 있어 부여할 때 건너뛴다."));
+			Context.AddWarning(INVTEXT("An empty ability slot is skipped when granting."));
 			continue;
 		}
 
 		const UWxAbilityBase* Ability = AbilityClass.GetDefaultObject();
 		if (Abilities.Contains(Ability))
 		{
-			Context.AddWarning(FText::FromString(FString::Printf(TEXT("%s가 두 번 있어 부여할 때 한 번만 준다."), *AbilityClass->GetName())));
+			Context.AddWarning(FText::FromString(FString::Printf(TEXT("%s is listed twice and is granted only once."), *AbilityClass->GetName())));
 			continue;
 		}
 		Abilities.Add(Ability);
@@ -129,7 +129,7 @@ EDataValidationResult UWxAbilitySet::IsDataValid(FDataValidationContext& Context
 
 			if (Ability.ActivationInputAction && Ability.ActivationInputAction == Other.ActivationInputAction && !Ability.IsActivationExclusive(Other))
 			{
-				Context.AddWarning(FText::FromString(FString::Printf(TEXT("%s와 %s가 같은 입력 %s인데 발동 조건이 겹친다. 둘 다 성립하면 세트 순서대로 앞 어빌리티가 나간다."),
+				Context.AddWarning(FText::FromString(FString::Printf(TEXT("%s and %s share the input %s and their activation conditions overlap. When both are met, the one listed first in the set activates."),
 					*Ability.GetClass()->GetName(), *Other.GetClass()->GetName(), *Ability.ActivationInputAction->GetName())));
 			}
 		}

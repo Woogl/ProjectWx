@@ -32,7 +32,7 @@ struct FWxStateTreeTask_LockOnInstanceData
  *
  * 스스로 끝나지 않으므로 상태의 완료 판정에서 빠진다. 이 태스크만 둔 상태에는 판정에 참여하는 태스크를 따로 둔다.
  */
-USTRUCT(meta = (DisplayName = "락온", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Lock On", Category = "Wx"))
 struct FWxStateTreeTask_LockOn : public FStateTreeAITaskBase
 {
 	GENERATED_BODY()

@@ -105,7 +105,7 @@ FText FWxStateTreeTask_WaitForInteraction::GetDescription(const FGuid& ID, FStat
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	return FText::Format(INVTEXT("상호작용 대기 ({0})"), FWxLocatorUtils::GetDisplayName(InstanceData->Target));
+	return FText::Format(INVTEXT("Wait For Interaction ({0})"), FWxLocatorUtils::GetDisplayName(InstanceData->Target));
 }
 #endif
 

@@ -43,7 +43,7 @@ struct FWxStateTreeTask_ComponentMoveInstanceData
  * 지정 컴포넌트를 현재 상대 위치에서 기준(아키타입)+LocalOffset 으로 일정 속도 슬라이드하고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다.
  * 속도를 시작→목표 실제 거리에서 산출하므로 목표가 아키타입(offset 0)인 '닫기' 방향도 일정 속도가 된다.
  */
-USTRUCT(meta = (DisplayName = "컴포넌트 이동", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Component Move", Category = "Wx"))
 struct FWxStateTreeTask_ComponentMove : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

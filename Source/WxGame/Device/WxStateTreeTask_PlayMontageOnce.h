@@ -42,7 +42,7 @@ struct FWxStateTreeTask_PlayMontageOnceInstanceData
  * 그래서 이 태스크를 둔 상태와 다음 상태는 서로 다른 태그 상태여야 한다.
  * 장치 트리의 초기 진입·복원·레이트조인은 IsRestoring으로 제외한다. 일반 트리의 첫 진입은 재생한다.
  */
-USTRUCT(meta = (DisplayName = "몽타주 1회 재생", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Play Montage Once", Category = "Wx"))
 struct FWxStateTreeTask_PlayMontageOnce : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

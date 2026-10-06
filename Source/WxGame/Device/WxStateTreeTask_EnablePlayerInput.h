@@ -35,7 +35,7 @@ struct FWxStateTreeTask_EnablePlayerInputInstanceData
  * 끈 입력은 ExitState 가 되돌리므로 장치 액터/셀이 사라져 ST 가 멈춰도 꺼진 채 남지 않는다.
  * 상호작용 당사자를 소유한 로컬 컨트롤러/폰이 없으면(예: 데디 서버·원격 플레이어 상태) 노옵한다.
  */
-USTRUCT(meta = (DisplayName = "플레이어 입력 켜기", Category = "Wx"))
+USTRUCT(meta = (DisplayName = "Enable Player Input", Category = "Wx"))
 struct FWxStateTreeTask_EnablePlayerInput : public FStateTreeTaskCommonBase
 {
 	GENERATED_BODY()

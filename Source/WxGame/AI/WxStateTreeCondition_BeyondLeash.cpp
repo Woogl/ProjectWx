@@ -46,6 +46,6 @@ FText FWxStateTreeCondition_BeyondLeash::GetDescription(const FGuid& ID, FStateT
 		RadiusValue = FText::AsNumber(InstanceData->LeashRadius);
 	}
 
-	return FText::Format(INVTEXT("{0}에서 {1} 넘게 이탈"), Anchor == EWxLeashAnchor::Master ? INVTEXT("주인") : INVTEXT("홈"), RadiusValue);
+	return FText::Format(INVTEXT("More than {1} from {0}"), Anchor == EWxLeashAnchor::Master ? INVTEXT("Master") : INVTEXT("Home"), RadiusValue);
 }
 #endif
