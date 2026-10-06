@@ -32,7 +32,7 @@ public:
 
 	/** 위치 스냅 시 타겟 기준 오프셋(X=대상→오너 앞, Y=우, Z=위). 노티파이가 주입한다. */
 	UPROPERTY()
-	FVector LocationOffset = FVector(150.0f, 0.0f, 0.0f);
+	FVector LocationOffset = FVector::ZeroVector;
 
 	virtual void OnStateChanged(ERootMotionModifierState LastState) override;
 

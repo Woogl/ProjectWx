@@ -133,7 +133,7 @@ FName UWxAbilityBase::SelectDirectionalSection(const UAnimMontage* Montage, cons
 bool UWxAbilityBase::HasMontageSection(const UAnimMontage* Montage, FName SectionName)
 {
 	const FString Prefix = SectionName.IsNone() ? FString() : SectionName.ToString();
-	return Montage && (Montage->IsValidSectionName(SectionName) || Montage->IsValidSectionName(FName(Prefix + TEXT("Forward"))));
+	return Montage && (Montage->IsValidSectionName(SectionName) || Montage->IsValidSectionName(FName(Prefix + StaticEnum<EWxAbilityDirection>()->GetNameStringByValue(static_cast<int64>(EWxAbilityDirection::Forward)))));
 }
 
 float UWxAbilityBase::GetMontagePlayRate() const
@@ -283,7 +283,7 @@ bool UWxAbilityBase::PlayMontage(UAnimMontage* Montage, FName StartSection)
 	// 이미 고른 방향·Backstep은 그대로 쓴다. Forward는 자동 선택의 진입점이자 누락 방향의 대체 섹션이다.
 	const FString Prefix = StartSection.IsNone() ? FString() : StartSection.ToString();
 	const bool bSelectDirection = (StartSection.IsNone() || !Montage->IsValidSectionName(StartSection))
-		&& Montage->IsValidSectionName(FName(Prefix + TEXT("Forward")));
+		&& Montage->IsValidSectionName(FName(Prefix + StaticEnum<EWxAbilityDirection>()->GetNameStringByValue(static_cast<int64>(EWxAbilityDirection::Forward))));
 	if (bSelectDirection)
 	{
 		UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();

@@ -21,7 +21,7 @@ class WXGAME_API UWxAbilityTask_LockOnCamera : public UAbilityTask
 	GENERATED_BODY()
 
 public:
-	static UWxAbilityTask_LockOnCamera* CreateTask(UGameplayAbility* OwningAbility, float InInterpSpeed = 10.f, float InPitchOffset = -15.f, float InMaxDistance = 2000.f, float InRetargetLookThreshold = 40.f);
+	static UWxAbilityTask_LockOnCamera* CreateTask(UGameplayAbility* OwningAbility, float InInterpSpeed, float InPitchOffset, float InMaxDistance, float InRetargetLookThreshold);
 
 	UPROPERTY()
 	FWxOnTargetLost OnTargetLost;
@@ -37,9 +37,9 @@ protected:
 
 private:
 	TWeakObjectPtr<UWxLockOnComponent> LockOnComponent;
-	float InterpSpeed = 8.f;
-	float PitchOffset = -15.f;
-	float MaxDistanceSquared = 2000.f * 2000.f;
-	float RetargetLookThreshold = 40.f;
+	float InterpSpeed;
+	float PitchOffset;
+	float MaxDistanceSquared;
+	float RetargetLookThreshold;
 	FVector2D AccumulatedLook = FVector2D::ZeroVector;
 };

@@ -21,7 +21,10 @@ struct FWxStateTreeTask_MirrorAbilityInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FGameplayTagContainer ExcludedAbilities;
 
-	/** 거절된 따라 쓰기를 이 시간 동안 매 틱 다시 시도한다. 플레이어 선입력 버퍼와 같은 창이다. */
+	/**
+	 * 거절된 따라 쓰기를 이 시간(게임 초) 동안 매 틱 다시 시도한다.
+	 * 거절 원인이 분신 몽타주의 진행이라, 실시간으로 재는 플레이어 선입력 버퍼와 달리 게임 시간으로 잰다.
+	 */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0.0"))
 	float RetryDuration = 0.4f;
 

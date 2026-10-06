@@ -147,7 +147,7 @@ void AWxEnemyCharacter::HandleOwnerDeath(AWxCharacterBase* DeadCharacter)
 	// 처치자를 가리지 않고 항상 0번 플레이어에게 지급하는 것이 기존 정책이다.
 	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0))
 	{
-		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform(), FVector::UpVector * 300.f);
+		UWxRewardLibrary::GrantReward(this, RewardRow, PlayerController, GetActorTransform());
 	}
 }
 

@@ -20,7 +20,7 @@ class WXGAME_API UWxAbilityTask_SlowTime : public UAbilityTask
 	GENERATED_BODY()
 
 public:
-	static UWxAbilityTask_SlowTime* CreateTask(UGameplayAbility* OwningAbility, float InTimeDilation = 0.2f);
+	static UWxAbilityTask_SlowTime* CreateTask(UGameplayAbility* OwningAbility, float InTimeDilation);
 
 	virtual void OnDestroy(bool bInOwnerFinished) override;
 
@@ -28,7 +28,7 @@ protected:
 	virtual void Activate() override;
 
 private:
-	float TimeDilation = 0.2f;
+	float TimeDilation;
 
 	TWeakObjectPtr<UWxTimeDilationSubsystem> TimeDilationSubsystem;
 	uint64 TimeDilationHandle = 0;

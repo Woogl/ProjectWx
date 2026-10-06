@@ -281,7 +281,7 @@ float UWxAbilitySystemComponent::GetMontagePlayRate() const
 		return 1.f;
 	}
 
-	return FMath::Max(AttrSet->GetASPD(), 0.001f);
+	return AttrSet->GetASPD();
 }
 
 void UWxAbilitySystemComponent::CancelRecoveringAbilities(UGameplayAbility* IgnoreAbility)
