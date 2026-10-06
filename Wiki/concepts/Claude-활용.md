@@ -54,6 +54,10 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
   - 고칠 수 있는 함정은 문서로 옮기지 않고 `WxToolset`에서 없앴다. `GetBindings`는 표시명 대신 프로퍼티 이름을 돌려주고, `RemoveBinding`은 지울 바인딩이 없으면 실패하며, `CompileStateTree`는 링크까지 통과해야 succeeded다. 저장은 `SaveMontage`를 범용 `WxPackageToolset.SavePackages`로 바꿔, 수정 표시가 없는 패키지와 WP 외부 액터도 쓰고 못 쓴 패키지는 실패로 알린다.
   - 툴별 사용법과 함정은 `AICallable` 함수의 doc 주석에 둔다. MCP가 이를 툴 설명으로 그대로 내보내 어느 AI든 호출할 때 읽는다. 그래서 `AGENTS.md` 9번 규칙과 `comment-cleanup`에 이 주석은 사용법·함정을 적는 예외로 명시했다.
   - 새로 알게 된 에디터 함정도 개인 메모리가 아니라 이 자리(우리 툴은 코드나 툴 설명, 엔진 툴은 `unreal-editor` 참고 문서)에 쓴다.
+- 2026-10-06 `WxToolset` 39개 툴을 엔진 툴셋과 대조해 중복을 걷었다. 엔진 MVVM Toolset(실험 기능, `AllToolsets` 묶음에 빠져 있음)을 `.uproject`에서 따로 켜고, 같은 일을 하던 `WxMVVMToolset.RemoveBinding`과 쓰이지 않던 `LogWxToolset`을 지웠다. (사용자 결정, 커밋 772c956bc·39abf8956)
+  - MVVM은 바인딩 생성·삭제·목록, 뷰모델 추가를 엔진 툴로 하고, `WxMVVMToolset`은 엔진이 못 하는 이벤트 행(`AddEvent`·`SetEventDestination`·`SetEventArgumentPath`)과 기존 바인딩의 소스·변환 함수 인자 경로만 맡는다.
+  - `SetBindingSourcePath`는 엔진 툴로 지웠다 다시 만드는 것으로 대신할 수 있지만, 바인딩 ID와 모드 설정이 바뀌고 호출이 세 번으로 늘어 남겼다(사용자 결정 "냅두죠").
+  - 나머지 툴은 엔진에 대응 툴이 없다. StateTree 엔진 툴은 읽기뿐이고, 몽타주 툴은 위키의 섹션 규칙에 따른 반복 저작에 쓰여 일회성이 아니다.
 
 ## 관련
 
@@ -73,5 +77,6 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
 - 사용자 대화: 메모리 이관과 코딩 규칙 정리, C++ 이전 범위 (2026-10-06)
 - 사용자 대화: 에디터·MCP 요령 이관과 WxToolset 정리 (2026-10-06)
 - `AGENTS.md` (08d2e34ab), `.agents/scripts/Check-CodingRules.ps1` (f60aac7f4)
-- `.agents/skills/` (08d2e34ab)
-- `Plugins/WxToolset/` (249a100ad)
+- `.agents/skills/` (39abf8956)
+- 사용자 대화: WxToolset 중복 점검과 엔진 MVVM Toolset 활성화 (2026-10-06)
+- `Plugins/WxToolset/` (39abf8956)

@@ -12,7 +12,7 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
 |---|---|---|
 | `UWxViewModel_Character`(이름, `AbilitySystem`) | 플레이어 것은 로컬 PC, 적·보스 것은 뷰마다 | `UWxViewModelResolver_Player`, 네임플레이트는 Manual, 보스 바는 `UWxViewModelResolver_BossCharacter` |
 | `UWxViewModel_AbilitySystem` | Character VM이 ASC마다 새로 만들어 소유 | Character VM의 `AbilitySystem` 필드 |
-| `UWxViewModel_Attribute`(현재·최대 쌍) | AbilitySystem VM이 쌍마다 지연 생성 | `UWxViewModelResolver_Attribute`(플레이어) 또는 변환 함수 `GetAttributeViewModel` |
+| `UWxViewModel_Attribute`(현재·최대 쌍) | AbilitySystem VM이 쌍마다 지연 생성 | 변환 함수 `GetAttributeViewModel` |
 | `UWxViewModel_Ability`(스킬 슬롯) | AbilitySystem VM이 `AbilityTags` 컨테이너(정확 일치)마다 | `UWxViewModelResolver_Ability`(플레이어) 또는 `GetAbilityViewModel` |
 | `UWxViewModel_Effect` | AbilitySystem VM이 활성 GE마다(아이콘 없는 효과 제외) | AbilitySystem VM의 목록 |
 | `UWxViewModel_Inventory` | 로컬 PC가 만들어 `VM_Inventory`로 등록 | `UWxViewModelResolver_Player` |
@@ -23,7 +23,9 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
 | `UWxViewModel_Subtitle` | Global Collection에 `VM_Subtitle` 하나 | `UWxViewModelResolver_Subtitle` |
 | `UWxViewModel_Indicator` | `AWxIndicator`가 만들어 Manual로 | — |
 
-- 스킬 슬롯은 어빌리티 에셋 태그로 어빌리티를 지목한다([어빌리티 구현 구조](어빌리티-구현-구조.md#결정)). 부여가 바뀌면 AbilitySystem VM이 슬롯 VM 전부에 재매칭을 지시한다.
+- 스킬 슬롯은 어빌리티 에셋 태그로 어빌리티를 지목한다([어빌리티 구현 구조](어빌리티-구현-구조.md#결정)). 부여가 바뀌면 슬롯 VM이 `AbilitySpecDirtiedCallbacks`를 직접 받아 다음 틱에 대상을 다시 고른다.
+  - 엔진은 이 델리게이트를 권한 측에서만 부르므로 원격 클라에서는 다음 태그 변화 때 따라간다.
+- AbilitySystem VM은 초기화 때 활성 GE로 이펙트 목록을 만들고 GE 추가·제거 통지로 고친다.
 
 ### 플레이어 공유 뷰모델
 - 로컬 `AWxPlayerController`가 `BeginPlay`의 `Super` 앞에서 Character·Inventory VM을 Global Collection 객체를 Outer로 만들어 `VM_PlayerCharacter`·`VM_Inventory`로 등록한다. PC 컴포넌트가 시작되며 HUD를 띄우므로 그보다 먼저 등록한다. 원격 PC는 등록하지 않는다.
@@ -31,7 +33,7 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
 - `SetPawn`마다 같은 Character VM을 새 폰의 ASC로 다시 초기화한다. ASC가 같으면 이름만 고치고, 다르면 AbilitySystem VM을 새로 만들며, 빙의가 풀리면 비운다.
 - Inventory VM은 `Super::BeginPlay` 뒤(시작 아이템 지급 뒤) `Initialize(인벤토리 컴포넌트)`로 인벤토리를 직접 구독한다. 탭(`CurrentCategory`, `Item.Category.*`)은 PC가 사는 동안 같은 인스턴스라 화면을 다시 열어도 유지된다.
 - 코드는 각 VM 클래스의 `FindPlayer`로, WBP는 위젯이 기대하는 클래스로 컬렉션을 찾는 `UWxViewModelResolver_Player`로 받는다. 이름 상수는 각 클래스의 `GetPlayerContext` 한 곳에 있다.
-- 키별 자식(슬롯·어트리뷰트·아이템)은 Ability·Attribute·Item 리졸버가 플레이어 공유 VM에게 키로 요청해 받는다.
+- 키별 자식 중 슬롯·아이템은 Ability·Item 리졸버가 플레이어 공유 VM에게 키로 요청해 받고, 어트리뷰트는 변환 함수 `GetAttributeViewModel`로 받는다.
 
 ### 위젯마다 만드는 뷰모델
 - Quest·Dialogue·InteractionList·BossCharacter 리졸버는 위젯을 Outer로 VM을 새로 만들고, 모델의 지금 값으로 한 번 채운 뒤 모델 델리게이트에 그 VM을 소유자로 구독한다. `DestroyInstance`에서는 그 VM의 구독만 끊는다.
@@ -43,7 +45,10 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
 - StateTree 태스크 `FWxStateTreeTask_PrintSubtitle`이 자막 표 행을 걸고, 받은 핸들이 지금 자막의 것일 때만 걷는다. 슬롯이 하나라 나중 요청이 이긴다.
 
 ### 명령과 바인딩 보조
-- 뷰의 명령은 뷰모델의 `BlueprintCallable` 함수다. `UWxViewModel_InteractionList::RequestInteract`·`RequestCycle`, `UWxViewModel_Dialogue::RequestAdvance`는 약참조로 든 스캐너·대화 세션을 직접 부른다. 스킬 슬롯의 `TryActivateAbility`와 인벤토리 탭 세터 `SetCurrentCategory`도 BP에서 부른다.
+- 뷰의 명령은 뷰모델의 `BlueprintCallable` 함수다. `UWxViewModel_Dialogue::RequestAdvance`는 약참조로 든 대화 세션을 직접 부른다. 스킬·아이템 슬롯 클릭의 `TryActivateAbility`와 인벤토리 탭 세터 `SetCurrentCategory`도 BP에서 부른다.
+- 상호작용 목록 VM은 명령 없이 표시만 한다. 상호작용 입력은 캐릭터가 받는다([상호작용](상호작용.md#흐름)).
+- 획득 토스트는 Inventory VM의 `OnItemAcquired` 델리게이트를 `WBP_AcquiredItemList`가 MVVM 이벤트 바인딩(`AcquiredItemList.AddItem`)으로 받는다. 획득 VM은 이벤트 인자로 `LastAcquiredItem`을 읽는다.
+  - 한 번의 획득이라도 스택 병합·새 덩어리마다 `OnInventoryStackChanged`가 따로 와 알림이 나뉠 수 있다(`AddItemDefinition`). 10-06 인게임 확인에서 문제로 보지 않았다.
 - `UWxMVVMConversionLibrary`는 가시성 변환(`Conv_PositiveFloatToSlateVisibility`·`Conv_GameplayTagToSlateVisibility`·`Conv_ObjectToSlateVisibility`)과 자식 VM 조회(`GetAttributeViewModel`·`GetAbilityViewModel`)를 준다.
 - 아이콘은 VM이 소프트 참조를 비동기 로드해(`WxViewModel::RequestImageAsync`, 같은 필드의 이전 요청은 취소) 로드된 객체를 `Icon` 필드로 내놓는다.
 
@@ -57,6 +62,8 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
   - 그래서 액터마다 소스가 다른 월드 공간 위젯은 만든 쪽이 Manual로 넣고, 리졸버는 위젯만으로 소스를 찾을 수 있을 때(로컬 플레이어, 월드의 현재 보스)만 쓴다.
 - 바인딩 목적지는 인자 하나인 세터만 될 수 있다(`IsValidForDestinationBinding`). 엔진의 지연 로드 이미지 세터(`SetBrushFromLazyTexture`·`SetBrushFromSoftTexture`)는 인자가 둘이라 목적지가 못 되고, 변환 함수는 값을 돌려주는 순수 함수라 비동기 로드를 표현하지 못한다. 아이콘을 VM이 직접 로드해 내놓는 이유다.
 - 변환 함수의 const 참조 구조체 인자에는 바인딩 패널이 리터럴 편집 위젯을 만들지 않는다.
+- 상태 바인딩은 뷰 초기화 때 현재 값으로 한 번 실행되지만, 이벤트 바인딩은 실행되지 않는다. 이벤트 소스로 뷰모델의 BlueprintAssignable 델리게이트를 쓸 수 있다(컴파일러가 ViewModel 소스를 지원한다).
+- 이벤트 바인딩은 델리게이트 인자를 목적지 함수로 넘기지 못한다. 목적지 인자는 위젯·뷰모델 프로퍼티 경로나 리터럴로만 잇는다.
 
 ## 결정
 - 2026-09-30 UI 설계 원칙을 채택했다. (사용자 결정 "네 이것을 우리 프로젝트의 UI 설계 원칙으로 합시다", 커밋 bfb526f5c)
@@ -80,25 +87,38 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
   - 당시 `BlueprintCallable`을 함수 라이브러리·비동기 액션 팩토리로 한정하던 코딩 규칙의 예외로 승인했다. 그 규칙은 09-12에 코딩 규칙에서 빠졌다. (커밋 e994d09f9)
 - 2026-07-29 위젯 이벤트(버튼 클릭 등)는 이벤트 그래프 노드 대신 MVVM Event 바인딩으로 뷰모델 명령에 잇는다. 뷰에는 선언적 배선만 남고 실행 코드는 C++ 뷰모델에 모인다. 창 닫기 같은 수명 문제는 뷰모델 플래그로 두지 않고 창을 띄운 쪽이 도메인 종료 신호를 받아 닫는다. (사용자 결정, `WBP_DialogueScreen`)
 - 2026-08-23 변환 함수에서 디자이너가 바인딩 패널에 리터럴로 채울 구조체 인자(태그·어트리뷰트)는 값으로 받는다. 바인딩으로 이어지는 소스 값 인자는 참조여도 된다. `GetAbilityViewModel`의 태그 컨테이너를 const 참조로 두자 WBP에서 태그를 입력할 수 없었다. (사용자 확인)
+- 2026-10-06 뷰모델 전수 점검 결과를 반영했다. (사용자 결정, 커밋 4d0a0a33a·0cd0539a9·e710ca684·a8dfefa4a·b7620a287)
+  - 슬롯 재매칭은 슬롯 VM이 부여 변경을 직접 구독한다. 부모가 자식에게 갱신을 지시하면 자식을 직접 쓰는 새 소비자에서 표시가 조용히 멈춘다.
+  - 이펙트 목록은 초기화 때 만든다. Character VM을 받는 세 WBP(Nameplate_Player·Enemy·Boss)가 모두 읽어 첫 조회까지 미루는 이득이 없었고, Getter 안 `const_cast`와 재진입 방어만 남겼다.
+  - 쓰이지 않던 `UWxViewModelResolver_Attribute`를 지웠다. 어트리뷰트 바는 모두 `GetAttributeViewModel`로 받는다.
+  - 대사 변경 통지는 네이티브 델리게이트다. 동적 델리게이트 때문에 `UWxViewModel_Dialogue::SetLine`이 UFUNCTION으로 열려 BP가 세션을 거치지 않고 표시값을 쓸 수 있었다.
+  - `UWxViewModel_Item`의 `Instance`를 약참조로 바꾸는 안은 다시 넣지 않는다. `Refresh`가 `Instance` 유무로 슬롯과 정의 단위 합계를 가르므로 약참조가 비면 슬롯 VM이 말없이 합계 VM이 된다.
+- 2026-10-06 게임플레이 입력(상호작용·스킬·아이템 사용 키)은 위젯이 받지 않고 캐릭터가 받는다. BP에서 실행하는 함수를 줄이려는 것이다. VM 명령은 UI 안에서만 뜻이 있는 조작(대사 넘기기·탭 전환)과 마우스로 슬롯을 눌러 쓰는 클릭 사용(`TryActivateAbility`)에만 둔다. (사용자 결정, 커밋 d9768ca8d)
+  - 이 목적으로 상호작용 VM 구조를 다시 짤 필요는 없다. 선택이 바뀌면 행 VM을 다시 만드는 09-23 방식(f98eef471)을 유지한다. 행 VM을 유지하고 선택만 갱신하던 이전 구조로 돌아가면 동기화 코드와 갱신 경로 둘이 되살아난다.
+- 2026-10-06 한 번만 반응해야 하는 신호(획득 알림)는 상태 필드가 아니라 VM 델리게이트와 MVVM 이벤트 바인딩으로 보낸다. 필드에 넣었다 통지 없이 비우던 방식은 뷰 초기화 때 null로 실행돼 경고를 냈고 수신 바인딩에 즉시 실행을 강제했다. WBP에서 null을 거르는 안은 BP 로직을 늘리고 우회가 남아 기각했다. (사용자 결정, 커밋 5b8803a69)
 
 ## 미결
 - 자막은 StateTree 노드가 뷰모델을 직접 불러 '모델은 뷰모델을 모른다'에 어긋나는 알려진 예외다. 자막 상태를 GameState 컴포넌트에 두는 안이 1순위였고, 퀘스트 멀티플레이 정책과 함께 보기로 미뤘다(09-30 "퀘스트나 자막은 나중에 봅시다").
+- 원격 클라에서는 어빌리티 부여·제거 통지가 오지 않아 슬롯이 다음 태그 변화 때 따라간다. 지금 플레이어 어빌리티는 서버에서 한 번 부여돼 폰과 함께 오므로 드러나지 않고, 런타임 스킬 교체가 생기면 그때 정한다(10-06).
 
 ## 관련
 - [UI 구조](UI-구조.md)
 - [네임플레이트](네임플레이트.md)
 - [어빌리티 구현 구조](어빌리티-구현-구조.md)
 - [아이템과 회복](아이템과-회복.md)
+- [상호작용](상호작용.md)
 
 ## 출처
 - 사용자 대화로 정한 지난 결정: Claude 메모리 기록에서 옮기고 HEAD 2a3baca6a 코드로 확인 (2026-10-06 조회)
 - `.agents/workflow/tasks/viewmodel-mvvm-redesign.md` (bfb526f5c, 10-01 삭제)
-- `Source/WxGame/UI/MVVM/` (e2eddf46c)
+- 사용자 대화: 뷰모델 전수 점검과 수정 (2026-10-06, 커밋 42b9e878b~5b8803a69, 인게임 확인 완료)
+- `Source/WxGame/UI/MVVM/` (5b8803a69)
+- `Content/UI/Widget/WBP_AcquiredItemList.uasset` (5b8803a69)
 - `Source/WxGame/UI/MVVM/WxViewModel_Character.cpp` (ed7a5a640)
 - `Source/WxGame/UI/MVVM/WxViewModelResolver_Player.cpp` (d37e1dd32)
 - `Source/WxGame/UI/MVVM/WxMVVMConversionLibrary.h` (ed7a5a640)
 - `Source/WxGame/UI/MVVM/WxViewModelUtils.cpp` (d37e1dd32)
 - `Source/WxGame/UI/Subtitle/` (05d662bc4)
 - `Source/WxGame/Player/WxPlayerController.cpp` (20883a590)
-- `Source/WxGame/UI/WxNameplateManagerComponent.cpp` (06fc08401)
+- `Source/WxGame/UI/WxNameplateManagerComponent.cpp` (a8dfefa4a)
 - `Source/WxGame/UI/IndicatorSystem/WxIndicator.cpp` (d37e1dd32)
