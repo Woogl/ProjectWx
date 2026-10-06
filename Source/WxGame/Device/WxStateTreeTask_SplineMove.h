@@ -25,16 +25,11 @@ struct FWxStateTreeTask_SplineMoveInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (AllowedClasses = "/Script/Engine.SplineComponent"))
 	FWxStateTreeComponentName Spline;
 
-	/**
-	 * 각 상태가 자기 끝점을 직접 선언한다(초기 진입 스냅·라이브 슬라이드의 목적지). 포인트 수를 넘으면 클램프, 음수면 움직이지 않는다.
-	 */
+	/** 포인트 수를 넘으면 클램프, 음수면 움직이지 않는다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	int32 TargetPointIndex = 0;
 
-	/**
-	 * 목표 포인트까지 주파 시간(초). 0 이하면 즉시 스냅.
-	 * 이동 중 재진입 시엔 남은 거리를 이 시간에 주파한다.
-	 */
+	/** 목표 포인트까지 주파 시간(초)으로, 0 이하면 즉시 스냅하고 이동 중 재진입하면 남은 거리를 이 시간에 주파한다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (ClampMin = "0"))
 	float Duration = 1.f;
 
@@ -55,10 +50,7 @@ struct FWxStateTreeTask_SplineMoveInstanceData
 	float MoveSpeed = 0.f;
 };
 
-/**
- * 지정 컴포넌트를 TargetPointIndex 가 가리키는 스플라인 포인트로 옮기고, 도달하면 Succeeded 를 반환해 상태를 완료시킨다.
- * 복원 진입이면 목표 포인트로 즉시 스냅하고, 그 밖의 진입에서는 컴포넌트의 실제 현재 위치에서 곡선을 따라 슬라이드한다.
- */
+/** 복원 진입이면 목표 포인트로 즉시 스냅하고, 그 밖의 진입에서는 컴포넌트의 실제 현재 위치에서 곡선을 따라 슬라이드한다. */
 USTRUCT(meta = (DisplayName = "Spline Move", Category = "Wx"))
 struct FWxStateTreeTask_SplineMove : public FStateTreeTaskCommonBase
 {

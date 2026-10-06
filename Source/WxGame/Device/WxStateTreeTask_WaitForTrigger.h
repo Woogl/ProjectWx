@@ -20,11 +20,9 @@ struct FWxStateTreeTask_WaitForTriggerInstanceData
 };
 
 /**
- * 오너 장치가 작동될 때까지 Running 으로 머물다, 작동되는 순간 Succeeded 로 완료한다('Wait For Interaction' 과 같은 대기 패턴). 어느 상태로 갈지는 이 상태의 「성공 시」 전이가 정한다.
- * 이 노드가 활성인 동안만 장치가 작동을 받는다 — 그래서 이 장치를 미는 버튼의 잠금이 곧 「대기 노드가 활성인가」이고, 트리 디버거에 그대로 보인다.
- * 활성 경로에 하나만 둔다.
+ * 이 노드가 활성인 동안만 장치가 작동을 받으므로 활성 경로에 하나만 둔다.
  *
- * 폴링하지 않는다 — 진입에 장치에 등록하고, 장치가 약한 실행 컨텍스트로 완료를 통보한다. 설정은 트리 틱 밖(스캔·수락 검증)에서도 읽히므로 전부 노드 프로퍼티다.
+ * 설정은 트리 틱 밖(스캔·수락 검증)에서도 읽히므로 전부 노드 프로퍼티다.
  */
 USTRUCT(meta = (DisplayName = "Wait For Trigger", Category = "Wx|Device"))
 struct FWxStateTreeTask_WaitForTrigger : public FStateTreeTaskCommonBase

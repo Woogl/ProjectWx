@@ -51,7 +51,6 @@ struct FWxStateTreeTask_MarkIndicatorInstanceData
  *
  * 대상 해석은 아직 잡지 못한 동안에만 매 틱 재시도해 월드 파티션 언로드/재로드를 따라간다.
  * 해석되지 않는 동안(언로드·파괴 모두)에는 기록해 둔 좌표를 대신 가리킨다 — 마커가 가장 필요한 때가 목표가 멀어 아직 스트리밍되지 않은 때다.
- * 완료 없는 머무는 태스크라 항상 Running 이다.
  * 인디케이터는 복제되지 않으므로 이 노드를 도는 머신에만 뜬다(v1 싱글/리슨 호스트 전제).
  */
 USTRUCT(meta = (DisplayName = "Mark Indicator", Category = "Wx"))
