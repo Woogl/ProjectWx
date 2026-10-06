@@ -257,3 +257,9 @@
 ## [2026-10-07] ingest | 사용자 결정: 데미지 플로터를 UWxViewModel_Damage로
 - 자료: 사용자 대화와 `Source/WxGame/AbilitySystem/Cues/`·`Source/WxGame/UI/MVVM/` 코드, `WBP_DamageFloater`.
 - `topics/UI-뷰모델.md`의 뷰모델 표·월드 공간 위젯 설명에 `UWxViewModel_Damage`를 더하고 결정 항목(OneTime 바인딩, 치명타 Visibility, Lyra 대응과 다른 선택)을 기록했다.
+
+## [2026-10-07] ingest | 사용자 결정: 숲 PCG 가장자리·기존 배치물 보호·바다 처리
+- 자료: 사용자 대화와 `Content/LevelDesign/PCG/Forest/` 그래프(HEAD 1de23f925). 그래프 내부는 에디터에서 MCP로 읽어 확인했다.
+- [기획 작업 도구](topics/기획-작업-도구.md)의 숲 PCG 구현을 고쳤다. PlayerStart 보호 서술을 현재 보호 대상(충돌 메시·장치·스포너·적 캡슐·태그 액터)으로 바꾸고, 나무 가장자리 규칙과 바다 처리를 더했다.
+- 엔진 동작에 기댄 곳에 PCG가 충돌 설정을 못 읽는 이유, 바다를 높이로만 판정하는 이유, 보호 경사도의 1.5배 범위를 더했다.
+- 결정 3건(가장자리·물 처리, PlayerStart 보호 제외, 충돌 판정 BP 유지)과 미결 1건(지형 머티리얼을 바꾸지 않는 숲 바닥 보류)을 더했다. 색인의 한 줄 요약을 고쳤다.
