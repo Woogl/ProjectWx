@@ -59,7 +59,6 @@ void FWxStateTreeTask_Patrol::ExitState(FStateTreeExecutionContext& Context, con
 
 void FWxStateTreeTask_Patrol::StateCompleted(FStateTreeExecutionContext& Context, const EStateTreeRunStatus CompletionStatus, const FStateTreeActiveStates& CompletedActiveStates) const
 {
-	// 전이에 끊기거나 이동에 실패하면 커서를 그대로 둬, 다음 진입에서 같은 지점으로 다시 간다.
 	if (CompletionStatus != EStateTreeRunStatus::Succeeded)
 	{
 		return;

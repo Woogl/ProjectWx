@@ -25,12 +25,11 @@ struct FWxStateTreeTask_LockOnInstanceData
 
 /**
  * 이 태스크를 둔 상태가 살아 있는 동안 AWxAIController 가 겨누는 대상을 컨트롤러 포커스와 폰의 strafe 회전 모드에 반영한다.
- * AI 판 락온이며, 플레이어의 락온과는 별개의 구현이다 — 겨누는 대상 자체는 컨트롤러가 UWxLockOnComponent 에 실어 두고, 이 태스크는 그 대상을 어떻게 바라볼지만 정한다.
+ * 겨누는 대상 자체는 컨트롤러가 UWxLockOnComponent 에 실어 두고, 이 태스크는 그 대상을 어떻게 바라볼지만 정한다.
  *
- * 컨트롤러의 포커스와 폰의 회전 모드는 이 태스크가 한 쌍으로 단독 소유한다.
- * Gameplay 우선순위 포커스도 이 태스크만 쓴다는 전제다.
+ * 컨트롤러의 Gameplay 우선순위 포커스와 폰의 회전 모드는 이 태스크가 한 쌍으로 단독 소유한다는 전제다.
  *
- * 스스로 끝나지 않으므로 상태의 완료 판정에서 빠진다. 이 태스크만 둔 상태에는 판정에 참여하는 태스크를 따로 둔다.
+ * 스스로 끝나지 않으므로 상태의 완료 판정에서 빠진다.
  */
 USTRUCT(meta = (DisplayName = "Lock On", Category = "Wx"))
 struct FWxStateTreeTask_LockOn : public FStateTreeAITaskBase

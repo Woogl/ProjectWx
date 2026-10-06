@@ -31,9 +31,7 @@ struct FWxStateTreeTask_EnablePlayerInputInstanceData
 
 /**
  * 진입 시 장치 상호작용 당사자의 로컬 폰 입력 전체를 bEnable 로 토글한 뒤 Succeeded 로 완료한다.
- * 진입 경로를 가리지 않으므로 레이트조인 시에도 일관되게 적용된다.
  * 끈 입력은 ExitState 가 되돌리므로 장치 액터/셀이 사라져 ST 가 멈춰도 꺼진 채 남지 않는다.
- * 상호작용 당사자를 소유한 로컬 컨트롤러/폰이 없으면(예: 데디 서버·원격 플레이어 상태) 노옵한다.
  */
 USTRUCT(meta = (DisplayName = "Enable Player Input", Category = "Wx"))
 struct FWxStateTreeTask_EnablePlayerInput : public FStateTreeTaskCommonBase

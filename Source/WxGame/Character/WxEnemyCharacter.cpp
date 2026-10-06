@@ -93,7 +93,7 @@ void AWxEnemyCharacter::GetInteractionOptions(const AActor* Interactor, TArray<F
 		return;
 	}
 
-	// 문구의 주인은 실제로 나갈 처형 어빌리티다. 그 어빌리티가 없는 상호작용자에겐 눌러도 나갈 것이 없으니 선택지를 내지 않는다.
+	// 문구는 실제로 나갈 처형 어빌리티의 것이라, 그 어빌리티가 없는 상호작용자에겐 선택지를 내지 않는다.
 	const UAbilitySystemComponent* InteractorASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Interactor);
 	if (!InteractorASC)
 	{

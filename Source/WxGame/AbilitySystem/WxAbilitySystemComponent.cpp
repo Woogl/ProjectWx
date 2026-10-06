@@ -143,8 +143,7 @@ bool UWxAbilitySystemComponent::AbilityInputActionTriggered(const UInputAction* 
 	// 순회 중 활성화가 목록을 바꾸면(GE의 GrantedAbilities, RemoveAfterActivation 등) 락 없이는 Give/Clear가 즉시 Add/RemoveAtSwap 해 참조와 이터레이터가 무효화된다.
 	ABILITYLIST_SCOPE_LOCK();
 
-	// 순정 AbilityLocalInputPressed처럼 활성 여부와 무관하게 키 상태를 스펙에 남긴다.
-	// 홀드 어빌리티가 발동 조건으로 읽는다.
+	// 홀드 어빌리티가 발동 조건으로 읽으므로 순정 AbilityLocalInputPressed처럼 활성 여부와 무관하게 키 상태를 스펙에 남긴다.
 	// 아래 발동 순회는 첫 성립에서 입력을 소비하고 끊기므로, 세우기를 먼저 끝내야 한 IA를 공유하는 뒤 스펙도 내리기와 대칭이 된다.
 	for (FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{

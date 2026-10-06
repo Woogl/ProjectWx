@@ -13,8 +13,7 @@
 
 FWxStateTreeTask_PlayLevelSequence::FWxStateTreeTask_PlayLevelSequence()
 {
-	// 재선택마다 재진입하면 재생 중인 시퀀스를 ExitState 가 정리하고 처음부터 다시 튼다.
-	// 컷신은 그 상태에 들어온 순간 한 번만 재생한다.
+	// 재선택마다 재진입하면 재생 중인 시퀀스를 ExitState 가 정리하고 처음부터 다시 틀기 때문이다.
 	bShouldStateChangeOnReselect = false;
 }
 

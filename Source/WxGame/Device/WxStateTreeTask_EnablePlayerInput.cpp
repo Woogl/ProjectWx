@@ -29,7 +29,6 @@ EStateTreeRunStatus FWxStateTreeTask_EnablePlayerInput::EnterState(FStateTreeExe
 	Instance.DisabledPawn = nullptr;
 	Instance.DisabledController = nullptr;
 
-	// 장치 상태는 모든 피어에서 실행되므로, 이 장치의 상호작용 당사자만 입력 대상으로 삼는다.
 	AWxDevice* Device = Cast<AWxDevice>(Context.GetOwner());
 	ACharacter* InteractingCharacter = Device ? Device->GetInteractingCharacter() : nullptr;
 	APlayerController* PC = InteractingCharacter ? Cast<APlayerController>(InteractingCharacter->GetController()) : nullptr;

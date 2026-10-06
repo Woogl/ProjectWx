@@ -49,7 +49,7 @@ struct FWxStateTreeTask_WanderInstanceData
 
 /**
  * Duration 동안 한 방향으로 걷고 Succeeded 로 완료한다.
- * 타겟을 바라본 채 이동(strafe)할지는 이 태스크가 아니라 FWxStateTreeTask_LockOn 이 회전 모드를 발행해 결정한다 — 그 태스크가 놓인 상태 아래에서 배회하면 타겟을 보며 움직인다.
+ * 타겟을 바라본 채 이동(strafe)할지는 이 태스크가 아니라 FWxStateTreeTask_LockOn 이 회전 모드를 발행해 결정한다.
  *
  * 이동은 내비게이션이 아니라 원시 입력이므로, 방향을 고를 때 그 구간이 내비메시 위인지 직접 검증한다.
  * 내비메시가 없는 맵이나 걸어갈 거리가 0인 상태(속박·Duration 0)에서는 검증이 성립하지 않아 배회하지 않는다.

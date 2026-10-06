@@ -79,8 +79,7 @@ void FWxEditorModule::StartupModule()
 		UWxItemDefinition::StaticClass(),
 		UWxItemDefinitionThumbnailRenderer::StaticClass());
 
-	// 게임 BP의 저작 아이콘을 썸네일로 사용하기 위해 기본 Blueprint 렌더러를 교체한다.
-	// RegisterCustomRenderer 는 동일 클래스 중복 등록을 거부하므로 기존 등록을 먼저 해제해야 한다.
+	// RegisterCustomRenderer 는 동일 클래스 중복 등록을 거부하므로 기본 Blueprint 렌더러 등록을 먼저 해제한다.
 	UThumbnailManager::Get().UnregisterCustomRenderer(UBlueprint::StaticClass());
 	UThumbnailManager::Get().RegisterCustomRenderer(
 		UBlueprint::StaticClass(),

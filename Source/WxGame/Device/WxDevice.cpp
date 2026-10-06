@@ -57,7 +57,7 @@ void AWxDevice::GetInteractionOptions(const AActor* Interactor, TArray<FWxIntera
 
 void AWxDevice::OnInteracted(AActor* Interactor, int32 OptionValue)
 {
-	// 선택지 값은 상호작용 어빌리티가 이미 지금의 선택지와 대조했다. 여기서는 자기 대기 노드가 받는지만 아래에서 본다.
+	// 선택지 값은 상호작용 어빌리티가 이미 지금의 선택지와 대조했다.
 	NotifyDeviceInteracted(Interactor, nullptr, OptionValue);
 }
 

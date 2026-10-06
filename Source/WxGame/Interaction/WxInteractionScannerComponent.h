@@ -24,7 +24,7 @@ DECLARE_MULTICAST_DELEGATE(FWxOnInteractionRowsChanged);
  * PlayerController 소유인 이유: 폰 리스폰에도 생존하고, 소유 클라 연결로 net-owned 라 ServerInteract RPC 를 직접 들 수 있으며, 타 클라에 복제되지 않아 로컬리티가 좋다.
  * 감지·선택·하이라이트는 로컬 어포던스라 소유 클라에서만 구동한다(데디 서버 PC 는 스캔하지 않는다).
  *
- * 입력 수신: 본 컴포넌트는 입력을 직접 바인딩하지 않는다. 게임플레이 입력을 받는 AWxPlayerCharacter 가 TryInteractSelected/CycleSelection 에 잇는다.
+ * 입력 수신: 본 컴포넌트는 입력을 직접 바인딩하지 않고, 게임플레이 입력을 받는 AWxPlayerCharacter 가 TryInteractSelected/CycleSelection 에 잇는다.
  * 선택 전달: 입력 시 로컬 선택을 읽어 ServerInteract 로 액터 포인터와 선택지 값을 원자 전송한다(선택을 복제하지 않으므로 "사이클→즉시입력" 순서가 로컬 동기 읽기로 보장된다).
  * 서버는 Event.Interact(OptionalObject=선택, EventMagnitude=선택지 값)를 폰 ASC 로 송출해 ServerOnly WxAbility_Interact 가 권위에서 사거리·활성 검증 후 대상 인터페이스를 호출하게 한다.
  */

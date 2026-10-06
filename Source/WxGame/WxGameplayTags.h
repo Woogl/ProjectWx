@@ -83,11 +83,7 @@ namespace WxGameplayTags
 	
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Parry);
 
-	/**
-	 * 이 히트로 SP가 바닥나 가드가 깨졌다. 대미지 파이프라인이 서버에서 판정해 Event.Hit 대신 이것을 보낸다.
-	 * 클라의 복제 SP는 트리거보다 늦게 도착하므로 판정을 클라에서 다시 하면 서버와 갈린다.
-	 * 가드하지 않은 대상에게는 받아 줄 어빌리티가 없어 가드 중인 대상에게만 보낸다.
-	 */
+	/** 이 히트로 SP가 바닥나 가드가 깨졌다. 대미지 파이프라인이 서버에서 판정해 가드 중인 대상에게 Event.Hit 대신 보낸다. */
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_GuardBreak);
 
 	/**
@@ -222,11 +218,7 @@ namespace WxGameplayTags
 	/** 밖에서 주입된 일회성 몽타주 연출 중. 적의 처형 어포던스가 이걸로 닫힌다 — 처형 당하기는 기상까지가 그 구간이다. */
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_PlayMontageOnce);
 
-	/**
-	 * 쿨다운 식별 태그. 순정 CheckCooldown·쿨다운 조회 API가 이 태그로 쿨다운을 식별한다.
-	 * 쿨다운 GE_ 에셋이 자식 태그 하나를 부여하고, 같은 GE_를 지목한 어빌리티끼리 쿨다운을 나눠 쓴다. 부모 태그는 쿨다운 GE 전체를 고를 때(UWxEffect_IgnoreCooldowns) 쓴다.
-	 * 적은 쿨다운을 쓰지 않는다 — 패턴 간격은 State Tree가 잡는다.
-	 */
+	/** 쿨다운 GE_ 에셋이 자식 태그 하나를 부여하고 순정 CheckCooldown이 이 태그로 식별하므로, 같은 GE_를 지목한 어빌리티끼리 쿨다운을 나눠 쓴다. 적은 쿨다운을 쓰지 않는다. */
 
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cooldown);
 

@@ -29,8 +29,7 @@ EStateTreeRunStatus FWxStateTreeTask_ActivateAbility::EnterState(FStateTreeExecu
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// TryActivateAbility 안에서 어빌리티가 동기 종료될 수 있다(즉발 어빌리티, CommitAbility 실패 등).
-	// 그때는 이 상태가 아직 활성이 아니라 약한 실행 컨텍스트로 완료를 보낼 수 없으므로, 발동 구간의 종료 통지는 지역 변수로 받는다.
+	// TryActivateAbility 안에서 동기 종료되면 이 상태가 아직 활성이 아니라 약한 실행 컨텍스트로 완료를 보낼 수 없으므로, 발동 구간의 종료 통지는 지역 변수로 받는다.
 	FGameplayAbilitySpecHandle CandidateHandle;
 	TOptional<bool> bCandidateEndCancelled;
 	const FDelegateHandle ActivationEndedHandle = ASC->OnAbilityEnded.AddLambda(
@@ -44,8 +43,7 @@ EStateTreeRunStatus FWxStateTreeTask_ActivateAbility::EnterState(FStateTreeExecu
 
 	FGameplayAbilitySpecHandle ActivatedHandle;
 	{
-		// 순회 중 활성화도 실패 통지도 어빌리티 목록을 바꿀 수 있다(GE의 GrantedAbilities, 실패 콜백의 Give/Clear 등).
-		// 락은 루프에만 걸어, 뒤따르는 재조회가 부여/제거까지 반영된 목록을 보게 한다.
+		// 순회 중 활성화·실패 통지가 어빌리티 목록을 바꿀 수 있어, 락은 루프에만 걸어 뒤따르는 재조회가 부여/제거까지 반영된 목록을 보게 한다.
 		FScopedAbilityListLock ActiveScopeLock(*ASC);
 
 		// 동일 태그 어빌리티가 여러 개일 수 있으므로, 발동에 성공하는 첫 후보를 채택한다.
@@ -73,7 +71,6 @@ EStateTreeRunStatus FWxStateTreeTask_ActivateAbility::EnterState(FStateTreeExecu
 		return EStateTreeRunStatus::Failed;
 	}
 
-	// 발동 구간에 도착한 종료 통지가 방금 시작한 실행의 것이라는 보장은 없다.
 	// 엔진은 재발동(bRetriggerInstancedAbility)에서 같은 핸들로 기존 실행을 먼저 끝낸 뒤 재활성화하므로, 통지 대신 "지금 도는 실행이 있는가" 를 결론으로 삼는다.
 	const FGameplayAbilitySpec* ActiveSpec = ASC->FindAbilitySpecFromHandle(ActivatedHandle);
 	if (!ActiveSpec || !ActiveSpec->IsActive())
