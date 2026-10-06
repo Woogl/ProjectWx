@@ -26,6 +26,7 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGam
 
 	// 후보마다 요건 태그가 다르고 비용 판정도 태그(Effect.IgnoreCosts)를 보므로 특정 태그로 구독을 좁히지 않는다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
+	InASC->AbilitySpecDirtiedCallbacks.AddUObject(this, &UWxViewModel_Ability::HandleAbilitySpecDirtied);
 
 	RefreshBoundAbility();
 }
@@ -37,6 +38,7 @@ void UWxViewModel_Ability::Deinitialize()
 	{
 		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
+		ASC->AbilitySpecDirtiedCallbacks.RemoveAll(this);
 		UnbindCostAttributes(*ASC);
 		if (UWorld* World = ASC->GetWorld())
 		{
@@ -251,12 +253,17 @@ void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCou
 	ScheduleActivationRefresh();
 }
 
+void UWxViewModel_Ability::HandleAbilitySpecDirtied(const FGameplayAbilitySpec& Spec)
+{
+	ScheduleActivationRefresh();
+}
+
 void UWxViewModel_Ability::ScheduleActivationRefresh()
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
 
-	// 한 프레임에 태그 알림이 몰려도 최종 상태만 한 번 판정한다.
+	// 교체(제거 뒤 부여)와 세트 부여는 한 프레임에 알림이 몰리므로 다음 틱에 최종 상태만 한 번 판정한다.
 	if (!World || World->GetTimerManager().IsTimerActive(ActivationRefreshHandle))
 	{
 		return;

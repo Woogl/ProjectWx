@@ -10,6 +10,7 @@
 #include "MVVMViewModelBase.h"
 #include "WxViewModel_Ability.generated.h"
 
+struct FGameplayAbilitySpec;
 struct FGameplayEffectSpec;
 struct FStreamableHandle;
 class UAbilitySystemComponent;
@@ -19,6 +20,7 @@ class UWxAbilityBase;
 /**
  * 스킬 슬롯 하나의 뷰모델. 정체성은 어빌리티가 아니라 슬롯을 가리키는 어빌리티 태그다.
  * 그 태그에 맞는 어빌리티가 부여돼 있으면 그것을 물고, 교체되면 갈아타며, 없으면 빈 슬롯으로 남는다.
+ * 교체는 AbilitySpecDirtiedCallbacks 로 알아채는데, 엔진이 이것을 권한 측에서만 부르므로 원격 클라에서는 다음 태그 변화 때 따라간다.
  * 슬롯 태그를 공유하는 후보가 여럿이면 소유자가 발동 태그 요건을 만족하는 것을 표시하고, 전부 막히면 보던 것을 유지한다. 상황별 가시성은 위젯 바인딩이 맡는다.
  * 무는 대상은 스펙의 기본 인스턴스다 — 엔진 발동 경로(InternalTryActivateAbility)처럼 인스턴스로 판정한다.
  *
@@ -26,7 +28,7 @@ class UWxAbilityBase;
  * 소모한 충전 하나가 쿨다운 GE 의 스택 하나이고 충전은 하나씩 돌아오므로, 남은 시간·진행률은 다음 충전 기준이다.
  *
  * CheckCost 는 ASC 태그·비용 어트리뷰트 변화 시점에 재평가된다.
- * 태그 변경은 한 프레임 분을 모아 다음 월드 타이머 틱에 한 번 판정한다.
+ * 태그·스펙 변경은 한 프레임 분을 모아 다음 월드 타이머 틱에 한 번 판정한다.
  * 소모량은 어빌리티를 물 때 한 번만 조회한다.
  */
 UCLASS()
@@ -44,9 +46,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Ability")
 	bool TryActivateAbility();
-
-	/** 물고 있던 어빌리티가 그대로면 아무것도 하지 않는다. */
-	void RefreshBoundAbility();
 
 	const FGameplayTagContainer& GetAbilityTags() const;
 
@@ -86,11 +85,15 @@ public:
 	TObjectPtr<UObject> Icon = nullptr;
 
 private:
+	/** 물고 있던 어빌리티가 그대로면 아무것도 하지 않는다. */
+	void RefreshBoundAbility();
+
 	/** 충전이 여럿인지가 이 값에서 파생되므로 함께 갱신된다. */
 	void SetMaxRecharges(int32 NewValue);
 
 	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
+	void HandleAbilitySpecDirtied(const FGameplayAbilitySpec& Spec);
 	void ScheduleActivationRefresh();
 	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
 	bool UpdateCooldownState();

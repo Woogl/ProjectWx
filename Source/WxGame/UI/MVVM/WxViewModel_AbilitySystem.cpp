@@ -19,7 +19,6 @@ void UWxViewModel_AbilitySystem::Initialize(UAbilitySystemComponent* InASC)
 	CachedASC = InASC;
 
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_AbilitySystem::HandleTagChanged);
-	InASC->AbilitySpecDirtiedCallbacks.AddUObject(this, &UWxViewModel_AbilitySystem::HandleAbilitySpecDirtied);
 
 	RefreshOwnedTags();
 }
@@ -29,17 +28,14 @@ void UWxViewModel_AbilitySystem::Deinitialize()
 	if (UAbilitySystemComponent* ASC = CachedASC.Get())
 	{
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
-		ASC->AbilitySpecDirtiedCallbacks.RemoveAll(this);
 		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
 		ASC->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
 		if (UWorld* World = ASC->GetWorld())
 		{
 			World->GetTimerManager().ClearTimer(OwnedTagsRefreshHandle);
-			World->GetTimerManager().ClearTimer(AbilityRebindHandle);
 		}
 	}
 	OwnedTagsRefreshHandle.Invalidate();
-	AbilityRebindHandle.Invalidate();
 	// 아래 변경 알림에서 Getter 가 재진입해도 자식 VM 을 다시 만들거나 ASC 를 재구독하지 않는다.
 	CachedASC.Reset();
 
@@ -259,36 +255,8 @@ void UWxViewModel_AbilitySystem::HandleTagChanged(const FGameplayTag Tag, int32 
 	OwnedTagsRefreshHandle = World->GetTimerManager().SetTimerForNextTick(this, &UWxViewModel_AbilitySystem::FlushOwnedTagsRefresh);
 }
 
-void UWxViewModel_AbilitySystem::HandleAbilitySpecDirtied(const FGameplayAbilitySpec& Spec)
-{
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
-
-	// 스펙은 발동·종료로도 더러워지고 세트 부여는 한 프레임에 열댓 번이 몰리므로, 슬롯 재매칭은 프레임당 한 번으로 모은다.
-	if (!World || World->GetTimerManager().IsTimerActive(AbilityRebindHandle))
-	{
-		return;
-	}
-
-	AbilityRebindHandle = World->GetTimerManager().SetTimerForNextTick(this, &UWxViewModel_AbilitySystem::FlushAbilityRebind);
-}
-
 void UWxViewModel_AbilitySystem::FlushOwnedTagsRefresh()
 {
 	OwnedTagsRefreshHandle.Invalidate();
 	RefreshOwnedTags();
-}
-
-void UWxViewModel_AbilitySystem::FlushAbilityRebind()
-{
-	AbilityRebindHandle.Invalidate();
-
-	// 교체는 제거 뒤 부여라, 마지막에 오는 부여 신호 하나로 전부를 훑어야 비게 된 슬롯까지 같이 정리된다.
-	for (UWxViewModel_Ability* AbilityVM : AbilityViewModels)
-	{
-		if (AbilityVM)
-		{
-			AbilityVM->RefreshBoundAbility();
-		}
-	}
 }

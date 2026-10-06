@@ -10,7 +10,6 @@
 
 struct FGameplayAttribute;
 struct FActiveGameplayEffectHandle;
-struct FGameplayAbilitySpec;
 struct FGameplayEffectSpec;
 struct FActiveGameplayEffect;
 class UAbilitySystemComponent;
@@ -22,7 +21,6 @@ class UWxViewModel_Effect;
  * ASC의 어트리뷰트/어빌리티/이펙트를 자식 ViewModel로 노출하는 Composite 뷰모델.
  *
  * 자식 VM 은 조회할 때 지연 생성한다. 이펙트 목록은 최초 조회부터 활성 GE 추가/제거 이벤트로 관리한다.
- * 어빌리티 부여가 바뀌면 만들어 둔 슬롯 VM 전부에 재매칭을 지시해, 스킬이 교체돼도 슬롯이 따라간다.
  */
 UCLASS()
 class WXGAME_API UWxViewModel_AbilitySystem : public UMVVMViewModelBase
@@ -64,10 +62,8 @@ protected:
 	void HandleActiveEffectAdded(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
 	void HandleActiveEffectRemoved(const FActiveGameplayEffect& ActiveEffect);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
-	void HandleAbilitySpecDirtied(const FGameplayAbilitySpec& Spec);
 
 	void FlushOwnedTagsRefresh();
-	void FlushAbilityRebind();
 
 	UPROPERTY()
 	TArray<TObjectPtr<UWxViewModel_Attribute>> AttributeViewModels;
@@ -79,9 +75,6 @@ protected:
 
 	/** 타이머가 활성이면 갱신이 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
 	FTimerHandle OwnedTagsRefreshHandle;
-
-	/** 타이머가 활성이면 슬롯 재매칭이 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
-	FTimerHandle AbilityRebindHandle;
 
 private:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Getter, Category = "Wx|AbilitySystem", meta = (AllowPrivateAccess = "true"))
