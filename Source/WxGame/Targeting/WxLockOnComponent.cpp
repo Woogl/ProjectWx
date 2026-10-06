@@ -14,7 +14,8 @@ void UWxLockOnComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UWxLockOnComponent, LockOnTarget);
+	// 소유 클라는 자기가 고른 값이 정본이라, 받으면 RTT 안에 두 번 바꿀 때 서버의 지난 값으로 되감긴다.
+	DOREPLIFETIME_CONDITION(UWxLockOnComponent, LockOnTarget, COND_SkipOwner);
 }
 
 AActor* UWxLockOnComponent::ResolveLockOnTargetActor(const AActor* Source)
