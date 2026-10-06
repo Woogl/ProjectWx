@@ -11,7 +11,8 @@ class UWidgetBlueprint;
 struct FMVVMBlueprintPropertyPath;
 
 /**
- * 기존 MCP 표면(ObjectTools 등)이 닿지 못하는 지점만 뚫는다 — MVVM 바인딩 경로·변환 함수·삭제와 이벤트 행·목적지·인자.
+ * 기존 MCP 표면(ObjectTools, 엔진 MVVMToolset)이 닿지 못하는 지점만 뚫는다 — 기존 바인딩의 소스 경로·변환 함수 인자와 이벤트 행·목적지·인자.
+ * 바인딩 생성·삭제·목록은 엔진 MVVMToolset(CreateViewBinding·RemoveWidgetViewBinding·ListWidgetViewBindings)을 쓴다.
  * 변환 객체의 함수·인자 경로와 이벤트 경로는 편집 플래그가 없어 set_properties 로 쓸 수 없고, 래퍼 그래프도 에디터 서브시스템이 만들어야 한다.
  */
 UCLASS(BlueprintType, Hidden)
@@ -63,13 +64,6 @@ public:
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool SetBindingSourcePath(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId, FName ArgumentName, const FString& SourcePath);
-
-	/**
-	 * 바인딩 행 하나를 에디터 서브시스템으로 지운다(바인딩 패널의 삭제와 같다).
-	 * @param BindingId MVVMBlueprintView.bindings[].bindingId.
-	 */
-	UFUNCTION(meta = (AICallable), Category = "Wx")
-	static bool RemoveBinding(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId);
 
 private:
 	/** "소스.필드[.필드...]" 를 뷰 기준 경로로 해석한다. 소스는 Self, 뷰모델 이름, 위젯 이름 순으로 찾는다. 실패하면 스크립트 오류를 올린다. */

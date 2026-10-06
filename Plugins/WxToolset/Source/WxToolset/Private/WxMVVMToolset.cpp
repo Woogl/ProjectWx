@@ -237,22 +237,6 @@ bool UWxMVVMToolset::SetBindingSourcePath(UWidgetBlueprint* WidgetBlueprint, con
 	return true;
 }
 
-bool UWxMVVMToolset::RemoveBinding(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId)
-{
-	const UMVVMWidgetBlueprintExtension_View* Extension = WidgetBlueprint ? UWidgetBlueprintExtension::GetExtension<UMVVMWidgetBlueprintExtension_View>(WidgetBlueprint) : nullptr;
-	UMVVMBlueprintView* View = Extension ? const_cast<UMVVMWidgetBlueprintExtension_View*>(Extension)->GetBlueprintView() : nullptr;
-	FGuid Id;
-	const FMVVMBlueprintViewBinding* Binding = View && FGuid::Parse(BindingId, Id) ? View->GetBinding(Id) : nullptr;
-	if (!Binding)
-	{
-		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("바인딩 '%s' 가 없다."), *BindingId));
-		return false;
-	}
-
-	GEditor->GetEditorSubsystem<UMVVMEditorSubsystem>()->RemoveBinding(WidgetBlueprint, *Binding);
-	return true;
-}
-
 bool UWxMVVMToolset::ResolvePropertyPath(const UWidgetBlueprint* WidgetBlueprint, const UMVVMBlueprintView* View, const FString& PathString, FMVVMBlueprintPropertyPath& OutPath)
 {
 	TArray<FString> Segments;

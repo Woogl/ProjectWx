@@ -32,8 +32,8 @@
 ## MVVM
 
 - WBP 에셋 경로는 CDO로 바뀌어 확장에 닿지 않는다. 뷰는 서브오브젝트 경로 `WBP.WBP:MVVMWidgetBlueprintExtension_View_0.MVVMBlueprintView_0`로 직접 열고 `bindings`·`availableViewModels`를 쓴다. 리졸버는 클래스 경로로 인스턴스드 신설이 된다.
-- MVVM 확장이 없는 위젯에는 확장을 새로 만들 수 없다. MVVM 위젯이 필요하면 기존 MVVM WBP를 복제해 고친다.
-- 변환 함수, 소스·인자 경로, 이벤트 목적지는 `WxToolset.WxMVVMToolset`으로 쓴다.
-- 이벤트 행은 `EventPath`·`DestinationPath`가 VisibleAnywhere라 `ObjectTools`로 쓸 수 없다. `WxMVVMToolset.AddEvent`로 만들고(소스는 위젯이나 뷰모델의 BlueprintAssignable 델리게이트), `SetEventDestination`으로 목적지 함수, `SetEventArgumentPath`로 그 인자를 잇는다. 바인딩 행은 `RemoveBinding`으로 지운다.
+- 뷰모델 추가, 바인딩 생성·삭제·목록, 변환 함수 목록은 엔진 `MVVMToolset`(`AddViewModelToWidget`·`CreateViewBinding`·`RemoveWidgetViewBinding`·`ListWidgetViewBindings`·`ListConversionFunctions`)으로 한다. 엔진 툴은 MVVM 확장이 없는 위젯이면 확장을 만든다(`RequestView`). 이 플러그인은 `AllToolsets`에 들어 있지 않아 `.uproject`에서 따로 켠다.
+- 기존 바인딩의 소스·변환 함수 인자 경로와 이벤트 행은 `WxToolset.WxMVVMToolset`으로 쓴다.
+- 이벤트 행은 `EventPath`·`DestinationPath`가 VisibleAnywhere라 `ObjectTools`로 쓸 수 없다. `WxMVVMToolset.AddEvent`로 만들고(소스는 위젯이나 뷰모델의 BlueprintAssignable 델리게이트), `SetEventDestination`으로 목적지 함수, `SetEventArgumentPath`로 그 인자를 잇는다.
 - 엔진 이벤트 바인딩은 델리게이트 인자를 목적지로 넘기지 못한다. 넘길 값은 뷰모델 프로퍼티로 두고 인자 경로로 읽게 한다(`WBP_AcquiredItemList`의 `OnItemAcquired` → `AddItem(Item=LastAcquiredItem)`).
 - 상태 바인딩은 뷰 초기화 때 현재 값으로 한 번 실행되고 이벤트는 실행되지 않는다. 한 번만 반응해야 하는 신호는 이벤트로 받는다.

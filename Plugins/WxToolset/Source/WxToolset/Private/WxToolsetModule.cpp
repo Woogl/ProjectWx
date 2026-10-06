@@ -12,8 +12,6 @@
 #include "WxStateTreeToolset.h"
 #include "WxWaterToolset.h"
 
-DEFINE_LOG_CATEGORY(LogWxToolset);
-
 void FWxToolsetModule::StartupModule()
 {
 	UToolsetRegistry::RegisterToolsetClass(UWxAnimMontageToolset::StaticClass());
