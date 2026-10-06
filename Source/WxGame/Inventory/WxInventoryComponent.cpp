@@ -58,7 +58,6 @@ void FWxInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndice
 		const int32 Delta = -Entry.LastObservedCount;
 
 		// PreReplicatedRemove 는 엔트리가 실제 제거되기 "전"에 호출되므로, StackCount 를 먼저 0 으로 내려야 서버(제거 후 재계산) 경로와 같은 사후 총량이 발행된다.
-		// 엔트리는 이 콜백 직후 실제 제거되므로 mutate 는 무해하다.
 		Entry.StackCount = 0;
 		Entry.LastObservedCount = 0;
 

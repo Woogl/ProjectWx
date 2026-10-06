@@ -73,8 +73,7 @@ void FWxStateTreeTask_PrintSubtitle::ExitState(FStateTreeExecutionContext& Conte
 {
 	FInstanceDataType& Instance = Context.GetInstanceData(*this);
 
-	// 마지막 줄을 다 채우기 전에 상태를 떠나는 경로.
-	// 이미 걷었으면 기록이 비어 있어 회수가 무시된다.
+	// 마지막 줄을 다 채우기 전에 떠나는 경로이며, 이미 걷었으면 기록이 비어 있어 회수가 무시된다.
 	if (UWxViewModel_Subtitle* SubtitleViewModel = UWxViewModel_Subtitle::GetOrCreate(Context.GetOwner()))
 	{
 		SubtitleViewModel->HideSubtitle(Instance.SubtitleHandle);

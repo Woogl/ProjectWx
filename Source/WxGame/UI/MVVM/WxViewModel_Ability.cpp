@@ -301,8 +301,7 @@ int32 UWxViewModel_Ability::QueryCooldownStacks(const UAbilitySystemComponent& A
 			continue;
 		}
 
-		// 회복 시점이 지나도 스택 제거 복제가 올 때까지는 소모된 상태 그대로 둔다.
-		// 발동 판정도 같은 복제 값을 보므로, 여기서 미리 돌려주면 표시만 앞서가 "게이지는 찼는데 안 나가는" 구간이 생긴다.
+		// 발동 판정도 스택 제거 복제를 기다리므로 회복 시점이 지나도 그 복제가 올 때까지 소모 상태로 둬야 "게이지는 찼는데 안 나가는" 구간이 없다.
 		const float Remaining = FMath::Max(ActiveGE.GetTimeRemaining(WorldTime), 0.f);
 		if (ConsumedCharges == 0 || Remaining < OutRemaining)
 		{

@@ -50,10 +50,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|Inventory")
 	TArray<TObjectPtr<UWxViewModel_Item>> CategorizedItems;
 
-	/**
-	 * 획득(Delta>0)마다 새 VM 으로 교체되므로 토스트 위젯 간 표시 데이터가 서로 영향을 주지 않고, 획득 시점의 값으로 채운 뒤 더 갱신하지 않는다.
-	 * 상태 바인딩으로 받으면 뷰 초기화 때 지난 획득이 다시 실행되므로, OnItemAcquired 이벤트의 목적지 인자로만 읽는다.
-	 */
+	/** 획득마다 새 VM 으로 교체되고, 상태 바인딩은 뷰 초기화 때 지난 획득을 다시 실행하므로 OnItemAcquired 이벤트의 목적지 인자로만 읽는다. */
 	UPROPERTY(BlueprintReadOnly, Category = "Wx|Inventory")
 	TObjectPtr<UWxViewModel_Item> LastAcquiredItem;
 

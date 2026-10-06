@@ -20,10 +20,7 @@ struct FWxStateTreeTask_GiveRewardsInstanceData
 	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (RowType = "/Script/WxGame.WxRewardTableRow", WxPreviewRow = "true"))
 	FDataTableRowHandle RewardRow;
 
-	/**
-	 * 픽업 스폰 원점을 오너 기준으로 올리는 로컬 오프셋(cm) — 드랍이 바닥에 끼지 않게 한다.
-	 * 비-픽업(재화 등) 보상엔 영향 없다.
-	 */
+	/** 드랍이 바닥에 끼지 않게 픽업 스폰 원점을 오너 기준으로 올리는 로컬 오프셋(cm)이며, 비-픽업(재화 등) 보상엔 영향 없다. */
 	UPROPERTY(EditAnywhere, Category = "Parameter")
 	FVector SpawnOffset = FVector(0.f, 0.f, 90.f);
 

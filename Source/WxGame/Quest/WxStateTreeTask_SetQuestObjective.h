@@ -24,8 +24,7 @@ struct FWxStateTreeTask_SetQuestObjectiveInstanceData
 };
 
 /**
- * 진입 시 저널에 목표를 하나 걸고, 상태에 머무는 동안 유지하다 떠날 때 걷어간다.
- * 목표의 수명이 곧 그 상태의 수명이라 정리 태스크가 따로 필요 없다.
+ * 진입 시 저널에 건 목표를 떠날 때 걷어가므로 목표의 수명이 곧 그 상태의 수명이라 정리 태스크가 따로 필요 없다.
  * 완료 판정에서 빠져 있어 진입 즉시 Succeeded 로 끝나도 그 상태를 끝내지 않는다. 상태 완료는 짝이 되는 Wait 태스크가 낸다.
  */
 USTRUCT(meta = (DisplayName = "Set Quest Objective", Category = "Wx"))

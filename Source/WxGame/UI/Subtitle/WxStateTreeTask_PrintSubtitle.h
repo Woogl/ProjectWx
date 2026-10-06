@@ -32,7 +32,7 @@ struct FWxStateTreeTask_PrintSubtitleInstanceData
 	UPROPERTY()
 	float CurrentDuration = 0.f;
 
-	/** (런타임) 이 노드가 실제로 건 자막의 핸들. 회수는 이 기록만 근거로 한다. */
+	/** (런타임) 회수는 이 기록만 근거로 한다. */
 	UPROPERTY()
 	int32 SubtitleHandle = INDEX_NONE;
 
@@ -71,6 +71,6 @@ struct FWxStateTreeTask_PrintSubtitle : public FStateTreeTaskCommonBase
 #endif
 
 private:
-	/** 지정 행을 화면에 걸고 진행 상태를 그 줄로 맞춘다. 행이 없거나 본문이 비어 있으면 실패한다. */
+	/** 지정 행을 화면에 걸고 진행 상태를 그 줄로 맞춘다. 행이 없거나 본문이 비었거나 자막 뷰모델을 얻지 못하면 실패한다. */
 	bool ShowRow(FStateTreeExecutionContext& Context, FInstanceDataType& Instance, FName RowName) const;
 };
