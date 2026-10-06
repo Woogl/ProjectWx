@@ -23,15 +23,12 @@ class WXGAME_API UWxAbility_Interact : public UWxAbilityBase
 public:
 	UWxAbility_Interact();
 
-protected:
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
-	/**
-	 * 서버 사거리 검증 반경(cm). 스캐너 컴포넌트의 스캔 반경과 일치시켜야 클라 감지와 서버 검증이 정합한다.
-	 * 감지는 클라 컴포넌트가, 검증은 서버 어빌리티가 독립적으로 수행하므로(변조 방지) 양쪽이 각자 보유한다.
-	 */
+	/** 서버 사거리 검증 반경(cm). 클라 스캐너도 이 값으로 감지해 감지와 검증이 같은 반경을 쓴다. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
 	float ScanRadius = 150.f;
+
+protected:
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
 private:
 	/** 권위에서만 호출한다. */

@@ -10,6 +10,7 @@
 
 class AActor;
 class UAbilitySystemComponent;
+class UWxAbility_Interact;
 
 DECLARE_MULTICAST_DELEGATE(FWxOnInteractionRowsChanged);
 
@@ -55,10 +56,6 @@ public:
 	FWxOnInteractionRowsChanged OnRowsChanged;
 
 protected:
-	/** 주변 상호작용 액터를 수집할 반경(cm). 서버 사거리 검증(WxAbility_Interact)의 반경과 일치시킨다. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
-	float ScanRadius = 150.f;
-
 	/** 스캔 주기(초). */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Interact")
 	float ScanInterval = 0.1f;
@@ -91,10 +88,10 @@ private:
 	void SetActorHighlighted(AActor* Actor, bool bHighlighted) const;
 
 	/**
-	 * 상호작용 어빌리티(Ability.Action.Interact 애셋 태그)를 찾아 그 CanActivateAbility 로 현재 상호작용 가능 여부를 판정한다.
-	 * 차단 조건의 단일 소스는 어빌리티(ActivationBlockedTags 등)이므로 컴포넌트가 상태 태그를 하드코딩하지 않는다.
+	 * 상호작용 어빌리티(Ability.Action.Interact 애셋 태그)를 찾아, 그 CanActivateAbility 가 통과할 때만 돌려준다.
+	 * 차단 조건(ActivationBlockedTags 등)과 스캔 반경의 단일 소스는 어빌리티이므로 컴포넌트가 상태 태그나 반경을 따로 두지 않는다.
 	 */
-	bool CanActivateInteract(const UAbilitySystemComponent* ASC) const;
+	const UWxAbility_Interact* FindActivatableInteract(const UAbilitySystemComponent* ASC) const;
 
 	APawn* GetOwnerPawn() const;
 

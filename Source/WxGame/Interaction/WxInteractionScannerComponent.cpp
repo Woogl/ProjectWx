@@ -12,6 +12,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
 #include "WxGameplayTags.h"
+#include "Interaction/WxAbility_Interact.h"
 #include "Interaction/WxInteractable.h"
 
 UWxInteractionScannerComponent::UWxInteractionScannerComponent(const FObjectInitializer& ObjectInitializer)
@@ -130,13 +131,12 @@ void UWxInteractionScannerComponent::HandleScanTimer()
 		return;
 	}
 
-	if (const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn))
+	const UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Pawn);
+	const UWxAbility_Interact* Interact = ASC ? FindActivatableInteract(ASC) : nullptr;
+	if (!Interact)
 	{
-		if (!CanActivateInteract(ASC))
-		{
-			UpdateInRange({});
-			return;
-		}
+		UpdateInRange({});
+		return;
 	}
 
 	const FVector ScanOrigin = Pawn->GetActorLocation();
@@ -144,7 +144,7 @@ void UWxInteractionScannerComponent::HandleScanTimer()
 	TArray<FOverlapResult> Overlaps;
 	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(WxInteractionScan), /*bTraceComplex*/ false);
 	QueryParams.AddIgnoredActor(Pawn);
-	World->OverlapMultiByObjectType(Overlaps, ScanOrigin, FQuat::Identity, FCollisionObjectQueryParams(FCollisionObjectQueryParams::AllObjects), FCollisionShape::MakeSphere(ScanRadius), QueryParams);
+	World->OverlapMultiByObjectType(Overlaps, ScanOrigin, FQuat::Identity, FCollisionObjectQueryParams(FCollisionObjectQueryParams::AllObjects), FCollisionShape::MakeSphere(Interact->ScanRadius), QueryParams);
 
 	// 한 액터의 컴포넌트·스켈레탈 바디마다 결과가 따로 오므로 액터 단위로 모은다. 지금 켜져 있는지는 선택지를 모을 때 대상이 답한다.
 	TArray<AActor*> Candidates;
@@ -299,13 +299,13 @@ void UWxInteractionScannerComponent::SetActorHighlighted(AActor* Actor, bool bHi
 	}
 }
 
-bool UWxInteractionScannerComponent::CanActivateInteract(const UAbilitySystemComponent* ASC) const
+const UWxAbility_Interact* UWxInteractionScannerComponent::FindActivatableInteract(const UAbilitySystemComponent* ASC) const
 {
 	// 애셋 태그로 어빌리티를 지목하는 것은 FWxStateTreeTask_ActivateAbility 와 동일한 관례다.
 	const FGameplayAbilityActorInfo* ActorInfo = ASC->AbilityActorInfo.Get();
 	if (!ActorInfo)
 	{
-		return false;
+		return nullptr;
 	}
 
 	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
@@ -313,12 +313,12 @@ bool UWxInteractionScannerComponent::CanActivateInteract(const UAbilitySystemCom
 		if (Spec.Ability && Spec.Ability->GetAssetTags().HasTag(WxGameplayTags::Ability_Action_Interact))
 		{
 			// 발동 경로(InternalTryActivateAbility)처럼 인스턴스가 있으면 인스턴스로 판정한다.
-			const UGameplayAbility* Ability = Spec.GetPrimaryInstance() ? Spec.GetPrimaryInstance() : Spec.Ability.Get();
-			return Ability->CanActivateAbility(Spec.Handle, ActorInfo);
+			const UWxAbility_Interact* Ability = Cast<UWxAbility_Interact>(Spec.GetPrimaryInstance() ? Spec.GetPrimaryInstance() : Spec.Ability.Get());
+			return Ability && Ability->CanActivateAbility(Spec.Handle, ActorInfo) ? Ability : nullptr;
 		}
 	}
 
-	return false;
+	return nullptr;
 }
 
 APawn* UWxInteractionScannerComponent::GetOwnerPawn() const
