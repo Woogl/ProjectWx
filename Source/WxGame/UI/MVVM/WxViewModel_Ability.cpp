@@ -27,6 +27,7 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGam
 	InASC->AbilitySpecDirtiedCallbacks.AddUObject(this, &UWxViewModel_Ability::HandleAbilitySpecDirtied);
 
 	RefreshBoundAbility();
+	RefreshCheckCost();
 }
 
 void UWxViewModel_Ability::Deinitialize()
@@ -135,7 +136,6 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 		SetPresentation(FText::GetEmpty(), FText::GetEmpty(), nullptr, 0);
 		UE_MVVM_SET_PROPERTY_VALUE(CostAmount, 0.f);
 		UE_MVVM_SET_PROPERTY_VALUE(CurrentCharges, 0);
-		RefreshCheckCost();
 		return;
 	}
 
@@ -157,8 +157,6 @@ void UWxViewModel_Ability::RefreshBoundAbility()
 	{
 		StartCooldownTimer();
 	}
-
-	RefreshCheckCost();
 }
 
 void UWxViewModel_Ability::HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
@@ -204,7 +202,6 @@ void UWxViewModel_Ability::FlushActivationRefresh()
 
 	// 후보를 가르는 요건이 태그라 대상부터 다시 고른다.
 	RefreshBoundAbility();
-
 	RefreshCheckCost();
 }
 

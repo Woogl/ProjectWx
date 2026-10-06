@@ -85,7 +85,7 @@ public:
 	TObjectPtr<UObject> Icon = nullptr;
 
 private:
-	/** 물고 있던 어빌리티가 그대로면 아무것도 하지 않는다. */
+	/** 물고 있던 어빌리티가 그대로면 아무것도 하지 않고, 비용 판정은 호출자가 뒤이어 한다. */
 	void RefreshBoundAbility();
 
 	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
