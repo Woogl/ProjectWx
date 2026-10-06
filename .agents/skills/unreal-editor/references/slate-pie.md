@@ -8,6 +8,9 @@ MCP 툴로 안 되는 일은 SlateInspector로 에디터 UI를 직접 누른다.
 - UMG·CommonUI 버튼은 `button`이 아니라 `generic "라벨" [ref=gNN]`으로 잡힌다. 라벨은 위젯 텍스트 그대로다. `Click(ref)`로 누른다.
 - 대상 탭이나 창이 앞에 있어야 한다. 다른 탭 뒤에 있으면 `WaitFor`가 false이고 클릭은 먹은 척만 한다. 탭 노드를 먼저 클릭하거나 `EditorAppToolset.OpenEditorForAsset`으로 앞으로 가져온다.
 - 트리 항목 ref는 갱신될 때마다 바뀐다. 누르기 직전에 다시 스냅샷한다. 컨텍스트 메뉴는 새 최상위 창으로 뜨고 ref는 직전 창 번호 근처다.
+- 스냅샷에는 뒤에 있는 에셋 에디터 탭의 패널도 섞여 나온다. 같은 이름의 검색창·트리를 잘못 잡지 않게, 다 쓴 에셋 탭은 그 탭을 눌러 앞으로 가져온 뒤 가운데 버튼 클릭(`Click(ref, button:"middle")`)으로 닫는다.
+- 위젯 BP 계층 패널의 행 이름은 변수 위젯이면 이름 그대로(`ObjectiveList`), 아니면 대괄호 안에 이름(`[BG]`)이나 자동 이름일 때 클래스 표시 이름(`[Tile View]`)이다. 패널 검색도 이 표시 이름으로 거른다.
+- `Type`은 기존 글자 뒤에 덧붙인다. 다시 입력할 때는 그 칸을 누르고 `PressKey("Ctrl+A")`·`PressKey("BackSpace")`로 먼저 비운다.
 - `Windows`가 빈 배열이면 에디터 창이 가려져 UI 자동화를 할 수 없다.
 - 이름 입력처럼 OS 키 입력이 필요한 곳은 SendKeys로 넣는다. 모달이 뜨면 MCP 전체가 막히니 user32 `WM_CLOSE`로 닫는다.
 - 콘솔 명령·cvar: 상태 표시줄 "Cmd" 콤보 옆 `textbox` ref를 스냅샷으로 찾아 `Type(ref, text, submit:true)`. PIE 중에도 된다.

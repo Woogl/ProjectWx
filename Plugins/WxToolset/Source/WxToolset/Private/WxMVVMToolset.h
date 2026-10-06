@@ -48,6 +48,15 @@ public:
 	static bool SetEventArgumentPath(UWidgetBlueprint* WidgetBlueprint, int32 EventIndex, FName ArgumentName, const FString& SourcePath);
 
 	/**
+	 * MVVM 이벤트 목적지 함수의 입력 인자 하나에 고정값을 넣는다. 프로퍼티 경로에 이어져 있었다면 경로를 끊는다. 목적지를 먼저 정해 둔다.
+	 * @param ArgumentName 목적지 함수의 입력 파라미터 이름.
+	 * @param Value 블루프린트 핀 기본값 문자열. 구조체는 ImportText 형식이다(예: GameplayTag 는 (TagName="Item.Category.Equipment"), bool 은 true).
+	 * @return 적용된 핀 기본값. 형식이 틀린 값은 엔진이 조용히 거부하므로 Value 와 다르면 적용되지 않은 것이다. 실패하면 빈 문자열.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static FString SetEventArgumentValue(UWidgetBlueprint* WidgetBlueprint, int32 EventIndex, FName ArgumentName, const FString& Value);
+
+	/**
 	 * 바인딩의 Source→Destination 변환 함수를 지정하고 인자마다 소스 경로를 연결한다. 기존 소스 경로는 변환 함수로 대체된다.
 	 * @param BindingId MVVMBlueprintView.bindings[].bindingId (예: "775DFD51-4984-B2EC-0E09-9683AF2F123C").
 	 * @param FunctionPath BlueprintFunctionLibrary 의 정적 BlueprintPure 함수 또는 위젯 자신의 Pure·const 함수 경로. 예: "/Script/Engine.KismetTextLibrary:Conv_IntToText"

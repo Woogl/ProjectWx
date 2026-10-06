@@ -4,6 +4,7 @@
 
 #include "Blueprint/WidgetTree.h"
 #include "Dom/JsonObject.h"
+#include "EdGraphSchema_K2.h"
 #include "Editor.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "MVVMBlueprintFunctionReference.h"
@@ -113,6 +114,38 @@ bool UWxMVVMToolset::SetEventArgumentPath(UWidgetBlueprint* WidgetBlueprint, int
 
 	GEditor->GetEditorSubsystem<UMVVMEditorSubsystem>()->SetEventArgumentPath(Event, FMVVMBlueprintPinId(TArray<FName>{ArgumentName}), Path);
 	return true;
+}
+
+FString UWxMVVMToolset::SetEventArgumentValue(UWidgetBlueprint* WidgetBlueprint, int32 EventIndex, FName ArgumentName, const FString& Value)
+{
+	const UMVVMWidgetBlueprintExtension_View* Extension = WidgetBlueprint ? UWidgetBlueprintExtension::GetExtension<UMVVMWidgetBlueprintExtension_View>(WidgetBlueprint) : nullptr;
+	UMVVMBlueprintView* View = Extension ? const_cast<UMVVMWidgetBlueprintExtension_View*>(Extension)->GetBlueprintView() : nullptr;
+	UMVVMBlueprintViewEvent* Event = View && View->GetEvents().IsValidIndex(EventIndex) ? View->GetEvents()[EventIndex].Get() : nullptr;
+	if (!Event)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("MVVM 이벤트를 찾지 못했다."));
+		return FString();
+	}
+
+	const FMVVMBlueprintPinId PinId(TArray<FName>{ArgumentName});
+	UEdGraphPin* Pin = Event->GetOrCreateGraphPin(PinId);
+	if (!Pin || Pin->Direction != EGPD_Input)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("이벤트 %d 의 목적지 함수에 입력 파라미터 '%s' 가 없다. 목적지를 먼저 정한다."), EventIndex, *ArgumentName.ToString()));
+		return FString();
+	}
+
+	// 경로에 이어진 핀은 기본값을 바꿔도 컴파일이 경로를 읽는다.
+	if (Event->GetPinPath(PinId).IsValid())
+	{
+		GEditor->GetEditorSubsystem<UMVVMEditorSubsystem>()->SetEventArgumentPath(Event, PinId, FMVVMBlueprintPropertyPath());
+	}
+
+	Event->Modify();
+	GetDefault<UEdGraphSchema_K2>()->TrySetDefaultValue(*Pin, Value);
+	// 래퍼 그래프는 저장되지 않으므로 핀 값을 이벤트에 옮겨 둬야 다시 열었을 때 남는다.
+	Event->SavePinValues();
+	return Pin->GetDefaultAsString();
 }
 
 bool UWxMVVMToolset::SetBindingConversionFunction(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId, const FString& FunctionPath, const FString& ArgumentsJson)
