@@ -42,7 +42,6 @@ struct FWxInventoryChangeResult
 {
 	UWxItemInstance* Instance = nullptr;
 	int32 NewStackCount = 0;
-	int32 Delta = 0;
 };
 
 USTRUCT(BlueprintType)
@@ -66,8 +65,8 @@ struct FWxInventoryList : public FFastArraySerializer
 	/** 권한: Fragment 의 OnInstanceCreated 가 호출된다. */
 	UWxItemInstance* AddEntry(const UWxItemDefinition* ItemDef, int32 StackCount);
 
-	/** 권한: 갱신 후 수량을 반환한다(MarkItemDirty 포함). */
-	int32 AddToEntryStack(int32 EntryIndex, int32 Amount);
+	/** 권한: 수량을 더하고 복제 대상으로 표시한다(MarkItemDirty). */
+	void AddToEntryStack(int32 EntryIndex, int32 Amount);
 
 	/**
 	 * 권한: ItemDef 를 NumToConsume 만큼 슬롯 순서대로 차감하고 0 이 된 슬롯은 제거한다(MarkItemDirty/MarkArrayDirty 포함).
@@ -97,12 +96,6 @@ struct TStructOpsTypeTraits<FWxInventoryList> : public TStructOpsTypeTraitsBase2
  * NewCount 는 해당 ItemDef 의 소유 총합, Delta 는 이번 변경분(양수/음수).
  */
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventoryStackChanged, const UWxItemDefinition* /*ItemDef*/, int32 /*NewCount*/, int32 /*Delta*/);
-
-/**
- * 슬롯(인스턴스) 단위 변경 브로드캐스트.
- * NewStackCount 는 해당 슬롯의 갱신 후 잔여 수량(제거 시 0), Delta 는 이번 변경분.
- */
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FWxOnInventorySlotChanged, UWxItemInstance* /*Instance*/, int32 /*NewStackCount*/, int32 /*Delta*/);
 
 /**
  * 충전형(Charges Fragment) 아이템의 인스턴스 충전량 변경 브로드캐스트.
@@ -178,20 +171,16 @@ public:
 
 	FWxOnInventoryStackChanged OnInventoryStackChanged;
 
-	FWxOnInventorySlotChanged OnInventorySlotChanged;
-
 	FWxOnInventoryChargeChanged OnInventoryChargeChanged;
 
 	/** 복제된 목록/정의의 현재 상태를 다시 읽으라는 통지. 획득 이벤트로 해석하지 않는다. */
 	FWxOnInventoryContentsChanged OnInventoryContentsChanged;
 	void NotifyContentsChangedFromReplication();
 
-	//~ 아래 3종은 List 복제 콜백/Instance OnRep/내부 변경 경로 전용 통지 진입점이다(외부 소비자 호출 금지, 비-BlueprintCallable).
+	//~ 아래 2종은 List 복제 콜백/Instance OnRep/내부 변경 경로 전용 통지 진입점이다(외부 소비자 호출 금지, 비-BlueprintCallable).
 
 	/** NewCount 는 내부에서 합계를 재계산한다. */
 	void NotifyStackChangedFromList(const UWxItemDefinition* ItemDef, int32 Delta);
-
-	void NotifySlotChangedFromList(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta);
 
 	/** 서버(추가/사용/리필)와 클라이언트(OnRep_CurrentCharges) 공통 진입. */
 	void NotifyChargeChangedFromSource(UWxItemInstance* Instance, int32 NewCharges, int32 Delta);

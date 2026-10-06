@@ -62,7 +62,6 @@ void FWxInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndice
 		Entry.StackCount = 0;
 		Entry.LastObservedCount = 0;
 
-		Manager->NotifySlotChangedFromList(Entry.Instance, 0, Delta);
 		Manager->NotifyStackChangedFromList(Entry.Instance->GetItemDef(), Delta);
 	}
 }
@@ -82,7 +81,6 @@ void FWxInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, i
 
 		if (Entry.Instance)
 		{
-			Manager->NotifySlotChangedFromList(Entry.Instance, Entry.StackCount, Entry.StackCount);
 			Manager->NotifyStackChangedFromList(Entry.Instance->GetItemDef(), Entry.StackCount);
 		}
 	}
@@ -104,7 +102,6 @@ void FWxInventoryList::PostReplicatedChange(const TArrayView<int32> ChangedIndic
 
 		if (Entry.Instance && Delta != 0)
 		{
-			Manager->NotifySlotChangedFromList(Entry.Instance, Entry.StackCount, Delta);
 			Manager->NotifyStackChangedFromList(Entry.Instance->GetItemDef(), Delta);
 		}
 	}
@@ -149,12 +146,11 @@ UWxItemInstance* FWxInventoryList::AddEntry(const UWxItemDefinition* ItemDef, in
 	return NewEntry.Instance;
 }
 
-int32 FWxInventoryList::AddToEntryStack(int32 EntryIndex, int32 Amount)
+void FWxInventoryList::AddToEntryStack(int32 EntryIndex, int32 Amount)
 {
 	FWxInventoryEntry& Entry = Entries[EntryIndex];
 	Entry.StackCount += Amount;
 	MarkItemDirty(Entry);
-	return Entry.StackCount;
 }
 
 TArray<FWxInventoryChangeResult> FWxInventoryList::ConsumeByDefinition(const UWxItemDefinition* ItemDef, int32 NumToConsume)
@@ -185,7 +181,7 @@ TArray<FWxInventoryChangeResult> FWxInventoryList::ConsumeByDefinition(const UWx
 			MarkItemDirty(*It);
 		}
 
-		Changes.Add({ SlotInstance, NewSlotCount, -ToTake });
+		Changes.Add({ SlotInstance, NewSlotCount });
 	}
 
 	return Changes;
@@ -270,10 +266,9 @@ UWxItemInstance* UWxInventoryComponent::AddItemDefinition(const UWxItemDefinitio
 			}
 
 			const int32 ToAdd = FMath::Min(MaxStack - Entries[EntryIndex].GetStackCount(), Remaining);
-			const int32 NewStackCount = InventoryList.AddToEntryStack(EntryIndex, ToAdd);
+			InventoryList.AddToEntryStack(EntryIndex, ToAdd);
 			Remaining -= ToAdd;
 
-			NotifySlotChangedFromList(SlotInstance, NewStackCount, ToAdd);
 			NotifyStackChangedFromList(ItemDef, ToAdd);
 
 			if (!FirstAffected)
@@ -289,7 +284,6 @@ UWxItemInstance* UWxInventoryComponent::AddItemDefinition(const UWxItemDefinitio
 		UWxItemInstance* NewInstance = InventoryList.AddEntry(ItemDef, ChunkCount);
 		RegisterReplicatedInstance(NewInstance);
 
-		NotifySlotChangedFromList(NewInstance, ChunkCount, ChunkCount);
 		NotifyStackChangedFromList(ItemDef, ChunkCount);
 
 		// 충전형은 OnInstanceCreated 에서 초기 충전량이 set 만 되므로, 추가 시점에 원천이 직접 발행해야 먼저 초기화된 VM 에도 반영된다.
@@ -345,8 +339,6 @@ bool UWxInventoryComponent::ConsumeItemsByDefinition(const UWxItemDefinition* It
 		{
 			UnregisterReplicatedInstance(Change.Instance);
 		}
-
-		NotifySlotChangedFromList(Change.Instance, Change.NewStackCount, Change.Delta);
 	}
 
 	NotifyStackChangedFromList(ItemDef, -NumToConsume);
@@ -526,16 +518,6 @@ void UWxInventoryComponent::NotifyStackChangedFromList(const UWxItemDefinition* 
 
 	const int32 NewCount = GetTotalItemCountByDefinition(ItemDef);
 	OnInventoryStackChanged.Broadcast(ItemDef, NewCount, Delta);
-}
-
-void UWxInventoryComponent::NotifySlotChangedFromList(UWxItemInstance* Instance, int32 NewStackCount, int32 Delta)
-{
-	if (!Instance || Delta == 0)
-	{
-		return;
-	}
-
-	OnInventorySlotChanged.Broadcast(Instance, NewStackCount, Delta);
 }
 
 void UWxInventoryComponent::NotifyChargeChangedFromSource(UWxItemInstance* Instance, int32 NewCharges, int32 Delta)

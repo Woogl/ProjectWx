@@ -34,8 +34,7 @@ void UWxViewModel_Inventory::Initialize(UWxInventoryComponent* InInventory)
 	Inventory = InInventory;
 
 	InInventory->OnInventoryStackChanged.AddUObject(this, &ThisClass::HandleInventoryStackChanged);
-	InInventory->OnInventorySlotChanged.AddUObject(this, &ThisClass::HandleInventoryInstanceChanged);
-	InInventory->OnInventoryChargeChanged.AddUObject(this, &ThisClass::HandleInventoryInstanceChanged);
+	InInventory->OnInventoryChargeChanged.AddUObject(this, &ThisClass::HandleInventoryChargeChanged);
 	InInventory->OnInventoryContentsChanged.AddUObject(this, &ThisClass::RefreshItems);
 	RefreshItems();
 }
@@ -45,7 +44,6 @@ void UWxViewModel_Inventory::Deinitialize()
 	if (UWxInventoryComponent* InventoryComponent = Inventory.Get())
 	{
 		InventoryComponent->OnInventoryStackChanged.RemoveAll(this);
-		InventoryComponent->OnInventorySlotChanged.RemoveAll(this);
 		InventoryComponent->OnInventoryChargeChanged.RemoveAll(this);
 		InventoryComponent->OnInventoryContentsChanged.RemoveAll(this);
 	}
@@ -95,7 +93,7 @@ void UWxViewModel_Inventory::HandleInventoryStackChanged(const UWxItemDefinition
 	RefreshItems();
 }
 
-void UWxViewModel_Inventory::HandleInventoryInstanceChanged(UWxItemInstance* Instance, int32 NewValue, int32 Delta)
+void UWxViewModel_Inventory::HandleInventoryChargeChanged(UWxItemInstance* Instance, int32 NewCharges, int32 Delta)
 {
 	RefreshItemViewModels();
 }

@@ -63,8 +63,8 @@ public:
 private:
 	void HandleInventoryStackChanged(const UWxItemDefinition* ItemDef, int32 NewCount, int32 Delta);
 
-	/** 슬롯 수량·충전 변경은 목록 구성을 바꾸지 않으므로 만들어 둔 VM 의 값만 다시 채운다. */
-	void HandleInventoryInstanceChanged(UWxItemInstance* Instance, int32 NewValue, int32 Delta);
+	/** 충전 변경은 목록 구성을 바꾸지 않으므로 만들어 둔 VM 의 값만 다시 채운다. */
+	void HandleInventoryChargeChanged(UWxItemInstance* Instance, int32 NewCharges, int32 Delta);
 
 	void RefreshItems();
 	void RefreshItemViewModels();
