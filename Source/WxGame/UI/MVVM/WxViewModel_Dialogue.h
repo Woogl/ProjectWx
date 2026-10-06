@@ -17,7 +17,6 @@ class WXGAME_API UWxViewModel_Dialogue : public UMVVMViewModelBase
 public:
 	void SetSession(UWxDialogueSessionComponent* InSession);
 
-	UFUNCTION()
 	void SetLine(const FText& InSpeaker, const FText& InLine);
 
 	UFUNCTION(BlueprintCallable, Category = "Wx|Dialogue")

@@ -12,7 +12,7 @@ UObject* UWxViewModelResolver_Dialogue::CreateInstance(const UClass* ExpectedTyp
 	const APlayerController* PC = UserWidget ? UserWidget->GetOwningPlayer() : nullptr;
 	if (UWxDialogueSessionComponent* Session = PC ? PC->FindComponentByClass<UWxDialogueSessionComponent>() : nullptr)
 	{
-		Session->OnLineChanged.AddUniqueDynamic(ViewModel, &UWxViewModel_Dialogue::SetLine);
+		Session->OnLineChanged.AddUObject(ViewModel, &UWxViewModel_Dialogue::SetLine);
 		// 창보다 먼저 발행된 첫 대사도 보여 준다.
 		ViewModel->SetLine(Session->GetCurrentSpeaker(), Session->GetCurrentLine());
 		ViewModel->SetSession(Session);

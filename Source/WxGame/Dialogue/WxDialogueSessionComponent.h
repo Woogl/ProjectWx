@@ -16,7 +16,7 @@ class UWxDialogueComponent;
 struct FStreamableHandle;
 struct FWxDialogueTableRow;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FText&, Speaker, const FText&, Line);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FWxOnDialogueLineChanged, const FText& /*Speaker*/, const FText& /*Line*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FWxOnDialogueEnded, bool /*bCompleted*/);
 
 /**
@@ -68,7 +68,6 @@ public:
 
 	FText GetCurrentLine() const;
 
-	UPROPERTY(BlueprintAssignable, Category = "Wx")
 	FWxOnDialogueLineChanged OnLineChanged;
 
 	/**
