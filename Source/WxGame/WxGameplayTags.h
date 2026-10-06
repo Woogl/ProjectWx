@@ -76,13 +76,6 @@ namespace WxGameplayTags
 	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitReact_KnockUp);
 
 	/**
-	 * UWxAbilityBase가 액션의 다른 어빌리티 차단을 켜고 끌 때마다(후딜 시작, 후딜에서 다음 단계로 이어짐) 자기 ASC에 로컬로 보낸다(복제 없음).
-	 * 태그·쿨다운·코스트 변화는 싣지 않는다.
-	 * 어빌리티 발동 트리거로 사용하지 않는다.
-	 */
-	WXGAME_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Ability_BlockingChanged);
-
-	/**
 	 * 대미지 파이프라인이 서버에서 피격자 ASC에 히트마다 한 번 보낸다.
 	 * 공격이 요청한 반응 종류는 TargetTags의 HitReact.* 페이로드로 전달한다.
 	 */

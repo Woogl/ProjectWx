@@ -149,19 +149,9 @@ void UWxAbilityBase::StartRecovery()
 void UWxAbilityBase::SetActionBlocking(bool bBlocking)
 {
 	// 액션이 아닌 어빌리티는 몽타주에 후딜 노티파이가 섞여 있어도 차단을 유지한다.
-	if (!IsActive() || !GetAssetTags().HasTag(WxGameplayTags::Ability_Action) || IsBlockingOtherAbilities() == bBlocking)
+	if (GetAssetTags().HasTag(WxGameplayTags::Ability_Action))
 	{
-		return;
-	}
-
-	SetShouldBlockOtherAbilities(bBlocking);
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
-	{
-		FGameplayEventData Payload;
-		Payload.EventTag = WxGameplayTags::Event_Ability_BlockingChanged;
-		Payload.Instigator = GetAvatarActorFromActorInfo();
-		// 관찰자는 입력 버퍼의 재발동·종료까지 끝난 뒤 최종 상태를 평가한다.
-		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+		SetShouldBlockOtherAbilities(bBlocking);
 	}
 }
 

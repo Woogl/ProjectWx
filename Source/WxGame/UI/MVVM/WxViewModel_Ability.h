@@ -10,7 +10,6 @@
 #include "MVVMViewModelBase.h"
 #include "WxViewModel_Ability.generated.h"
 
-struct FGameplayEventData;
 struct FGameplayEffectSpec;
 struct FStreamableHandle;
 class UAbilitySystemComponent;
@@ -26,8 +25,8 @@ class UWxAbilityBase;
  * 쿨다운은 어빌리티의 GetCooldownTags() 로 식별하고, 쿨다운 중에는 월드 타이머로 매 프레임 남은 시간·충전 수를 갱신한다.
  * 소모한 충전 하나가 쿨다운 GE 의 스택 하나이고 충전은 하나씩 돌아오므로, 남은 시간·진행률은 다음 충전 기준이다.
  *
- * CheckCost 는 ASC 태그·발동 조건 이벤트/비용 어트리뷰트 변화 시점에 재평가된다.
- * 태그 변경과 발동 조건 이벤트는 한 프레임 분을 모아 다음 월드 타이머 틱에 한 번 판정한다.
+ * CheckCost 는 ASC 태그·비용 어트리뷰트 변화 시점에 재평가된다.
+ * 태그 변경은 한 프레임 분을 모아 다음 월드 타이머 틱에 한 번 판정한다.
  * 소모량은 어빌리티를 물 때 한 번만 조회한다.
  */
 UCLASS()
@@ -92,7 +91,6 @@ private:
 
 	void HandleGameplayEffectApplied(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
-	void HandleBlockingChanged(FGameplayTag EventTag, const FGameplayEventData* Payload);
 	void ScheduleActivationRefresh();
 	void HandleCostAttributeChanged(const FOnAttributeChangeData& Data);
 	bool UpdateCooldownState();
@@ -135,7 +133,6 @@ private:
 
 	/** 타이머가 활성이면 재평가가 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
 	FTimerHandle ActivationRefreshHandle;
-	FDelegateHandle BlockingChangedHandle;
 
 	TSharedPtr<FStreamableHandle> IconHandle;
 };

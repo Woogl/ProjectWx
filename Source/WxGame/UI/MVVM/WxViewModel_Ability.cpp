@@ -7,7 +7,6 @@
 #include "GameplayEffect.h"
 #include "UI/MVVM/WxViewModelUtils.h"
 #include "TimerManager.h"
-#include "WxGameplayTags.h"
 
 void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGameplayTagContainer& InAbilityTags)
 {
@@ -25,11 +24,8 @@ void UWxViewModel_Ability::Initialize(UAbilitySystemComponent* InASC, const FGam
 	InASC->OnActiveGameplayEffectAddedDelegateToSelf
 		.AddUObject(this, &UWxViewModel_Ability::HandleGameplayEffectApplied);
 
-	// 다른 어빌리티의 발동·종료도 배타 점유를 바꾸므로 특정 슬롯의 블록/필요 태그로 구독을 좁히지 않는다.
+	// 후보마다 요건 태그가 다르고 비용 판정도 태그(Effect.IgnoreCosts)를 보므로 특정 태그로 구독을 좁히지 않는다.
 	InASC->RegisterGenericGameplayTagEvent().AddUObject(this, &UWxViewModel_Ability::HandleTagChanged);
-	BlockingChangedHandle = InASC->AddGameplayEventTagContainerDelegate(
-		FGameplayTagContainer(WxGameplayTags::Event_Ability_BlockingChanged),
-		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UWxViewModel_Ability::HandleBlockingChanged));
 
 	RefreshBoundAbility();
 }
@@ -41,14 +37,12 @@ void UWxViewModel_Ability::Deinitialize()
 	{
 		ASC->OnActiveGameplayEffectAddedDelegateToSelf.RemoveAll(this);
 		ASC->RegisterGenericGameplayTagEvent().RemoveAll(this);
-		ASC->RemoveGameplayEventTagContainerDelegate(FGameplayTagContainer(WxGameplayTags::Event_Ability_BlockingChanged), BlockingChangedHandle);
 		UnbindCostAttributes(*ASC);
 		if (UWorld* World = ASC->GetWorld())
 		{
 			World->GetTimerManager().ClearTimer(ActivationRefreshHandle);
 		}
 	}
-	BlockingChangedHandle.Reset();
 	ActivationRefreshHandle.Invalidate();
 	CachedASC.Reset();
 	CachedAbility.Reset();
@@ -257,21 +251,12 @@ void UWxViewModel_Ability::HandleTagChanged(const FGameplayTag Tag, int32 NewCou
 	ScheduleActivationRefresh();
 }
 
-void UWxViewModel_Ability::HandleBlockingChanged(FGameplayTag EventTag, const FGameplayEventData* Payload)
-{
-	// 컨테이너 구독은 하위 태그도 받지만 이 계약은 전용 이벤트만 처리한다.
-	if (EventTag == WxGameplayTags::Event_Ability_BlockingChanged)
-	{
-		ScheduleActivationRefresh();
-	}
-}
-
 void UWxViewModel_Ability::ScheduleActivationRefresh()
 {
 	UAbilitySystemComponent* ASC = CachedASC.Get();
 	UWorld* World = ASC ? ASC->GetWorld() : nullptr;
 
-	// 태그 알림과 단계 전환 뒤 입력 버퍼 재발동이 겹쳐도 최종 상태만 한 번 판정한다.
+	// 한 프레임에 태그 알림이 몰려도 최종 상태만 한 번 판정한다.
 	if (!World || World->GetTimerManager().IsTimerActive(ActivationRefreshHandle))
 	{
 		return;

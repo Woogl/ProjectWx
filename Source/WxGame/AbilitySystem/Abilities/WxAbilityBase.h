@@ -178,7 +178,7 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UWxAbilityTask_MontageEvents> MontageEventsTask;
 
-	/** 액션의 다른 어빌리티 차단을 켜고 끄고, 바뀌었으면 관찰자에게 알린다. */
+	/** 액션의 다른 어빌리티 차단을 켜고 끄며, 비활성이거나 값이 같으면 엔진 SetShouldBlockOtherAbilities가 무시한다. */
 	void SetActionBlocking(bool bBlocking);
 
 	FVector GetLocalMontageInputDirection() const;
