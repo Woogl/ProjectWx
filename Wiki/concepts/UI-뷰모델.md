@@ -1,6 +1,7 @@
 # UI 뷰모델
 
 UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 바인딩)과 작성 규칙을 모은 문서다.
+지금 유효한 규칙 요약은 [UI 설계 원칙](UI-설계-원칙.md)에 있고, 이 문서는 구현 사실과 결정 이력을 담는다.
 레이어·입력 모드·일시정지는 [UI 구조](UI-구조.md)에 있다.
 
 ## 구현
@@ -45,7 +46,9 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
 - StateTree 태스크 `FWxStateTreeTask_PrintSubtitle`이 자막 표 행을 걸고, 받은 핸들이 지금 자막의 것일 때만 걷는다. 슬롯이 하나라 나중 요청이 이긴다.
 
 ### 명령과 바인딩 보조
-- 뷰의 명령은 뷰모델의 `BlueprintCallable` 함수다. `UWxViewModel_Dialogue::RequestAdvance`는 약참조로 든 대화 세션을 직접 부른다. 스킬·아이템 슬롯 클릭의 `TryActivateAbility`와 인벤토리 탭 세터 `SetCurrentCategory`도 BP에서 부른다.
+- 뷰의 명령은 뷰모델의 `BlueprintCallable` 함수다. `UWxViewModel_Dialogue::RequestAdvance`는 약참조로 든 대화 세션을 직접 부른다.
+- 스킬·아이템 슬롯 클릭(`WBP_Ability`·`WBP_ItemQuickSlot`)은 버튼의 `OnButtonBaseClicked`를 MVVM 이벤트로 `TryActivateAbility`에 잇는다. 인벤토리 탭 버튼은 같은 방식으로 `SetCurrentCategory`에 잇고, 탭 태그는 이벤트 인자 리터럴이다.
+- 목록 항목 위젯은 `OnListItemObjectSet`에서 받은 항목을 자기 VM으로 넣는다(`WBP_Effect`·`WBP_Interaction`·`WBP_ItemSlot`·`WBP_QuestObjective`·`WBP_AcquiredItemEntry`).
 - 상호작용 목록 VM은 명령 없이 표시만 한다. 상호작용 입력은 캐릭터가 받는다([상호작용](상호작용.md#흐름)).
 - 획득 토스트는 Inventory VM의 `OnItemAcquired` 델리게이트를 `WBP_AcquiredItemList`가 MVVM 이벤트 바인딩(`AcquiredItemList.AddItem`)으로 받는다. 획득 VM은 이벤트 인자로 `LastAcquiredItem`을 읽는다.
   - 한 번의 획득이라도 스택 병합·새 덩어리마다 `OnInventoryStackChanged`가 따로 와 알림이 나뉠 수 있다(`AddItemDefinition`). 10-06 인게임 확인에서 문제로 보지 않았다.
@@ -64,19 +67,10 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
 - 변환 함수의 const 참조 구조체 인자에는 바인딩 패널이 리터럴 편집 위젯을 만들지 않는다.
 - 상태 바인딩은 뷰 초기화 때 현재 값으로 한 번 실행되지만, 이벤트 바인딩은 실행되지 않는다. 이벤트 소스로 뷰모델의 BlueprintAssignable 델리게이트를 쓸 수 있다(컴파일러가 ViewModel 소스를 지원한다).
 - 이벤트 바인딩은 델리게이트 인자를 목적지 함수로 넘기지 못한다. 목적지 인자는 위젯·뷰모델 프로퍼티 경로나 리터럴로만 잇는다.
+- 엔진 ListView 뷰모델 확장(Details의 Viewmodel Extension)은 `OnEntryWidgetGenerated`에서 항목 VM을 넣는데, 이 알림은 다음 틱으로 미뤄진다(`UListViewBase::FinishGeneratingEntry`). 그래서 새 항목이 한 프레임 동안 디자이너 기본값으로 그려진다. 또 `SetListItems` 바인딩이 없으면 컴파일 경고를 낸다.
 
 ## 결정
-- 2026-09-30 UI 설계 원칙을 채택했다. (사용자 결정 "네 이것을 우리 프로젝트의 UI 설계 원칙으로 합시다", 커밋 bfb526f5c)
-  - 의존은 모델 → 뷰모델 → 뷰 한 방향이다. 모델은 뷰모델을, 뷰모델은 위젯을 모른다. 모델을 관찰해 뷰모델에 값을 넣고 뷰에 넘기는 조립 층(PC, 리졸버, 네임플레이트 관리 컴포넌트)만 둘을 안다.
-  - 위젯마다 만드는 뷰모델은 리졸버가, 플레이어 공유 뷰모델은 로컬 PC가, 월드 공간 위젯의 뷰모델은 위젯을 만든 쪽이 만든다.
-  - 부모가 자식을 `UPROPERTY`로 들어 소유한다. Outer는 소유가 아니다. 소스(모델)를 열쇠로 뷰모델을 찾는 저장소는 두지 않는다.
-  - 조회로 얻는 뷰모델은 Global Collection에 둔 것(플레이어 공유 뷰모델, 앱 전체에 하나인 것)뿐이다. 나머지는 주인(부모 뷰모델, 조상 위젯의 Context, 목록 항목)에게서 받는다.
-  - 리졸버는 WBP 클래스가 공유하므로 상태를 두지 않고 배달만 한다. 자기가 만든 뷰모델만 정리한다.
-  - 공유는 여러 뷰의 표시 상태가 어긋나면 안 되거나 다시 열어도 이어져야 할 때만 한다(플레이어 Character·Inventory). 따로 만들어도 어긋나지 않거나 공유하려면 조회·제거 규칙이 생기면 따로 만든다(적·보스 Character).
-  - 위젯에는 바인딩과 변환 함수만 두고, 입력은 뷰모델 명령(`Request~`)으로 보낸다. 뷰모델은 모델을 약참조로 든다.
-  - 리졸버로 키별 자식을 받는 위젯은 부모가 다시 초기화될 때 Destruct→Construct를 거쳐야 한다. 그렇지 않으면 자식을 프로퍼티 경로로 받는다. HUD는 빙의가 바뀔 때 다시 push되므로 앞의 경우다.
-  - 자동 갱신(`bGlobalViewModelCollectionUpdate`)은 등록보다 먼저 뜨거나 항목이 바뀌는 것을 따라가야 하는 소스에서만 켠다.
-  - 비는 것이 정상 흐름이 아닌 소스는 선택적(optional)으로 두지 않는다. 빙의 해제로 비는 플레이어 Character 소스는 선택적이다.
+- 2026-09-30 UI 설계 원칙을 채택했다. 원칙 목록은 10-06에 [UI 설계 원칙](UI-설계-원칙.md)으로 옮겨, 그 뒤 바뀐 것(10-01에 빠진 두 항목, 10-06에 더한 수명·입력·이벤트 기준)과 함께 지금 유효한 형태로 모았다. 당시 '입력은 뷰모델 명령으로 보낸다'는 10-06에 '게임플레이 입력은 캐릭터가 받는다'로 좁혀졌다. (사용자 결정 "네 이것을 우리 프로젝트의 UI 설계 원칙으로 합시다", 커밋 bfb526f5c)
 - 2026-09-30 플레이어 공유 뷰모델을 로컬 PC가 만들어 엔진 Global Collection에 등록한다. 소스를 Outer로 두고 `FindObjectWithOuter`로 찾아 공유하던 방식, 루트 뷰모델(`UWxViewModel_Player`), PC Outer 보관, 서브시스템 저장소는 다시 넣지 않는다. Outer는 GC에서 객체를 살려 두지 않아 HUD가 없는 틈(빙의 교체 뒤 비동기 push, 빙의 해제)에 공유 VM이 수거되고 인벤토리 탭 유지가 깨질 수 있었다. `UMVVMGameSubsystem` 상속은 위젯 쪽 조회가 기본 클래스로 고정돼 쓰지 않는다. (사용자 결정 "그냥 PlayerController가 뷰모델 만들어서 엔진 Global Collection에 등록, 제거 하는게 훨씬 더 단순하겠네요", 커밋 bfb526f5c)
   - WBP는 이름 문자열 대신 플레이어 리졸버로 받는다. 그래서 플레이어 공유 VM은 클래스마다 하나만 등록한다. (사용자 결정, 코드 리뷰 중)
   - 인벤토리 탭 키는 `Item.Category.*` 게임플레이 태그다. (사용자 결정)
@@ -93,15 +87,24 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
   - 쓰이지 않던 `UWxViewModelResolver_Attribute`를 지웠다. 어트리뷰트 바는 모두 `GetAttributeViewModel`로 받는다.
   - 대사 변경 통지는 네이티브 델리게이트다. 동적 델리게이트 때문에 `UWxViewModel_Dialogue::SetLine`이 UFUNCTION으로 열려 BP가 세션을 거치지 않고 표시값을 쓸 수 있었다.
   - `UWxViewModel_Item`의 `Instance`를 약참조로 바꾸는 안은 다시 넣지 않는다. `Refresh`가 `Instance` 유무로 슬롯과 정의 단위 합계를 가르므로 약참조가 비면 슬롯 VM이 말없이 합계 VM이 된다.
+  - 뷰모델은 만든 쪽이 정리한다. 09-30 원칙에 '만든다'만 있고 '정리한다'가 없어, 네임플레이트가 위젯만 지우고 VM은 GC 전까지 적 ASC를 구독한 채 남았다.
+- 2026-10-06 위젯 그래프에 둘 수 있는 것을 '뷰 안에서 끝나는 연출과 화면 이동'으로 정했다. 도메인 호출은 뷰모델 명령과 MVVM 이벤트 바인딩으로 한다. 09-30의 '위젯에는 바인딩과 변환 함수만 둔다'는 토스트 등장 애니메이션 뒤 목록에서 빠지기, 메뉴의 화면 push, 데미지 숫자 표시 같은 실제 WBP와 맞지 않았다. (사용자 결정 "제안해주신대로 합시다")
+  - 이에 맞춰 인벤토리 탭과 아이템 퀵슬롯 클릭을 그래프 노드에서 MVVM 이벤트로 옮겼다. 탭 태그 같은 이벤트 인자 리터럴은 `WxMVVMToolset.SetEventArgumentValue`로 넣는다.
+  - 목록 항목 VM 지정(`OnListItemObjectSet`)은 그래프에 남긴다. 엔진 ListView 뷰모델 확장으로 옮겨 보았으나 새 항목이 한 프레임 동안 디자이너 기본값(물약 아이콘, "Interact", "Quest Objective")으로 그려져 되돌렸다. 엔진이 항목 알림을 같은 틱에 하기 전에는 다시 넣지 않는다. (엔진 소스 확인)
+- 2026-10-06 Claude 메모리에만 있던 뷰모델 지침 둘을 옮겼다. 다른 AI와 팀원도 같은 기준을 보게 하려는 것이다. (사용자 결정)
+  - 새 표시·알림 채널은 새 뷰모델 클래스 대신 기존 뷰모델에 필드나 델리게이트를 더한다. 사용자가 새 타입이 늘어나는 것을 원치 않는다. 새 뷰모델 클래스가 정말 필요하면 이유를 설명하고 동의를 받는다.
+  - 뷰모델은 스스로 구독하고 스스로 갱신한다(어빌리티·이펙트 VM의 월드 타이머). 티커 수를 줄이려고 소유자가 공유 티커로 대신 돌리면 계약이 주석에만 남아, 그 뷰모델을 직접 쓰는 새 소비자에서 표시가 조용히 멈춘다. 옛 `UWxViewModel` 베이스의 공유 티커는 다시 넣지 않는다.
 - 2026-10-06 게임플레이 입력(상호작용·스킬·아이템 사용 키)은 위젯이 받지 않고 캐릭터가 받는다. BP에서 실행하는 함수를 줄이려는 것이다. VM 명령은 UI 안에서만 뜻이 있는 조작(대사 넘기기·탭 전환)과 마우스로 슬롯을 눌러 쓰는 클릭 사용(`TryActivateAbility`)에만 둔다. (사용자 결정, 커밋 d9768ca8d)
   - 이 목적으로 상호작용 VM 구조를 다시 짤 필요는 없다. 선택이 바뀌면 행 VM을 다시 만드는 09-23 방식(f98eef471)을 유지한다. 행 VM을 유지하고 선택만 갱신하던 이전 구조로 돌아가면 동기화 코드와 갱신 경로 둘이 되살아난다.
 - 2026-10-06 한 번만 반응해야 하는 신호(획득 알림)는 상태 필드가 아니라 VM 델리게이트와 MVVM 이벤트 바인딩으로 보낸다. 필드에 넣었다 통지 없이 비우던 방식은 뷰 초기화 때 null로 실행돼 경고를 냈고 수신 바인딩에 즉시 실행을 강제했다. WBP에서 null을 거르는 안은 BP 로직을 늘리고 우회가 남아 기각했다. (사용자 결정, 커밋 5b8803a69)
 
 ## 미결
 - 자막은 StateTree 노드가 뷰모델을 직접 불러 '모델은 뷰모델을 모른다'에 어긋나는 알려진 예외다. 자막 상태를 GameState 컴포넌트에 두는 안이 1순위였고, 퀘스트 멀티플레이 정책과 함께 보기로 미뤘다(09-30 "퀘스트나 자막은 나중에 봅시다").
+- `WBP_FrontEnd`는 새 게임 요청과 0.1초 타이머의 이동 상태 폴링을, `WBP_DeathScreen`은 부활 요청(`RequestRespawn`)을 그래프에서 직접 부른다. 각자 뷰모델을 두는 안을 사용자가 검토 중이다(10-06).
 - 원격 클라에서는 어빌리티 부여·제거 통지가 오지 않아 슬롯이 다음 태그 변화 때 따라간다. 지금 플레이어 어빌리티는 서버에서 한 번 부여돼 폰과 함께 오므로 드러나지 않고, 런타임 스킬 교체가 생기면 그때 정한다(10-06).
 
 ## 관련
+- [UI 설계 원칙](UI-설계-원칙.md)
 - [UI 구조](UI-구조.md)
 - [네임플레이트](네임플레이트.md)
 - [어빌리티 구현 구조](어빌리티-구현-구조.md)
@@ -112,13 +115,15 @@ UI의 MVVM 구성(층과 의존 방향, 뷰모델의 소유·공유, 리졸버, 
 - 사용자 대화로 정한 지난 결정: Claude 메모리 기록에서 옮기고 HEAD 2a3baca6a 코드로 확인 (2026-10-06 조회)
 - `.agents/workflow/tasks/viewmodel-mvvm-redesign.md` (bfb526f5c, 10-01 삭제)
 - 사용자 대화: 뷰모델 전수 점검과 수정 (2026-10-06, 커밋 42b9e878b~5b8803a69, 인게임 확인 완료)
+- 사용자 대화: UI 지침 점검 후속 (2026-10-06, 인게임 확인 완료)
+- 엔진 `UListViewBase::FinishGeneratingEntry`·`UMVVMBlueprintViewExtension_ListViewBase::Precompile` (UE 5.8)
 - `Source/WxGame/UI/MVVM/` (5b8803a69)
 - `Content/UI/Widget/WBP_AcquiredItemList.uasset` (5b8803a69)
 - `Source/WxGame/UI/MVVM/WxViewModel_Character.cpp` (ed7a5a640)
 - `Source/WxGame/UI/MVVM/WxViewModelResolver_Player.cpp` (d37e1dd32)
 - `Source/WxGame/UI/MVVM/WxMVVMConversionLibrary.h` (ed7a5a640)
 - `Source/WxGame/UI/MVVM/WxViewModelUtils.cpp` (d37e1dd32)
-- `Source/WxGame/UI/Subtitle/` (05d662bc4)
+- `Source/WxGame/UI/Subtitle/` (6998ca09e)
 - `Source/WxGame/Player/WxPlayerController.cpp` (20883a590)
 - `Source/WxGame/UI/WxNameplateManagerComponent.cpp` (a8dfefa4a)
 - `Source/WxGame/UI/IndicatorSystem/WxIndicator.cpp` (d37e1dd32)

@@ -32,6 +32,7 @@ WX 프로젝트 지식의 색인이다.
 - [체크포인트와 리스폰](concepts/체크포인트와-리스폰.md) — 부활, 적 리젠, 체크포인트
 
 ### UI
+- [UI 설계 원칙](concepts/UI-설계-원칙.md) — UI 작업 때 먼저 읽는 지금 유효한 규칙: 의존·소유·수명, 위젯과 바인딩, 입력과 명령, 화면 흐름
 - [UI 구조](concepts/UI-구조.md) — UI 레이어와 화면 push, 입력 모드, 일시정지 재평가, Popup 명명, 월드 위젯, 기대는 CommonUI 엔진 동작
 - [UI 뷰모델](concepts/UI-뷰모델.md) — MVVM 층과 의존 방향, 플레이어 공유 VM의 Global Collection 등록, 리졸버와 Manual 주입, 명령·변환 함수 규칙
 

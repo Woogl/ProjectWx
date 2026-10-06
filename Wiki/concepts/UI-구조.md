@@ -1,6 +1,7 @@
 # UI 구조
 
 UI 레이어와 화면 띄우기, 입력 모드, 게임 일시정지, 팝업, 월드에 붙는 위젯을 모은 문서다.
+지금 유효한 규칙 요약은 [UI 설계 원칙](UI-설계-원칙.md)에 있고, 이 문서는 구현 사실과 결정 이력을 담는다.
 뷰모델 구성과 바인딩 규칙은 [UI 뷰모델](UI-뷰모델.md), 적·보스 HP 표시는 [네임플레이트](네임플레이트.md)에 있다.
 
 ## 구현
@@ -21,6 +22,7 @@ UI 레이어와 화면 띄우기, 입력 모드, 게임 일시정지, 팝업, �
 ### 입력 모드
 - 화면 베이스 `UWxActivatableWidget`은 `InputMode`(기본 Game)로 희망 입력 설정을 낸다. Game은 `CapturePermanently`, Menu는 `NoCapture`다.
 - HUD의 메뉴 토글 바인딩은 `InputMode=Game`이다. 메뉴가 열려 Menu 모드가 되면 매칭되지 않아 메뉴가 겹쳐 열리지 않고, 닫기는 메뉴 위젯의 뒤로 가기 처리가 맡는다.
+- HUD(`WBP_GameLayout`)는 `bSupportsActivationFocus`가 켜져 있어 Game 입력 설정이 걸린다(10-06 에디터에서 확인). 07-30에 Z키 아이템 사용이 안 되고 NPC 대화 뒤 포커스를 잃던 원인이 이 값이 꺼진 것이었다.
 
 ### 게임 일시정지
 - `UWxUIManagerSubsystem::RefreshGamePause`가 정지를 정한다. 네 레이어의 활성 위젯 중 `ShouldPauseGame()`이 참인 것이 하나라도 있으면 추적 중인 로컬 PC에 `SetPause(true, FCanUnpause)`, 없으면 `SetPause(false)`를 건다. 스탠드얼론에서만 건다.
@@ -74,11 +76,14 @@ UI 레이어와 화면 띄우기, 입력 모드, 게임 일시정지, 팝업, �
   - `UWxHUDLayout::RebuildWidget`으로 HUD 트리를 감싸 요소를 까는 방식은 다시 넣지 않는다.
   - 월드 대상을 따라가는 표시는 그 뒤 스크린 공간 위젯 컴포넌트로 옮겼다. 스태미나 바는 08-12에 플레이어 캐릭터로(4bdddcd58), 인디케이터는 09-02에 HUD 슬롯·매니저·등록증을 걷고 독립 액터로(cc116b621) 갔다. 인디케이터를 대상 액터의 컴포넌트로 두지 않은 것은 대상이 언로드된 동안에도 기록 좌표를 가리켜야 해서다.
 - 2026-09-30 로컬 플레이어는 하나로 전제하고 화면 분할은 대비하지 않는다. 서브시스템의 레이아웃·추적 PC가 단수다. (사용자 결정 "화면 분할은 대비 안해도 되요")
-
-## 미결
-- 07-30에 Z키 아이템 사용이 안 되고 NPC 대화 뒤 포커스를 잃는 문제의 원인을 HUD 에셋(당시 `WBP_GameHUD`)의 Supports Activation Focus가 꺼진 것으로 진단했다. HUD가 leafmost 활성 노드가 되지 못해 Game 입력 설정이 한 번도 적용되지 않고, 대화 창이 건 Menu 설정이 남는다. 그 뒤 에셋을 고쳤는지는 확인하지 못했다.
+- 2026-10-06 코드가 내보내는 사용자 노출 문자열(인게임 표시, 에디터의 노드 설명·검증 메시지)을 영어로 통일했다. 기획 데이터 값은 기획자가 에디터에서 필요에 따라 한국어로 바꾼다. 그때까지 `AGENTS.md` 규칙 9는 '존댓말', 인게임 문구는 영어(사용자 지시), 에디터 검증 메시지는 한국어 해라체로 셋이 어긋나 있었다. 정본은 `AGENTS.md` 규칙 9다. (사용자 결정 "영어로 통일합시다")
+- 2026-10-06 Claude 메모리에만 있던 UI 구조 지침 셋을 옮겼다. 다른 AI와 팀원도 같은 기준을 보게 하려는 것이다. (사용자 결정)
+  - UI 설계나 버그 수정은 Lyra 원본의 대응 클래스를 먼저 읽고 그 방식을 따른다. 엔진 내부를 추론해 만든 우회 장치가 문제를 키운 적이 있고, 원인이 Lyra에 없는 추가 장치인 경우가 많았다. 대응: `UWxConfirmationPopup`=`ULyraConfirmationScreen`, `UWxUIManagerSubsystem::ShowConfirmation`=`ULyraUIMessaging::ShowConfirmation`, `UWxPrimaryGameLayout`=`UPrimaryGameLayout`.
+  - UI 호출부(PC·어빌리티 등)는 `UWxUIManagerSubsystem`을 꺼내 직접 부르지 않고 `UWxUILibrary` 파사드를 쓰며, 없으면 더한다. 호출부마다 서브시스템 조회와 널 처리를 반복하지 않고 한 곳을 지나게 하려는 것이다. 파사드는 조회 → 널이면 조기 반환 → 위임 순서로 쓰고 반환값을 그대로 넘기며, 레이어 태그 인자에는 `UPARAM(meta = (Categories = "UI.Layer"))`를 붙인다.
+  - `UWxUIManagerSubsystem`은 자막 같은 개별 표시 뷰모델을 소유하거나 등록하지 않는다. 리뷰 제안을 받아 표시 뷰모델을 UIManager로 옮겼다가 09-24 사용자 지시로 되돌렸다. 참고로 UE 5.8에서 서브시스템 `Initialize` 안에서 다른 서브시스템을 `GetSubsystem`으로 부르면 그 자리에서 초기화되므로 `InitializeDependency`가 필요 없다(`SubsystemCollection.cpp` `GetSubsystemInternal`).
 
 ## 관련
+- [UI 설계 원칙](UI-설계-원칙.md)
 - [UI 뷰모델](UI-뷰모델.md)
 - [게임 프레임워크 구조](게임-프레임워크-구조.md) — 컨트롤러 컴포넌트 구성
 - [네임플레이트](네임플레이트.md)
@@ -95,8 +100,8 @@ UI 레이어와 화면 띄우기, 입력 모드, 게임 일시정지, 팝업, �
 - `Source/WxGame/UI/WxUILibrary.cpp` (d37e1dd32)
 - `Source/WxGame/UI/Foundation/` (7f8e2731d)
 - `Source/WxGame/UI/Frontend/` (e1b01ba2c)
-- `Source/WxGame/UI/IndicatorSystem/` (e28fef4b2)
-- `Source/WxGame/Character/WxPlayerCharacter.cpp` (e1b01ba2c)
+- `Source/WxGame/UI/IndicatorSystem/` (6998ca09e)
+- `Source/WxGame/Character/WxPlayerCharacter.cpp` (d9768ca8d)
 - `Source/WxGame/AbilitySystem/Cues/WxCueNotify_DamageFloater.cpp` (d37e1dd32)
-- `Source/WxGame/WxGameplayTags.cpp` (8b331baec)
+- `Source/WxGame/WxGameplayTags.cpp` (42b9e878b)
 - `Config/DefaultGame.ini` (d37e1dd32)
