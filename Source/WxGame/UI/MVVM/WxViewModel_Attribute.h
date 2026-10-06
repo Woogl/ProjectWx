@@ -40,7 +40,7 @@ private:
 	void HandleMaxAttributeChanged(const FOnAttributeChangeData& Data);
 	void RefreshDerivedFields();
 
-	FGameplayAttribute BoundAttribute;
 	TWeakObjectPtr<UAbilitySystemComponent> CachedASC;
+	FGameplayAttribute BoundAttribute;
 	FGameplayAttribute BoundMaxAttribute;
 };

@@ -22,11 +22,7 @@ ESlateVisibility UWxMVVMConversionLibrary::Conv_ObjectToSlateVisibility(const UO
 
 UWxViewModel_Attribute* UWxMVVMConversionLibrary::GetAttributeViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayAttribute Attribute, FGameplayAttribute MaxAttribute)
 {
-	if (!AbilitySystem)
-	{
-		return nullptr;
-	}
-	return AbilitySystem->GetOrCreateAttributeViewModel(Attribute, MaxAttribute);
+	return AbilitySystem ? AbilitySystem->GetOrCreateAttributeViewModel(Attribute, MaxAttribute) : nullptr;
 }
 
 UWxViewModel_Ability* UWxMVVMConversionLibrary::GetAbilityViewModel(UWxViewModel_AbilitySystem* AbilitySystem, FGameplayTagContainer AbilityTags)

@@ -55,7 +55,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, FieldNotify, Category = "Wx|AbilitySystem")
 	TArray<TObjectPtr<UWxViewModel_Effect>> ActiveEffectViewModels;
 
-protected:
+private:
 	void RefreshOwnedTags();
 
 	void HandleActiveEffectAdded(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
@@ -63,6 +63,9 @@ protected:
 	void HandleTagChanged(const FGameplayTag Tag, int32 NewCount);
 
 	void FlushOwnedTagsRefresh();
+
+	/** 최초 목록 구성에서도 사용하므로 FieldNotify 없이 추가 성공 여부만 반환한다. */
+	bool AddActiveEffectViewModel(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
 
 	UPROPERTY()
 	TArray<TObjectPtr<UWxViewModel_Attribute>> AttributeViewModels;
@@ -74,8 +77,4 @@ protected:
 
 	/** 타이머가 활성이면 갱신이 이미 예약돼 있다. 실행 중에도 활성으로 잡히므로 플러시가 먼저 놓는다. */
 	FTimerHandle OwnedTagsRefreshHandle;
-
-private:
-	/** 최초 목록 구성에서도 사용하므로 FieldNotify 없이 추가 성공 여부만 반환한다. */
-	bool AddActiveEffectViewModel(UAbilitySystemComponent* InASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
 };
