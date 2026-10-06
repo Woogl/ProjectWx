@@ -14,6 +14,7 @@
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
 #include "Input/WxInputConfig.h"
+#include "Interaction/WxInteractionScannerComponent.h"
 #include "Inventory/WxItemUseComponent.h"
 #include "Targeting/WxLockOnComponent.h"
 #include "WxGameplayTags.h"
@@ -117,6 +118,23 @@ void AWxPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if (InputConfig->CrouchAction)
 	{
 		EIC->BindAction(InputConfig->CrouchAction, ETriggerEvent::Started, this, &AWxPlayerCharacter::ToggleCrouch);
+	}
+
+	// 상호작용 목록과 선택은 컨트롤러의 스캐너가 들고 폰 교체에도 살아남으므로 입력을 그쪽에 바로 잇는다.
+	if (UWxInteractionScannerComponent* Scanner = PC->FindComponentByClass<UWxInteractionScannerComponent>())
+	{
+		if (InputConfig->InteractAction)
+		{
+			EIC->BindAction(InputConfig->InteractAction, ETriggerEvent::Started, Scanner, &UWxInteractionScannerComponent::TryInteractSelected);
+		}
+		if (InputConfig->InteractNextAction)
+		{
+			EIC->BindAction(InputConfig->InteractNextAction, ETriggerEvent::Started, Scanner, &UWxInteractionScannerComponent::CycleSelection, 1);
+		}
+		if (InputConfig->InteractPreviousAction)
+		{
+			EIC->BindAction(InputConfig->InteractPreviousAction, ETriggerEvent::Started, Scanner, &UWxInteractionScannerComponent::CycleSelection, -1);
+		}
 	}
 
 	for (const UInputAction* Action : AbilitySystemComponent->GetAbilityInputActions())

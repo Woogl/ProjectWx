@@ -10,7 +10,7 @@ class UUserWidget;
 class UMVVMView;
 
 /**
- * 소유 PC의 상호작용 스캐너를 위젯별 InteractionList VM에 싣고, VM의 명령을 스캐너에 잇는다.
+ * 소유 PC의 상호작용 스캐너 행을 위젯별 InteractionList VM에 싣는다. 입력은 캐릭터가 스캐너로 바로 보낸다.
  * 리졸버는 위젯 클래스가 공유하므로 구독은 VM을 소유자로 걸고, 해제도 그 VM의 것만 끊는다.
  * 스캐너는 AWxPlayerController 생성자 컴포넌트라 위젯보다 먼저 있다.
  * 나중에 주입하는 구조로 바꾸면 늦은 도착 처리가 다시 필요하다.

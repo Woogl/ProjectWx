@@ -11,7 +11,6 @@ class UInputAction;
 
 /**
  * 어빌리티 입력은 여기 두지 않는다 — 발동 IA는 어빌리티 CDO가 보유하고, 바인딩 목록은 AbilitySet의 부여 대상에서 파생한다.
- * 상호작용 입력도 여기 두지 않는다 — HUD 리스트 위젯이 Enhanced Input으로 직접 받아 뷰모델 요청으로 넘긴다.
  * 메뉴/UI 입력은 CommonUI 액션(WxHUDLayout)으로 처리하므로 여기 포함하지 않는다.
  */
 UCLASS()
@@ -35,4 +34,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
 	TObjectPtr<UInputAction> CrouchAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
+	TObjectPtr<UInputAction> InteractAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
+	TObjectPtr<UInputAction> InteractNextAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Wx|Input")
+	TObjectPtr<UInputAction> InteractPreviousAction;
 };

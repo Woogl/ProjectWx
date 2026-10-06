@@ -1,13 +1,7 @@
 // Copyright Woogle. All Rights Reserved.
 
 #include "UI/MVVM/WxViewModel_InteractionList.h"
-#include "Interaction/WxInteractionScannerComponent.h"
 #include "UI/MVVM/WxViewModel_Interaction.h"
-
-void UWxViewModel_InteractionList::SetScanner(UWxInteractionScannerComponent* InScanner)
-{
-	Scanner = InScanner;
-}
 
 void UWxViewModel_InteractionList::SetRows(const TArray<FText>& Prompts, int32 SelectedIndex)
 {
@@ -21,20 +15,4 @@ void UWxViewModel_InteractionList::SetRows(const TArray<FText>& Prompts, int32 S
 	}
 
 	UE_MVVM_BROADCAST_FIELD_VALUE_CHANGED(Entries);
-}
-
-void UWxViewModel_InteractionList::RequestInteract()
-{
-	if (UWxInteractionScannerComponent* InteractionScanner = Scanner.Get())
-	{
-		InteractionScanner->TryInteractSelected();
-	}
-}
-
-void UWxViewModel_InteractionList::RequestCycle(int32 Delta)
-{
-	if (UWxInteractionScannerComponent* InteractionScanner = Scanner.Get())
-	{
-		InteractionScanner->CycleSelection(Delta);
-	}
 }
