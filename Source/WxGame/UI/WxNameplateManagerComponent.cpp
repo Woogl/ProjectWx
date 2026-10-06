@@ -44,9 +44,13 @@ void UWxNameplateManagerComponent::BeginPlay()
 void UWxNameplateManagerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	// 대상은 컨트롤러보다 오래 살 수 있으므로 붙여 둔 표시를 직접 뗀다.
-	for (const TPair<TWeakObjectPtr<AWxEnemyCharacter>, TWeakObjectPtr<UWidgetComponent>>& Pair : Nameplates)
+	for (const TPair<TWeakObjectPtr<AWxEnemyCharacter>, FWxNameplate>& Pair : Nameplates)
 	{
-		if (UWidgetComponent* Nameplate = Pair.Value.Get())
+		if (UWxViewModel_Character* ViewModel = Pair.Value.ViewModel.Get())
+		{
+			ViewModel->Deinitialize();
+		}
+		if (UWidgetComponent* Nameplate = Pair.Value.Widget.Get())
 		{
 			Nameplate->DestroyComponent();
 		}
@@ -82,8 +86,8 @@ void UWxNameplateManagerComponent::UpdateNameplates(const AActor* Viewer, const 
 			continue;
 		}
 
-		const TWeakObjectPtr<UWidgetComponent>* Entry = Nameplates.Find(Target);
-		UWidgetComponent* Nameplate = Entry ? Entry->Get() : nullptr;
+		const FWxNameplate* Entry = Nameplates.Find(Target);
+		UWidgetComponent* Nameplate = Entry ? Entry->Widget.Get() : nullptr;
 
 		const double Distance = Viewer ? FVector::Dist(Target->GetActorLocation(), Viewer->GetActorLocation()) : 0.0;
 		// 새로 붙일 때만 여유만큼 안쪽을 요구해, 경계에서 붙였다 떼기를 반복하지 않는다.
@@ -98,6 +102,10 @@ void UWxNameplateManagerComponent::UpdateNameplates(const AActor* Viewer, const 
 		{
 			if (Entry)
 			{
+				if (UWxViewModel_Character* ViewModel = Entry->ViewModel.Get())
+				{
+					ViewModel->Deinitialize();
+				}
 				if (Nameplate)
 				{
 					Nameplate->DestroyComponent();
@@ -115,7 +123,6 @@ void UWxNameplateManagerComponent::UpdateNameplates(const AActor* Viewer, const 
 			{
 				continue;
 			}
-			Nameplates.Add(Target, Nameplate);
 			Nameplate->SetRelativeLocation(FVector(0.0, 0.0, Capsule->GetUnscaledCapsuleHalfHeight() + HeadClearance));
 
 			// 위젯을 Outer 로 두고 MVVM View 가 들게 해, 위젯과 함께 사라진다.
@@ -130,6 +137,7 @@ void UWxNameplateManagerComponent::UpdateNameplates(const AActor* Viewer, const 
 			{
 				UE_LOG(LogWxGame, Warning, TEXT("Nameplate: Character 뷰모델을 연결하지 못했다. 위젯의 MVVM View·Manual 소스를 확인한다. Widget=%s Target=%s"), *GetNameSafe(Widget), *GetNameSafe(Target));
 			}
+			Nameplates.Add(Target, { Nameplate, ViewModel });
 		}
 
 		if (UUserWidget* Widget = Nameplate->GetWidget())

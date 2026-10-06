@@ -9,6 +9,7 @@
 class AWxEnemyCharacter;
 class UUserWidget;
 class UWidgetComponent;
+class UWxViewModel_Character;
 
 /**
  * 교전 중이면서 거리 안인 적과 LockOn 대상의 주인에 Nameplate를 붙이고, LockOn 대상 지점에는 Reticle을 붙인다.
@@ -64,7 +65,15 @@ private:
 	/** 대상 액터 소유로 만들어, 대상이 파괴되면 표시도 함께 사라지게 한다. */
 	UWidgetComponent* AttachWidget(USceneComponent* Parent, TSubclassOf<UUserWidget> WidgetClass) const;
 
-	TMap<TWeakObjectPtr<AWxEnemyCharacter>, TWeakObjectPtr<UWidgetComponent>> Nameplates;
+	struct FWxNameplate
+	{
+		TWeakObjectPtr<UWidgetComponent> Widget;
+
+		/** 위젯과 함께 버리면 GC 전까지 대상 ASC 를 계속 구독하므로 뗄 때 Deinitialize 한다. */
+		TWeakObjectPtr<UWxViewModel_Character> ViewModel;
+	};
+
+	TMap<TWeakObjectPtr<AWxEnemyCharacter>, FWxNameplate> Nameplates;
 
 	TWeakObjectPtr<UWidgetComponent> Reticle;
 };
