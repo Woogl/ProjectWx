@@ -1,6 +1,6 @@
 # 던전 배치물 기획서
 
-- 자료: `Docs/LevelDesign/Object_Design.md` (c02028326). `Docs/SystemDesign/Object_Design.md`는 이 정본으로 연결하는 안내다.
+- 자료: `Docs/LevelDesign/Object_Design.md` (c02028326). `Docs/SystemDesign/Object_Design.md`는 내용이 같은 사본이다(10-02 f2645c062가 안내 링크로 바꿨다가 f21dbb0d9가 원본으로 되돌렸다).
 - 종류: 기획서
 - 상태: 일부 대체됨. 레이저 통로·CCTV·스폰 레버·경보 레버는 07-31에 폐기됐고, '기믹' 체계는 08-22에 장치(Device)로 바뀌었다.
 

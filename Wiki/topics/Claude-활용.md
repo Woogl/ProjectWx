@@ -19,10 +19,12 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
 
 | 확인할 내용 | 정본 위치 |
 |---|---|
-| AI 공통 지침과 조사 진입점 | [루트 AGENTS.md](../../AGENTS.md) |
+| AI 공통 지침과 조사 진입점, 하네스 설치(스킬 junction)와 지침 로딩 | [루트 AGENTS.md](../../AGENTS.md) |
 | 공용 스킬의 목록·사용법·실행 절차 | [.agents/skills/](../../.agents/skills/)의 각 `SKILL.md` |
-| 공용 스크립트의 동작 | [.agents/scripts/](../../.agents/scripts/) |
-| 도구별 연결·설정 | `.mcp.json`, `.codex/config.toml`, `.gemini/settings.json` |
+| 공용 스크립트의 동작·출력·종료 코드 | 각 스크립트의 머리 주석. 스크립트는 [.agents/scripts/](../../.agents/scripts/), 스킬 폴더의 `scripts/`(빌드 문맥은 `build-doctor`, 프로젝트 프로세스 판정은 `run-editor`), 엔진 경로 탐색 [BatchFiles/Get-WxEngineRoot.ps1](../../BatchFiles/Get-WxEngineRoot.ps1)에 있다 |
+| 엔진 버전 | `Wx.uproject`의 `EngineAssociation` |
+| 도구별 연결·설정 | `.mcp.json`, `.codex/config.toml`, `.gemini/settings.json`, `.claude/settings.json` |
+| 에디터 MCP 서버 주소(포트·경로) | `Config/DefaultEditorPerProjectUserSettings.ini`. `.mcp.json`·`.codex/config.toml`·스크립트 기본 포트는 형식상 값을 따로 적는 사본이라 함께 고친다 |
 | Unreal MCP 도구 구현과 툴별 사용법(툴 설명) | [Plugins/WxToolset/](../../Plugins/WxToolset/) |
 | 에디터·MCP 작업 요령과 함정 | [.agents/skills/unreal-editor/](../../.agents/skills/unreal-editor/) |
 | 빌드 실패 분류와 빌드 환경 요령 | [.agents/skills/build-doctor/](../../.agents/skills/build-doctor/) |
@@ -40,7 +42,8 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
 - 2026-10-01 위키를 Karpathy LLM Wiki 패턴으로 다시 만들었다(요약·엔티티·개념). 구조와 이름은 원문을 따르고 임의로 덜어 내지 않는다. 크기를 줄이려 자료별 요약 문서를 뺀 첫 설계를 사용자가 '요약 문서를 쓴 뒤 색인·엔티티·개념을 함께 갱신'으로 바로잡았다. (사용자 결정)
 - 2026-10-01 위키 적재·질문·점검을 공용 스킬로 관리하기로 했다. (사용자 결정)
 - 2026-10-01 위키 적재·점검을 주간 클라우드 루틴으로 운영하기로 했다. 자료가 주말 회의 무렵에 몰리고 코드가 주 단위로 크게 바뀌어 주 1회를 택했다. 무인 점검은 보고만 하고 수정은 사람이 선택하도록 정했다. (사용자 결정)
-- 2026-10-02 위키 폴더 이름을 Karpathy 원문의 색인 분류대로 `summaries/`·`entities/`·`topics/`로 바꿨다. (사용자 결정)
+- 2026-10-02 위키 폴더 이름을 Karpathy 원문의 색인 분류대로 `sources/`·`entities/`·`concepts/`로 바꿨다. (사용자 결정)
+- 2026-10-06 위키 분류를 `summaries/`(자료별 요약)·`entities/`(특정 대상)·`topics/`(여러 근거를 종합한 주제)로 바꿨다. 주제에는 시스템·규칙·정책뿐 아니라 세계관·개요·비교·종합이 든다. (사용자 결정, 커밋 4fdf8ef96)
 
 - 2026-10-02 이 문서는 활용 원칙과 결정 이유를 남기고, 변동하는 운영 정보는 정본 위치로 안내하기로 했다. 중복 서술의 불일치와 갱신 부담을 줄이기 위한 결정이다. (사용자 결정)
 - 2026-10-06 Claude 개인 메모리에 있던 설계 결정을 위키로, 코딩 규칙을 루트 `AGENTS.md`로 옮겼다. Codex·Gemini·클라우드 루틴도 같은 결정과 규칙을 보게 하려는 것이다. (사용자 결정, 커밋 f60aac7f4·d4e90934f)
@@ -59,7 +62,8 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
   - `SetBindingSourcePath`는 엔진 툴로 지웠다 다시 만드는 것으로 대신할 수 있지만, 바인딩 ID와 모드 설정이 바뀌고 호출이 세 번으로 늘어 남겼다(사용자 결정 "냅두죠").
   - 나머지 툴은 엔진에 대응 툴이 없다. StateTree 엔진 툴은 읽기뿐이고, 몽타주 툴은 위키의 섹션 규칙에 따른 반복 저작에 쓰여 일회성이 아니다.
 - 2026-10-06 MVVM 이벤트 인자에 탭 태그 같은 고정값을 넣는 `SetEventArgumentValue`가 추가됐다(커밋 24139e441).
-  앞선 이벤트 툴 목록에 더해진 구현이며, 사용법과 입력 형식은 툴의 doc 주석과 `unreal-editor` 스킬에서 관리한다.
+  앞선 이벤트 툴 목록에 더해진 구현이며, 사용법과 입력 형식은 툴의 doc 주석에서 관리한다.
+- 2026-10-07 SSoT 점검에서 여러 스킬이 같은 규칙을 다시 적어 이미 서로 다른 말을 하는 곳(임시 테스트 경로, 주석 문체, 스크립트 인코딩, 서브에이전트 상한)을 찾았다. 규칙 문장은 루트 `AGENTS.md` 한 곳에 두고 스킬은 가리키기만 한다. 스크립트의 인자·출력·종료 코드는 스크립트 머리 주석, 우리 MCP 툴 사용법은 doc 주석이 정본이다. 리뷰 판단 근거로 개인 메모리를 쓰지 않는다. (사용자 결정 "모두 진행합시다")
 
 ## 관련
 
@@ -79,6 +83,7 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
 - 사용자 대화: 메모리 이관과 코딩 규칙 정리, C++ 이전 범위 (2026-10-06)
 - 사용자 대화: 에디터·MCP 요령 이관과 WxToolset 정리 (2026-10-06)
 - `AGENTS.md` (6998ca09e), `.agents/scripts/Check-CodingRules.ps1` (f60aac7f4)
-- `.agents/skills/` (24139e441)
+- `.agents/skills/` (4fdf8ef96)
 - 사용자 대화: WxToolset 중복 점검과 엔진 MVVM Toolset 활성화 (2026-10-06)
+- 사용자 대화: SSoT 점검과 정리 (2026-10-07, 미커밋 작업 트리 기준)
 - `Plugins/WxToolset/` (24139e441)
