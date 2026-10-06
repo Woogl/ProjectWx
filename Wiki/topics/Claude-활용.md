@@ -58,6 +58,8 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
   - MVVM은 바인딩 생성·삭제·목록, 뷰모델 추가를 엔진 툴로 하고, `WxMVVMToolset`은 엔진이 못 하는 이벤트 행(`AddEvent`·`SetEventDestination`·`SetEventArgumentPath`)과 기존 바인딩의 소스·변환 함수 인자 경로만 맡는다.
   - `SetBindingSourcePath`는 엔진 툴로 지웠다 다시 만드는 것으로 대신할 수 있지만, 바인딩 ID와 모드 설정이 바뀌고 호출이 세 번으로 늘어 남겼다(사용자 결정 "냅두죠").
   - 나머지 툴은 엔진에 대응 툴이 없다. StateTree 엔진 툴은 읽기뿐이고, 몽타주 툴은 위키의 섹션 규칙에 따른 반복 저작에 쓰여 일회성이 아니다.
+- 2026-10-06 MVVM 이벤트 인자에 탭 태그 같은 고정값을 넣는 `SetEventArgumentValue`가 추가됐다(커밋 24139e441).
+  앞선 이벤트 툴 목록에 더해진 구현이며, 사용법과 입력 형식은 툴의 doc 주석과 `unreal-editor` 스킬에서 관리한다.
 
 ## 관련
 
@@ -76,7 +78,7 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
 - 사용자 대화로 정한 지난 결정: Claude 메모리 기록에서 옮기고 HEAD 2a3baca6a 코드로 확인 (2026-10-06 조회)
 - 사용자 대화: 메모리 이관과 코딩 규칙 정리, C++ 이전 범위 (2026-10-06)
 - 사용자 대화: 에디터·MCP 요령 이관과 WxToolset 정리 (2026-10-06)
-- `AGENTS.md` (08d2e34ab), `.agents/scripts/Check-CodingRules.ps1` (f60aac7f4)
-- `.agents/skills/` (39abf8956)
+- `AGENTS.md` (6998ca09e), `.agents/scripts/Check-CodingRules.ps1` (f60aac7f4)
+- `.agents/skills/` (24139e441)
 - 사용자 대화: WxToolset 중복 점검과 엔진 MVVM Toolset 활성화 (2026-10-06)
-- `Plugins/WxToolset/` (39abf8956)
+- `Plugins/WxToolset/` (24139e441)

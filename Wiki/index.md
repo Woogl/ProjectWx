@@ -37,7 +37,7 @@ WX 프로젝트 지식의 색인이다.
 - [UI 뷰모델](topics/UI-뷰모델.md) — MVVM 층과 의존 방향, 플레이어 공유 VM의 Global Collection 등록, 리졸버와 Manual 주입, 명령·변환 함수 규칙
 
 ### 공통 구조
-- [게임 프레임워크 구조](topics/게임-프레임워크-구조.md) — WxGame 단일 모듈과 에디터 모듈, GameMode BP·컨트롤러/GameState 컴포넌트 구성, 폰 없는 프론트엔드, 폰 초기화 시점, 세이브 범위
+- [게임 프레임워크 구조](topics/게임-프레임워크-구조.md) — WxGame 단일 모듈과 에디터 모듈·CommonInput 사전 로드, GameMode BP·컨트롤러/GameState 컴포넌트 구성, 폰 없는 프론트엔드, 폰 초기화 시점, 세이브 범위
 - [State Tree 작성 규칙](topics/State-Tree-작성-규칙.md) — AI·장치·퀘스트 공통의 완료 판정 정책과 머무는 상태, 단방향 바인딩, 컴포넌트 이름 지정, UOL 액터 지정, 기대는 엔진 동작
 
 ### 개발 환경

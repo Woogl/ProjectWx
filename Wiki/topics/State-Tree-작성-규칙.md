@@ -4,6 +4,8 @@ State Tree를 쓰는 모든 곳(적·소환물 AI, 장치, 퀘스트 스텝)에 
 각 시스템의 트리 구조는 [적 몬스터](적-몬스터.md), [장치와 배치물](장치와-배치물.md), [퀘스트 시스템](퀘스트-시스템.md)에 있다.
 
 ## 구현
+- State Tree 노드의 에디터 표시 이름과 설명은 영어를 쓴다(`Activate Ability`, `Mirror Master Ability`, `Wait For Trigger` 등, 2026-10-06).
+  언어 규칙의 정본은 [루트 AGENTS.md](../../AGENTS.md) 규칙 9다.
 
 ### 완료 판정
 - 상태의 완료 판정에는 스스로 시간을 들여 끝나는 태스크만 참여한다.
@@ -71,13 +73,13 @@ State Tree를 쓰는 모든 곳(적·소환물 AI, 장치, 퀘스트 스텝)에 
 ## 출처
 - 사용자 대화로 정한 지난 결정: Claude 메모리 기록에서 옮기고 HEAD 2a3baca6a 코드로 확인 (2026-10-06 조회)
 - UE 5.8 설치본 `Engine/Plugins/Runtime/StateTree`의 `StateTreeCompiler.cpp`·`StateTreeTasksStatus.h`·`StateTreeDelayTask.cpp`·`StateTreeExecutionContext.cpp` (2026-10-06 조회)
-- `Source/WxGame/AI/WxStateTreeTask_LockOn.cpp` (8b331baec)
+- `Source/WxGame/AI/WxStateTreeTask_LockOn.cpp` (f4f951c45)
 - `Source/WxGame/AI/WxStateTreeTask_MirrorAbility.cpp` (8b331baec)
-- `Source/WxGame/AI/WxStateTreeTask_MirrorMovement.h` (8b331baec)
+- `Source/WxGame/AI/WxStateTreeTask_MirrorMovement.h` (6998ca09e)
 - `Source/WxGame/AI/WxAIBehaviorComponent.cpp` (8b331baec)
-- `Source/WxGame/Device/` (7960789cf)
+- `Source/WxGame/Device/` (6998ca09e)
 - `Source/WxGame/Device/WxDeviceComponentName.h` (d37e1dd32)
-- `Source/WxGame/Quest/` (ecdda3b8e)
-- `Source/WxGame/UI/Subtitle/WxStateTreeTask_PrintSubtitle.h` (05d662bc4)
+- `Source/WxGame/Quest/` (6998ca09e)
+- `Source/WxGame/UI/Subtitle/WxStateTreeTask_PrintSubtitle.h` (6998ca09e)
 - `Source/WxEditor/WxStateTreeComponentNameCustomization.h` (e9630dc2b)
 - `Source/WxEditor/WxActorLocatorCustomization.h` (eda01fdf0)
