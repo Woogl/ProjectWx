@@ -41,7 +41,8 @@ UI 레이어와 화면 띄우기, 입력 모드, 게임 일시정지, 팝업, �
 - 인디케이터는 StateTree 태스크 `FWxStateTreeTask_MarkIndicator`가 띄우는 독립 액터이고 복제하지 않는다.
   - 대상이 로드돼 있는 동안만 부착해 따라가고, 언로드·파괴된 동안은 기록 좌표를 가리킨다.
   - 화면 밖이나 카메라 뒤 대상은 여백을 둔 화면 가장자리로 당기고, 당긴 화면 좌표를 역투영한 월드 지점으로 액터를 옮겨 그린다.
-  - 표시 내용은 태스크가 넘긴 위젯(`IWxIndicatorWidget` 구현)이 가진다.
+  - 표시 내용은 태스크가 넘긴 위젯이 가진다. 위젯이 자기 자리에서 알 수 없는 값(카메라 거리)은 인디케이터가 만들어 넣는 `UWxViewModel_Indicator`로 받는다.
+  - 위젯에 MVVM View가 없거나 뷰모델을 넣지 못하면 `AWxIndicator::BindViewModel`이 경고를 남긴다. 위젯은 그대로 뜨고 값만 들어오지 않는다.
   - 스크린 공간 위젯은 레이어 스택이 아니라 뷰포트에 붙어 메뉴가 덮지 못하므로, Menu·Modal 레이어가 떠 있으면(`IsMenuLayerActive`) 숨는다.
 
 ### 엔진 동작에 기댄 곳
@@ -81,6 +82,7 @@ UI 레이어와 화면 띄우기, 입력 모드, 게임 일시정지, 팝업, �
   - UI 설계나 버그 수정은 Lyra 원본의 대응 클래스를 먼저 읽고 그 방식을 따른다. 엔진 내부를 추론해 만든 우회 장치가 문제를 키운 적이 있고, 원인이 Lyra에 없는 추가 장치인 경우가 많았다. 대응: `UWxConfirmationPopup`=`ULyraConfirmationScreen`, `UWxUIManagerSubsystem::ShowConfirmation`=`ULyraUIMessaging::ShowConfirmation`, `UWxPrimaryGameLayout`=`UPrimaryGameLayout`.
   - UI 호출부(PC·어빌리티 등)는 `UWxUIManagerSubsystem`을 꺼내 직접 부르지 않고 `UWxUILibrary` 파사드를 쓰며, 없으면 더한다. 호출부마다 서브시스템 조회와 널 처리를 반복하지 않고 한 곳을 지나게 하려는 것이다. 파사드는 조회 → 널이면 조기 반환 → 위임 순서로 쓰고 반환값을 그대로 넘기며, 레이어 태그 인자에는 `UPARAM(meta = (Categories = "UI.Layer"))`를 붙인다.
   - `UWxUIManagerSubsystem`은 자막 같은 개별 표시 뷰모델을 소유하거나 등록하지 않는다. 리뷰 제안을 받아 표시 뷰모델을 UIManager로 옮겼다가 09-24 사용자 지시로 되돌렸다. 참고로 UE 5.8에서 서브시스템 `Initialize` 안에서 다른 서브시스템을 `GetSubsystem`으로 부르면 그 자리에서 초기화되므로 `InitializeDependency`가 필요 없다(`SubsystemCollection.cpp` `GetSubsystemInternal`).
+- 2026-10-06 인디케이터 위젯 표식 인터페이스 `IWxIndicatorWidget`을 걷어냈다. 함수 없이 `MustImplement`로 선택 목록만 좁혔고, 구현해도 뷰모델 소스가 있다는 보장이 없어 실제 검사는 런타임 `BindViewModel`이 하고 있었다. (사용자 결정)
 
 ## 관련
 - [UI 설계 원칙](UI-설계-원칙.md)

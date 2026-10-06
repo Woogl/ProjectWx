@@ -26,7 +26,7 @@ struct FWxStateTreeTask_MarkIndicatorInstanceData
 	FUniversalObjectLocator Target;
 
 	/** 아이콘 등 표시 내용은 전부 이 위젯이 들고 있다. */
-	UPROPERTY(EditAnywhere, Category = "Parameter", meta = (MustImplement = "/Script/WxGame.WxIndicatorWidget"))
+	UPROPERTY(EditAnywhere, Category = "Parameter")
 	TSubclassOf<UUserWidget> IndicatorWidget;
 
 	/** 대상 원점에서 위로 올릴 높이(cm). */
