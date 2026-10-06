@@ -35,7 +35,7 @@
 
 - WBP 에셋 경로는 CDO로 바뀌어 확장에 닿지 않는다. 뷰는 서브오브젝트 경로 `WBP.WBP:MVVMWidgetBlueprintExtension_View_0.MVVMBlueprintView_0`로 직접 열고 `bindings`·`availableViewModels`를 쓴다. 리졸버는 클래스 경로로 인스턴스드 신설이 된다.
 - 뷰모델 추가, 바인딩 생성·삭제·목록, 변환 함수 목록은 엔진 `MVVMToolset`(`AddViewModelToWidget`·`CreateViewBinding`·`RemoveWidgetViewBinding`·`ListWidgetViewBindings`·`ListConversionFunctions`)으로 한다. 엔진 툴은 MVVM 확장이 없는 위젯이면 확장을 만든다(`RequestView`). 이 플러그인은 `AllToolsets`에 들어 있지 않아 `.uproject`에서 따로 켠다.
-- 기존 바인딩의 소스·변환 함수 인자 경로와 이벤트 행은 `WxToolset.WxMVVMToolset`으로 쓴다.
+- 기존 바인딩의 모드·소스·변환 함수 인자(경로와 고정값)와 이벤트 행은 `WxToolset.WxMVVMToolset`으로 쓴다. 엔진 `CreateViewBinding`은 늘 OneWay로 만들고 변환 인자는 함수 기본값으로 두므로, OneTime이나 인자 값이 필요하면 `SetBindingType`·`SetBindingArgumentValue`로 고친다.
 - 이벤트 행은 `EventPath`·`DestinationPath`가 VisibleAnywhere라 `ObjectTools`로 쓸 수 없다. `WxMVVMToolset.AddEvent`로 만들고(소스는 위젯이나 뷰모델의 BlueprintAssignable 델리게이트), `SetEventDestination`으로 목적지 함수, `SetEventArgumentPath`로 그 인자를 잇는다. 인자에 고정값(탭 태그 등)을 넣을 때는 `SetEventArgumentValue`를 쓴다(값 형식과 결과 판정은 툴 설명).
 - 버튼 클릭 이벤트 소스는 CommonButton의 `OnButtonBaseClicked`다(자기 자신이면 `Self.OnButtonBaseClicked`, 자식 버튼이면 `위젯이름.OnButtonBaseClicked`). 옮긴 뒤 그래프의 `OnClicked` 노드와 그 호출 노드를 지운다.
 - ListView 뷰모델 확장(목록 위젯 Details의 Viewmodel Extension)은 MCP로 쓸 수 없다(`EntryViewModelId`가 private이고 에디터 커스터마이제이션만 쓴다). 이 프로젝트는 쓰지 않는다([UI 설계 원칙](../../../../Wiki/topics/UI-설계-원칙.md)).

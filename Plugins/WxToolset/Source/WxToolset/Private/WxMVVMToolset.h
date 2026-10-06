@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ToolsetRegistry/ToolsetDefinition.h"
+#include "Types/MVVMBindingMode.h"
 #include "WxMVVMToolset.generated.h"
 
 class UMVVMBlueprintView;
@@ -11,7 +12,7 @@ class UWidgetBlueprint;
 struct FMVVMBlueprintPropertyPath;
 
 /**
- * 기존 MCP 표면(ObjectTools, 엔진 MVVMToolset)이 닿지 못하는 지점만 뚫는다 — 기존 바인딩의 소스 경로·변환 함수 인자와 이벤트 행·목적지·인자.
+ * 기존 MCP 표면(ObjectTools, 엔진 MVVMToolset)이 닿지 못하는 지점만 뚫는다 — 기존 바인딩의 모드·소스 경로·변환 함수 인자와 이벤트 행·목적지·인자.
  * 바인딩 생성·삭제·목록은 엔진 MVVMToolset(CreateViewBinding·RemoveWidgetViewBinding·ListWidgetViewBindings)을 쓴다.
  * 변환 객체의 함수·인자 경로와 이벤트 경로는 편집 플래그가 없어 set_properties 로 쓸 수 없고, 래퍼 그래프도 에디터 서브시스템이 만들어야 한다.
  */
@@ -73,6 +74,24 @@ public:
 	 */
 	UFUNCTION(meta = (AICallable), Category = "Wx")
 	static bool SetBindingSourcePath(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId, FName ArgumentName, const FString& SourcePath);
+
+	/**
+	 * 바인딩의 모드를 바꾼다. 엔진 CreateViewBinding 은 항상 OneWayToDestination 으로 만든다.
+	 * OneTimeToDestination 은 뷰 초기화 때(또는 뷰모델이 들어올 때) 한 번만 실행되고, 소스 필드에 FieldNotify 가 없어도 된다.
+	 * @param BindingType "OneTimeToDestination", "OneWayToDestination", "TwoWay", "OneWayToSource" 중 하나.
+	 * 엔진은 모드를 검사하지 않고 넣으므로, 소스·목적지가 지원하지 않는 모드는 위젯 컴파일 오류로만 드러난다.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static bool SetBindingType(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId, EMVVMBindingMode BindingType);
+
+	/**
+	 * 바인딩의 Source→Destination 변환 함수 입력 인자 하나에 고정값을 넣는다. 프로퍼티 경로에 이어져 있었다면 경로를 끊는다. 변환 함수를 먼저 정해 둔다.
+	 * @param ArgumentName 변환 함수의 입력 파라미터 이름(예: Conv_DoubleToText 의 "RoundingMode").
+	 * @param Value 블루프린트 핀 기본값 문자열. enum 은 이름(예: ToNegativeInfinity), bool 은 true/false, 구조체는 ImportText 형식이다.
+	 * @return 적용된 핀 기본값. 형식이 틀린 값은 엔진이 조용히 거부하므로 Value 와 다르면 적용되지 않은 것이다. 실패하면 빈 문자열.
+	 */
+	UFUNCTION(meta = (AICallable), Category = "Wx")
+	static FString SetBindingArgumentValue(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId, FName ArgumentName, const FString& Value);
 
 private:
 	/** "소스.필드[.필드...]" 를 뷰 기준 경로로 해석한다. 소스는 Self, 뷰모델 이름, 위젯 이름 순으로 찾는다. 실패하면 스크립트 오류를 올린다. */

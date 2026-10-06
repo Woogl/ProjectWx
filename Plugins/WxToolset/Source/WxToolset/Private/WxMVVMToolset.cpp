@@ -270,6 +270,79 @@ bool UWxMVVMToolset::SetBindingSourcePath(UWidgetBlueprint* WidgetBlueprint, con
 	return true;
 }
 
+bool UWxMVVMToolset::SetBindingType(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId, EMVVMBindingMode BindingType)
+{
+	const UMVVMWidgetBlueprintExtension_View* Extension = WidgetBlueprint ? UWidgetBlueprintExtension::GetExtension<UMVVMWidgetBlueprintExtension_View>(WidgetBlueprint) : nullptr;
+	UMVVMBlueprintView* View = Extension ? const_cast<UMVVMWidgetBlueprintExtension_View*>(Extension)->GetBlueprintView() : nullptr;
+	if (!View)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("WidgetBlueprint 에 MVVM 뷰가 없다."));
+		return false;
+	}
+
+	FGuid Id;
+	FMVVMBlueprintViewBinding* Binding = FGuid::Parse(BindingId, Id) ? View->GetBinding(Id) : nullptr;
+	if (!Binding)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("바인딩 '%s' 가 없다."), *BindingId));
+		return false;
+	}
+
+	GEditor->GetEditorSubsystem<UMVVMEditorSubsystem>()->SetBindingTypeForBinding(WidgetBlueprint, *Binding, BindingType);
+	return true;
+}
+
+FString UWxMVVMToolset::SetBindingArgumentValue(UWidgetBlueprint* WidgetBlueprint, const FString& BindingId, FName ArgumentName, const FString& Value)
+{
+	const UMVVMWidgetBlueprintExtension_View* Extension = WidgetBlueprint ? UWidgetBlueprintExtension::GetExtension<UMVVMWidgetBlueprintExtension_View>(WidgetBlueprint) : nullptr;
+	UMVVMBlueprintView* View = Extension ? const_cast<UMVVMWidgetBlueprintExtension_View*>(Extension)->GetBlueprintView() : nullptr;
+	if (!View)
+	{
+		UKismetSystemLibrary::RaiseScriptError(TEXT("WidgetBlueprint 에 MVVM 뷰가 없다."));
+		return FString();
+	}
+
+	FGuid Id;
+	FMVVMBlueprintViewBinding* Binding = FGuid::Parse(BindingId, Id) ? View->GetBinding(Id) : nullptr;
+	if (!Binding)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("바인딩 '%s' 가 없다."), *BindingId));
+		return FString();
+	}
+
+	// 엔진은 없는 핀 이름을 check 로 받아 에디터가 크래시한다.
+	UMVVMBlueprintViewConversionFunction* Conversion = Binding->Conversion.GetConversionFunction(true);
+	const UFunction* Function = Conversion ? Conversion->GetConversionFunction().GetFunction(WidgetBlueprint) : nullptr;
+	const FProperty* Parameter = Function ? FindFProperty<FProperty>(Function, ArgumentName) : nullptr;
+	if (!Parameter || !Parameter->HasAnyPropertyFlags(CPF_Parm) || Parameter->HasAnyPropertyFlags(CPF_ReturnParm))
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("바인딩 '%s' 의 변환 함수에 입력 파라미터 '%s' 가 없다. 변환 함수를 먼저 정한다."), *BindingId, *ArgumentName.ToString()));
+		return FString();
+	}
+
+	// 경로에 이어진 핀은 기본값을 바꿔도 컴파일이 경로를 읽는다.
+	const FMVVMBlueprintPinId PinId(TArray<FName>{ArgumentName});
+	UMVVMEditorSubsystem* Subsystem = GEditor->GetEditorSubsystem<UMVVMEditorSubsystem>();
+	if (Subsystem->GetPathForConversionFunctionArgument(WidgetBlueprint, *Binding, PinId, true).IsValid())
+	{
+		Subsystem->SetPathForConversionFunctionArgument(WidgetBlueprint, *Binding, PinId, FMVVMBlueprintPropertyPath(), true);
+	}
+
+	// 경로를 끊으면 블루프린트가 구조 변경으로 표시되므로 래퍼 그래프의 핀은 그 뒤에 얻는다.
+	UEdGraphPin* Pin = Conversion->GetOrCreateGraphPin(WidgetBlueprint, PinId);
+	if (!Pin)
+	{
+		UKismetSystemLibrary::RaiseScriptError(FString::Printf(TEXT("바인딩 '%s' 의 래퍼 그래프에 핀 '%s' 가 없다."), *BindingId, *ArgumentName.ToString()));
+		return FString();
+	}
+
+	Conversion->Modify();
+	GetDefault<UEdGraphSchema_K2>()->TrySetDefaultValue(*Pin, Value);
+	// 래퍼 그래프는 저장되지 않으므로 핀 값을 변환 객체에 옮겨 둬야 다시 열었을 때 남는다.
+	Conversion->SavePinValues(WidgetBlueprint);
+	return Pin->GetDefaultAsString();
+}
+
 bool UWxMVVMToolset::ResolvePropertyPath(const UWidgetBlueprint* WidgetBlueprint, const UMVVMBlueprintView* View, const FString& PathString, FMVVMBlueprintPropertyPath& OutPath)
 {
 	TArray<FString> Segments;
