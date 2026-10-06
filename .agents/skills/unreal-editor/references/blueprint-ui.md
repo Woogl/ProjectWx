@@ -38,6 +38,6 @@
 - 기존 바인딩의 소스·변환 함수 인자 경로와 이벤트 행은 `WxToolset.WxMVVMToolset`으로 쓴다.
 - 이벤트 행은 `EventPath`·`DestinationPath`가 VisibleAnywhere라 `ObjectTools`로 쓸 수 없다. `WxMVVMToolset.AddEvent`로 만들고(소스는 위젯이나 뷰모델의 BlueprintAssignable 델리게이트), `SetEventDestination`으로 목적지 함수, `SetEventArgumentPath`로 그 인자를 잇는다. 인자에 고정값(탭 태그 등)을 넣을 때는 `SetEventArgumentValue`를 쓰고, 돌려준 값이 넣은 값과 다르면 엔진이 형식을 거부한 것이다.
 - 버튼 클릭 이벤트 소스는 CommonButton의 `OnButtonBaseClicked`다(자기 자신이면 `Self.OnButtonBaseClicked`, 자식 버튼이면 `위젯이름.OnButtonBaseClicked`). 옮긴 뒤 그래프의 `OnClicked` 노드와 그 호출 노드를 지운다.
-- ListView 뷰모델 확장(목록 위젯 Details의 Viewmodel Extension)은 MCP로 쓸 수 없다(`EntryViewModelId`가 private이고 에디터 커스터마이제이션만 쓴다). 이 프로젝트는 쓰지 않는다([UI 설계 원칙](../../../../Wiki/concepts/UI-설계-원칙.md)).
+- ListView 뷰모델 확장(목록 위젯 Details의 Viewmodel Extension)은 MCP로 쓸 수 없다(`EntryViewModelId`가 private이고 에디터 커스터마이제이션만 쓴다). 이 프로젝트는 쓰지 않는다([UI 설계 원칙](../../../../Wiki/topics/UI-설계-원칙.md)).
 - 엔진 이벤트 바인딩은 델리게이트 인자를 목적지로 넘기지 못한다. 넘길 값은 뷰모델 프로퍼티로 두고 인자 경로로 읽게 한다(`WBP_AcquiredItemList`의 `OnItemAcquired` → `AddItem(Item=LastAcquiredItem)`).
 - 상태 바인딩은 뷰 초기화 때 현재 값으로 한 번 실행되고 이벤트는 실행되지 않는다. 한 번만 반응해야 하는 신호는 이벤트로 받는다.

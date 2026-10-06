@@ -32,7 +32,7 @@
 
 **영향**: 4단 콤보가 모두 적중해도 UP가 Template 기준 +20이 아니라 +5만 오른다(HGTest는 도플갱어가 있을 때 +40이 아니라 +10). 끊지 않고 되감아 치면 사실상 처음 한 번만 받는다. 콤보를 끊고 1단을 반복하는 쪽이 궁극기 충전에 더 유리해지는 역전도 생긴다. 플레이어 기본 평타라는 주 흐름에서 늘 재현되는 기능 오류라 🔴로 둔다.
 
-**수정 제안**: 콤보 단 단위로 식별한다. 원인 어빌리티가 `UWxAbility_Combo`면 (활성화 키, `GetComboIndex()`) 쌍을 비교 키로 저장한다. 단계가 하나인데 콤보 창으로 자기 반복하는 경우까지 맞추려면, 피해를 낸 몽타주 인스턴스 ID를 쓰는 편이 정확하다. 활성화당 1회가 새 의도라면 Passive 주석 두 곳과 `Wiki/concepts/스탯과-피해-계산.md`를 고친다.
+**수정 제안**: 콤보 단 단위로 식별한다. 원인 어빌리티가 `UWxAbility_Combo`면 (활성화 키, `GetComboIndex()`) 쌍을 비교 키로 저장한다. 단계가 하나인데 콤보 창으로 자기 반복하는 경우까지 맞추려면, 피해를 낸 몽타주 인스턴스 ID를 쓰는 편이 정확하다. 활성화당 1회가 새 의도라면 Passive 주석 두 곳과 `Wiki/topics/스탯과-피해-계산.md`를 고친다.
 
 **확신도**: 높음 — 코드 경로와 엔진 소스만으로 결과가 정해진다. 단마다 키를 새로 받는 경로가 없다는 것도 확인했다.
 
@@ -54,7 +54,7 @@
 
 **발생 조건**: TemplateEnemy(BP_Soldier, Enemy/BP_Template)를 피해로 그로기에 빠뜨린 뒤 앞잡한다. GP는 받은 최종 피해만큼 쌓이므로(MaxGP 50) 그로기 시점의 HP는 50 이하다. 처형 피해 86(DT_Damage `AM_Shared_Finisher`, CoeffATK 3)이면 반드시 죽는다. 반사 GP로 띄운 그로기, Sandbag, 만피 적에게 쓰는 뒤잡은 해당하지 않는다.
 
-**판단 근거**: GAS 횡단 리뷰가 보고했다(후보 X3-04). 1차 검증에서 원인을 바로잡았다. 1.0초 노티파이의 처형 피해가 HP를 0으로 만들면 사망 어빌리티가 발동한다. GA_Shared_Death에는 몽타주가 없어서 [WxAbility_Death.cpp:62-66](../../../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Death.cpp#L62)이 곧바로 `EnableRagdoll`로 간다. 이어 [WxCharacterBase.cpp:223-253](../../../../Source/WxGame/Character/WxCharacterBase.cpp#L223)의 `HandleRagdollTagChanged`→`EnterRagdoll`이 전 바디 물리를 켠다. 사망 어빌리티는 PlayMontageOnce를 취소하지 않지만, 몸이 래그돌이 되므로 피해자 짝 몽타주(2.48초)는 사실상 끝난다. 원본 기획서 [그로기_피니시_시스템_기획서.md:86](../../../../Docs/CombatDesign/그로기_피니시_시스템_기획서.md#L86)은 "그로기 피니시 발동 중 적이 사망하는 경우에도 그로기 피니시 애니메이션은 모두 재생된다"이고, 그로기 피니시가 곧 앞잡이다([Wiki/concepts/그로기와-처형.md:17](../../../../Wiki/concepts/그로기와-처형.md#L17)). 2차 검증은 미구현 뒤잡 문서를 근거로 기각했지만, 세 번째 검증자가 이 기획서를 근거로 확정했다.
+**판단 근거**: GAS 횡단 리뷰가 보고했다(후보 X3-04). 1차 검증에서 원인을 바로잡았다. 1.0초 노티파이의 처형 피해가 HP를 0으로 만들면 사망 어빌리티가 발동한다. GA_Shared_Death에는 몽타주가 없어서 [WxAbility_Death.cpp:62-66](../../../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Death.cpp#L62)이 곧바로 `EnableRagdoll`로 간다. 이어 [WxCharacterBase.cpp:223-253](../../../../Source/WxGame/Character/WxCharacterBase.cpp#L223)의 `HandleRagdollTagChanged`→`EnterRagdoll`이 전 바디 물리를 켠다. 사망 어빌리티는 PlayMontageOnce를 취소하지 않지만, 몸이 래그돌이 되므로 피해자 짝 몽타주(2.48초)는 사실상 끝난다. 원본 기획서 [그로기_피니시_시스템_기획서.md:86](../../../../Docs/CombatDesign/그로기_피니시_시스템_기획서.md#L86)은 "그로기 피니시 발동 중 적이 사망하는 경우에도 그로기 피니시 애니메이션은 모두 재생된다"이고, 그로기 피니시가 곧 앞잡이다([Wiki/topics/그로기와-처형.md:17](../../../../Wiki/topics/그로기와-처형.md#L17)). 2차 검증은 미구현 뒤잡 문서를 근거로 기각했지만, 세 번째 검증자가 이 기획서를 근거로 확정했다.
 
 **원인**: "몽타주가 없으면 즉시 래그돌"이라는 사망 연출 규칙이 처형 짝 연출 중에도 그대로 적용된다.
 
@@ -704,7 +704,7 @@ sequenceDiagram
 
 ### C54. 🟢 패턴 생성자 주석 "패턴은 그로기·사망에만 끊긴다"가 실제와 다르다
 
-**판단 근거**: 넉·패리 반응 몽타주가 패턴과 같은 DefaultSlot이라, 몽타주 인터럽트로 패턴을 끊는다([WxAbility_Pattern.cpp:15](../../../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Pattern.cpp#L15)). `Wiki/concepts/피격-경직.md`도 이것을 의도된 동작으로 적고 있어, 고칠 것은 주석이다.
+**판단 근거**: 넉·패리 반응 몽타주가 패턴과 같은 DefaultSlot이라, 몽타주 인터럽트로 패턴을 끊는다([WxAbility_Pattern.cpp:15](../../../../Source/WxGame/AbilitySystem/Abilities/WxAbility_Pattern.cpp#L15)). `Wiki/topics/피격-경직.md`도 이것을 의도된 동작으로 적고 있어, 고칠 것은 주석이다.
 
 **수정 제안**: "태그 취소는 그로기·사망뿐이고, 같은 슬롯 그룹의 넉·패리 반응 몽타주가 패턴을 끊는다"로 고친다.
 

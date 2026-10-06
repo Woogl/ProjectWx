@@ -48,9 +48,9 @@ try {
     $headPaths = @(git -c core.quotepath=false ls-tree -r --name-only $headCommit)
     if ($LASTEXITCODE -ne 0) { throw 'HEAD의 파일 목록을 읽을 수 없다.' }
 
-    $docs = @(foreach ($kind in 'sources', 'entities', 'concepts') { Get-ChildItem (Join-Path $wiki $kind) -Filter *.md -ErrorAction SilentlyContinue })
-    $summaries = @($docs | Where-Object { $_.Directory.Name -eq 'sources' })
-    $topics = @($docs | Where-Object { $_.Directory.Name -ne 'sources' })
+    $docs = @(foreach ($kind in 'summaries', 'entities', 'topics') { Get-ChildItem (Join-Path $wiki $kind) -Filter *.md -ErrorAction SilentlyContinue })
+    $summaries = @($docs | Where-Object { $_.Directory.Name -eq 'summaries' })
+    $topics = @($docs | Where-Object { $_.Directory.Name -ne 'summaries' })
     $text = @{}
     foreach ($d in $docs) { $text[$d.FullName] = [IO.File]::ReadAllText($d.FullName, $utf8) }
 
@@ -100,21 +100,21 @@ try {
         if (-not $reflected.Success) { $pairs += "$(Get-Rel $s) — 반영한 문서 절이 없다"; continue }
         foreach ($m in [regex]::Matches($reflected.Groups[1].Value, '\]\(\.\./([^)]+\.md)\)')) {
             $p = Join-Path $wiki $m.Groups[1].Value
-            if ((Test-Path -LiteralPath $p) -and -not $text[(Get-Item -LiteralPath $p).FullName].Contains("](../sources/$($s.Name))")) {
+            if ((Test-Path -LiteralPath $p) -and -not $text[(Get-Item -LiteralPath $p).FullName].Contains("](../summaries/$($s.Name))")) {
                 $pairs += "$(Get-Rel $s) -> $($m.Groups[1].Value) — 상대 문서의 출처에 이 요약이 없다"
             }
         }
     }
     foreach ($t in $topics) {
-        foreach ($m in [regex]::Matches($text[$t.FullName], '\]\(\.\./sources/([^)]+\.md)\)')) {
-            $p = Join-Path $wiki "sources/$($m.Groups[1].Value)"
+        foreach ($m in [regex]::Matches($text[$t.FullName], '\]\(\.\./summaries/([^)]+\.md)\)')) {
+            $p = Join-Path $wiki "summaries/$($m.Groups[1].Value)"
             if ((Test-Path -LiteralPath $p) -and -not $text[(Get-Item -LiteralPath $p).FullName].Contains("](../$(Get-Rel $t))")) {
-                $pairs += "$(Get-Rel $t) -> sources/$($m.Groups[1].Value) — 요약의 반영한 문서에 이 문서가 없다"
+                $pairs += "$(Get-Rel $t) -> summaries/$($m.Groups[1].Value) — 요약의 반영한 문서에 이 문서가 없다"
             }
         }
     }
 
-    # 다른 엔티티·개념 문서의 제목을 본문에 쓰면서 링크하지 않은 곳. 단순 문자열 일치라 후보일 뿐이다.
+    # 다른 엔티티·주제 문서의 제목을 본문에 쓰면서 링크하지 않은 곳. 단순 문자열 일치라 후보일 뿐이다.
     $candidates = @()
     foreach ($target in $topics) {
         $title = [regex]::Match($text[$target.FullName], '(?m)^# (.+)$').Groups[1].Value.Trim()
