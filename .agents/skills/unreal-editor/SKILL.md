@@ -10,11 +10,12 @@ description: 실행 중인 언리얼 에디터를 unreal-mcp로 다룰 때(에�
 
 ## 연결
 
-- 에디터가 필요하면 `.agents/scripts/Start-WxEditorMcp.ps1`로 띄운다. 빈 포트를 골라 이 프로젝트 에디터를 띄우고 `WxToolset` 툴이 등록될 때까지 기다린 뒤 포트와 PID를 출력한다. 다른 에디터는 건드리지 않는다. 코드를 고쳤다면 먼저 `build-doctor`로 빌드한다.
+- 에디터가 필요하면 `.agents/scripts/Start-WxEditorMcp.ps1`로 띄운다. 빈 포트를 골라 이 프로젝트 에디터를 띄우고 `WxToolset` 툴이 등록될 때까지 기다린 뒤 `WX_MCP_PORT`·`WX_MCP_PID`를 출력한다. 다른 에디터는 건드리지 않는다. `-List`는 이미 떠 있는 MCP 서버와 그 주인 프로세스만 보여 준다. 코드를 고쳤다면 먼저 `build-doctor`로 빌드한다.
 - 세션 도구(`mcp__unreal-mcp__*`)는 세션 시작 때 `.mcp.json`의 주소(기본 포트)에 떠 있던 에디터에만 붙는다. 그 밖에는 `.agents/scripts/Invoke-UnrealMcp.ps1 -Port N`으로 부른다.
+  - `-Tool list_toolsets`, `-Tool describe_toolset -Arguments '{"toolset_name":"..."}'`, `-Toolset <툴셋> -Tool <툴> -Arguments '<JSON>'` 세 형태다. `-Tool`은 툴셋 접두사를 뺀 이름이다.
   - 다른 셸(Bash 등)을 거쳐 부르면 따옴표가 깨지니 인자 JSON을 파일로 써서 `-ArgumentsFile`로 넘긴다. 캡처처럼 큰 응답은 `-OutFile`로 받는다.
-  - 세션은 포트별로 캐시하고, 에디터가 재시작돼 만료되면 스스로 다시 맺는다.
-- 스크립트의 인자 형태·출력 줄·종료 코드는 각 스크립트 머리 주석이 정본이다. 결과를 판정하기 전에 그 주석을 읽는다.
+  - 종료 코드는 0 성공, 1 툴 오류, 2 연결 실패다. 세션은 포트별로 캐시하고, 에디터가 재시작돼 만료되면 스스로 다시 맺는다.
+- 스크립트는 이 문서의 절차를 자동화한 보조 도구다. 스크립트의 인자·출력·종료 코드를 바꾸면 이 문서의 설명도 함께 고친다.
 - 인자 이름은 `describe_toolset`의 스키마를 따른다(C++ 툴셋은 camelCase). 틀리면 오류 메시지에 스키마가 실려 온다.
 - 오브젝트 인자는 `{"refPath":"/Game/.../X.X"}`다. C++ 클래스는 `/Script/모듈.클래스`, BP 클래스는 `/Game/.../BP_X.BP_X_C`다.
 - 호출은 게임 스레드에서 초당 1건꼴로 처리되고 다른 세션과 큐를 공유한다. 수십 건이면 `ProgrammaticToolset.execute_tool_script`로 묶는다.
@@ -26,7 +27,7 @@ description: 실행 중인 언리얼 에디터를 unreal-mcp로 다룰 때(에�
 
 - **저장은 `WxToolset.WxPackageToolset.SavePackages`로 한다.** `AssetTools.save_assets`는 수정 표시가 없는 패키지(컴파일만 한 BP 등)를 `true`만 돌려주고 건너뛴다. `SavePackages`는 실제로 쓴 파일만 돌려주고 못 쓰면 실패한다. 외부 액터는 맵이 아니라 액터를 넘긴다.
 - **쓰고 나면 다시 읽는다.** `set_properties`·`write_graph_dsl` 등은 일부를 무시하거나 엉뚱한 원소를 바꾸고도 성공을 답한다.
-- **최종 판정은 PIE 동작이다.** 에셋 조회 결과가 맞아도 저장 경합이나 미컴파일로 실제 동작이 다를 수 있다. `.agents/scripts/Check-PieErrors.ps1 -Port N [-Map /Game/Maps/LV_X]`가 PIE를 잠깐 돌려 그동안 새로 찍힌 오류 줄을 보고한다. 조작이 필요한 동작 확인은 여전히 사람이 한다.
+- **최종 판정은 PIE 동작이다.** 에셋 조회 결과가 맞아도 저장 경합이나 미컴파일로 실제 동작이 다를 수 있다. `.agents/scripts/Check-PieErrors.ps1 -Port N [-Map /Game/Maps/LV_X]`가 PIE를 잠깐 돌려 그동안 새로 찍힌 오류·ensure·스크립트 오류(Accessed None 등)·스폰 실패를 보고한다(0 깨끗함, 1 오류 있음, 2 실행 못 함). 조작이 필요한 동작 확인은 여전히 사람이 한다.
 - **모달 창은 MCP를 통째로 막는다.** 저장 확인·스키마 선택 같은 창이 뜨면 응답이 멈춘다. user32 `WM_CLOSE`로 닫는다. 에디터를 닫기 전에 저장할 것이 남았는지 먼저 확인한다.
 - **큰 응답은 파일로 받는다.** 캡처·스크린샷은 base64 PNG가 수십만 자라 잘라 읽지 말고 디코드해 파일로 본다.
 - 에디터는 새로 저장한 파일을 git 인덱스에 자동으로 올린다(`A`, 삭제는 `D`). 커밋에 섞이지 않게 `git restore --staged`로 내린다.
@@ -37,7 +38,7 @@ description: 실행 중인 언리얼 에디터를 unreal-mcp로 다룰 때(에�
 
 - 다른 세션이 띄운 에디터는 닫지 않는다. 에디터 프로세스는 `UnrealEditor*` 패턴으로 찾는다(`-Win64-DebugGame`·`-Cmd` 변형이 있다). 그중 이 프로젝트 것인지는 `.agents/skills/run-editor/scripts/Get-WxProjectProcess.ps1`이 판정한다.
 - `run-editor`는 이 프로젝트의 에디터를 모두 종료한다. 다른 세션 에디터가 떠 있으면 쓰지 말고, 빌드 후 `Start-WxEditorMcp.ps1`로 띄운다. 끝나면 저장할 것을 다 저장했는지 확인하고 내가 띄운 PID만 `Stop-Process -Id`로 닫는다(창을 닫으면 저장 확인 창이 MCP를 막는다).
-  - 자동 저장이 한 번이라도 돈 세션을 이렇게 닫으면 다음 시작에 `Restore Packages` 창이 뜬다. `Start-WxEditorMcp.ps1`은 이 창을 감지하면 답하지 않고 멈춘 뒤 그 사실을 출력한다. 그 세션에서 저장하지 않은 작업이 없으면 그 창을 user32 `WM_CLOSE`로 닫는다(복구하지 않는다).
+  - 자동 저장이 한 번이라도 돈 세션을 이렇게 닫으면 다음 시작에 `Restore Packages` 창이 뜬다. `Start-WxEditorMcp.ps1`은 이 창을 감지하면 답하지 않고 `WX_MCP_RESULT=blocked by the 'Restore Packages' dialog`로 멈춘다. 그 세션에서 저장하지 않은 작업이 없으면 그 창을 user32 `WM_CLOSE`로 닫는다(복구하지 않는다).
   - 검증용으로 만들고 저장하지 않은 임시 에셋도 수정 상태라 자동 저장될 수 있다. 닫기 전에 `AssetTools.delete`로 지운다.
   - 그 창에서 복구가 눌리면 자동 저장본이 원본 에셋 파일을 덮어쓴다. 버리려던 미저장 편집이 디스크에 들어가니, 닫기 전에 저장하지 않을 편집은 에디터 안에서 되돌리고 다시 시작한 뒤 `git status`로 확인한다.
 - 포트 8000은 먼저 뜬 에디터가 차지한다. `Start-WxEditorMcp.ps1`가 빈 포트(`-ModelContextProtocolPort=N`)를 고르니 출력된 포트로만 호출한다. 엉뚱한 에디터에 보내면 옛 바이너리가 에셋을 만든다.

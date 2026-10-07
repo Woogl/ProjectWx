@@ -37,5 +37,7 @@ BP의 네이티브 부모 클래스를 지우거나 재부모화하면 그 BP의
 - 일반 패키지: `UnrealEditor-Cmd.exe <uproject> -run=ResavePackages -unattended -nopause -nosplash -SCCProvider=None -PACKAGE=/Game/...`. 소스 컨트롤을 끄지 않으면 git 경고로 종료 코드 1이 된다.
   - `-PACKAGE=`는 패키지마다 따로 준다(`A+B+C`는 한 이름으로 취급된다). `-PackageFolder=... -MapsOnly`는 맵만 고르지 않고 폴더 전체를 재저장한다.
   - Git Bash에서는 MSYS 경로 변환이 `/Game/...`을 망가뜨린다. PowerShell에서 돌리거나 `MSYS_NO_PATHCONV=1`을 붙인다.
-- 외부 액터: `ResavePackages`는 조용히 건너뛴다. `-run=WorldPartitionBuilderCommandlet <맵> -Builder=WorldPartitionResaveActorsBuilder`로 재저장한다. 인자 전체는 `Check-Redirects.ps1`의 외부 액터 재저장 호출이 정본이니 손으로 돌릴 때도 그 인자를 그대로 쓴다. 이 빌더는 불러오지 못한 액터 패키지를 **삭제**하니 실행 전후 파일 목록을 비교한다.
+- 외부 액터: `ResavePackages`는 조용히 건너뛴다. `UnrealEditor-Cmd.exe <uproject> <맵> -run=WorldPartitionBuilderCommandlet -Builder=WorldPartitionResaveActorsBuilder -ActorClassName=<클래스 경로> -SCCProvider=None -unattended -nopause -nosplash`를 쓴다.
+  - 클래스가 여럿이면 한 줄에 하나씩 적은 파일을 `-ActorClassName` 대신 `-ActorClassesFromFile=<파일>`로 넘긴다. 둘 다 없으면 맵의 모든 액터를 재저장한다.
+  - 이 빌더는 불러오지 못한 액터 패키지를 **삭제**하니 실행 전후 파일 목록을 비교한다.
 - 에디터가 떠 있어도 커맨드릿은 별도 프로세스라 돌릴 수 있지만, 에디터가 연 파일은 `git restore`로 되돌리지 못한다.
