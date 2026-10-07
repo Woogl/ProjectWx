@@ -21,7 +21,7 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
 |---|---|
 | AI 공통 지침과 조사 진입점, 하네스 설치(스킬 junction)와 지침 로딩 | [루트 AGENTS.md](../../AGENTS.md) |
 | 공용 스킬의 목록·사용법·실행 절차 | [.agents/skills/](../../.agents/skills/)의 각 `SKILL.md` |
-| 공용 스크립트의 동작·출력·종료 코드 | 각 스크립트의 머리 주석. 스크립트는 [.agents/scripts/](../../.agents/scripts/), 스킬 폴더의 `scripts/`(빌드 문맥은 `build-doctor`, 프로젝트 프로세스 판정은 `run-editor`), 엔진 경로 탐색 [BatchFiles/Get-WxEngineRoot.ps1](../../BatchFiles/Get-WxEngineRoot.ps1)에 있다 |
+| 공용 스크립트의 사용법(인자·출력·종료 코드) | 그 스크립트를 부르는 스킬(스크립트 자체는 보조 도구라 정본으로 삼지 않는다). 스크립트 파일은 [.agents/scripts/](../../.agents/scripts/), 스킬 폴더의 `scripts/`(빌드 문맥은 `build-doctor`, 프로젝트 프로세스 판정은 `run-editor`), 엔진 경로 탐색 [BatchFiles/Get-WxEngineRoot.ps1](../../BatchFiles/Get-WxEngineRoot.ps1)에 있다 |
 | 엔진 버전 | `Wx.uproject`의 `EngineAssociation` |
 | 도구별 연결·설정 | `.mcp.json`, `.codex/config.toml`, `.gemini/settings.json`, `.claude/settings.json` |
 | 에디터 MCP 서버 주소(포트·경로) | `Config/DefaultEditorPerProjectUserSettings.ini`. `.mcp.json`·`.codex/config.toml`·스크립트 기본 포트는 형식상 값을 따로 적는 사본이라 함께 고친다 |
@@ -64,6 +64,9 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
 - 2026-10-06 MVVM 이벤트 인자에 탭 태그 같은 고정값을 넣는 `SetEventArgumentValue`가 추가됐다(커밋 24139e441).
   앞선 이벤트 툴 목록에 더해진 구현이며, 사용법과 입력 형식은 툴의 doc 주석에서 관리한다.
 - 2026-10-07 SSoT 점검에서 여러 스킬이 같은 규칙을 다시 적어 이미 서로 다른 말을 하는 곳(임시 테스트 경로, 주석 문체, 스크립트 인코딩, 서브에이전트 상한)을 찾았다. 규칙 문장은 루트 `AGENTS.md` 한 곳에 두고 스킬은 가리키기만 한다. 스크립트의 인자·출력·종료 코드는 스크립트 머리 주석, 우리 MCP 툴 사용법은 doc 주석이 정본이다. 리뷰 판단 근거로 개인 메모리를 쓰지 않는다. (사용자 결정 "모두 진행합시다")
+- 2026-10-07 같은 날 스크립트를 정본으로 둔 부분은 되돌렸다. 스크립트는 작업 보조 도구이지 근거 문서가 아니다. (사용자 결정 "네 그렇게 합시다", 커밋 ca58db1f5)
+  - 절차와 엔진 사실(커맨드릿 인자 등)은 스킬 문서에 적는다. 스킬은 스크립트 결과를 판정하는 데 필요한 인자·출력·종료 코드도 함께 적고, 스크립트 인터페이스를 바꾸면 그 스크립트를 부르는 스킬도 고친다.
+  - 걷어 냈던 종료 코드는 머리 주석과 어긋난 적이 없었다. 스크립트에 지식을 묻으면 도구를 고칠 때 근거가 바뀌거나 사라지고, 확인하려면 도구 코드를 읽어야 한다.
 
 ## 관련
 
@@ -83,7 +86,8 @@ WX 개발에서 AI를 활용하는 원칙과 결정 이유, 운영 정보의 정
 - 사용자 대화: 메모리 이관과 코딩 규칙 정리, C++ 이전 범위 (2026-10-06)
 - 사용자 대화: 에디터·MCP 요령 이관과 WxToolset 정리 (2026-10-06)
 - `AGENTS.md` (6998ca09e), `.agents/scripts/Check-CodingRules.ps1` (f60aac7f4)
-- `.agents/skills/` (4fdf8ef96)
+- `.agents/skills/` (ca58db1f5)
 - 사용자 대화: WxToolset 중복 점검과 엔진 MVVM Toolset 활성화 (2026-10-06)
 - 사용자 대화: SSoT 점검과 정리 (2026-10-07, 미커밋 작업 트리 기준)
+- 사용자 대화: 스크립트를 정본으로 두지 않기로 한 결정 (2026-10-07)
 - `Plugins/WxToolset/` (24139e441)
