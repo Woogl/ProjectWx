@@ -12,6 +12,15 @@
 ## PCG
 
 - `PCGToolset.ExecuteGraphInstance`는 PCGVolume 액터만 받는다. BP 액터의 PCG 컴포넌트는 `bActivated`를 false로 바꾸면 생성물을 지우고 true로 되돌리면 다시 생성한다. 완료는 `bGenerationInProgress`로 폴링한다.
+- `bActivated` 토글은 이미 생성된(`bGenerated=true`) 컴포넌트만 다시 생성한다. 생성물이 지워진 컴포넌트는 디테일 패널의 Generate 버튼으로만 생성된다. SlateInspector에서 버튼과 목록 행은 `Click`만으로 눌리지 않고 포커스만 간다.
+  1. 액터를 선택하고 컴포넌트 목록 행 하나를 `Click`해 포커스를 준다.
+  2. `PressKey("Home")` 뒤 `Down`을 한 번씩 누르며 `WaitFor("Generate On Demand")`가 참이 될 때까지 내려간다.
+  3. `"Generate\r\nCancel…"` 행을 `Observe`해 `button "Generate"` 참조를 얻고, `Click`으로 포커스를 준 뒤 `PressKey("Enter")`를 보낸다.
+  - 스크립트(`execute_tool_script`) 안에서 연달아 부르면 클릭 사이에 UI가 갱신되지 않으니 단계마다 따로 호출한다. 키 입력과 `WaitFor`는 한 스크립트 안에서도 된다.
+- 파티션 PCG 컴포넌트가 붙은 BP에 컴포넌트를 추가하고 컴파일하면 배치 인스턴스의 생성 결과가 지워진다(`bGenerated=false`). 구성 변화 없는 재컴파일은 다시 굽고, 배치 인스턴스의 박스 크기를 바꾸면 지우기만 한다. 지워졌으면 위 Generate 절차로 다시 굽는다.
+- Custom HLSL 노드의 `ShaderSource`·`ShaderFunctions`는 ObjectTools로 읽고 쓸 수 없다. `/PCG/ComputeSources/PCGCS_Quaternion`을 복제한 PCG Compute Source 에셋의 `Source`에 커널 본문을 쓰고 노드의 `KernelSourceOverride`로 가리킨다. 긴 본문은 `Saved/`에 `.txt`로 두고 `AssetTools.read_file`로 읽어 넣는다(`.hlsl` 확장자는 거부한다).
+- Custom HLSL 입력 핀은 연결을 하나만 받는다. 여러 소스는 앞 노드(그래프 출력 핀 등)에서 한 핀에 여러 데이터로 모아 넘긴다. 연결할 때 타입 필터 노드가 자동으로 끼어든다.
+- 런타임 생성(GenerateAtRuntime) 컴포넌트는 에디터에서 `PCGWorldActor.bTreatEditorViewportAsGenerationSource`가 켜져 있고 에디터 뷰포트가 활성 창일 때만 미리보기가 돈다. MCP로 확인할 때는 PIE를 쓴다. PIE 중 `CaptureViewport`는 에디터 월드를 그리니 `CaptureEditorImage`로 찍어 뷰포트 영역을 자른다.
 - 연달아 실행하면 "Failed to call Execute"가 뜬다. 앞 생성이 아직 도는 중이라는 뜻이다.
 - PCG는 결과를 캐시해서 시드만 바꾸면 다시 돌지 않을 수 있다. 노드 파라미터를 바꾸거나 `bActivated`를 토글해 강제한다.
 - **볼륨을 키워도 결과가 옛 범위에 그대로 남으면 `bExecuteOnGPU`를 의심한다.** 켜진 스포너는 컴퓨트 셰이더가 컴파일되는 동안 생성을 끝내지 못하고 마지막 결과를 유지한다. 같은 그래프의 CPU 갈래까지 함께 멈춘다. 그 노드의 `bExecuteOnGPU`를 껐다 켜면 다시 돈다. 로그의 `Missing cached shader map for kernel ... PCGStaticMeshSpawnerCS, compiling.`이 단서다.
@@ -34,6 +43,9 @@
 ## 랜드스케이프
 
 - 생성과 높이·가중치 통째 가져오기는 `WxToolset.WxLandscapeToolset`으로 한다.
+- 지형을 RVT에 그리게 하려면 지형 머티리얼에 Runtime Virtual Texture Output 노드가 있어야 한다. 출력 노드가 없는 머티리얼은 기본 머티리얼로 대체되지 않고 조용히 건너뛰어 RVT가 빈 채로 남는다(`FRuntimeVirtualTextureMeshProcessor::TryAddMeshBatch`).
+- 지형의 Draw in Virtual Textures(`RuntimeVirtualTextures`)는 부모 `Landscape`에서 바꾸면 로드된 스트리밍 프록시로 전파된다. 프록시마다 `SavePackages`로 저장한다.
+- 지형은 RVT의 거친 밉 페이지를 낮은 LOD로 그린다(1m 격자 지형에서 4096px·2km RVT의 밉2는 LOD1). 거친 밉을 흐린 높이로 쓰면 LOD 격자만큼 넓게 어긋나니, 주변 높이가 필요하면 기본 밉으로 여러 지점을 읽는다.
 - Edit Layers 토글은 디테일 패널이 아니라 Landscape 모드의 Manage 패널 하단에만 있다. 디테일 패널 검색에 안 나온다고 꺼진 것이 아니다.
 - **지면이 하늘을 비추는 검은 거울처럼 보이면 머티리얼 NaN이다.** 에러 로그가 없고, 캐시를 비운 직후엔 멀쩡하다가 Lumen 카드가 다시 캡처되면 재발해 고쳐졌다고 오판하기 쉽다.
   - 원인 1: Custom 노드 추가 출력으로 낸 노멀. 출력마다 Custom 노드를 나눈다.

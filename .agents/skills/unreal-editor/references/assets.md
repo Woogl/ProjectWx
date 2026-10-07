@@ -25,6 +25,8 @@
 - `BlueprintTools.get_default_object`로 CDO(`Default__X_C`) 경로를 얻는다. BP 에셋 경로를 `ObjectTools`에 넘기면 CDO로 바뀐다.
 - 컴포넌트 템플릿은 `…Default__X_C:컴포넌트명`, 차일드 액터 템플릿은 `BP.BP_C:컴포넌트_GEN_VARIABLE.<템플릿명>_CAT`이다.
 - CDO·템플릿을 고친 뒤에는 **`BlueprintTools.compile_blueprint`가 필수**다. 컴파일하지 않으면 조회 값은 바뀌어도 스폰된 인스턴스에는 반영되지 않는다. 컴파일 뒤 `SavePackages`로 저장한다.
+- `ActorTools.add_component`로 붙인 컴포넌트의 템플릿(`BP.BP_C:이름_GEN_VARIABLE`)을 고치면, 이미 배치된 인스턴스는 컴파일 뒤에도 붙인 시점의 기본값을 인스턴스 값으로 들고 있다. 배치 인스턴스를 다시 읽어 다르면 인스턴스에도 같은 값을 쓴다.
+- 배치 액터의 컴포넌트에 `set_properties`를 쓰면 값 하나를 쓸 때마다 생성 스크립트가 다시 돌아 컴포넌트가 새로 만들어진다. 같은 호출의 나머지 값(벡터의 y·z까지)은 버려진 컴포넌트에 들어가니 `{"BoxExtent":{"y":4000}}`처럼 필드 하나씩 쓰고 다시 읽는다.
 - 신규 BP: `BlueprintTools.create(asset_type=부모 클래스)` → CDO 편집 → 컴파일 → 저장.
 
 ## 데이터 에셋·테이블
