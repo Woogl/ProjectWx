@@ -44,7 +44,7 @@ allowed-tools: Read, Grep, Glob, Bash, PowerShell, Write, Agent
 
 - 묶음의 모든 파일을 끝까지 읽는다. 여러 파일을 한 번에 읽어 도구 호출을 줄인다(80회 안쪽 목표).
 - 각 함수의 호출자·피호출자를 범위 밖까지 추적한다. 점검 축은 다음과 같다: 수명(BeginPlay/EndPlay/Initialize/Deinitialize/빙의), 델리게이트·타이머 해제, 서버·클라 분기와 복제, GAS 발동·종료·취소와 태그·GE 적용 순서, null·범위, 엔진 API 의미론, 조기 return으로 건너뛰는 정리 코드.
-- 엔진 동작은 추측하지 않고 엔진 소스로 확인한다(엔진 경로는 `BatchFiles/Get-WxEngineRoot.ps1`).
+- 엔진 동작은 추측하지 않고 엔진 소스로 확인한다(엔진 경로는 `BatchFiles/Get-WxEngineRoot.ps1 -ProjectFile <Wx.uproject 절대 경로>`가 출력한다).
 - 에셋 구성은 1절에서 갱신한 어빌리티·이펙트·캐릭터 목록과 Content `.uasset` 문자열 검색으로 확인한다.
 - 의심되면 확신 "낮음"으로라도 후보를 보고한다(최종 보고서에 실을지는 검증 단계에서 정한다). 개수를 채우지는 않는다.
 - 결과: 읽은 파일 / 못 읽은 파일, 후보 목록(제목·중요도·종류·위치·근거 위치·발생 조건·원인·영향·수정 제안·확신), 범위 밖 의심점, 다섯 문장 이내 요약.
