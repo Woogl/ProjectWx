@@ -3,7 +3,10 @@
 #include "UI/MVVM/WxViewModel_Ability.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/WxAbilityBase.h"
+#include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
+#include "EnhancedInputSubsystems.h"
+#include "GameFramework/PlayerController.h"
 #include "GameplayEffect.h"
 #include "UI/MVVM/WxViewModelUtils.h"
 #include "TimerManager.h"
@@ -63,14 +66,28 @@ void UWxViewModel_Ability::Deinitialize()
 
 bool UWxViewModel_Ability::TryActivateAbility()
 {
-	UAbilitySystemComponent* ASC = CachedASC.Get();
-	const UGameplayAbility* Ability = CachedAbility.Get();
-	if (!ASC || !Ability)
+	const UAbilitySystemComponent* ASC = CachedASC.Get();
+	const UWxAbilityBase* Ability = Cast<UWxAbilityBase>(CachedAbility.Get());
+	if (!ASC || !Ability || !Ability->ActivationInputAction)
 	{
 		return false;
 	}
 
-	return ASC->TryActivateAbility(Ability->GetCurrentAbilitySpecHandle());
+	const APlayerController* PC = ASC->AbilityActorInfo->PlayerController.Get();
+	if (!PC)
+	{
+		return false;
+	}
+
+	UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
+	if (!InputSubsystem)
+	{
+		return false;
+	}
+
+	// 직접 발동하면 이미 활성인 콤보가 거절하므로, 키와 같은 입력 경로로 넣어 콤보 창과 선입력이 받게 한다.
+	InputSubsystem->InjectInputForAction(Ability->ActivationInputAction, FInputActionValue(true), {}, {});
+	return true;
 }
 
 const FGameplayTagContainer& UWxViewModel_Ability::GetAbilityTags() const
