@@ -23,14 +23,14 @@ void UWxHUDLayout::NativeOnInitialized()
 	MainMenuArgs.InputMode = ECommonInputMode::Game;
 	RegisterUIActionBinding(MainMenuArgs);
 
-	// 홀드 중 입력모드는 All 이라 Released 는 All 와일드카드로 매칭된다.
+	// 누르는 동안은 Menu 모드라 Released 도 Menu 로 등록해야 매칭된다.
 	FBindUIActionArgs FreeCursorPressedArgs(FUIActionTag::ConvertChecked(WxGameplayTags::UI_Action_FreeCursor), FSimpleDelegate::CreateUObject(this, &UWxHUDLayout::HandleFreeCursorPressed));
 	FreeCursorPressedArgs.InputMode = ECommonInputMode::Game;
 	FreeCursorPressedArgs.KeyEvent = IE_Pressed;
 	RegisterUIActionBinding(FreeCursorPressedArgs);
 
 	FBindUIActionArgs FreeCursorReleasedArgs(FUIActionTag::ConvertChecked(WxGameplayTags::UI_Action_FreeCursor), FSimpleDelegate::CreateUObject(this, &UWxHUDLayout::HandleFreeCursorReleased));
-	FreeCursorReleasedArgs.InputMode = ECommonInputMode::Game;
+	FreeCursorReleasedArgs.InputMode = ECommonInputMode::Menu;
 	FreeCursorReleasedArgs.KeyEvent = IE_Released;
 	RegisterUIActionBinding(FreeCursorReleasedArgs);
 }
@@ -66,10 +66,7 @@ void UWxHUDLayout::HandleFreeCursorPressed()
 		return;
 	}
 
-	// All: 이동 등 게임 입력 유지, NoCapture: 커서 표시, bIgnoreLookInput: 마우스 카메라만 정지.
-	FUIInputConfig Config(ECommonInputMode::All, EMouseCaptureMode::NoCapture);
-	Config.bIgnoreLookInput = true;
-	ActionRouter->SetActiveUIInputConfig(Config, this);
+	ActionRouter->SetActiveUIInputConfig(FUIInputConfig(ECommonInputMode::Menu, EMouseCaptureMode::NoCapture), this);
 }
 
 void UWxHUDLayout::HandleFreeCursorReleased()
