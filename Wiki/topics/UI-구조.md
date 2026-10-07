@@ -16,7 +16,9 @@ UI 레이어와 화면 띄우기, 입력 모드, 게임 일시정지, 팝업, �
   - 폰 ASC에 `Ability.Death`가 붙으면 사망 화면을 Menu 레이어에, `State.Dialogue`가 붙으면 대화 화면을 Game 레이어 맨 위에 띄운다. 대화 화면은 태그가 걷히면 띄운 컴포넌트가 닫는다.
 - HUD 에셋 `WBP_GameHUD`는 09-09에 `WBP_GameLayout`으로 이름이 바뀌었다(e0e3ecc51).
 - HUD는 CommonUI 액션 `UI.Action.Inventory`·`UI.Action.MainMenu`로 인벤토리·메인 메뉴를 Menu 레이어에 push한다. 로드가 끝나기 전 같은 입력이 와도 메뉴가 겹쳐 쌓이지 않게 진행 중 요청을 기억한다.
-- `UI.Action.FreeCursor`를 누르는 동안 입력 설정을 All·커서 표시·시점 입력 무시로 바꾸고, 떼면 HUD 자신의 희망 설정으로 되돌린다.
+- `UI.Action.FreeCursor`(LeftAlt)를 누르는 동안 입력 설정을 Menu·`NoCapture`로 바꿔 커서를 보이고 입력을 UI로 넘기며, 떼면 HUD 자신의 희망 설정으로 되돌린다.
+  - 누르는 동안 이동·시점·어빌리티 입력과 HUD의 메뉴 토글이 막힌다. Menu 모드에 들어갈 때 CommonUI가 눌린 키를 비워, 이동 키를 누른 채 Alt를 눌렀다면 뗀 뒤 이동 키를 다시 눌러야 움직인다.
+  - Alt+Tab처럼 뗀 입력이 게임에 오지 않으면 Alt를 한 번 더 눌렀다 뗄 때까지 Menu 모드로 남는다.
 - `UWxUILibrary`는 서브시스템·레이아웃 조회, 소유 activatable 닫기(`DeactivateOwningActivatable`), 확인 팝업(`ShowConfirmationPopup`)을 BP에 준다. 프론트엔드의 캐릭터·레벨 선택 버튼과 새 게임 요청은 `UWxFrontEndLibrary`가 준다.
 
 ### 입력 모드
@@ -49,7 +51,7 @@ UI 레이어와 화면 띄우기, 입력 모드, 게임 일시정지, 팝업, �
 - CommonUI 액션 바인딩의 `InputMode`는 포함이 아니라 정확 매칭이다. 현재 입력 모드가 All이거나 바인딩 모드와 같을 때만 발동한다(`FActionRouterBindingCollection::ProcessNormalInput`).
   - 그래서 `InputMode=All` 바인딩은 All 모드에서만 돈다.
   - 아무 위젯도 입력 설정을 걸지 않은 시작 직후는 사실상 All이라 모든 바인딩이 매칭되어, '첫 입력만 되고 메뉴를 한 번 거치면 안 되는' 현상이 난다.
-  - FreeCursor를 누르는 동안은 All 모드라 Released 바인딩이 매칭된다.
+  - FreeCursor는 누르는 동안 Menu 모드라 Released 바인딩을 `InputMode=Menu`로 등록한다.
 - CommonUI는 `bSupportsActivationFocus`가 꺼진 위젯을 leafmost 활성 노드로 보지 않아, 그 위젯의 `GetDesiredInputConfig`를 로그 없이 적용하지 않는다. HUD의 Game 입력 설정은 이 값이 켜져 있어야 걸린다.
 - 레이어 스택에 루트 콘텐츠가 없어, 위젯이 하나뿐인 스택에서 그것이 비활성화돼도 스택 이벤트(`OnDisplayedWidgetChanged`)가 나지 않는다. 일시정지가 위젯 자신의 `OnActivated`·`OnDeactivated`를 구독하는 이유다. `GetActiveWidget`도 비활성화된 위젯을 돌려줄 수 있어 `IsActivated()`로 거른다.
 - 게임모드의 해제는 등록된 정지 주체의 `FCanUnpause`에 되물어 동의한 것과 대리자가 없는 것만 걷는다. 새 정지 주체는 자기 대리자를 걸어야 남의 해제에 풀리지 않는다.
@@ -83,6 +85,9 @@ UI 레이어와 화면 띄우기, 입력 모드, 게임 일시정지, 팝업, �
   - UI 호출부(PC·어빌리티 등)는 `UWxUIManagerSubsystem`을 꺼내 직접 부르지 않고 `UWxUILibrary` 파사드를 쓰며, 없으면 더한다. 호출부마다 서브시스템 조회와 널 처리를 반복하지 않고 한 곳을 지나게 하려는 것이다. 파사드는 조회 → 널이면 조기 반환 → 위임 순서로 쓰고 반환값을 그대로 넘기며, 레이어 태그 인자에는 `UPARAM(meta = (Categories = "UI.Layer"))`를 붙인다.
   - `UWxUIManagerSubsystem`은 자막 같은 개별 표시 뷰모델을 소유하거나 등록하지 않는다. 리뷰 제안을 받아 표시 뷰모델을 UIManager로 옮겼다가 09-24 사용자 지시로 되돌렸다. 참고로 UE 5.8에서 서브시스템 `Initialize` 안에서 다른 서브시스템을 `GetSubsystem`으로 부르면 그 자리에서 초기화되므로 `InitializeDependency`가 필요 없다(`SubsystemCollection.cpp` `GetSubsystemInternal`).
 - 2026-10-06 인디케이터 위젯 표식 인터페이스 `IWxIndicatorWidget`을 걷어냈다. 함수 없이 `MustImplement`로 선택 목록만 좁혔고, 구현해도 뷰모델 소스가 있다는 보장이 없어 실제 검사는 런타임 `BindViewModel`이 하고 있었다. (사용자 결정)
+- 2026-10-07 Alt 홀드 자유 커서가 누르는 동안 입력을 UI로 넘기도록 All 모드를 Menu 모드로 바꿨다. (사용자 결정 "Alt 키를 누른 동안에만 포커스가 UI로 되고 떼면 다시 원복", 커밋 d4d9ed2a3)
+  - All 모드는 커서만 보이고 이동·스킬 입력이 계속 게임으로 갔다.
+  - 누르는 동안 이동이 유지되던 MMO식 동작(07-18 0c09568f2)은 버렸다.
 
 ## 관련
 - [UI 설계 원칙](UI-설계-원칙.md)
@@ -97,7 +102,7 @@ UI 레이어와 화면 띄우기, 입력 모드, 게임 일시정지, 팝업, �
 - `Source/WxGame/UI/Subsystem/WxUIManagerSubsystem.cpp` (7960789cf)
 - `Source/WxGame/UI/WxActivatableWidget.h` (d37e1dd32)
 - `Source/WxGame/UI/WxPrimaryGameLayout.cpp` (d37e1dd32)
-- `Source/WxGame/UI/WxHUDLayout.cpp` (d37e1dd32)
+- `Source/WxGame/UI/WxHUDLayout.cpp` (d4d9ed2a3)
 - `Source/WxGame/UI/WxPlayerLayoutComponent.cpp` (2e937bd57)
 - `Source/WxGame/UI/WxUILibrary.cpp` (d37e1dd32)
 - `Source/WxGame/UI/Foundation/` (7f8e2731d)
